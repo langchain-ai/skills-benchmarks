@@ -1,195 +1,235 @@
 #!/usr/bin/env python3
 """
-Unified test suite for LangChain agent skills.
+Claude Code Skill Benchmarks - Test Suite
 
-Runs all tests sequentially in dependency order:
-1. langchain-agents - Creates and runs SQL agent (generates traces)
-2. langsmith-trace - Queries traces from test project
-3. langsmith-dataset generation - Generates dataset from traces
-4. langsmith-dataset upload - Uploads dataset with test name
-5. langsmith-evaluator - Creates evaluator attached to test dataset
+Runs tests to measure skill design effectiveness:
 
-Each test uses an isolated temporary directory for safety.
-LangSmith artifacts are cleaned up at the end automatically.
+1. BASELINE TESTS - Raw Claude Code capability (no context)
+2. CONTEXT IMPACT - Compare with/without CLAUDE.md
+3. SKILL DESIGN - Compare documentation formats
+4. SYNERGY TESTS - Multi-skill combinations
 
 Usage:
     uv run python tests/run_test_suite.py
-    uv run python tests/run_test_suite.py --work-dir /path/to/test/env
+    uv run python tests/run_test_suite.py --model opus
+    uv run python tests/run_test_suite.py --category context_impact
+    uv run python tests/run_test_suite.py --fast        # Use haiku + short timeouts
+    uv run python tests/run_test_suite.py --parallel    # Run tests in parallel
 """
 
 import sys
-import os
 import subprocess
 import argparse
 from pathlib import Path
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv(Path(__file__).parent.parent / ".env")
 
-# Skills root
-skills_root = Path(__file__).parent.parent
-sys.path.insert(0, str(skills_root))
+# Project root
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
 
 from scaffold.cleanup import cleanup_langsmith_assets
 
 
-def run_test_script(test_path: Path, work_dir: Path = None) -> int:
-    """Run a test script as a subprocess."""
-    cmd = ["uv", "run", "python", str(test_path)]
-    if work_dir:
-        cmd.extend(["--work-dir", str(work_dir)])
+# Test categories and their tests
+TEST_CATEGORIES = {
+    "baseline": {
+        "description": "Raw capability tests (no context)",
+        "tests": [
+            {
+                "name": "SQL Agent (Baseline)",
+                "description": "Build SQL agent without any skill context",
+                "path": project_root / "tests" / "baseline" / "test_sql_agent.py"
+            }
+        ]
+    },
+    "context_impact": {
+        "description": "Measure CLAUDE.md impact on performance",
+        "tests": [
+            {
+                "name": "CLAUDE.md Impact",
+                "description": "Compare performance with/without CLAUDE.md",
+                "path": project_root / "tests" / "context_impact" / "test_claude_md_impact.py"
+            }
+        ]
+    },
+    "skill_design": {
+        "description": "Compare skill documentation formats",
+        "tests": [
+            {
+                "name": "Trace Analysis Docs",
+                "description": "Edge case handling with different doc styles",
+                "path": project_root / "tests" / "skill_design" / "test_documentation_formats.py"
+            },
+            {
+                "name": "Pytest Fixtures",
+                "description": "Pattern adherence with minimal vs structured docs",
+                "path": project_root / "tests" / "skill_design" / "test_pytest_fixtures.py"
+            }
+        ]
+    },
+    "synergy": {
+        "description": "Multi-skill combination tests",
+        "tests": [
+            {
+                "name": "Build-Trace-Dataset Pipeline",
+                "description": "Chain multiple skills together",
+                "path": project_root / "tests" / "synergy" / "test_build_trace_dataset.py"
+            }
+        ]
+    }
+}
 
-    result = subprocess.run(cmd, cwd=str(skills_root))
 
-    # Clean up local files after each test (temp dirs handle their own cleanup)
-    print("Cleaning up local test files...")
-    cleanup_cmd = ["uv", "run", "python", "scaffold/cleanup.py", "--local"]
-    subprocess.run(cleanup_cmd, cwd=str(skills_root), capture_output=True)
+def run_test_script(test_path: Path, model: str = None, quiet: bool = False) -> tuple:
+    """Run a test script as a subprocess.
 
-    return result.returncode
-
-
-def run_suite(work_dir: Path = None):
-    """Run the complete test suite.
-
-    Args:
-        work_dir: Base environment with deepagents installed (or None for default)
+    Returns:
+        Tuple of (return_code, stdout) for analysis
     """
+    cmd = ["uv", "run", "python", str(test_path)]
+    if model:
+        cmd.extend(["--model", model])
 
-    start_time = datetime.now()
+    result = subprocess.run(
+        cmd,
+        cwd=str(project_root),
+        capture_output=quiet,
+        text=True
+    )
+    return result.returncode, result.stdout if quiet else ""
 
-    print("=" * 80)
-    print("LANGCHAIN AGENT SKILLS - TEST SUITE")
-    print("=" * 80)
-    print()
-    print(f"Started: {start_time.strftime('%Y-%m-%d %H:%M:%S')}")
-    print()
-    print("Each test runs in an isolated temporary directory.")
-    print()
 
-    # Define test suite in dependency order
-    tests = [
-        {
-            "name": "LangGraph Code",
-            "description": "Create SQL agent using modern patterns",
-            "path": skills_root / "tests" / "langchain-agents" / "test_create_agent.py"
-        },
-        {
-            "name": "LangSmith Trace Query",
-            "description": "Query and extract recent traces",
-            "path": skills_root / "tests" / "langsmith-trace" / "test_trace_query.py"
-        },
-        {
-            "name": "LangSmith Dataset Generation",
-            "description": "Generate dataset from traces (no upload)",
-            "path": skills_root / "tests" / "langsmith-dataset" / "test_dataset_generation.py"
-        },
-        {
-            "name": "LangSmith Dataset Upload",
-            "description": "Generate and upload dataset",
-            "path": skills_root / "tests" / "langsmith-dataset" / "test_dataset_upload.py"
-        },
-        {
-            "name": "LangSmith Evaluator Upload",
-            "description": "Create and upload evaluator",
-            "path": skills_root / "tests" / "langsmith-evaluator" / "test_evaluator_upload.py"
-        }
-    ]
+def run_single_test(test: dict, model: str = None, quiet: bool = False) -> tuple:
+    """Run a single test. Returns (name, returncode, stdout)."""
+    if not test["path"].exists():
+        return (test["name"], -1, "Test file not found")
+
+    returncode, stdout = run_test_script(test["path"], model, quiet)
+    return (test["name"], returncode, stdout)
+
+
+def run_category(category: str, model: str = None, parallel: bool = False, quiet: bool = False) -> list:
+    """Run all tests in a category."""
+    if category not in TEST_CATEGORIES:
+        print(f"Unknown category: {category}")
+        return []
+
+    cat_info = TEST_CATEGORIES[category]
+    tests = cat_info["tests"]
+
+    if not quiet:
+        print(f"\n[{category.upper()}] {cat_info['description']}")
 
     results = []
-    failed_test = None
 
-    # Run tests in order
-    for i, test in enumerate(tests, 1):
-        print("=" * 80)
-        print(f"TEST {i}/{len(tests)}: {test['name']}")
-        print(f"Description: {test['description']}")
-        print("=" * 80)
-        print()
+    if parallel and len(tests) > 1:
+        # Run tests in parallel
+        with ThreadPoolExecutor(max_workers=4) as executor:
+            futures = {
+                executor.submit(run_single_test, test, model, True): test
+                for test in tests
+            }
+            for future in as_completed(futures):
+                name, returncode, _ = future.result()
+                status = "PASS" if returncode == 0 else "FAIL" if returncode > 0 else "SKIP"
+                print(f"  {status}: {name}")
+                results.append((name, returncode))
+    else:
+        # Run tests sequentially
+        for test in tests:
+            if not quiet:
+                print(f"  Running: {test['name']}...", end=" ", flush=True)
 
-        try:
-            result = run_test_script(test["path"], work_dir)
-            results.append((test["name"], result))
+            name, returncode, _ = run_single_test(test, model, quiet)
+            status = "PASS" if returncode == 0 else "FAIL" if returncode > 0 else "SKIP"
 
-            if result != 0:
-                failed_test = test["name"]
-                print()
-                print(f"✗ TEST FAILED: {test['name']}")
-                print()
-                print("Aborting test suite due to failure.")
-                print("Later tests depend on earlier tests passing.")
-                break
+            if quiet:
+                print(f"  {status}: {name}")
             else:
-                print()
-                print(f"✓ TEST PASSED: {test['name']}")
-                print()
+                print(status)
 
-        except Exception as e:
-            print()
-            print(f"✗ TEST ERROR: {test['name']}")
-            print(f"Exception: {e}")
-            results.append((test["name"], 1))
-            failed_test = test["name"]
-            break
+            results.append((name, returncode))
+
+    return results
+
+
+def run_suite(categories: list = None, model: str = None, parallel: bool = False, quiet: bool = False):
+    """Run the test suite."""
+    start_time = datetime.now()
+
+    if not quiet:
+        print(f"CLAUDE CODE SKILL BENCHMARKS | {start_time.strftime('%H:%M:%S')} | model={model or 'default'}")
+
+    # Default to all categories
+    if not categories:
+        categories = list(TEST_CATEGORIES.keys())
+
+    all_results = {}
+
+    for category in categories:
+        results = run_category(category, model, parallel, quiet)
+        all_results[category] = results
 
     # Print summary
-    end_time = datetime.now()
-    duration = (end_time - start_time).total_seconds()
+    duration = (datetime.now() - start_time).total_seconds()
 
-    print()
-    print("=" * 80)
-    print("TEST SUITE SUMMARY")
-    print("=" * 80)
-    print()
-    print(f"Duration: {duration:.1f}s")
-    print(f"Tests run: {len(results)}/{len(tests)}")
-    print()
+    total_passed = sum(1 for r in sum(all_results.values(), []) if r[1] == 0)
+    total_failed = sum(1 for r in sum(all_results.values(), []) if r[1] > 0)
 
-    passed = sum(1 for _, result in results if result == 0)
-    failed = sum(1 for _, result in results if result != 0)
+    print(f"\n{'='*50}")
+    print(f"RESULTS: {total_passed} passed, {total_failed} failed | {duration:.0f}s")
 
-    print("Results:")
-    for name, result in results:
-        status = "✓ PASS" if result == 0 else "✗ FAIL"
-        print(f"  {status} - {name}")
+    if total_failed > 0:
+        print("\nFailed tests:")
+        for category, results in all_results.items():
+            for name, result in results:
+                if result > 0:
+                    print(f"  - {category}/{name}")
 
-    if failed_test:
-        print()
-        print("=" * 80)
-        print(f"SUITE FAILED at: {failed_test}")
-        print("=" * 80)
-        final_result = 1
-    else:
-        print()
-        print("=" * 80)
-        print("ALL TESTS PASSED")
-        print("=" * 80)
-        final_result = 0
-
-    # Cleanup LangSmith assets
-    print()
-    print("Cleaning up LangSmith test assets...")
-    cleanup_langsmith_assets()
-
-    return final_result
+    print(f"{'='*50}")
+    return 0 if total_failed == 0 else 1
 
 
 def main():
-    """Main entry point with CLI argument parsing."""
     parser = argparse.ArgumentParser(
-        description="Run complete test suite for LangChain agent skills"
+        description="Run Claude Code skill benchmarks",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  %(prog)s                    # Run all tests
+  %(prog)s --fast             # Quick run with haiku model
+  %(prog)s --parallel         # Run tests in parallel
+  %(prog)s --category baseline
+"""
     )
-    parser.add_argument(
-        "--work-dir",
-        type=Path,
-        help="Working directory with deepagents installed (default: ~/Desktop/Projects/test)"
-    )
+    parser.add_argument("--model", type=str, help="Model (default: sonnet)")
+    parser.add_argument("--category", action="append", dest="categories", help="Category to run")
+    parser.add_argument("--fast", action="store_true", help="Fast mode: use haiku model")
+    parser.add_argument("--parallel", action="store_true", help="Run tests in parallel")
+    parser.add_argument("--quiet", "-q", action="store_true", help="Reduce output verbosity")
+    parser.add_argument("--list", action="store_true", help="List test categories")
 
     args = parser.parse_args()
 
-    return run_suite(work_dir=args.work_dir)
+    if args.list:
+        print("Categories:")
+        for cat, info in TEST_CATEGORIES.items():
+            tests = ", ".join(t["name"] for t in info["tests"])
+            print(f"  {cat}: {tests}")
+        return 0
+
+    model = args.model or ("haiku" if args.fast else None)
+    return run_suite(
+        categories=args.categories,
+        model=model,
+        parallel=args.parallel,
+        quiet=args.quiet
+    )
 
 
 if __name__ == "__main__":

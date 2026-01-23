@@ -24,7 +24,7 @@ def cleanup_test_files(test_dir: Path):
     """Clean up test artifact files from test directory.
 
     Removes files like agent_summary.txt, test_*.txt, test_*.json, etc.
-    Does not remove the directory itself or .venv.
+    Does not remove the directory itself.
 
     Args:
         test_dir: Test directory to clean
@@ -91,8 +91,8 @@ def main():
     parser = argparse.ArgumentParser(description="Clean up test assets")
     parser.add_argument("--langsmith", action="store_true", help="Clean only LangSmith assets")
     parser.add_argument("--local", action="store_true", help="Clean only local test files")
-    parser.add_argument("--test-dir", type=Path, default=Path.home() / "Desktop" / "Projects" / "test",
-                        help="Test directory to clean (default: ~/Desktop/Projects/test)")
+    parser.add_argument("--test-dir", type=Path, default=Path.cwd(),
+                        help="Test directory to clean (default: current directory)")
 
     args = parser.parse_args()
 

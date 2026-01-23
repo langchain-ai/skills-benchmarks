@@ -1,42 +1,18 @@
 """
-Testing scaffold for CLI agents.
+Testing scaffold for Claude Code skill benchmarks.
 
-Main components:
-- fixtures: Test environment setup and cleanup helpers
-- validators: Reusable validation framework with TestValidator base class
-- runner: CLI runner that executes deepagents and captures agent-written summaries
-
-Quick start:
-    from scaffold.fixtures import setup_test_environment, run_autonomous_test
-    from scaffold.validators import TestValidator
-
-    # Create custom validator by extending TestValidator
-    class MyValidator(TestValidator):
-        def check_custom_logic(self, summary: str):
-            if "expected" in summary:
-                self.passed.append("✓ Custom check passed")
-            else:
-                self.failed.append("✗ Custom check failed")
-            return self
-
-    def validate(summary: str, test_dir: Path):
-        validator = MyValidator()
-        validator.check_skill("my-skill", summary)
-        validator.check_custom_logic(summary)
-        return validator.results()
-
-    test_dir = setup_test_environment()
-    result = run_autonomous_test(
-        test_name="My Test",
-        prompt="...",
-        test_dir=test_dir,
-        runner_path=runner,
-        validate_func=validate
-    )
+Components:
+- runner: Execute Claude Code and capture events
+- capture: Parse and analyze tool call events
+- setup: Test environment setup/cleanup
 """
 
-from .validators import TestValidator
+from .runner import run_test, run_comparison, ContextMode, TestResult
+from .capture import extract_events, did_read, did_create, tool_count
+from .setup import setup_test_environment, cleanup_test_environment
 
 __all__ = [
-    'TestValidator',
+    'run_test', 'run_comparison', 'ContextMode', 'TestResult',
+    'extract_events', 'did_read', 'did_create', 'tool_count',
+    'setup_test_environment', 'cleanup_test_environment',
 ]

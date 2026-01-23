@@ -1,139 +1,219 @@
-# LangGraph + LangSmith Skills for DeepAgents CLI
+# Claude Code Skill Benchmarks
 
-Agent skills for building, observing, and evaluating LangGraph agents with LangSmith.
+Framework for benchmarking skill design best practices with Claude Code CLI.
 
-## Installation
+**Core question**: What makes a skill effective for Claude Code?
 
-```bash
-./install.sh
-```
+## Key Hypotheses
 
-Prompts for agent name (default: `langchain_agent`) and installation directory (default: `~/.deepagents`), then installs the agent with AGENTS.md and skills.
-
-## Usage
-
-```bash
-deepagents --agent langchain_agent
-export LANGSMITH_API_KEY=<your-key>
-```
-
-## Available Skills
-
-- **langchain-agents** - Build agents with LangChain ecosystem (primitives, context management, multi-agent patterns)
-- **langsmith-trace** - Query and inspect traces
-- **langsmith-dataset** - Generate evaluation datasets from traces
-- **langsmith-evaluator** - Create custom evaluation metrics
-
-## Development
-
-Agent configuration lives in `config/`. To update:
-
-```bash
-rm -rf ~/.deepagents/langchain_agent
-./install.sh
-```
-
----
-
-# Testing Scaffold
-
-Framework for validating DeepAgents CLI with skill-based agents.
+1. **CLAUDE.md matters** - Project-level context improves task completion by providing skill synergy documentation
+2. **Documentation format matters** - Well-structured docs with examples outperform minimal or verbose documentation
+3. **Skill synergies exist** - Describing how skills work together helps Claude Code chain them effectively
 
 ## Quick Start
 
 ```bash
-# Run all tests (automatically cleans local data between tests, LangSmith at end)
+# Install dependencies
+uv sync
+
+# Set up environment
+cp .env.example .env  # Add your API keys
+
+# Run all benchmarks
 uv run python tests/run_test_suite.py
 
-# Run individual tests (IMPORTANT: clean local data between each run)
-uv run python scaffold/cleanup.py --local
-uv run python tests/langchain-agents/test_create_agent.py
-uv run python scaffold/cleanup.py --local
-uv run python tests/langsmith-trace/test_trace_query.py
+# Run specific category
+uv run python tests/run_test_suite.py --category context_impact
 
-# After all tests complete, clean up LangSmith assets
-uv run python scaffold/cleanup.py --langsmith
+# List available tests
+uv run python tests/run_test_suite.py --list
 ```
 
-**Critical**: Always clean local files between individual test runs and LangSmith assets at the end to avoid test contamination.
+## Test Categories
 
-Output saved to `logs/<agent>_<timestamp>/summary.txt`.
+### 1. Baseline Tests (`tests/baseline/`)
+Measure raw Claude Code capability **without** any skill context or CLAUDE.md.
 
-## Components
-
-### Setup (`scaffold/setup.py`)
-- `setup_test_environment()` - Set up test environment (always uses temp directories)
-- `cleanup_test_environment()` - Clean up temp directories
-
-### Runner (`scaffold/runner.py`)
-- `run_autonomous_test()` - Run complete test with validation
-- CLI: `uv run python scaffold/runner.py <agent_name> <prompt>`
-
-### Cleanup (`scaffold/cleanup.py`)
 ```bash
-uv run python scaffold/cleanup.py           # Both local and LangSmith
-uv run python scaffold/cleanup.py --local   # Local files only
-uv run python scaffold/cleanup.py --langsmith  # LangSmith assets only
+uv run python tests/run_test_suite.py --category baseline
 ```
 
-### Validators (`scaffold/validators.py`)
-Custom validators extending `TestValidator`:
+### 2. Context Impact Tests (`tests/context_impact/`)
+Compare performance **with vs without** CLAUDE.md to measure its impact.
+
+```bash
+uv run python tests/run_test_suite.py --category context_impact
+```
+
+Tests run the same prompt with different contexts:
+- `ContextMode.NONE` - No CLAUDE.md, no skills
+- `ContextMode.CLAUDE_MD_ONLY` - Just CLAUDE.md
+- `ContextMode.FULL` - CLAUDE.md + skills directory
+
+### 3. Skill Design Tests (`tests/skill_design/`)
+Compare different documentation formats to find what works best.
+
+```bash
+uv run python tests/run_test_suite.py --category skill_design
+```
+
+Tests three documentation styles:
+- **MINIMAL** - Just code snippets
+- **STRUCTURED** - Clear sections with examples
+- **VERBOSE** - Excessive detail
+
+### 4. Synergy Tests (`tests/synergy/`)
+Test multi-skill tasks that require chaining skills together.
+
+```bash
+uv run python tests/run_test_suite.py --category synergy
+```
+
+Example: Build agent → Generate traces → Query traces → Create dataset
+
+## Project Structure
+
+```
+skills/                      # Skills being benchmarked
+  langchain-agents/          # LangChain agent building
+  langsmith-trace/           # Trace querying
+  langsmith-dataset/         # Dataset generation
+  langsmith-evaluator/       # Evaluator creation
+
+tests/
+  baseline/                  # No-context tests
+  context_impact/            # With/without CLAUDE.md
+  skill_design/              # Documentation format comparison
+  synergy/                   # Multi-skill tasks
+  run_test_suite.py          # Main test runner
+
+scaffold/                    # Test framework
+  runner.py                  # Claude Code execution
+  setup.py                   # Test environment setup
+  validators.py              # Result validation
+  cleanup.py                 # Cleanup utilities
+
+CLAUDE.md                    # Project context (what we're testing!)
+```
+
+## The Role of CLAUDE.md
+
+`CLAUDE.md` is Claude Code's project-level context file. It provides:
+
+1. **Available skills** - What skills exist and their purposes
+2. **Modern patterns** - Correct APIs to use (and deprecated ones to avoid)
+3. **Skill synergies** - How skills work together
+4. **Common workflows** - Step-by-step guides for multi-skill tasks
+
+Our hypothesis: Claude Code performs significantly better when CLAUDE.md describes skill synergies.
+
+## Evaluation Approach
+
+Each test follows: **prompt → trace → checks → score**
+
+### Trace Capture
+
+Tests capture structured JSON traces from Claude Code:
+- Tool calls made
+- Files created/modified
+- Commands run
+- Token usage and cost
+- Duration
+
+### Validation
+
+Tests use deterministic validators:
+```python
+validator = TestValidator()
+validator.check_file_exists("output.py", test_dir)
+validator.check_patterns_present(["modern_api"], summary)
+validator.check_patterns_absent(["deprecated_api"], summary)
+```
+
+### Comparison Mode
+
+Context impact tests run the same prompt with different contexts:
+```python
+results = run_comparison_test(
+    test_name="My Test",
+    prompt=prompt,
+    test_dir_factory=create_test_dir,
+    validate_func=validate,
+    context_modes=[ContextMode.NONE, ContextMode.FULL]
+)
+```
+
+## Adding New Tests
+
+### Baseline Test (no context)
 
 ```python
-class MyValidator(TestValidator):
-    def check_custom(self, summary: str) -> 'MyValidator':
-        if "pattern" in summary:
-            self.passed.append("✓ Check passed")
-        else:
-            self.failed.append("✗ Check failed")
-        return self
+from scaffold.runner import run_autonomous_test, ContextMode
+
+result = run_autonomous_test(
+    test_name="My Test",
+    prompt=prompt,
+    test_dir=test_dir,
+    validate_func=validate,
+    context_mode=ContextMode.NONE
+)
 ```
 
-## Test Suite
-
-Tests run in dependency order:
-1. **langchain-agents** - Creates SQL agent (generates traces)
-2. **langsmith-trace** - Queries traces
-3. **langsmith-dataset** - Generates datasets from traces
-4. **langsmith-evaluator** - Creates evaluators attached to datasets
-
-The test suite handles cleanup automatically between tests and at the end.
-
-## Creating New Tests
-
-Extend `TestValidator` for custom checks:
+### Comparison Test (with/without context)
 
 ```python
-from scaffold.setup import setup_test_environment, cleanup_test_environment
-from scaffold.runner import run_autonomous_test, make_autonomous_prompt
-from scaffold.validators import TestValidator
+from scaffold.runner import run_comparison_test, ContextMode
 
-class MyValidator(TestValidator):
-    def check_custom(self, summary: str) -> 'MyValidator':
-        if "expected_pattern" in summary:
-            self.passed.append("✓ Check passed")
-        else:
-            self.failed.append("✗ Check failed")
-        return self
-
-def validate(summary_content: str, test_dir: Path) -> tuple[list[str], list[str]]:
-    validator = MyValidator()
-    validator.check_skill("my-skill", summary_content)
-    validator.check_custom(summary_content)
-    return validator.results()
-
-def run_test(work_dir: Path = None):
-    test_dir = setup_test_environment(work_dir)
-    result = run_autonomous_test(
-        test_name="Test Name",
-        prompt=make_autonomous_prompt("Create X. Do not ask questions."),
-        test_dir=test_dir,
-        runner_path=Path(__file__).parent.parent / "scaffold" / "runner.py",
-        validate_func=validate
-    )
-    cleanup_test_environment(test_dir)
-    return result
+results = run_comparison_test(
+    test_name="My Test",
+    prompt=prompt,
+    test_dir_factory=lambda: setup_test_environment(),
+    validate_func=validate,
+    context_modes=[ContextMode.NONE, ContextMode.FULL]
+)
 ```
 
-See `tests/langsmith-trace/test_trace_query.py` for a complete example.
+## Adding New Skills
 
+1. Create `skills/<skill-name>/` directory
+2. Add skill documentation (SKILL.md or README.md)
+3. Add reference scripts in `scripts/` subdirectory
+4. Update CLAUDE.md to describe the skill and its synergies
+5. Create tests in `tests/` to benchmark the skill
+
+## Configuration
+
+### Models
+
+```bash
+uv run python tests/run_test_suite.py --model sonnet  # default
+uv run python tests/run_test_suite.py --model opus
+uv run python tests/run_test_suite.py --model haiku
+```
+
+### Environment Variables
+
+```bash
+LANGSMITH_API_KEY=<your-key>
+LANGSMITH_PROJECT=skills
+OPENAI_API_KEY=<your-key>
+ANTHROPIC_API_KEY=<your-key>
+```
+
+## Results Analysis
+
+Traces are saved to `logs/traces/` for post-hoc analysis:
+
+```json
+{
+  "tool_calls": [...],
+  "files_created": [...],
+  "commands_run": [...],
+  "cost_usd": 0.0123,
+  "input_tokens": 1500,
+  "output_tokens": 800,
+  "duration_seconds": 45.2
+}
+```
+
+Compare across context modes to measure CLAUDE.md impact.

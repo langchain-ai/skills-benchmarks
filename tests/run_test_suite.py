@@ -17,7 +17,7 @@ project_root = Path(__file__).parent.parent
 
 def main():
     # Pass all args through to the test script
-    cmd = [".venv/bin/python", "tests/context_impact/test_langchain_context.py"] + sys.argv[1:]
+    cmd = [".venv/bin/python", "tests/basic_skill/test_langchain_context.py"] + sys.argv[1:]
     return subprocess.run(cmd, cwd=str(project_root)).returncode
 
 

@@ -5,17 +5,17 @@ Measures how guidance framing and location affect Claude's adherence to skill re
 
 Usage:
     # Run all cases
-    .venv/bin/python tests/context_impact/test_langchain_context.py
+    .venv/bin/python tests/basic_skill/test_langchain_context.py
 
     # Run specific cases
-    .venv/bin/python tests/context_impact/test_langchain_context.py -c SKILL_POS SKILL_NEG
+    .venv/bin/python tests/basic_skill/test_langchain_context.py -c SKILL_POS SKILL_NEG
 
     # Run a preset group (expands to multiple cases)
-    .venv/bin/python tests/context_impact/test_langchain_context.py -c framing
-    .venv/bin/python tests/context_impact/test_langchain_context.py -c minimal-boost
+    .venv/bin/python tests/basic_skill/test_langchain_context.py -c framing
+    .venv/bin/python tests/basic_skill/test_langchain_context.py -c minimal-boost
 
     # Run with repetitions for statistical significance
-    .venv/bin/python tests/context_impact/test_langchain_context.py -c SKILL_POS -r 3
+    .venv/bin/python tests/basic_skill/test_langchain_context.py -c SKILL_POS -r 3
 """
 
 import sys
@@ -26,7 +26,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from scaffold.setup import setup_test_environment, copy_test_data, cleanup_test_environment, setup_test_context
 from scaffold.runner import run_test, run_with_repetition
-from tests.context_impact.cases import (
+from tests.basic_skill.cases import (
     CASES, FRAMING_COMPARISON, LOCATION_COMPARISON,
     REITERATION_COMPARISON, POSITIVE_STRATEGY, NEGATIVE_STRATEGY,
     DIFFICULTY_COMPARISON, MINIMAL_BOOST_COMPARISON, NO_SQL_BOOST_COMPARISON,

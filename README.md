@@ -10,13 +10,16 @@ uv venv && source .venv/bin/activate
 uv pip install -r requirements.txt
 
 # Run all test cases
-.venv/bin/python tests/run_test_suite.py
+.venv/bin/python tests/basic_skill/test_langchain_context.py
 
 # Run specific cases
-.venv/bin/python tests/run_test_suite.py -c SKILL_POS SKILL_NEG
+.venv/bin/python tests/basic_skill/test_langchain_context.py -c SKILL_POS SKILL_NEG
 
-# Run comparison group with repetitions
-.venv/bin/python tests/run_test_suite.py --compare framing -r 3
+# Run preset group
+.venv/bin/python tests/basic_skill/test_langchain_context.py -c framing
+
+# Run with repetitions
+.venv/bin/python tests/basic_skill/test_langchain_context.py -c SKILL_POS -r 3
 ```
 
 ## Test Cases
@@ -32,46 +35,44 @@ Tests measure whether Claude follows skill guidance to use modern LangChain patt
 | `REITERATE_POS` | Skill + CLAUDE.md, both positive |
 | `MOVED_NEG` | Guidance in CLAUDE.md only (negative) |
 | `MOVED_POS` | Guidance in CLAUDE.md only (positive) |
+| `MINIMAL` | Minimal skill - overview + quick ref only |
+| `NO_SQL_EXAMPLE` | No SQL example - general patterns only |
 
-## Comparison Groups
+## Presets
 
 ```bash
---compare framing      # SKILL_NEG vs SKILL_POS
---compare location     # SKILL_NEG vs MOVED_NEG
---compare reiteration  # SKILL_NEG vs REITERATE_NEG
---compare positive     # All positive framing cases
---compare negative     # All negative framing cases
+-c framing        # SKILL_NEG, SKILL_POS
+-c location       # SKILL_NEG, MOVED_NEG
+-c reiteration    # SKILL_NEG, REITERATE_NEG
+-c difficulty     # SKILL_POS, NO_SQL_EXAMPLE, MINIMAL
+-c minimal-boost  # MINIMAL, MINIMAL_REITERATE, MINIMAL_MOVED
 ```
 
 ## Project Structure
 
 ```
 skill_constructs/           # Modular skill sections for testing
-  langchain/                # LangChain ecosystem skills
-    langchain_agents/       # Agent patterns (sections in skill.py)
-    langsmith_*/            # Tracing, datasets, evaluators
-  pytest_fixtures/          # Test fixture patterns
-  CLAUDE_SAMPLE.md          # Example CLAUDE.md
+  langchain/langchain_agents/  # Agent patterns (sections in skill.py)
 
-tests/
-  context_impact/           # Context impact tests
-    cases.py                # Test case definitions
-    helpers.py              # Shared test utilities
-    test_langchain_context.py  # Main test script
+tests/basic_skill/          # Basic skill tests
+  cases.py                  # Test case definitions + validators
+  test_langchain_context.py # Main test script
 
 scaffold/                   # Test infrastructure
   runner.py                 # Test execution
-  capture.py                # Event capture/parsing
-  setup.py                  # Environment setup
-  templates.py              # Skill assembly
+  logs.py                   # Event capture/parsing + reports
+  setup.py                  # Environment setup + skill assembly
 ```
 
 ## Validation Criteria
 
 Tests **pass** if:
-1. Skill was read (guidance had chance to influence)
-2. create_agent or create_deep_agent was used
+1. langchain-agents skill was invoked
+2. File was created with valid syntax
+3. Uses modern patterns (create_agent, @tool)
+4. Agent runs without errors
 
 Tests **fail** if:
-- Skill wasn't discovered/read
-- Deprecated pattern was used despite guidance
+- Skill wasn't invoked
+- Deprecated import (create_sql_agent)
+- Syntax/runtime errors

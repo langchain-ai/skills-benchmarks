@@ -1,10 +1,10 @@
-"""Test case definitions for CLAUDE.md impact testing.
+"""Experiment definitions for skill impact testing.
 
 SKILL SECTIONS (from skill_constructs/langchain/langchain_agents/skill.py):
   [0] FRONTMATTER        - Skill metadata
   [1] HEADER             - Title and intro
   [2] QUICK_START        - "Which tool?" section header
-  [3] GUIDANCE           - *** SUBSTITUTED IN TESTS ***
+  [3] GUIDANCE           - *** SUBSTITUTED IN EXPERIMENTS ***
   [4] CREATE_AGENT_OVERVIEW
   [5] DEEP_AGENT_OVERVIEW
   [6] LANGGRAPH_OVERVIEW
@@ -104,14 +104,14 @@ def sections_with(guidance: Optional[str]) -> List[str]:
 
 
 # =============================================================================
-# TEST CASES
+# EXPERIMENTS
 # Format: (description, claude_md, sections)
 #
 # Hypothesis: Negative framing puts deprecated patterns in context, making
 # Claude more likely to use them even when told not to.
 # =============================================================================
 
-CASES = {
+EXPERIMENTS = {
     # --- BASELINE: Skill with negative guidance (mentions deprecated) ---
     "SKILL_NEG": (
         "Skill only, negative guidance",
@@ -161,7 +161,7 @@ CASES = {
 }
 
 # =============================================================================
-# CASE GROUPS FOR COMPARISON
+# EXPERIMENT GROUPS FOR COMPARISON
 # =============================================================================
 
 # Compare negative vs positive framing
@@ -181,7 +181,7 @@ NEGATIVE_STRATEGY = ["SKILL_NEG", "REITERATE_NEG", "MOVED_NEG"]
 
 
 # =============================================================================
-# HARDER TEST CASES - Minimal skill documentation
+# HARDER EXPERIMENTS - Minimal skill documentation
 # =============================================================================
 
 # Minimal: Only header + quick_start + quick reference (no detailed examples)
@@ -212,7 +212,7 @@ NO_SQL_SECTIONS = [
     QUICK_REFERENCE,
 ]
 
-CASES.update({
+EXPERIMENTS.update({
     # --- HARDER: Minimal documentation ---
     "MINIMAL": (
         "Minimal skill - overview + quick ref only",

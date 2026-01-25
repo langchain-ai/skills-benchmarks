@@ -4,8 +4,8 @@
 Usage:
     .venv/bin/python tests/run_test_suite.py
     .venv/bin/python tests/run_test_suite.py --model haiku
-    .venv/bin/python tests/run_test_suite.py -c SKILL_NEG SKILL_POS
-    .venv/bin/python tests/run_test_suite.py --compare framing -r 3
+    .venv/bin/python tests/run_test_suite.py -e SKILL_NEG SKILL_POS
+    .venv/bin/python tests/run_test_suite.py -e framing -r 3
 """
 
 import sys

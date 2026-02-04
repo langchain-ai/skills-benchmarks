@@ -179,22 +179,30 @@ def print_report(results: Dict[str, List[TestResult]]):
     has_reps = any(len(runs) > 1 for runs in results.values())
 
     if has_reps:
-        print(f"\n{'Treatment':<20} {'Pass':<10} {'Trace':<10} {'Dataset':<10} {'Eval':<10} {'Turns':<8} {'Duration':<10}")
+        print(f"\n{'Treatment':<20} {'Pass':<10} {'Skills':<10} {'Turns':<8} {'Duration':<10} {'Failures':<40}")
         print("-" * 120)
 
         for name, runs in results.items():
             n = len(runs)
             pass_rate = f"{sum(1 for r in runs if r.passed)}/{n}"
-            trace_rate = f"{sum(1 for r in runs if any('langsmith-trace' in c for c in r.checks_passed))}/{n}"
-            dataset_rate = f"{sum(1 for r in runs if any('langsmith-dataset' in c for c in r.checks_passed))}/{n}"
-            eval_rate = f"{sum(1 for r in runs if any('langsmith-evaluator' in c for c in r.checks_passed))}/{n}"
+
+            # Count skill invocations (not "Note: did not invoke")
+            skill_count = sum(1 for r in runs if any(
+                ('Invoked' in c and 'langsmith' in c.lower())
+                for c in r.checks_passed
+            ))
+            skill_rate = f"{skill_count}/{n}"
 
             turns = [r.events.get("num_turns") for r in runs if r.events and r.events.get("num_turns")]
             durations = [r.events.get("duration_seconds") for r in runs if r.events and r.events.get("duration_seconds")]
             avg_turns = f"{sum(turns)/len(turns):.0f}" if turns else "N/A"
             avg_dur = f"{sum(durations)/len(durations):.0f}s" if durations else "N/A"
 
-            print(f"{name:<20} {pass_rate:<10} {trace_rate:<10} {dataset_rate:<10} {eval_rate:<10} {avg_turns:<8} {avg_dur:<10}")
+            # Show first failure reason
+            failures = [f for r in runs for f in r.checks_failed[:1]]
+            failure_msg = failures[0][:38] if failures else "-"
+
+            print(f"{name:<20} {pass_rate:<10} {skill_rate:<10} {avg_turns:<8} {avg_dur:<10} {failure_msg:<40}")
     else:
         print(f"\n{'Treatment':<20} {'Result':<8} {'Turns':<8} {'Duration':<10} {'Key Checks'}")
         print("-" * 120)

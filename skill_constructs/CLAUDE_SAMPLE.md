@@ -2,17 +2,16 @@
 
 This project contains skills for building, observing, and evaluating LangChain agents.
 
-## Available Skills
+## CRITICAL: Consult Skills BEFORE Writing Code
 
-Skills are located in `skills/` with documentation and reference scripts:
+**ALWAYS** invoke the appropriate skill before writing any code:
 
-| Skill | Purpose | Key Scripts |
-|-------|---------|-------------|
-| **langchain-agents** | Build agents with modern LangChain patterns | - |
-| **langsmith-trace** | Query and analyze execution traces | `scripts/query_traces.py` |
-| **langsmith-dataset** | Generate evaluation datasets from traces | `scripts/generate_datasets.py` |
-| **langsmith-evaluator** | Create and upload custom evaluators | `scripts/upload_evaluators.py` |
-| **pytest-fixtures** | Create proper test fixtures with async/cleanup patterns | - |
+- **langchain-agents** - For ANY LangChain/LangGraph agent code
+- **langsmith-trace** - For ANY trace querying or analysis (`scripts/query_traces.py`)
+- **langsmith-dataset** - For ANY dataset creation from traces (`scripts/generate_datasets.py`)
+- **langsmith-evaluator** - For ANY evaluator creation (`scripts/upload_evaluators.py`)
+
+Skills contain correct patterns, examples, and reference scripts. Use them first.
 
 ## Modern LangChain Patterns
 

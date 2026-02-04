@@ -22,7 +22,9 @@ from skill_constructs.langchain.langchain_agents import (
     CREATE_AGENT_EXAMPLE, TOOL_EXAMPLE, QUICK_REFERENCE,
     GUIDANCE_POSITIVE, GUIDANCE_NEGATIVE,
     CLAUDE_MD_SKILLS_ONLY, CLAUDE_MD_SKILLS_REQUIRED, CLAUDE_MD_PATTERNS_POSITIVE, CLAUDE_MD_BOTH,
+    FULL_SECTIONS,
 )
+from skill_constructs import CLAUDE_SAMPLE
 
 # =============================================================================
 # SKILL SECTIONS
@@ -199,6 +201,12 @@ TREATMENTS = {
         description="No skill, no CLAUDE.md (pure control)",
         validators=sql_agent_validators(),
     ),
+    "ALL_SECTIONS": Treatment(
+        description="All skill sections + full CLAUDE.md",
+        skills={"langchain-agents": FULL_SECTIONS},
+        claude_md=CLAUDE_SAMPLE,
+        validators=sql_agent_validators(),
+    ),
     "BASELINE": Treatment(
         description="Skill only, no CLAUDE.md (skill baseline)",
         skills=skill(GUIDANCE_POSITIVE),
@@ -306,6 +314,9 @@ CLAUDE_MD_COMPARISON = [                       # What CLAUDE.md content works?
 
 # CLASS 3: Noise experiments
 NOISE_COMPARISON = ["BASELINE", "NOISE_1", "NOISE_2", "NOISE_3"]
+
+# All sections vs control
+ALL_SECTIONS_VS_CONTROL = ["CONTROL", "ALL_SECTIONS"]
 
 # All treatments
 ALL_TREATMENTS = list(TREATMENTS.keys())

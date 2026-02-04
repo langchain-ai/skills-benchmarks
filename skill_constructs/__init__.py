@@ -8,3 +8,11 @@ Structure:
     langsmith_evaluator/ - Create custom evaluators
   pytest_fixtures/     - Test fixture patterns
 """
+
+from pathlib import Path
+
+# Load CLAUDE_SAMPLE.md content
+_claude_sample_path = Path(__file__).parent / "CLAUDE_SAMPLE.md"
+CLAUDE_SAMPLE = _claude_sample_path.read_text() if _claude_sample_path.exists() else ""
+
+__all__ = ["CLAUDE_SAMPLE"]

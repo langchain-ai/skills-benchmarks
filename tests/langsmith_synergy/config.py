@@ -23,13 +23,17 @@ from scaffold import (
 )
 from skill_constructs.langchain.langsmith_trace.skill import (
     DEFAULT_SECTIONS as TRACE_SECTIONS,
+    FULL_SECTIONS as TRACE_FULL_SECTIONS,
 )
 from skill_constructs.langchain.langsmith_dataset.skill import (
     DEFAULT_SECTIONS as DATASET_SECTIONS,
+    FULL_SECTIONS as DATASET_FULL_SECTIONS,
 )
 from skill_constructs.langchain.langsmith_evaluator.skill import (
     DEFAULT_SECTIONS as EVALUATOR_SECTIONS,
+    FULL_SECTIONS as EVALUATOR_FULL_SECTIONS,
 )
+from skill_constructs import CLAUDE_SAMPLE
 from tests.langsmith_synergy.validation.validators import (
     DatasetValidator,
     EvaluatorValidator,
@@ -114,6 +118,11 @@ EVALUATOR_SKILL_STANDARD = skill_config(EVALUATOR_SECTIONS, EVALUATOR_SCRIPTS_DI
 TRACE_SKILL_NO_HINTS = skill_config(skill_without_hints(TRACE_SECTIONS), TRACE_SCRIPTS_DIR)
 DATASET_SKILL_NO_HINTS = skill_config(skill_without_hints(DATASET_SECTIONS), DATASET_SCRIPTS_DIR)
 EVALUATOR_SKILL_NO_HINTS = skill_config(skill_without_hints(EVALUATOR_SECTIONS), EVALUATOR_SCRIPTS_DIR)
+
+# Full skills (all sections) + scripts
+TRACE_SKILL_FULL = skill_config(TRACE_FULL_SECTIONS, TRACE_SCRIPTS_DIR)
+DATASET_SKILL_FULL = skill_config(DATASET_FULL_SECTIONS, DATASET_SCRIPTS_DIR)
+EVALUATOR_SKILL_FULL = skill_config(EVALUATOR_FULL_SECTIONS, EVALUATOR_SCRIPTS_DIR)
 
 
 # =============================================================================
@@ -260,6 +269,17 @@ BASIC_TREATMENTS = {
         claude_md=CLAUDE_MD_WORKFLOW_BASIC,
         validators=basic_validators(),
     ),
+
+    # All sections: Complete skill content + full CLAUDE.md sample
+    "BASIC_ALL_SECTIONS": Treatment(
+        description="All skill sections + full CLAUDE.md",
+        skills={
+            "langsmith-trace": TRACE_SKILL_FULL,
+            "langsmith-dataset": DATASET_SKILL_FULL,
+        },
+        claude_md=CLAUDE_SAMPLE,
+        validators=basic_validators(),
+    ),
 }
 
 
@@ -321,6 +341,18 @@ ADVANCED_TREATMENTS = {
         claude_md=CLAUDE_MD_WORKFLOW_ADVANCED,
         validators=advanced_validators(),
     ),
+
+    # All sections: Complete skill content + full CLAUDE.md sample
+    "ADV_ALL_SECTIONS": Treatment(
+        description="All skill sections + full CLAUDE.md",
+        skills={
+            "langsmith-trace": TRACE_SKILL_FULL,
+            "langsmith-dataset": DATASET_SKILL_FULL,
+            "langsmith-evaluator": EVALUATOR_SKILL_FULL,
+        },
+        claude_md=CLAUDE_SAMPLE,
+        validators=advanced_validators(),
+    ),
 }
 
 # Combined treatments dict
@@ -368,3 +400,7 @@ def build_prompt(treatment: Treatment, treatment_name: str = None, rep: int = 1)
 BASIC_COMPARISON = list(BASIC_TREATMENTS.keys())
 ADVANCED_COMPARISON = list(ADVANCED_TREATMENTS.keys())
 ALL_TREATMENTS_LIST = list(TREATMENTS.keys())
+
+# All sections vs control
+BASIC_ALL_SECTIONS_VS_CONTROL = ["BASIC_CONTROL", "BASIC_ALL_SECTIONS"]
+ADV_ALL_SECTIONS_VS_CONTROL = ["ADV_CONTROL", "ADV_ALL_SECTIONS"]

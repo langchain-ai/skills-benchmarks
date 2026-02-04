@@ -139,11 +139,30 @@ TIPS = """## Tips
 
 RELATED_SKILLS = """## Related Skills
 
-- Use **langsmith-dataset** skill to generate evaluation datasets from traces
-- Use **langsmith-evaluator** skill to create evaluators and measure performance"""
+- **langsmith-dataset**: Generates evaluation datasets from trace data. Traces provide the raw execution data that datasets structure for testing.
+- **langsmith-evaluator**: Creates evaluators that validate agent outputs. Evaluators can check trajectories captured in traces."""
 
-# Default sections used in tests (same as full for this skill)
+# Minimal sections - just enough to know what the skill does
+MINIMAL_SECTIONS = [
+    FRONTMATTER,
+    HEADER,
+    SETUP,
+    COMMANDS,  # Lists commands and flags without full examples
+]
+
+# Default sections - guidance without prescriptive examples
 DEFAULT_SECTIONS = [
+    FRONTMATTER,
+    HEADER,
+    SETUP,
+    ADDING_TRACING,  # Conceptual - how to add tracing
+    # Note: QUERYING_TRACES removed - too prescriptive with full command examples
+    COMMANDS,  # Lists commands and their flags (no examples)
+    RELATED_SKILLS,
+]
+
+# Full sections - everything including examples
+FULL_SECTIONS = [
     FRONTMATTER,
     HEADER,
     SETUP,
@@ -153,6 +172,3 @@ DEFAULT_SECTIONS = [
     TIPS,
     RELATED_SKILLS,
 ]
-
-# Full sections (same as default for this skill - all sections included)
-FULL_SECTIONS = DEFAULT_SECTIONS

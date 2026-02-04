@@ -130,19 +130,16 @@ EVALUATOR_SKILL_FULL = skill_config(EVALUATOR_FULL_SECTIONS, EVALUATOR_SCRIPTS_D
 # =============================================================================
 
 # Basic test prompt template - {run_id} will be replaced with unique identifier
-BASIC_PROMPT_TEMPLATE = """I need to evaluate whether my agent is using the right tools. Build me a dataset from the LangSmith project in .env that captures the expected tool sequences.
+BASIC_PROMPT_TEMPLATE = """I want to evaluate my agent's tool usage patterns. Create a trajectory dataset with 5 examples in our LangSmith project (see .env).
 
-- Include 5 traces
-- Output: trajectory_dataset.json (also upload as "test-{run_id}")
+Output: trajectory_dataset.json (make sure to upload with the naming convention of "test-{run_id}")
 
 Run any code you write directly."""
 
 # Advanced test prompt template - {run_id} will be replaced with unique identifier
-ADVANCED_PROMPT_TEMPLATE = """I want to test if my agent calls tools correctly. Create a dataset and an evaluator from the LangSmith project in .env.
+ADVANCED_PROMPT_TEMPLATE = """I want to test if my agent calls tools correctly. Create a trajectory dataset with 5 examples in our LangSmith project (see .env). Additionally, create an evaluator that validates tool usage.
 
-- Include 5 traces
-- Dataset: trajectory_dataset.json (upload to LangSmith as "test-{run_id}")
-- Evaluator: trajectory_evaluator.py (upload to LangSmith as "test-{run_id}", attached to our dataset)
+Output: trajectory_dataset.json and trajectory_evaluator.py (make sure to upload both with the naming convention of "test-{run_id}")
 
 Run any code you write directly."""
 

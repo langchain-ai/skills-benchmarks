@@ -67,6 +67,17 @@ Depth 0: Root agent (e.g., "LangGraph")
 - DeepAgents: `--root-run-name LangGraph`
 - Custom agents: Use your root node name"""
 
+# Dataset type descriptions - guidance only (no command examples)
+DATASET_TYPES_GUIDANCE = """## Dataset Types
+
+Use `--type <type>` flag with `generate_datasets.py`:
+
+- **final_response** - Full conversation with expected output. Tests complete agent behavior.
+- **single_step** - Single node inputs/outputs. Tests specific node behavior. Use `--run-name` to target a node.
+- **trajectory** - Tool call sequence. Tests execution path. Use `--depth` to control depth.
+- **rag** - Question/chunks/answer/citations. Tests retrieval quality."""
+
+# Dataset types with full command examples (for FULL_SECTIONS)
 DATASET_TYPES = """## Dataset Types
 
 ### 1. Final Response
@@ -216,19 +227,25 @@ TROUBLESHOOTING = """## Troubleshooting
 
 RELATED_SKILLS = """## Related Skills
 
-- Use **langsmith-trace** skill to query and export traces
-- Use **langsmith-evaluator** skill to create evaluators and measure performance"""
+- **langsmith-trace**: Queries and exports trace data. Datasets are built from trace data - traces contain the inputs, outputs, and tool calls that become dataset examples.
+- **langsmith-evaluator**: Creates evaluators that validate outputs. Evaluators run against datasets to measure performance."""
 
-# Default sections used in tests
+# Minimal sections - just enough to know what the skill does
+MINIMAL_SECTIONS = [
+    FRONTMATTER,
+    HEADER,
+    SETUP,
+    USAGE,  # Lists scripts and flags without full examples
+]
+
+# Default sections - guidance without prescriptive examples
 DEFAULT_SECTIONS = [
     FRONTMATTER,
     HEADER,
     SETUP,
     USAGE,
-    TRACE_HIERARCHY,
-    DATASET_TYPES,
-    UPLOAD,
-    QUERY,
+    TRACE_HIERARCHY,  # Conceptual understanding
+    DATASET_TYPES_GUIDANCE,  # What each type does (no command examples)
     RELATED_SKILLS,
 ]
 

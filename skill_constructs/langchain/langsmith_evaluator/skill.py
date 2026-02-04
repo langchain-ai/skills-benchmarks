@@ -126,6 +126,13 @@ python upload_evaluators.py delete "Trajectory Match"
 - The script prompts for confirmation before destructive operations
 - **NEVER use `--yes` flag unless the user explicitly requests it**"""
 
+# Evaluator types guidance - explains types without full code examples
+EVALUATOR_TYPES_GUIDANCE = """## Evaluator Types
+
+- **LLM as Judge** - Uses an LLM to grade outputs. Best for subjective quality (accuracy, helpfulness, relevance). Use structured output with TypedDict for reliable grading.
+- **Custom Code** - Deterministic Python logic. Best for objective checks (exact match, trajectory validation, format compliance).
+- **Trajectory Evaluators** - Check tool call sequences. Compare `run["outputs"]["expected_trajectory"]` against expected."""
+
 BEST_PRACTICES = """## Best Practices
 
 1. **Use structured output for LLM judges** - More reliable than parsing free-text
@@ -196,18 +203,24 @@ RESOURCES = """## Resources
 
 RELATED_SKILLS = """## Related Skills
 
-- Use **langsmith-trace** skill to query and export traces
-- Use **langsmith-dataset** skill to generate evaluation datasets from traces"""
+- **langsmith-trace**: Queries execution data. Traces show what tools were called, helping you understand what evaluators should check.
+- **langsmith-dataset**: Generates evaluation datasets. Evaluators validate the expected outputs defined in datasets."""
 
-# Default sections used in tests
+# Minimal sections - just enough to know what the skill does
+MINIMAL_SECTIONS = [
+    FRONTMATTER,
+    HEADER,
+    SETUP,
+    EVALUATOR_FORMAT,  # Explains the signature/format
+]
+
+# Default sections - guidance without prescriptive examples
 DEFAULT_SECTIONS = [
     FRONTMATTER,
     HEADER,
     SETUP,
-    EVALUATOR_FORMAT,
-    LLM_JUDGE,
-    CODE_EVALUATORS,
-    UPLOAD,
+    EVALUATOR_FORMAT,  # Explains the signature/format
+    EVALUATOR_TYPES_GUIDANCE,  # What each type does (no code examples)
     BEST_PRACTICES,
     RELATED_SKILLS,
 ]

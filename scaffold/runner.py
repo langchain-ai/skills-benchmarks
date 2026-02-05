@@ -59,7 +59,7 @@ class WorkItem:
     environment_dir: str = ""
     timeout: int = 600
     model: str = None
-    files_to_run: List[str] = None  # Specific files to run, or None for all .py
+    files_to_run: Any = None  # None=run nothing, "all"=run all .py, list=specific files
     run_id: str = ""  # Unique ID for this run (used for dataset naming)
 
     @property
@@ -218,10 +218,13 @@ def _run_generated_files(work: WorkItem, test_dir: Path, base_dir: Path, prefix:
             (claude_dir / f.name).write_text(f.read_text())
 
     # Determine files to run
-    if work.files_to_run:
+    # None = run nothing, "all" = run all scripts, list = run specific files
+    if work.files_to_run == "all":
+        py_files = [f for f in test_dir.glob("*.py") if f.name not in env_files]
+    elif work.files_to_run:
         py_files = [test_dir / f for f in work.files_to_run if (test_dir / f).exists()]
     else:
-        py_files = [f for f in test_dir.glob("*.py") if f.name not in env_files]
+        py_files = []  # None or empty = run nothing
 
     outputs = {}
     for py_file in py_files:
@@ -310,7 +313,7 @@ def create_work_items(
 
         for rep in range(1, repeat + 1):
             # Generate unique run_id for dataset naming and validator matching
-            run_id = uuid.uuid4().hex[:8]
+            run_id = str(uuid.uuid4())
             # Build prompt with run_id for unique dataset naming
             prompt = build_prompt_func(treatment, name, rep, run_id)
             items.append(WorkItem(

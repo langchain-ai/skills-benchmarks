@@ -155,7 +155,8 @@ class DatasetStructureValidator(Validator):
 
         # Verify upload
         if self.verify_upload:
-            up, uf = self._verify_upload()
+            run_id = outputs.get("_run_id") if outputs else None
+            up, uf = self._verify_upload(run_id)
             passed.extend(up)
             failed.extend(uf)
 
@@ -185,7 +186,7 @@ class DatasetStructureValidator(Validator):
                 return val
         return []
 
-    def _verify_upload(self) -> Tuple[List[str], List[str]]:
+    def _verify_upload(self, run_id: str = None) -> Tuple[List[str], List[str]]:
         client, error = get_langsmith_client()
         if error:
             return [f"Upload: skipped ({error})"], []
@@ -194,9 +195,14 @@ class DatasetStructureValidator(Validator):
         if error:
             return [f"Upload: {error}"], []
 
-        matching = [d for d in datasets if d.name.startswith(self.upload_prefix)]
+        # Use run_id for precise matching if available
+        if run_id:
+            search_pattern = f"{self.upload_prefix}{run_id}"
+        else:
+            search_pattern = self.upload_prefix
+        matching = [d for d in datasets if d.name.startswith(search_pattern)]
         if not matching:
-            return [], [f"Upload: no dataset with prefix '{self.upload_prefix}'"]
+            return [], [f"Upload: no dataset with prefix '{search_pattern}'"]
 
         recent = max(matching, key=lambda d: getattr(d, 'created_at', d.name))
         count = getattr(recent, 'example_count', '?')
@@ -210,15 +216,15 @@ class EvaluatorValidator(Validator):
         self,
         filename: str = "trajectory_evaluator.py",
         test_cases_filename: str = "evaluator_test_cases.json",
+        dataset_filename: str = "trajectory_dataset.json",
         verify_upload: bool = False,
         upload_prefix: str = "test-",
-        max_age_minutes: int = 30,
     ):
         self.filename = filename
         self.test_cases_filename = test_cases_filename
+        self.dataset_filename = dataset_filename
         self.verify_upload = verify_upload
         self.upload_prefix = upload_prefix
-        self.max_age_minutes = max_age_minutes
 
     def validate(self, events: dict, test_dir: Path, outputs: Dict = None) -> Tuple[List[str], List[str]]:
         passed, failed = [], []
@@ -236,14 +242,15 @@ class EvaluatorValidator(Validator):
             return passed, [error]
         passed.append(f"Evaluator: {func_name}(run, example)")
 
-        # Run test cases in Docker
+        # Run test cases in Docker (eval_runner handles dynamic test case generation)
         tp, tf = self._run_tests(test_dir, func_name)
         passed.extend(tp)
         failed.extend(tf)
 
         # Verify upload
         if self.verify_upload:
-            up, uf = self._verify_upload()
+            run_id = outputs.get("_run_id") if outputs else None
+            up, uf = self._verify_upload(run_id)
             passed.extend(up)
             failed.extend(uf)
 
@@ -273,9 +280,11 @@ class EvaluatorValidator(Validator):
 
         try:
             module_name = self.filename.replace(".py", "")
+            # Pass dataset filename so eval_runner can generate test cases dynamically
+            args = [module_name, func_name, self.test_cases_filename, self.dataset_filename]
             success, output = run_python_in_docker(
                 test_dir, "_eval_runner.py", timeout=60,
-                args=[module_name, func_name, self.test_cases_filename]
+                args=args
             )
 
             for line in output.split("\n"):
@@ -297,7 +306,7 @@ class EvaluatorValidator(Validator):
         finally:
             runner_dst.unlink(missing_ok=True)
 
-    def _verify_upload(self) -> Tuple[List[str], List[str]]:
+    def _verify_upload(self, run_id: str = None) -> Tuple[List[str], List[str]]:
         """Verify evaluator uploaded via /runs/rules API."""
         client, error = get_langsmith_client()
         if error:
@@ -315,11 +324,17 @@ class EvaluatorValidator(Validator):
             data = response.json()
             rules = data if isinstance(data, list) else data.get("rules", [])
 
+            # Use run_id for precise matching if available
+            if run_id:
+                search_pattern = f"{self.upload_prefix}{run_id}"
+            else:
+                search_pattern = self.upload_prefix
+
             # Filter by display_name (the rule name in LangSmith UI)
-            matching = [r for r in rules if r.get("display_name", "").startswith(self.upload_prefix)]
+            matching = [r for r in rules if r.get("display_name", "").startswith(search_pattern)]
 
             if not matching:
-                return [], [f"Upload: no rule with prefix '{self.upload_prefix}'"]
+                return [], [f"Upload: no rule with prefix '{search_pattern}'"]
 
             # Find most recent
             recent = max(matching, key=lambda r: r.get("created_at", ""))
@@ -327,10 +342,10 @@ class EvaluatorValidator(Validator):
             dataset_name = recent.get("dataset_name")
 
             # Check dataset attachment (dataset_name is included in response)
-            if dataset_name and dataset_name.startswith(self.upload_prefix):
+            if dataset_name and dataset_name.startswith(search_pattern):
                 return [f"Upload: '{name}' -> dataset '{dataset_name}'"], []
             elif dataset_name:
-                return [f"Upload: '{name}' found"], [f"Upload: linked to '{dataset_name}' (expected prefix '{self.upload_prefix}')"]
+                return [f"Upload: '{name}' found"], [f"Upload: linked to '{dataset_name}' (expected prefix '{search_pattern}')"]
 
             return [f"Upload: '{name}' found (no dataset)"], []
 

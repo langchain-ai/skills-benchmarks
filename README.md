@@ -1,6 +1,7 @@
 # Claude Code Skill Benchmarks
 
 Measures how skill documentation design affects Claude Code's adherence to recommended patterns.
+Note: Tests were conducted with Opus 4.5, early February 2026.
 
 ## Quick Start
 

@@ -182,12 +182,12 @@ def quality_column(name: str = "Quality") -> ReportColumn:
 
 
 def default_columns() -> List[ReportColumn]:
-    """Standard columns: Pass, Turns, Duration, Tools."""
+    """Standard columns: Checks, Turns, Duration, Tools."""
     return [
         ReportColumn(
-            name="Pass",
-            extract=lambda r: "PASS" if r.passed else "FAIL",
-            aggregate=lambda runs: f"{sum(1 for r in runs if r.passed)}/{len(runs)}",
+            name="Checks",
+            extract=lambda r: _checks_single(r),
+            aggregate=lambda runs: _checks_aggregate(runs),
         ),
         ReportColumn(
             name="Turns",
@@ -205,6 +205,22 @@ def default_columns() -> List[ReportColumn]:
             aggregate=lambda runs: _avg([r.tool_calls for r in runs if r.tool_calls], "{:.0f}"),
         ),
     ]
+
+
+def _checks_single(r) -> str:
+    """Format checks for a single run."""
+    passed = len(r.checks_passed)
+    total = passed + len(r.checks_failed)
+    pct = (passed / total * 100) if total > 0 else 0
+    return f"{passed}/{total} ({pct:.0f}%)"
+
+
+def _checks_aggregate(runs: List) -> str:
+    """Aggregate checks passed across runs."""
+    total_passed = sum(len(r.checks_passed) for r in runs)
+    total_checks = sum(len(r.checks_passed) + len(r.checks_failed) for r in runs)
+    pct = (total_passed / total_checks * 100) if total_checks > 0 else 0
+    return f"{total_passed}/{total_checks} ({pct:.0f}%)"
 
 
 def _avg(values: List, fmt: str = "{:.1f}") -> str:
@@ -306,24 +322,30 @@ class ExperimentLogger:
         lines.append("")
 
         total_runs = sum(len(runs) for runs in self.results.values())
-        total_passed = sum(sum(1 for r in runs if r.passed) for runs in self.results.values())
+        total_checks_passed = sum(sum(len(r.checks_passed) for r in runs) for runs in self.results.values())
+        total_checks = sum(sum(len(r.checks_passed) + len(r.checks_failed) for r in runs) for runs in self.results.values())
+        check_pct = (total_checks_passed / total_checks * 100) if total_checks > 0 else 0
 
         lines.append("## Summary\n")
         lines.append(f"- **Total Runs:** {total_runs}")
-        lines.append(f"- **Pass Rate:** {total_passed}/{total_runs} ({100*total_passed//total_runs if total_runs else 0}%)")
+        lines.append(f"- **Checks Passed:** {total_checks_passed}/{total_checks} ({check_pct:.1f}%)")
         lines.append("")
 
         # Detailed per-treatment breakdown
         lines.append("## Treatment Details\n")
         for name, runs in self.results.items():
-            passed_count = sum(1 for r in runs if r.passed)
-            lines.append(f"### {name} ({passed_count}/{len(runs)} passed)\n")
+            treatment_passed = sum(len(r.checks_passed) for r in runs)
+            treatment_total = sum(len(r.checks_passed) + len(r.checks_failed) for r in runs)
+            treatment_pct = (treatment_passed / treatment_total * 100) if treatment_total > 0 else 0
+            lines.append(f"### {name} ({treatment_passed}/{treatment_total} checks, {treatment_pct:.0f}%)\n")
 
             for i, r in enumerate(runs, 1):
                 run_label = f"Run {i}" if has_reps else "Result"
-                status = "PASS" if r.passed else "FAIL"
+                run_passed = len(r.checks_passed)
+                run_total = run_passed + len(r.checks_failed)
+                run_pct = (run_passed / run_total * 100) if run_total > 0 else 0
                 run_id_str = f" (run_id: {r.run_id})" if r.run_id else ""
-                lines.append(f"**{run_label}:** {status}{run_id_str}")
+                lines.append(f"**{run_label}:** {run_passed}/{run_total} checks ({run_pct:.0f}%){run_id_str}")
 
                 # Show metrics
                 metrics = []

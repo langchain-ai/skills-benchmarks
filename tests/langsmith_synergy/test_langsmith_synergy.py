@@ -240,19 +240,22 @@ def print_report(results: Dict[str, List[TestResult]]):
     has_reps = any(len(runs) > 1 for runs in results.values())
 
     if has_reps:
-        print(f"\n{'Treatment':<20} {'Pass':<10} {'Skills':<10} {'Turns':<8} {'Duration':<10} {'Failures':<40}")
+        print(f"\n{'Treatment':<20} {'Checks':<18} {'Skills':<10} {'Turns':<8} {'Duration':<10} {'Failures':<40}")
         print("-" * 120)
 
         for name, runs in results.items():
-            n = len(runs)
-            pass_rate = f"{sum(1 for r in runs if r.passed)}/{n}"
+            # Calculate checks passed/total
+            checks_passed = sum(len(r.checks_passed) for r in runs)
+            checks_total = sum(len(r.checks_passed) + len(r.checks_failed) for r in runs)
+            check_pct = (checks_passed / checks_total * 100) if checks_total > 0 else 0
+            checks_str = f"{checks_passed}/{checks_total} ({check_pct:.0f}%)"
 
             # Count skill invocations (not "Note: did not invoke")
             skill_count = sum(1 for r in runs if any(
                 ('Invoked' in c and 'langsmith' in c.lower())
                 for c in r.checks_passed
             ))
-            skill_rate = f"{skill_count}/{n}"
+            skill_rate = f"{skill_count}/{len(runs)}"
 
             turns = [r.events.get("num_turns") for r in runs if r.events and r.events.get("num_turns")]
             durations = [r.events.get("duration_seconds") for r in runs if r.events and r.events.get("duration_seconds")]
@@ -263,24 +266,28 @@ def print_report(results: Dict[str, List[TestResult]]):
             failures = [f for r in runs for f in r.checks_failed[:1]]
             failure_msg = failures[0][:38] if failures else "-"
 
-            print(f"{name:<20} {pass_rate:<10} {skill_rate:<10} {avg_turns:<8} {avg_dur:<10} {failure_msg:<40}")
+            print(f"{name:<20} {checks_str:<18} {skill_rate:<10} {avg_turns:<8} {avg_dur:<10} {failure_msg:<40}")
     else:
-        print(f"\n{'Treatment':<20} {'Result':<8} {'Turns':<8} {'Duration':<10} {'Key Checks'}")
+        print(f"\n{'Treatment':<20} {'Checks':<15} {'Turns':<8} {'Duration':<10} {'Details'}")
         print("-" * 120)
 
         for name, runs in results.items():
             r = runs[0]
-            status = "PASS" if r.passed else "FAIL"
+            checks_passed = len(r.checks_passed)
+            checks_total = checks_passed + len(r.checks_failed)
+            check_pct = (checks_passed / checks_total * 100) if checks_total > 0 else 0
+            checks_str = f"{checks_passed}/{checks_total} ({check_pct:.0f}%)"
             turns = str(r.events.get("num_turns", "?")) if r.events else "?"
             dur = r.events.get('duration_seconds') if r.events else None
             duration = f"{dur:.0f}s" if dur else "?"
-            checks = f"FAIL: {r.checks_failed[0][:40]}" if r.checks_failed else ", ".join(c[:30] for c in r.checks_passed[:3])
-            print(f"{name:<20} {status:<8} {turns:<8} {duration:<10} {checks}")
+            details = f"Failed: {r.checks_failed[0][:35]}" if r.checks_failed else ", ".join(c[:25] for c in r.checks_passed[:3])
+            print(f"{name:<20} {checks_str:<15} {turns:<8} {duration:<10} {details}")
 
     print("-" * 120)
-    total = sum(len(runs) for runs in results.values())
-    passed = sum(sum(1 for r in runs if r.passed) for runs in results.values())
-    print(f"\nSummary: {passed}/{total} runs passed")
+    total_checks_passed = sum(sum(len(r.checks_passed) for r in runs) for runs in results.values())
+    total_checks = sum(sum(len(r.checks_passed) + len(r.checks_failed) for r in runs) for runs in results.values())
+    total_pct = (total_checks_passed / total_checks * 100) if total_checks > 0 else 0
+    print(f"\nSummary: {total_checks_passed}/{total_checks} checks passed ({total_pct:.1f}%)")
     print("=" * 120)
 
 
@@ -326,6 +333,9 @@ def main():
     if not args.skip_traces:
         if not generate_traces():
             print("WARNING: Trace generation had errors. Continuing anyway...")
+        # Wait for LangSmith to fully index tool runs (eventual consistency)
+        print("Waiting 10s for LangSmith to index traces...")
+        time.sleep(10)
 
     # Generate ground truth ONCE before any treatments run
     # Saved to base_dir/ground_truth/ - runner automatically copies from there

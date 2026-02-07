@@ -1,3 +1,8 @@
+---
+name: pytest-fixtures
+description: Create reusable test fixtures following modern pytest patterns. Covers fixture scopes, async fixtures, database rollback patterns, and fixture factories.
+---
+
 # Pytest Fixtures Skill
 
 Create reusable test fixtures following modern pytest patterns.

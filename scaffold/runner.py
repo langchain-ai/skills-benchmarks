@@ -2,24 +2,14 @@
 
 import os
 import subprocess
-import shutil
 from pathlib import Path
 from dataclasses import dataclass
 from typing import Dict, Any, List, Callable
-from enum import Enum
-
 from dotenv import load_dotenv
-from .capture import parse_output, extract_events, save_events, summarize
+from .capture import parse_output, extract_events, save_events
 
 load_dotenv(Path(__file__).parent.parent / ".env")
 PROJECT_ROOT = Path(__file__).parent.parent
-
-
-class ContextMode(Enum):
-    NONE = "none"
-    CLAUDE_MD_ONLY = "claude_md_only"
-    SKILLS_ONLY = "skills_only"
-    FULL = "full"
 
 
 @dataclass
@@ -29,19 +19,15 @@ class TestResult:
     checks_passed: List[str]
     checks_failed: List[str]
     events: Dict[str, Any]
-    context: ContextMode = ContextMode.NONE
 
 
-def setup_context(test_dir: Path, mode: ContextMode) -> None:
-    """Copy context files to test directory."""
-    if mode in (ContextMode.CLAUDE_MD_ONLY, ContextMode.FULL):
-        src = PROJECT_ROOT / "CLAUDE.md"
-        if src.exists():
-            shutil.copy2(src, test_dir / "CLAUDE.md")
-    if mode in (ContextMode.SKILLS_ONLY, ContextMode.FULL):
-        src = PROJECT_ROOT / "skills"
-        if src.exists():
-            shutil.copytree(src, test_dir / "skills")
+@dataclass
+class RepetitionResult:
+    name: str
+    runs: List[TestResult]
+    pass_rate: float
+    consistent: bool
+    check_frequencies: Dict[str, int]
 
 
 def run_claude(prompt: str, cwd: Path, timeout: int = 300, model: str = None) -> Dict[str, Any]:
@@ -50,33 +36,23 @@ def run_claude(prompt: str, cwd: Path, timeout: int = 300, model: str = None) ->
            "--output-format", "stream-json", "--verbose"]
     if model:
         cmd.extend(["--model", model])
-
     result = subprocess.run(cmd, capture_output=True, text=True,
-                          timeout=timeout, cwd=str(cwd), env=os.environ.copy())
+                           timeout=timeout, cwd=str(cwd), env=os.environ.copy())
     return extract_events(parse_output(result.stdout))
 
 
 def run_test(
-    name: str,
-    prompt: str,
-    test_dir: Path,
+    name: str, prompt: str, test_dir: Path,
     validate: Callable[[Dict, Path], tuple[List[str], List[str]]],
-    timeout: int = 300,
-    model: str = None,
-    context: ContextMode = None,
-    save: bool = True,
+    timeout: int = 300, model: str = None, save: bool = True,
 ) -> TestResult:
     """Run a test and validate results."""
-    if context:
-        setup_context(test_dir, context)
-
     print(f"[TEST] {name}")
-
     try:
         events = run_claude(prompt, test_dir, timeout, model)
     except subprocess.TimeoutExpired:
         print(f"TIMEOUT after {timeout}s")
-        return TestResult(name, False, [], ["Timeout"], {}, context or ContextMode.NONE)
+        return TestResult(name, False, [], ["Timeout"], {})
 
     if save:
         save_events(events, PROJECT_ROOT / "logs" / "events", name)
@@ -88,28 +64,35 @@ def run_test(
     for f in failed:
         print(f"  {f}")
 
-    return TestResult(name, ok, passed, failed, events, context or ContextMode.NONE)
+    return TestResult(name, ok, passed, failed, events)
 
 
-def run_comparison(
-    name: str,
-    prompt: str,
-    make_dir: Callable[[], Path],
+def run_with_repetition(
+    name: str, prompt: str, make_dir: Callable[[], Path],
     validate: Callable[[Dict, Path], tuple[List[str], List[str]]],
-    modes: List[ContextMode] = None,
-    timeout: int = 300,
-    model: str = None,
-) -> Dict[ContextMode, TestResult]:
-    """Run same test with different context modes."""
-    modes = modes or [ContextMode.NONE, ContextMode.FULL]
-    results = {}
+    repetitions: int = 3, timeout: int = 300, model: str = None,
+) -> RepetitionResult:
+    """Run a test multiple times to check consistency."""
+    runs = []
+    for i in range(repetitions):
+        print(f"\n--- Run {i+1}/{repetitions} ---")
+        runs.append(run_test(f"{name}_run{i+1}", prompt, make_dir(), validate, timeout, model))
 
-    for mode in modes:
-        print(f"\n{'='*50}\n{name} [{mode.value}]\n{'='*50}\n")
-        results[mode] = run_test(f"{name} [{mode.value}]", prompt,
-                                make_dir(), validate, timeout, model, mode)
+    pass_count = sum(1 for r in runs if r.passed)
+    pass_rate = pass_count / len(runs)
+    consistent = len(set(r.passed for r in runs)) == 1
 
-    print(f"\n{'='*50}\nCOMPARISON: {name}\n{'='*50}")
-    for mode, r in results.items():
-        print(f"  [{mode.value:15}] {'PASS' if r.passed else 'FAIL'} - {len(r.checks_passed)} checks")
-    return results
+    check_freq = {}
+    for r in runs:
+        for check in r.checks_passed:
+            check_freq[check] = check_freq.get(check, 0) + 1
+
+    print(f"\n{'='*50}\nREPETITION SUMMARY: {name}\n{'='*50}")
+    print(f"Pass rate: {pass_count}/{len(runs)} ({pass_rate*100:.0f}%)")
+    print(f"Consistent: {'Yes' if consistent else 'No'}")
+    if check_freq:
+        print("Check frequencies:")
+        for check, count in sorted(check_freq.items(), key=lambda x: -x[1]):
+            print(f"  {check}: {count}/{len(runs)}")
+
+    return RepetitionResult(name, runs, pass_rate, consistent, check_freq)

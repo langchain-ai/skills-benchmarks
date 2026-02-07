@@ -18,6 +18,54 @@ QUICK_START = """## Quick Start: Which Tool?"""
 # This is the default guidance - tests can substitute their own
 GUIDANCE = """**IMPORTANT:** Use modern abstractions. Older helpers like `create_sql_agent`, `create_tool_calling_agent`, `create_react_agent`, etc. are outdated."""
 
+# =============================================================================
+# GUIDANCE VARIATIONS (for experiments)
+# =============================================================================
+
+# POSITIVE: Only mentions what TO use (no deprecated pattern names)
+GUIDANCE_POSITIVE = """## Important: Use Modern LangChain Patterns
+
+Use the modern approach:
+- `create_agent()` from `langchain.agents` for simple agents
+- LangGraph `create_react_agent` for complex flows
+- `@tool` decorator for tool definitions
+
+See the examples below for working code."""
+
+# NEGATIVE: Mentions deprecated patterns (puts them in context)
+GUIDANCE_NEGATIVE = """## Important: Use Modern LangChain Patterns
+
+Older helpers like `create_sql_agent`, `create_tool_calling_agent`, and the legacy `create_react_agent` are deprecated and should not be used.
+
+Use the modern approach:
+- `create_agent()` from `langchain.agents` for simple agents
+- LangGraph `create_react_agent` for complex flows
+- `@tool` decorator for tool definitions"""
+
+# =============================================================================
+# CLAUDE.MD VARIATIONS (for experiments)
+# =============================================================================
+
+# POSITIVE: Only mentions what TO use
+CLAUDE_MD_POSITIVE = """# Project Guidelines
+
+Always check project skills before starting a task to ensure you're using the recommended patterns.
+
+## LangChain Development
+
+Use modern LangChain patterns.
+"""
+
+# NEGATIVE: Mentions deprecated patterns
+CLAUDE_MD_NEGATIVE = """# Project Guidelines
+
+Always check project skills before starting a task to ensure you're using the recommended patterns.
+
+## LangChain Development
+
+Use modern LangChain patterns. Older convenience helpers are deprecated and should be avoided.
+"""
+
 CREATE_AGENT_OVERVIEW = """**Simple tool-calling agent?** → [`create_agent`](https://docs.langchain.com/oss/python/langchain/agents)
 ```python
 from langchain.agents import create_agent
@@ -32,10 +80,10 @@ agent = create_deep_agent(model=model, tools=tools, backend=FilesystemBackend())
 ```
 **Use this for:** Research agents, complex workflows, multi-step planning."""
 
-LANGGRAPH_OVERVIEW = """**Custom control flow / multi-agent?** → **LangGraph** (this guide)
-**Use this for:** Custom routing logic, supervisor patterns, specialized state management.
+LANGGRAPH_OVERVIEW = """**Custom control flow / multi-agent / advanced context?** → **LangGraph** (this guide)
+**Use this for:** Custom routing logic, supervisor patterns, specialized state management, non-standard workflows.
 
-**Start simple:** Build with basic ReAct loops first. Only add complexity when needed."""
+**Start simple:** Build with basic ReAct loops first. Only add complexity (multi-agent, advanced context management) when your use case requires it."""
 
 CREATE_AGENT_EXAMPLE = """## Core Primitives
 
@@ -119,7 +167,238 @@ def my_tool(query: str) -> str:
 result = agent.invoke({"messages": [("user", "question")]})
 ```"""
 
-# Default section order for assembly
+# =============================================================================
+# LANGGRAPH DETAILED SECTIONS
+# =============================================================================
+
+LANGGRAPH_REACT = """### Basic Agent from Scratch
+
+```python
+from langgraph.graph import StateGraph, START, END
+from langgraph.prebuilt import ToolNode
+from typing import TypedDict, Annotated
+from langgraph.graph.message import add_messages
+
+class State(TypedDict):
+    messages: Annotated[list, add_messages]
+
+tools = [search_tool]
+tool_node = ToolNode(tools)  # Handles ToolMessage generation
+
+def agent(state: State):
+    return {"messages": [model.bind_tools(tools).invoke(state["messages"])]}
+
+def route(state: State):
+    return "tools" if state["messages"][-1].tool_calls else END
+
+# Build graph
+workflow = StateGraph(State)
+workflow.add_node("agent", agent)
+workflow.add_node("tools", tool_node)
+workflow.add_edge(START, "agent")
+workflow.add_conditional_edges("agent", route)
+workflow.add_edge("tools", "agent")
+app = workflow.compile()
+```
+
+**The loop:** Agent → tools → agent → END"""
+
+LANGGRAPH_TOOLMESSAGES = """### ToolMessages: Critical Detail
+
+When implementing custom tool execution, you **must** create a `ToolMessage` for each tool call:
+
+```python
+from langchain_core.messages import ToolMessage
+
+def custom_tool_node(state: State) -> dict:
+    \"\"\"Execute tools manually.\"\"\"
+    last_message = state["messages"][-1]
+    tool_messages = []
+
+    for tool_call in last_message.tool_calls:
+        result = execute_tool(tool_call["name"], tool_call["args"])
+
+        # CRITICAL: tool_call_id must match!
+        tool_messages.append(ToolMessage(
+            content=str(result),
+            tool_call_id=tool_call["id"]
+        ))
+
+    return {"messages": tool_messages}
+```"""
+
+LANGGRAPH_COMMANDS = """### Commands: Routing with Updates
+
+```python
+from langgraph.types import Command
+from typing import Literal
+
+def router(state: State) -> Command[Literal["research", "write", END]]:
+    \"\"\"Route and update state simultaneously.\"\"\"
+    if needs_more_context(state):
+        return Command(
+            update={"notes": "Starting research phase"},
+            goto="research"
+        )
+    return Command(goto=END)
+
+# Human-in-loop: pause and resume
+def ask_user(state: State) -> Command:
+    response = interrupt("Please clarify:")
+    return Command(
+        update={"messages": [HumanMessage(content=response)]},
+        goto="continue"
+    )
+
+# Resume: graph.invoke(Command(resume=user_input), config)
+```"""
+
+LANGGRAPH_CONTEXT_STRATEGIES = """## Context Management Strategies
+
+### Strategy 1: Subagent Delegation
+
+**Pattern:** Offload work to subagents, return only summaries.
+
+```python
+# Specialized subagent (compiles full workflow internally)
+researcher_subgraph = build_researcher_graph().compile()
+
+# Main agent delegates
+def main_agent(state: State) -> Command:
+    if needs_research(state["messages"][-1]):
+        result = researcher_subgraph.invoke({"query": extract_query(state)})
+        # Add ONLY summary to main context
+        return Command(
+            update={"context": state["context"] + f"\\n{result['summary']}"},
+            goto="respond"
+        )
+    return Command(goto="respond")
+```
+
+**Why:** Subagent handles complexity, main agent only sees compressed summary.
+
+### Strategy 2: Progressive Message Trimming
+
+**Pattern:** Remove old messages but preserve recent context and critical system messages.
+
+```python
+def trim_messages(messages: list, max_messages: int = 20) -> list:
+    \"\"\"Keep system messages + recent conversation.\"\"\"
+    system_msgs = [m for m in messages if isinstance(m, SystemMessage)]
+    conversation = [m for m in messages if not isinstance(m, SystemMessage)]
+    recent = conversation[-max_messages:]
+    return system_msgs + recent
+
+def agent_with_trimming(state: State) -> dict:
+    \"\"\"Call model with trimmed context.\"\"\"
+    trimmed = trim_messages(state["messages"], max_messages=15)
+    response = model.invoke(trimmed)
+    return {"messages": [response]}
+```
+
+### Strategy 3: Compression with Summarization
+
+**Pattern:** Summarize old context into compact form, keep only recent messages raw.
+
+```python
+def compress_history(state: State) -> dict:
+    \"\"\"Compress old messages into summary.\"\"\"
+    messages = state["messages"]
+
+    if len(messages) > 30:
+        old_messages = messages[:-10]
+        recent_messages = messages[-10:]
+
+        summary_prompt = f"Summarize this conversation history concisely:\\n{format_messages(old_messages)}"
+        summary = model.invoke([HumanMessage(content=summary_prompt)])
+
+        compressed = [
+            SystemMessage(content=f"Previous context:\\n{summary.content}")
+        ] + recent_messages
+
+        return {"messages": compressed}
+
+    return {"messages": messages}
+```"""
+
+LANGGRAPH_MULTIAGENT = """## Multi-Agent Patterns
+
+### Supervisor with Context Budget
+
+```python
+class SupervisorState(TypedDict):
+    messages: Annotated[list, add_messages]
+    research_notes: list[str]  # Summaries only
+    next_agent: str
+
+def supervisor(state: SupervisorState) -> Command[Literal["researcher", "writer", END]]:
+    \"\"\"Coordinate agents with compressed context.\"\"\"
+    recent = state["messages"][-3:]
+    summaries = "\\n".join(state["research_notes"][-2:])
+
+    routing_prompt = f"Recent: {recent}\\nSummaries: {summaries}\\nWhat next?"
+
+    decision = routing_model.with_structured_output(Routing).invoke([
+        HumanMessage(content=routing_prompt)
+    ])
+
+    if decision.done:
+        return Command(goto=END)
+    return Command(goto=decision.next_agent)
+
+def researcher(state: SupervisorState) -> dict:
+    \"\"\"Research and return summary only.\"\"\"
+    research_result = conduct_research(state["messages"][-1])
+    summary = summarize(research_result)
+
+    return {
+        "research_notes": [summary],  # Add summary, not full result
+        "messages": [AIMessage(content="Research complete")]
+    }
+```"""
+
+LANGGRAPH_PERSISTENCE = """## Practical Patterns
+
+### Checkpointer + Store for Persistence
+
+```python
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.store.memory import InMemoryStore
+
+checkpointer = MemorySaver()  # Thread-level state
+store = InMemoryStore()       # Cross-thread memory
+
+app = graph.compile(
+    checkpointer=checkpointer,  # Enables conversation continuity
+    store=store                  # Enables learning across conversations
+)
+
+# Thread-specific conversation
+app.invoke(
+    {"messages": [HumanMessage("Hello")]},
+    config={"configurable": {"thread_id": "user-123"}}
+)
+```
+
+### Structured Output for Reliability
+
+```python
+from pydantic import BaseModel, Field
+
+class ResearchOutput(BaseModel):
+    summary: str = Field(description="3-sentence summary")
+    sources: list[str] = Field(description="Source URLs")
+    confidence: float = Field(description="0-1 confidence score")
+
+model_with_structure = model.with_structured_output(ResearchOutput)
+
+def structured_research(state: State) -> dict:
+    result = model_with_structure.invoke(state["messages"])
+    # result is guaranteed to have summary, sources, confidence
+    return {"research": result.model_dump()}
+```"""
+
+# Default section order for assembly (basic)
 DEFAULT_SECTIONS = [
     FRONTMATTER,
     HEADER,
@@ -131,4 +410,24 @@ DEFAULT_SECTIONS = [
     CREATE_AGENT_EXAMPLE,
     SQL_EXAMPLE,
     QUICK_REFERENCE,
+]
+
+# Full sections including detailed LangGraph guide
+FULL_LANGGRAPH_SECTIONS = [
+    FRONTMATTER,
+    HEADER,
+    QUICK_START,
+    GUIDANCE,
+    CREATE_AGENT_OVERVIEW,
+    DEEP_AGENT_OVERVIEW,
+    LANGGRAPH_OVERVIEW,
+    CREATE_AGENT_EXAMPLE,
+    SQL_EXAMPLE,
+    QUICK_REFERENCE,
+    LANGGRAPH_REACT,
+    LANGGRAPH_TOOLMESSAGES,
+    LANGGRAPH_COMMANDS,
+    LANGGRAPH_CONTEXT_STRATEGIES,
+    LANGGRAPH_MULTIAGENT,
+    LANGGRAPH_PERSISTENCE,
 ]

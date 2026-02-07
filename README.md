@@ -9,70 +9,159 @@ Measures how skill documentation design affects Claude Code's adherence to recom
 uv venv && source .venv/bin/activate
 uv pip install -r requirements.txt
 
-# Run all experiments
-.venv/bin/python tests/basic_skill/test_langchain_context.py
+# Verify imports work
+python3 -c "from scaffold import verify_environment; print('OK')"
 
-# Run specific experiments
-.venv/bin/python tests/basic_skill/test_langchain_context.py -e SKILL_POS SKILL_NEG
+# Run LangChain agent experiment
+.venv/bin/python tests/langchain_agent/test_langchain_agent.py -t BASELINE
 
-# Run preset group
-.venv/bin/python tests/basic_skill/test_langchain_context.py -e framing
-
-# Run with repetitions
-.venv/bin/python tests/basic_skill/test_langchain_context.py -e SKILL_POS -r 3
+# Run LangGraph agent experiment
+.venv/bin/python tests/langgraph_agent/test_langgraph_agent.py -t BASELINE
 ```
+
+## Requirements
+
+- Python 3.13+
+- Docker (for sandboxed execution of generated code)
+- Claude Code CLI (`claude`)
+- API keys: `OPENAI_API_KEY` (for generated agents), `LANGSMITH_API_KEY` (optional)
+
+## How It Works
+
+1. **Setup**: Creates isolated temp directory with skill files, CLAUDE.md, and environment (Dockerfile, requirements.txt, test data)
+2. **Run**: Executes Claude Code CLI with a prompt asking it to complete a task
+3. **Validate**: Checks generated assets for patterns, runs code in Docker, uses LLM to evaluate output quality
+4. **Cleanup**: Removes temp directory
 
 ## Experiments
 
-Experiments measure whether Claude follows skill guidance to use modern LangChain patterns instead of deprecated `create_sql_agent`.
+### 1. LangChain Agent (`tests/langchain_agent/`)
 
-| Experiment | Description |
-|------------|-------------|
-| `SKILL_NEG` | Skill with negative guidance ("don't use X") |
-| `SKILL_POS` | Skill with positive guidance ("use Y") |
-| `SKILL_NONE` | Skill without guidance section |
-| `REITERATE_NEG` | Skill + CLAUDE.md, both negative |
-| `REITERATE_POS` | Skill + CLAUDE.md, both positive |
-| `MOVED_NEG` | Guidance in CLAUDE.md only (negative) |
-| `MOVED_POS` | Guidance in CLAUDE.md only (positive) |
-| `MINIMAL` | Minimal skill - overview + quick ref only |
-| `NO_SQL_EXAMPLE` | No SQL example - general patterns only |
-
-## Presets
+Tests whether Claude uses modern patterns (`create_agent`, `@tool`) vs deprecated patterns (`create_sql_agent`).
 
 ```bash
--e framing        # SKILL_NEG, SKILL_POS
--e location       # SKILL_NEG, MOVED_NEG
--e reiteration    # SKILL_NEG, REITERATE_NEG
--e difficulty     # SKILL_POS, NO_SQL_EXAMPLE, MINIMAL
--e minimal-boost  # MINIMAL, MINIMAL_REITERATE, MINIMAL_MOVED
+.venv/bin/python tests/langchain_agent/test_langchain_agent.py -t control   # CONTROL vs BASELINE
+.venv/bin/python tests/langchain_agent/test_langchain_agent.py -t guidance  # Positive vs negative framing
+.venv/bin/python tests/langchain_agent/test_langchain_agent.py -t noise     # Progressive noise
 ```
+
+| Preset | Treatments | Tests |
+|--------|------------|-------|
+| `control` | CONTROL, BASELINE | Skill vs no skill |
+| `guidance` | GUIDANCE_POS, GUIDANCE_NEG | Positive vs negative framing |
+| `claudemd` | BASELINE, CLAUDE_MD_POS, CLAUDE_MD_MOVED | CLAUDE.md impact |
+| `noise` | BASELINE, NOISE_1, NOISE_2, NOISE_3 | Progressive noise interference |
+| `minimal` | BASELINE, MINIMAL, NO_SQL_EXAMPLE | Documentation level |
+| `stress` | MINIMAL, MINIMAL_NOISE | Stress tests |
+
+### 2. LangGraph Agent (`tests/langgraph_agent/`)
+
+Tests whether Claude can generate complex multi-agent LangGraph code with proper patterns.
+
+```bash
+.venv/bin/python tests/langgraph_agent/test_langgraph_agent.py -t control
+.venv/bin/python tests/langgraph_agent/test_langgraph_agent.py -t doc-level
+.venv/bin/python tests/langgraph_agent/test_langgraph_agent.py -t noise
+```
+
+| Preset | Treatments | Tests |
+|--------|------------|-------|
+| `control` | CONTROL, BASELINE | Skill vs no skill |
+| `doc-level` | MINIMAL, BASIC, FULL | Documentation level |
+| `claudemd` | BASELINE, CLAUDE_MD_POS, CLAUDE_MD_NEG | CLAUDE.md impact |
+| `noise` | BASELINE, NOISE_1, NOISE_2, NOISE_3 | Progressive noise interference |
+| `stress` | MINIMAL, MINIMAL_NOISE, NOISE_CLAUDE_MD | Stress tests |
 
 ## Project Structure
 
 ```
-skill_constructs/           # Modular skill sections for testing
-  langchain/langchain_agents/  # Agent patterns (sections in skill.py)
+scaffold/
+  __init__.py       # Public API exports
+  runner.py         # Test execution, Docker, event parsing
+  setup.py          # Environment setup/verification
+  framework.py      # Treatment, Validators
+  model.py          # LLM evaluation
 
-tests/basic_skill/          # Basic skill experiments
-  experiments.py            # Experiment definitions + validators
-  test_langchain_context.py # Main test script
+tests/
+  langchain_agent/
+    environment/      # Dockerfile, requirements.txt, chinook.db
+    config.py         # Treatment definitions
+    test_langchain_agent.py
+  langgraph_agent/
+    environment/      # Dockerfile, requirements.txt
+    config.py         # Treatment definitions
+    test_langgraph_agent.py
 
-scaffold/                   # Test infrastructure
-  runner.py                 # Test execution
-  logs.py                   # Event capture/parsing + reports
-  setup.py                  # Environment setup + skill assembly
+skill_constructs/
+  langchain/          # LangChain skill content
+  noise/              # Noise/distractor skills
 ```
 
-## Validation Criteria
+## Defining Treatments
 
-Experiments **pass** if:
-1. langchain-agents skill was invoked
-2. File was created with valid syntax
-3. Uses modern patterns (create_agent, @tool)
-4. Agent runs without errors
+```python
+from scaffold import Treatment, PythonFileValidator, OutputQualityValidator, MetricsCollector
 
-Experiments **fail** if:
-- Skill wasn't invoked
-- Deprecated import (create_sql_agent)
-- Syntax/runtime errors
+TREATMENTS = {
+    "BASELINE": Treatment(
+        description="Skill with positive guidance",
+        sections=MY_SKILL_SECTIONS,
+        validators=[
+            PythonFileValidator(
+                "output.py", "Code Check",
+                required={"pattern": "description"},
+                forbidden={"bad_pattern": "description"},
+                require_all=True,
+            ),
+            OutputQualityValidator(
+                "output.py", "Output Check",
+                task_description="What the code should do",
+                expected_behavior="What good output looks like",
+            ),
+            MetricsCollector(["output.py"]),
+        ],
+    ),
+    "WITH_NOISE": Treatment(
+        description="With distractor tasks",
+        sections=MY_SKILL_SECTIONS,
+        noise_tasks=["docker-patterns", "react-components"],
+        validators=[...],
+    ),
+}
+```
+
+## Validation
+
+Generated code is validated in two ways:
+
+1. **Pattern Matching**: Check for required/forbidden code patterns
+2. **Docker Execution**: Run the code in a sandboxed container
+3. **LLM Evaluation**: Use GPT-4o-mini to assess if output is meaningful
+
+### LangChain Agent
+- **PASS**: Uses `create_agent`/`@tool`, valid syntax, runs, produces expected output
+- **FAIL**: Uses deprecated `create_sql_agent`, syntax errors, runtime errors
+
+### LangGraph Agent
+- **PASS**: Uses StateGraph, TypedDict, @tool, valid syntax, runs
+- **FAIL**: No LangGraph patterns, uses deprecated patterns, errors
+
+## Environment Setup
+
+Each test has an `environment/` directory containing:
+- `Dockerfile` - Container image for running generated code
+- `requirements.txt` - Python dependencies
+- Test data (e.g., `chinook.db` for SQL tests)
+
+The environment is copied to the temp test directory and used to build a Docker image for sandboxed execution.
+
+## Key Findings
+
+| Treatment | Result | Finding |
+|-----------|--------|---------|
+| LangChain CONTROL (no skill) | FAIL | Uses deprecated `create_sql_agent` |
+| LangChain BASELINE (with skill) | PASS | Uses modern `create_agent` + `@tool` |
+| LangGraph CONTROL (no skill) | FAIL | Uses raw API, no LangGraph |
+| LangGraph BASELINE (with skill) | PASS | Uses StateGraph, TypedDict |
+
+**Conclusion**: Skills have real, measurable impact on Claude's code generation patterns.

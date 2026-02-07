@@ -4,17 +4,18 @@
 Measures how guidance framing and location affect Claude's adherence to skill recommendations.
 
 Usage:
-    # Run all cases once
+    # Run all cases
     .venv/bin/python tests/context_impact/test_langchain_context.py
 
     # Run specific cases
     .venv/bin/python tests/context_impact/test_langchain_context.py -c SKILL_POS SKILL_NEG
 
-    # Run with repetitions for statistical significance
-    .venv/bin/python tests/context_impact/test_langchain_context.py -r 3
+    # Run a preset group (expands to multiple cases)
+    .venv/bin/python tests/context_impact/test_langchain_context.py -c framing
+    .venv/bin/python tests/context_impact/test_langchain_context.py -c minimal-boost
 
-    # Run a comparison group
-    .venv/bin/python tests/context_impact/test_langchain_context.py --compare framing
+    # Run with repetitions for statistical significance
+    .venv/bin/python tests/context_impact/test_langchain_context.py -c SKILL_POS -r 3
 """
 
 import sys
@@ -23,21 +24,61 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from scaffold.setup import cleanup_test_environment
+from scaffold.setup import setup_test_environment, copy_test_data, cleanup_test_environment, setup_test_context
 from scaffold.runner import run_test, run_with_repetition
 from tests.context_impact.cases import (
     CASES, FRAMING_COMPARISON, LOCATION_COMPARISON,
     REITERATION_COMPARISON, POSITIVE_STRATEGY, NEGATIVE_STRATEGY,
+    DIFFICULTY_COMPARISON, MINIMAL_BOOST_COMPARISON, NO_SQL_BOOST_COMPARISON,
+    validate_sql_agent,
 )
-from tests.context_impact.helpers import PROMPT, validate_sql_agent, make_test_dir
 
-COMPARISON_GROUPS = {
+# Shared across all context impact tests
+PROMPT = """Build a LangChain SQL agent that can query chinook.db.
+Requirements: Use gpt-4o-mini, only allow SELECT queries, include error handling.
+Save to sql_agent.py and run a test query."""
+
+CHINOOK_PATH = Path(__file__).parent / "chinook.db"
+
+# Preset groups - shortcuts that expand to multiple cases
+PRESETS = {
     "framing": FRAMING_COMPARISON,
     "location": LOCATION_COMPARISON,
     "reiteration": REITERATION_COMPARISON,
     "positive": POSITIVE_STRATEGY,
     "negative": NEGATIVE_STRATEGY,
+    "difficulty": DIFFICULTY_COMPARISON,
+    "minimal-boost": MINIMAL_BOOST_COMPARISON,
+    "nosql-boost": NO_SQL_BOOST_COMPARISON,
 }
+
+
+def make_test_dir(case_name: str) -> Path:
+    """Create test directory for a case."""
+    desc, claude_md, sections = CASES[case_name]
+    test_dir = setup_test_environment()
+    setup_test_context(test_dir, sections=sections, claude_md=claude_md)
+
+    if CHINOOK_PATH.exists():
+        copy_test_data(CHINOOK_PATH, test_dir)
+
+    return test_dir
+
+
+def expand_cases(case_args: list[str]) -> list[str]:
+    """Expand preset names to actual case lists."""
+    result = []
+    for arg in case_args:
+        if arg in PRESETS:
+            result.extend(PRESETS[arg])
+        elif arg in CASES:
+            result.append(arg)
+        else:
+            print(f"Unknown case or preset: {arg}")
+            print(f"Available cases: {', '.join(CASES.keys())}")
+            print(f"Available presets: {', '.join(PRESETS.keys())}")
+            sys.exit(1)
+    return result
 
 
 def run_cases(cases: list[str], repetitions: int, model: str = None) -> dict:
@@ -62,87 +103,77 @@ def run_cases(cases: list[str], repetitions: int, model: str = None) -> dict:
 
 
 def print_report(results: dict, repetitions: int):
-    """Print formatted report."""
+    """Print formatted report with side-by-side comparison."""
     print("\n")
-    print("=" * 70)
-    print("  CONTEXT IMPACT ANALYSIS REPORT")
-    print("=" * 70)
+    print("=" * 80)
+    print("  RESULTS")
+    print("=" * 80)
 
-    # Results table
-    print("\n--- RESULTS ---")
-    print(f"{'Case':<15} {'Pass Rate':<12} {'Details'}")
-    print("-" * 70)
+    # Extract efficiency metrics from checks
+    def get_metrics(r):
+        metrics = {"turns": None, "duration": None, "deprecated": 0}
+        for check in r.checks_passed:
+            if check.startswith("Turns:"):
+                metrics["turns"] = int(check.split(":")[1].strip())
+            elif check.startswith("Duration:"):
+                metrics["duration"] = float(check.split(":")[1].strip().rstrip("s"))
+            elif check.startswith("Deprecated attempts:"):
+                metrics["deprecated"] = int(check.split(":")[1].strip())
+        return metrics
 
-    for name in sorted(results.keys()):
-        r = results[name]
-        if repetitions > 1:
-            rate = f"{r.pass_rate*100:.0f}%"
-            status = "consistent" if r.consistent else "INCONSISTENT"
-            details = f"({status})"
-        else:
-            rate = "PASS" if r.passed else "FAIL"
-            details = ", ".join(r.checks_passed[:3])
-            if r.checks_failed:
-                details += f" | FAILED: {', '.join(r.checks_failed)}"
-        print(f"{name:<15} {rate:<12} {details}")
-
-    # Comparison analysis (only if we have enough data)
     if repetitions > 1:
-        _print_comparisons(results)
+        # Repetition mode - show pass rates
+        print(f"\n{'Case':<20} {'Pass Rate':<12} {'Consistent':<12}")
+        print("-" * 50)
+        for name in results.keys():
+            r = results[name]
+            rate = f"{r.pass_rate*100:.0f}%"
+            consistent = "Yes" if r.consistent else "NO"
+            print(f"{name:<20} {rate:<12} {consistent:<12}")
+    else:
+        # Single run mode - show detailed comparison
+        print(f"\n{'Case':<20} {'Result':<8} {'Turns':<8} {'Time':<8} {'Deprecated':<12} {'Checks'}")
+        print("-" * 80)
+        for name in results.keys():
+            r = results[name]
+            metrics = get_metrics(r)
+            result = "PASS" if r.passed else "FAIL"
+            turns = str(metrics["turns"]) if metrics["turns"] else "-"
+            duration = f"{metrics['duration']:.0f}s" if metrics["duration"] else "-"
+            deprecated = str(metrics["deprecated"]) if metrics["deprecated"] else "0"
+            # Filter out metrics from checks for display
+            checks = [c for c in r.checks_passed[:3]
+                     if not c.startswith(("Turns:", "Duration:", "Deprecated"))]
+            checks_str = ", ".join(checks)
+            if r.checks_failed:
+                checks_str += f" | FAIL: {r.checks_failed[0]}"
+            print(f"{name:<20} {result:<8} {turns:<8} {duration:<8} {deprecated:<12} {checks_str}")
 
-    print("\n" + "=" * 70)
-
-
-def _print_comparisons(results: dict):
-    """Print comparison analysis for repetition runs."""
-    # Framing
-    if all(n in results for n in FRAMING_COMPARISON):
-        print("\n--- FRAMING: Negative vs Positive ---")
-        neg, pos = results["SKILL_NEG"], results["SKILL_POS"]
-        diff = pos.pass_rate - neg.pass_rate
-        print(f"  SKILL_NEG: {neg.pass_rate*100:.0f}%  |  SKILL_POS: {pos.pass_rate*100:.0f}%  |  Diff: {diff*100:+.0f}%")
-
-    # Location
-    if all(n in results for n in LOCATION_COMPARISON):
-        print("\n--- LOCATION: Skill vs CLAUDE.md ---")
-        skill, moved = results["SKILL_NEG"], results["MOVED_NEG"]
-        diff = moved.pass_rate - skill.pass_rate
-        print(f"  SKILL_NEG: {skill.pass_rate*100:.0f}%  |  MOVED_NEG: {moved.pass_rate*100:.0f}%  |  Diff: {diff*100:+.0f}%")
-
-    # Reiteration
-    if all(n in results for n in REITERATION_COMPARISON):
-        print("\n--- REITERATION: Skill only vs Both ---")
-        skill, reit = results["SKILL_NEG"], results["REITERATE_NEG"]
-        diff = reit.pass_rate - skill.pass_rate
-        print(f"  SKILL_NEG: {skill.pass_rate*100:.0f}%  |  REITERATE_NEG: {reit.pass_rate*100:.0f}%  |  Diff: {diff*100:+.0f}%")
-
-    # Strategy averages
-    neg_cases = [n for n in NEGATIVE_STRATEGY if n in results]
-    pos_cases = [n for n in POSITIVE_STRATEGY if n in results]
-    if len(neg_cases) > 1 and len(pos_cases) > 1:
-        print("\n--- STRATEGY AVERAGES ---")
-        neg_avg = sum(results[n].pass_rate for n in neg_cases) / len(neg_cases)
-        pos_avg = sum(results[n].pass_rate for n in pos_cases) / len(pos_cases)
-        print(f"  Negative avg: {neg_avg*100:.0f}%  |  Positive avg: {pos_avg*100:.0f}%  |  Diff: {(pos_avg-neg_avg)*100:+.0f}%")
+    print("\n" + "=" * 80)
 
 
 def main():
+    all_choices = list(CASES.keys()) + list(PRESETS.keys())
+
     parser = argparse.ArgumentParser(
         description="Test context impact on LangChain skill following",
-        formatter_class=argparse.RawDescriptionHelpFormatter)
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=f"""
+Presets (expand to multiple cases):
+  framing       - {', '.join(FRAMING_COMPARISON)}
+  location      - {', '.join(LOCATION_COMPARISON)}
+  difficulty    - {', '.join(DIFFICULTY_COMPARISON)}
+  minimal-boost - {', '.join(MINIMAL_BOOST_COMPARISON)}
+""")
     parser.add_argument("--model", type=str, help="Model to use")
     parser.add_argument("-r", "--repetitions", type=int, default=1, help="Runs per case")
-    parser.add_argument("-c", "--cases", nargs="+", choices=list(CASES.keys()),
-                        help="Specific cases to run")
-    parser.add_argument("--compare", choices=list(COMPARISON_GROUPS.keys()),
-                        help="Run a comparison group")
+    parser.add_argument("-c", "--cases", nargs="+", metavar="CASE",
+                        help="Cases or presets to run (default: all)")
     args = parser.parse_args()
 
     # Determine cases to run
     if args.cases:
-        cases_to_run = args.cases
-    elif args.compare:
-        cases_to_run = COMPARISON_GROUPS[args.compare]
+        cases_to_run = expand_cases(args.cases)
     else:
         cases_to_run = list(CASES.keys())
 

@@ -70,7 +70,7 @@ scaffold/                   # Test infrastructure
 
 Tests **pass** if:
 1. Skill was read (guidance had chance to influence)
-2. Deprecated `create_sql_agent` was NOT used
+2. create_agent or create_deep_agent was used
 
 Tests **fail** if:
 - Skill wasn't discovered/read

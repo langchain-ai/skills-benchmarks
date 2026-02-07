@@ -6,7 +6,7 @@ from pathlib import Path
 from dataclasses import dataclass
 from typing import Dict, Any, List, Callable
 from dotenv import load_dotenv
-from .capture import parse_output, extract_events, save_events
+from .logs import parse_output, extract_events, save_events
 
 load_dotenv(Path(__file__).parent.parent / ".env")
 PROJECT_ROOT = Path(__file__).parent.parent

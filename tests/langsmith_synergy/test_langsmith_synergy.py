@@ -26,7 +26,8 @@ from scaffold import (
 )
 from tests.langsmith_synergy.config import (
     TREATMENTS, build_prompt,
-    BASIC_COMPARISON, ADVANCED_COMPARISON, ALL_TREATMENTS_LIST,
+    BASIC_COMPARISON, ADVANCED_COMPARISON,
+    BASIC_ALL_SECTIONS_VS_CONTROL, ADV_ALL_SECTIONS_VS_CONTROL,
 )
 from tests.langsmith_synergy.validation.ground_truth import generate_all_ground_truth
 
@@ -37,7 +38,7 @@ REQUIRED_FILES = ["Dockerfile", "requirements.txt"]
 PRESETS = {
     "basic": BASIC_COMPARISON,
     "advanced": ADVANCED_COMPARISON,
-    "all": ALL_TREATMENTS_LIST,
+    "all_sections": BASIC_ALL_SECTIONS_VS_CONTROL + ADV_ALL_SECTIONS_VS_CONTROL,
 }
 
 

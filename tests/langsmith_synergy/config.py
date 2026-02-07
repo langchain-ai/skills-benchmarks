@@ -403,13 +403,30 @@ def build_prompt(treatment: Treatment, treatment_name: str = None, rep: int = 1,
 
 
 # =============================================================================
-# PRESETS
+# PRESETS - Grouped by Experiment Class
 # =============================================================================
 
+# CLASS 1: Basic (2 skills: trace + dataset)
 BASIC_COMPARISON = list(BASIC_TREATMENTS.keys())
-ADVANCED_COMPARISON = list(ADVANCED_TREATMENTS.keys())
-ALL_TREATMENTS_LIST = list(TREATMENTS.keys())
-
-# All sections vs control
+BASIC_GUIDANCE_COMPARISON = [                                   # Where should guidance live?
+    "BASIC_CONTROL",
+    "BASIC_BASELINE",
+    "BASIC_CLAUDEMD",
+    "BASIC_SKILLS",
+    "BASIC_BOTH",
+]
 BASIC_ALL_SECTIONS_VS_CONTROL = ["BASIC_CONTROL", "BASIC_ALL_SECTIONS"]
+
+# CLASS 2: Advanced (3 skills: trace + dataset + evaluator)
+ADVANCED_COMPARISON = list(ADVANCED_TREATMENTS.keys())
+ADV_GUIDANCE_COMPARISON = [                              # Where should guidance live?
+    "ADV_CONTROL",
+    "ADV_BASELINE",
+    "ADV_CLAUDEMD",
+    "ADV_SKILLS",
+    "ADV_BOTH",
+]
 ADV_ALL_SECTIONS_VS_CONTROL = ["ADV_CONTROL", "ADV_ALL_SECTIONS"]
+
+# Combined
+ALL_TREATMENTS_LIST = list(TREATMENTS.keys())

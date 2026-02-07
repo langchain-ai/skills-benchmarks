@@ -1,43 +1,50 @@
 """Testing scaffold for Claude Code skill benchmarks."""
 
 from .runner import (
-    run_test, TestResult,
-    check_docker_available, build_docker_image, run_in_docker, run_python_in_docker,
-    extract_events, parse_output, save_events,
+    TestResult,
+    build_docker_image, run_in_docker, run_python_in_docker,
+    WorkItem, run_single, run_parallel, create_work_items,
 )
 from .setup import (
-    verify_environment,
+    check_docker_available, verify_environment,
     setup_test_environment, cleanup_test_environment,
     build_skill, write_skill, setup_test_context,
-    cleanup_test_files, cleanup_langsmith_assets,
+    NOISE_TASKS, get_noise_prompt, get_noise_output, get_noise_skill_content,
 )
 from .framework import (
     Treatment, Validator,
     SkillInvokedValidator, PythonFileValidator, NoiseTaskValidator,
     MetricsCollector, OutputQualityValidator,
-    NOISE_TASKS, get_noise_prompt, get_noise_output, get_noise_skill_content,
-    langchain_skill_validator, python_files_validator, metrics_collector,
 )
 from .model import (
-    EVAL_MODEL, get_eval_model, evaluate_output, evaluate_with_json,
+    EVAL_MODEL, get_eval_model, evaluate_with_schema,
+)
+from .logging import (
+    ExperimentLogger, TreatmentResult, ReportColumn,
+    bool_column, quality_column, default_columns,
+    parse_output, extract_events, strip_ansi,
+    save_events, save_raw, save_report,
 )
 
 __all__ = [
-    # Runner (includes Docker and event parsing)
-    'run_test', 'TestResult',
+    # Runner (Docker utilities + parallel execution)
+    'TestResult',
     'build_docker_image', 'run_in_docker', 'run_python_in_docker',
-    'extract_events', 'parse_output', 'save_events',
+    'WorkItem', 'run_single', 'run_parallel', 'create_work_items',
     # Setup
-    'verify_environment',
+    'check_docker_available', 'verify_environment',
     'setup_test_environment', 'cleanup_test_environment',
     'build_skill', 'write_skill', 'setup_test_context',
-    'cleanup_test_files', 'cleanup_langsmith_assets',
-    # Experiment
+    'NOISE_TASKS', 'get_noise_prompt', 'get_noise_output', 'get_noise_skill_content',
+    # Framework
     'Treatment', 'Validator',
     'SkillInvokedValidator', 'PythonFileValidator', 'NoiseTaskValidator',
     'MetricsCollector', 'OutputQualityValidator',
-    'NOISE_TASKS', 'get_noise_prompt', 'get_noise_output', 'get_noise_skill_content',
-    'langchain_skill_validator', 'python_files_validator', 'metrics_collector',
     # Model
-    'EVAL_MODEL', 'get_eval_model', 'evaluate_output', 'evaluate_with_json',
+    'EVAL_MODEL', 'get_eval_model', 'evaluate_with_schema',
+    # Logging
+    'ExperimentLogger', 'TreatmentResult', 'ReportColumn',
+    'bool_column', 'quality_column', 'default_columns',
+    'parse_output', 'extract_events', 'strip_ansi',
+    'save_events', 'save_raw', 'save_report',
 ]

@@ -19,48 +19,65 @@ from scaffold import (
 from skill_constructs.langchain.langchain_agents import (
     FRONTMATTER, HEADER, QUICK_START, LANGGRAPH_OVERVIEW,
     FULL_LANGGRAPH_SECTIONS,
-    GUIDANCE_POSITIVE,
-    CLAUDE_MD_POSITIVE, CLAUDE_MD_NEGATIVE,
+    GUIDANCE_POSITIVE, GUIDANCE_NEGATIVE,
+    CLAUDE_MD_SKILLS_ONLY, CLAUDE_MD_BOTH,
 )
 
 # =============================================================================
 # SKILL SECTIONS
 # =============================================================================
 
-MINIMAL_SECTIONS = [
-    FRONTMATTER, HEADER, QUICK_START, GUIDANCE_POSITIVE, LANGGRAPH_OVERVIEW,
-]
+BASE_SECTIONS = FULL_LANGGRAPH_SECTIONS
 
-BASIC_SECTIONS = FULL_LANGGRAPH_SECTIONS[:10]
-FULL_SECTIONS = FULL_LANGGRAPH_SECTIONS
+
+def sections_guidance(guidance):
+    """Build sections list with guidance inserted after QUICK_START."""
+    # Insert guidance after the third element (QUICK_START)
+    result = BASE_SECTIONS.copy()
+    if guidance:
+        result.insert(3, guidance)
+    return result
+
+
+def skill(guidance):
+    """Build skills dict with langchain-agents skill."""
+    return {"langchain-agents": sections_guidance(guidance)}
 
 
 # =============================================================================
 # PROMPTS
 # =============================================================================
 
-TASK1_PROMPT = """Build a multi-agent document analysis system using LangGraph.
+TASK1_PROMPT = """Build a multi-agent research system using LangGraph.
 
 Required Agents:
-1. Router Agent: routes requests to specialists
-2. Summarizer Agent: creates summaries
-3. QA Agent: answers questions
-4. Critic Agent: validates outputs
+1. Supervisor: Routes requests and decides when task is complete
+2. Researcher: Uses TavilySearchResults tool to gather information
+3. Writer: Synthesizes research into coherent summaries
 
 Requirements:
-1. Supervisor pattern with Command-based handoffs
-2. Maintain conversation state
-3. Human-in-the-loop: pause for approval
-4. Handle context overflow by summarizing old messages
-5. Conditional routing based on intent
-6. Print the compiled graph structure (using get_graph().draw_mermaid() or print_ascii())
+1. Use LangGraph's graph-based approach for agent orchestration
+2. Implement a supervisor pattern where one agent coordinates others
+3. Use TavilySearchResults from langchain_community.tools.tavily_search
+4. Print the graph structure with get_graph() to verify all nodes are defined
+5. Run a test query and show the output
 
-Test: Analyze "Cloud Computing Architecture" - summary, follow-up question, critic validation.
-Save to research_agent.py and run the test."""
+Test with: "Research 'Cloud Computing' and write a summary with 3 key benefits."
 
-TASK2_PROMPT = """Add a Fact-Checker Agent to verify claims against mock source data.
-Print the updated graph structure showing the new agent.
-Save to research_agent_2.py and demonstrate fact-checking."""
+Save to research_agent.py and run the test.
+
+IMPORTANT: Run files directly (not in background). If code fails after 2 attempts to fix, save the file and report the error - do not enter debug loops."""
+
+TASK2_PROMPT = """Add a Critic agent that reviews the Writer's output.
+
+Requirements:
+1. New Critic node that validates/reviews the written summary
+2. Supervisor can now route to Researcher, Writer, or Critic
+3. Print the graph structure to verify the new node exists
+
+Save to research_agent_2.py and demonstrate the critic reviewing the summary.
+
+IMPORTANT: Run files directly (not in background). If code fails after 2 attempts to fix, save the file and report the error - do not enter debug loops."""
 
 
 # =============================================================================
@@ -69,21 +86,19 @@ Save to research_agent_2.py and demonstrate fact-checking."""
 
 # Core LangGraph patterns (ALL must be present)
 LANGGRAPH_REQUIRED = {
-    "StateGraph": "StateGraph",
-    "TypedDict": "TypedDict",
-    "@tool": "@tool decorator",
+    "StateGraph": "uses StateGraph",
+    "TypedDict": "uses TypedDict",
 }
 
-# Multi-agent patterns (at least one required for Agent 1)
-MULTIAGENT_REQUIRED = {
-    "Command": "uses Command for routing",
-    "conditional_edges": "uses conditional routing",
-    "add_node": "defines agent nodes",
+# Multi-agent patterns
+MULTIAGENT_PATTERNS = {
+    "add_node": "defines nodes",
 }
 
-# Graph compilation pattern
-GRAPH_COMPILATION = {
+# Graph compilation
+GRAPH_EXECUTION = {
     ".compile(": "compiles graph",
+    "get_graph()": "inspects graph structure",
 }
 
 # Deprecated patterns (none allowed)
@@ -95,40 +110,39 @@ LANGGRAPH_FORBIDDEN = {
 
 
 def langgraph_validators():
-    """Standard validators for LangGraph treatments - runs files and checks output."""
+    """Validators for LangGraph multi-agent treatments."""
     return [
-        # Track skill invocation (don't fail, just note in stats)
         SkillInvokedValidator("langchain-agents", required=False),
-        # Agent 1: Core LangGraph patterns (ALL required: StateGraph, TypedDict, @tool)
+        # Agent 1: Core patterns
         PythonFileValidator(
             "research_agent.py", "Agent 1 Core",
             required=LANGGRAPH_REQUIRED,
             forbidden=LANGGRAPH_FORBIDDEN,
             require_all=True,
         ),
-        # Agent 1: Multi-agent patterns + graph compilation
+        # Agent 1: Graph structure code
         PythonFileValidator(
             "research_agent.py", "Agent 1 Graph",
-            required={**MULTIAGENT_REQUIRED, **GRAPH_COMPILATION},
+            required={**MULTIAGENT_PATTERNS, **GRAPH_EXECUTION},
         ),
-        # Agent 1: LLM-based output quality check
+        # Agent 1: Output validation
         OutputQualityValidator(
             "research_agent.py", "Agent 1 Output",
-            task_description="Multi-agent document analysis system with Router, Summarizer, QA, and Critic agents",
-            expected_behavior="Should print graph structure (mermaid/ascii), show agent routing, produce summary about 'Cloud Computing Architecture', and show critic validation",
+            task_description="Multi-agent system with Supervisor, Researcher, and Writer nodes",
+            expected_behavior="Output should print a list of node names (from get_graph().nodes.keys()) showing at least 3 custom nodes, and produce a summary about Cloud Computing",
         ),
-        # Agent 2: Core patterns + graph compilation
+        # Agent 2: Core patterns
         PythonFileValidator(
-            "research_agent_2.py", "Agent 2 Code",
-            required={**LANGGRAPH_REQUIRED, **GRAPH_COMPILATION},
+            "research_agent_2.py", "Agent 2 Core",
+            required={**LANGGRAPH_REQUIRED, **GRAPH_EXECUTION},
             forbidden=LANGGRAPH_FORBIDDEN,
             require_all=True,
         ),
-        # Agent 2: LLM-based output quality check
+        # Agent 2: Output validation
         OutputQualityValidator(
             "research_agent_2.py", "Agent 2 Output",
-            task_description="Extended multi-agent system with Fact-Checker agent",
-            expected_behavior="Should print updated graph structure and demonstrate fact-checking against mock data",
+            task_description="Extended multi-agent system with Critic node added",
+            expected_behavior="Output should print a list of node names showing at least 4 custom nodes, and demonstrate the critic reviewing the summary",
         ),
         MetricsCollector(["research_agent.py", "research_agent_2.py"]),
     ]
@@ -137,82 +151,74 @@ def langgraph_validators():
 # =============================================================================
 # TREATMENTS
 # =============================================================================
+# Organized into 3 experiment classes:
+#   1. REINFORCEMENT: Effects of positive vs negative guidance
+#   2. CLAUDE_MD: Effects of CLAUDE.md presence and content
+#   3. NOISE: Effects of distractor tasks
+# =============================================================================
 
 TREATMENTS = {
-    # Control
+    # =========================================================================
+    # CLASS 1: REINFORCEMENT - Positive vs Negative Guidance
+    # =========================================================================
+
+    "GUIDANCE_POS": Treatment(
+        description="Skill with positive guidance",
+        skills=skill(GUIDANCE_POSITIVE),
+        validators=langgraph_validators(),
+    ),
+    "GUIDANCE_NEG": Treatment(
+        description="Skill with negative guidance",
+        skills=skill(GUIDANCE_NEGATIVE),
+        validators=langgraph_validators(),
+    ),
+
+    # =========================================================================
+    # CLASS 2: CLAUDE_MD - Effects of CLAUDE.md
+    # =========================================================================
+
     "CONTROL": Treatment(
-        description="No skill (control)",
+        description="No skill, no CLAUDE.md",
         validators=langgraph_validators(),
     ),
     "BASELINE": Treatment(
-        description="Full LangGraph documentation",
-        sections=FULL_SECTIONS,
+        description="Skill only, no CLAUDE.md",
+        skills=skill(GUIDANCE_POSITIVE),
+        validators=langgraph_validators(),
+    ),
+    "CLAUDE_MD_SKILLS": Treatment(
+        description="CLAUDE.md: check skills only",
+        skills=skill(GUIDANCE_POSITIVE),
+        claude_md=CLAUDE_MD_SKILLS_ONLY,
+        validators=langgraph_validators(),
+    ),
+    "CLAUDE_MD_BOTH": Treatment(
+        description="CLAUDE.md: skills + patterns",
+        skills=skill(GUIDANCE_POSITIVE),
+        claude_md=CLAUDE_MD_BOTH,
         validators=langgraph_validators(),
     ),
 
-    # Documentation levels
-    "MINIMAL": Treatment(
-        description="Minimal (just overview)",
-        sections=MINIMAL_SECTIONS,
-        validators=langgraph_validators(),
-    ),
-    "BASIC": Treatment(
-        description="Basic (no detailed LangGraph)",
-        sections=BASIC_SECTIONS,
-        validators=langgraph_validators(),
-    ),
-    "FULL": Treatment(
-        description="Full documentation",
-        sections=FULL_SECTIONS,
-        validators=langgraph_validators(),
-    ),
+    # =========================================================================
+    # CLASS 3: NOISE - Effects of Distractor Tasks
+    # =========================================================================
 
-    # CLAUDE.md
-    "CLAUDE_MD_POS": Treatment(
-        description="Full + CLAUDE.md positive",
-        sections=FULL_SECTIONS,
-        claude_md=CLAUDE_MD_POSITIVE,
-        validators=langgraph_validators(),
-    ),
-    "CLAUDE_MD_NEG": Treatment(
-        description="Full + CLAUDE.md negative",
-        sections=FULL_SECTIONS,
-        claude_md=CLAUDE_MD_NEGATIVE,
-        validators=langgraph_validators(),
-    ),
-
-    # Noise (progressive: 1, 2, 3 noise tasks)
     "NOISE_1": Treatment(
         description="1 noise task (Docker)",
-        sections=FULL_SECTIONS,
+        skills=skill(GUIDANCE_POSITIVE),
         noise_tasks=["docker-patterns"],
         validators=langgraph_validators(),
     ),
     "NOISE_2": Treatment(
         description="2 noise tasks (Docker + React)",
-        sections=FULL_SECTIONS,
+        skills=skill(GUIDANCE_POSITIVE),
         noise_tasks=["docker-patterns", "react-components"],
         validators=langgraph_validators(),
     ),
     "NOISE_3": Treatment(
         description="3 noise tasks (Docker + React + API)",
-        sections=FULL_SECTIONS,
+        skills=skill(GUIDANCE_POSITIVE),
         noise_tasks=["docker-patterns", "react-components", "api-docs"],
-        validators=langgraph_validators(),
-    ),
-
-    # Stress tests
-    "NOISE_CLAUDE_MD": Treatment(
-        description="Full + noise + CLAUDE.md",
-        sections=FULL_SECTIONS,
-        claude_md=CLAUDE_MD_POSITIVE,
-        noise_tasks=["docker-patterns"],
-        validators=langgraph_validators(),
-    ),
-    "MINIMAL_NOISE": Treatment(
-        description="Minimal + noise",
-        sections=MINIMAL_SECTIONS,
-        noise_tasks=["docker-patterns"],
         validators=langgraph_validators(),
     ),
 }
@@ -223,15 +229,12 @@ def build_langgraph_prompt(treatment: Treatment) -> str:
     return treatment.build_prompt(TASK1_PROMPT, TASK2_PROMPT)
 
 
-def validate_langgraph_treatment(events: dict, test_dir: Path, treatment: Treatment):
-    """Validate a LangGraph treatment."""
-    return treatment.validate(events, test_dir)
+# =============================================================================
+# PRESETS
+# =============================================================================
 
-
-# Presets
+REINFORCEMENT_COMPARISON = ["GUIDANCE_POS", "GUIDANCE_NEG"]
 CONTROL_COMPARISON = ["CONTROL", "BASELINE"]
-DOC_LEVEL_COMPARISON = ["MINIMAL", "BASIC", "FULL"]
-CLAUDE_MD_COMPARISON = ["BASELINE", "CLAUDE_MD_POS", "CLAUDE_MD_NEG"]
+CLAUDE_MD_COMPARISON = ["BASELINE", "CLAUDE_MD_SKILLS", "CLAUDE_MD_BOTH"]
 NOISE_COMPARISON = ["BASELINE", "NOISE_1", "NOISE_2", "NOISE_3"]
-STRESS_COMPARISON = ["MINIMAL", "MINIMAL_NOISE", "NOISE_CLAUDE_MD"]
 ALL_TREATMENTS = list(TREATMENTS.keys())

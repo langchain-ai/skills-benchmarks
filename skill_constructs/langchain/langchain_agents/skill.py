@@ -46,25 +46,42 @@ Use the modern approach:
 # CLAUDE.MD VARIATIONS (for experiments)
 # =============================================================================
 
-# POSITIVE: Only mentions what TO use
-CLAUDE_MD_POSITIVE = """# Project Guidelines
+# =============================================================================
+# CLAUDE.MD EXPERIMENT VARIATIONS
+# =============================================================================
 
-Always check project skills before starting a task to ensure you're using the recommended patterns.
+# SKILLS_ONLY: Just tells Claude to check skills (no pattern guidance)
+CLAUDE_MD_SKILLS_ONLY = """# Project Guidelines
+
+Before starting any coding task, check available project skills to find the best approach.
+"""
+
+# PATTERNS_POSITIVE: Use modern patterns (no mention of deprecated)
+CLAUDE_MD_PATTERNS_POSITIVE = """# Project Guidelines
 
 ## LangChain Development
 
 Use modern LangChain patterns.
 """
 
-# NEGATIVE: Mentions deprecated patterns
-CLAUDE_MD_NEGATIVE = """# Project Guidelines
-
-Always check project skills before starting a task to ensure you're using the recommended patterns.
+# PATTERNS_NEGATIVE: Use modern patterns (mentions deprecated to avoid)
+CLAUDE_MD_PATTERNS_NEGATIVE = """# Project Guidelines
 
 ## LangChain Development
 
-Use modern LangChain patterns. Older convenience helpers are deprecated and should be avoided.
+Use modern LangChain patterns. Avoid deprecated convenience helpers like create_sql_agent or create_react_agent.
 """
+
+# BOTH: Check skills AND use modern patterns
+CLAUDE_MD_BOTH = """# Project Guidelines
+
+Before starting any coding task, check available project skills to find the best approach.
+
+## LangChain Development
+
+Use modern LangChain patterns.
+"""
+
 
 CREATE_AGENT_OVERVIEW = """**Simple tool-calling agent?** → [`create_agent`](https://docs.langchain.com/oss/python/langchain/agents)
 ```python
@@ -111,43 +128,47 @@ result = agent.invoke({"messages": [("user", "Your question")]})
 
 **Pattern applies to:** SQL agents, search agents, Q&A bots, tool-calling workflows."""
 
-SQL_EXAMPLE = """### Example: SQL Agent (Text-to-SQL)
+TOOL_EXAMPLE = """### Example: Calculator Agent
 
 ```python
-import sqlite3
 from langchain_anthropic import ChatAnthropic
 from langchain.agents import create_agent
 from langchain_core.tools import tool
 
-def get_schema(db_path: str) -> str:
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-    cursor.execute("SELECT sql FROM sqlite_master WHERE type='table'")
-    schema = "\\n".join([row[0] for row in cursor.fetchall()])
-    conn.close()
-    return schema
+@tool
+def calculate(expression: str) -> str:
+    \"\"\"Evaluate a mathematical expression safely.\"\"\"
+    try:
+        # Only allow safe math operations
+        allowed = set('0123456789+-*/(). ')
+        if not all(c in allowed for c in expression):
+            return "Error: Invalid characters"
+        return str(eval(expression))
+    except Exception as e:
+        return f"Error: {e}"
 
 @tool
-def query_database(sql_query: str) -> str:
-    \"\"\"Execute a SQL SELECT query and return results.\"\"\"
-    if not sql_query.upper().strip().startswith("SELECT"):
-        return "Error: Only SELECT queries allowed"
-    conn = sqlite3.connect("chinook.db")
-    cursor = conn.cursor()
-    cursor.execute(sql_query)
-    results = cursor.fetchall()
-    conn.close()
-    return str(results)
+def convert_units(value: float, from_unit: str, to_unit: str) -> str:
+    \"\"\"Convert between common units.\"\"\"
+    conversions = {
+        ("km", "miles"): 0.621371,
+        ("miles", "km"): 1.60934,
+        ("kg", "lbs"): 2.20462,
+        ("lbs", "kg"): 0.453592,
+    }
+    factor = conversions.get((from_unit, to_unit), None)
+    if factor:
+        return f"{value * factor:.2f} {to_unit}"
+    return "Conversion not supported"
 
-schema = get_schema("chinook.db")
 model = ChatAnthropic(model="claude-sonnet-4-5")
 agent = create_agent(
     model=model,
-    tools=[query_database],
-    system_prompt=f"You are a SQL expert. Generate SELECT queries.\\n\\nSchema:\\n{schema}"
+    tools=[calculate, convert_units],
+    system_prompt="You are a helpful calculator assistant."
 )
 
-result = agent.invoke({"messages": [("user", "How many customers are there?")]})
+result = agent.invoke({"messages": [("user", "What is 15% of 250?")]})
 ```"""
 
 QUICK_REFERENCE = """## Quick Reference
@@ -323,38 +344,50 @@ def compress_history(state: State) -> dict:
 
 LANGGRAPH_MULTIAGENT = """## Multi-Agent Patterns
 
-### Supervisor with Context Budget
+### Supervisor Pattern
 
 ```python
-class SupervisorState(TypedDict):
+from langgraph.graph import StateGraph, START, END
+from langgraph.types import Command
+from typing import TypedDict, Annotated, Literal
+from langgraph.graph.message import add_messages
+
+class AgentState(TypedDict):
     messages: Annotated[list, add_messages]
-    research_notes: list[str]  # Summaries only
     next_agent: str
 
-def supervisor(state: SupervisorState) -> Command[Literal["researcher", "writer", END]]:
-    \"\"\"Coordinate agents with compressed context.\"\"\"
-    recent = state["messages"][-3:]
-    summaries = "\\n".join(state["research_notes"][-2:])
+def supervisor(state: AgentState) -> Command[Literal["billing", "technical", END]]:
+    \"\"\"Route to appropriate specialist based on request type.\"\"\"
+    last_msg = state["messages"][-1].content.lower()
 
-    routing_prompt = f"Recent: {recent}\\nSummaries: {summaries}\\nWhat next?"
+    # Simple routing logic (use LLM for complex cases)
+    if "invoice" in last_msg or "payment" in last_msg:
+        return Command(goto="billing")
+    elif "error" in last_msg or "not working" in last_msg:
+        return Command(goto="technical")
+    return Command(goto=END)
 
-    decision = routing_model.with_structured_output(Routing).invoke([
-        HumanMessage(content=routing_prompt)
-    ])
+def billing_agent(state: AgentState) -> dict:
+    \"\"\"Handle billing-related queries.\"\"\"
+    response = billing_model.invoke(state["messages"])
+    return {"messages": [response]}
 
-    if decision.done:
-        return Command(goto=END)
-    return Command(goto=decision.next_agent)
+def technical_agent(state: AgentState) -> dict:
+    \"\"\"Handle technical support queries.\"\"\"
+    response = tech_model.invoke(state["messages"])
+    return {"messages": [response]}
 
-def researcher(state: SupervisorState) -> dict:
-    \"\"\"Research and return summary only.\"\"\"
-    research_result = conduct_research(state["messages"][-1])
-    summary = summarize(research_result)
+# Build the graph
+workflow = StateGraph(AgentState)
+workflow.add_node("supervisor", supervisor)
+workflow.add_node("billing", billing_agent)
+workflow.add_node("technical", technical_agent)
+workflow.add_edge(START, "supervisor")
+workflow.add_edge("billing", END)
+workflow.add_edge("technical", END)
 
-    return {
-        "research_notes": [summary],  # Add summary, not full result
-        "messages": [AIMessage(content="Research complete")]
-    }
+app = workflow.compile()
+print(list(app.get_graph().nodes.keys()))  # See graph structure
 ```"""
 
 LANGGRAPH_PERSISTENCE = """## Practical Patterns
@@ -408,7 +441,7 @@ DEFAULT_SECTIONS = [
     DEEP_AGENT_OVERVIEW,
     LANGGRAPH_OVERVIEW,
     CREATE_AGENT_EXAMPLE,
-    SQL_EXAMPLE,
+    TOOL_EXAMPLE,
     QUICK_REFERENCE,
 ]
 
@@ -422,7 +455,7 @@ FULL_LANGGRAPH_SECTIONS = [
     DEEP_AGENT_OVERVIEW,
     LANGGRAPH_OVERVIEW,
     CREATE_AGENT_EXAMPLE,
-    SQL_EXAMPLE,
+    TOOL_EXAMPLE,
     QUICK_REFERENCE,
     LANGGRAPH_REACT,
     LANGGRAPH_TOOLMESSAGES,

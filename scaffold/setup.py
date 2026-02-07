@@ -61,6 +61,8 @@ def verify_environment(environment_dir: Path, required_files: List[str] = None):
         errors.append("Docker not available. Install Docker Desktop or Docker Engine.")
 
     # Check API keys
+    if not os.getenv("ANTHROPIC_API_KEY"):
+        errors.append("ANTHROPIC_API_KEY not set (required for Claude Code in Docker)")
     if not os.getenv("OPENAI_API_KEY"):
         errors.append("OPENAI_API_KEY not set (required for generated agents)")
 
@@ -131,20 +133,66 @@ def write_skill(test_dir: Path, skill_name: str, content: str) -> Path:
     return skill_file
 
 
+# =============================================================================
+# NOISE TASKS SETUP
+# =============================================================================
+
+NOISE_TASKS = {
+    "docker-patterns": {
+        "prompt": (
+            "Create a Dockerfile for a Node.js application with multi-stage build, "
+            "non-root user, and health check. Save to Dockerfile."
+        ),
+        "output": "Dockerfile",
+    },
+    "react-components": {
+        "prompt": (
+            "Create a React component that fetches and displays user data using hooks "
+            "(useState, useEffect), with loading/error states in TypeScript. Save to UserProfile.tsx."
+        ),
+        "output": "UserProfile.tsx",
+    },
+    "api-docs": {
+        "prompt": (
+            "Create an OpenAPI spec for a simple user API with GET /users, POST /users, "
+            "proper schemas, and error responses. Save to openapi.yaml."
+        ),
+        "output": "openapi.yaml",
+    },
+}
+
+
+def get_noise_prompt(name: str) -> str:
+    """Get the prompt for a noise task."""
+    return NOISE_TASKS[name]["prompt"]
+
+
+def get_noise_output(name: str) -> str:
+    """Get the expected output file for a noise task."""
+    return NOISE_TASKS[name]["output"]
+
+
+def get_noise_skill_content(skill_name: str) -> str:
+    """Read content of a noise skill from skill_constructs/noise/."""
+    noise_dir = Path(__file__).parent.parent / "skill_constructs" / "noise"
+    dir_name = skill_name.replace("-", "_")
+    skill_file = noise_dir / dir_name / "SKILL.md"
+    return skill_file.read_text() if skill_file.exists() else ""
+
+
 def setup_test_context(
     test_dir: Path,
-    sections: List[str] = None,
+    skills: dict = None,
     claude_md: str = None,
-    skill_name: str = "langchain-agents",
     environment_dir: Path = None,
 ) -> None:
     """Setup test directory with .claude/ containing skills and CLAUDE.md.
 
     Args:
         test_dir: Test working directory
-        sections: List of section strings to assemble into skill (None = no skill)
+        skills: Dict mapping skill names to section lists, e.g.
+                {"langchain-agents": [HEADER, BODY], "other-skill": [SECTIONS]}
         claude_md: Content for CLAUDE.md (None = no CLAUDE.md)
-        skill_name: Name for the skill directory
         environment_dir: Path to environment directory (contains Dockerfile, requirements.txt, etc.)
     """
     claude_dir = test_dir / ".claude"
@@ -153,10 +201,12 @@ def setup_test_context(
     if claude_md:
         (claude_dir / "CLAUDE.md").write_text(claude_md)
 
-    # Only create skill if sections provided
-    if sections:
-        content = build_skill(sections)
-        write_skill(test_dir, skill_name, content)
+    # Create each skill
+    if skills:
+        for skill_name, sections in skills.items():
+            if sections:
+                content = build_skill(sections)
+                write_skill(test_dir, skill_name, content)
 
     # Copy environment files (Dockerfile, requirements.txt, test data, etc.)
     if environment_dir and environment_dir.exists():
@@ -169,57 +219,3 @@ def setup_test_context(
         print(f"✓ Copied environment from {environment_dir.name}/")
 
 
-# =============================================================================
-# CLEANUP UTILITIES
-# =============================================================================
-
-def cleanup_test_files(test_dir: Path):
-    """Clean up test artifact files from test directory."""
-    patterns = [
-        "agent_summary.txt", "test_*.txt", "test_*.json", "test_*.py",
-        "sql_agent.py", "sql_agent_*.py",
-        "research_agent.py", "research_agent_*.py",
-        "search_agent.py",
-    ]
-
-    deleted_count = 0
-    for pattern in patterns:
-        for file in test_dir.glob(pattern):
-            try:
-                file.unlink()
-                deleted_count += 1
-                print(f"  Deleted: {file.name}")
-            except Exception as e:
-                print(f"  Could not delete {file.name}: {e}")
-
-    if deleted_count == 0:
-        print("  (no test files found)")
-
-
-def cleanup_langsmith_assets():
-    """Clean up test datasets from LangSmith."""
-    try:
-        from langsmith import Client
-        client = Client()
-
-        test_dataset_names = [
-            "Test Dataset - DELETE ME",
-            "Evaluator Test Dataset - DELETE ME"
-        ]
-
-        deleted_count = 0
-        for dataset_name in test_dataset_names:
-            try:
-                datasets = list(client.list_datasets(dataset_name=dataset_name))
-                for dataset in datasets:
-                    client.delete_dataset(dataset_id=dataset.id)
-                    deleted_count += 1
-                    print(f"  Deleted dataset: {dataset.name}")
-            except Exception as e:
-                print(f"  Could not delete dataset '{dataset_name}': {e}")
-
-        if deleted_count == 0:
-            print("  (no test datasets found)")
-
-    except Exception as e:
-        print(f"  LangSmith cleanup failed: {e}")

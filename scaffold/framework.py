@@ -11,7 +11,7 @@ Example usage:
     TREATMENTS = {
         "BASELINE": Treatment(
             description="Test with skill",
-            sections=MY_SECTIONS,
+            skills={"my-skill": [HEADER, EXAMPLES]},
             validators=[
                 PythonFileValidator("output.py", required={"pattern": "desc"}),
             ],
@@ -22,55 +22,46 @@ Example usage:
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Dict, Optional, Callable
+from typing import List, Dict, Optional, Tuple
 import ast
+import subprocess
+import sys
+import os
+
+from .model import evaluate_with_schema
+from .runner import run_python_in_docker
+from .setup import check_docker_available, get_noise_prompt, get_noise_output
 
 
 # =============================================================================
-# NOISE TASKS
+# SHARED UTILITIES
 # =============================================================================
 
-NOISE_TASKS = {
-    "docker-patterns": {
-        "prompt": (
-            "Create a Dockerfile for a Node.js application with multi-stage build, "
-            "non-root user, and health check. Save to Dockerfile."
-        ),
-        "output": "Dockerfile",
-    },
-    "react-components": {
-        "prompt": (
-            "Create a React component that fetches and displays user data using hooks "
-            "(useState, useEffect), with loading/error states in TypeScript. Save to UserProfile.tsx."
-        ),
-        "output": "UserProfile.tsx",
-    },
-    "api-docs": {
-        "prompt": (
-            "Create an OpenAPI spec for a simple user API with GET /users, POST /users, "
-            "proper schemas, and error responses. Save to openapi.yaml."
-        ),
-        "output": "openapi.yaml",
-    },
-}
+def run_python_file(test_dir: Path, filename: str, run_args: List[str] = None, timeout: int = 180) -> Tuple[bool, str]:
+    """Run a Python file, using Docker if Dockerfile exists, otherwise local Python.
 
+    Returns (success, output) tuple.
+    """
+    run_args = run_args or []
+    dockerfile = test_dir / "Dockerfile"
 
-def get_noise_prompt(name: str) -> str:
-    """Get the prompt for a noise task."""
-    return NOISE_TASKS[name]["prompt"]
+    # Use Docker if available and Dockerfile exists
+    if dockerfile.exists() and check_docker_available():
+        return run_python_in_docker(test_dir, filename, timeout=timeout)
 
-
-def get_noise_output(name: str) -> str:
-    """Get the expected output file for a noise task."""
-    return NOISE_TASKS[name]["output"]
-
-
-def get_noise_skill_content(skill_name: str) -> str:
-    """Read content of a noise skill from skill_constructs/noise/."""
-    noise_dir = Path(__file__).parent.parent.parent / "skill_constructs" / "noise"
-    dir_name = skill_name.replace("-", "_")
-    skill_file = noise_dir / dir_name / "SKILL.md"
-    return skill_file.read_text() if skill_file.exists() else ""
+    # Fall back to local Python
+    try:
+        cmd = [sys.executable, str(test_dir / filename)] + run_args
+        result = subprocess.run(
+            cmd, capture_output=True, text=True, timeout=timeout,
+            cwd=str(test_dir), env=os.environ.copy(),
+        )
+        output = result.stdout + result.stderr
+        return result.returncode == 0, output
+    except subprocess.TimeoutExpired:
+        return False, f"timeout ({timeout}s)"
+    except Exception as e:
+        return False, str(e)
 
 
 # =============================================================================
@@ -148,35 +139,14 @@ class PythonFileValidator(Validator):
         self.output_patterns = output_patterns or {}
         self.min_output_lines = min_output_lines
 
-    def _run_file(self, test_dir: Path) -> tuple[bool, str]:
-        """Run the file, using Docker if Dockerfile exists, otherwise local Python."""
-        from scaffold.runner import run_python_in_docker, check_docker_available
+    def validate(self, events: dict, test_dir: Path, outputs: Dict[str, tuple] = None):
+        """Validate Python file.
 
-        dockerfile = test_dir / "Dockerfile"
-
-        # Use Docker if available and Dockerfile exists
-        if dockerfile.exists() and check_docker_available():
-            return run_python_in_docker(test_dir, self.filename, timeout=120)
-
-        # Fall back to local Python
-        import subprocess
-        import sys
-        import os
-
-        try:
-            cmd = [sys.executable, str(test_dir / self.filename)] + self.run_args
-            result = subprocess.run(
-                cmd, capture_output=True, text=True, timeout=120,
-                cwd=str(test_dir), env=os.environ.copy(),
-            )
-            output = result.stdout + result.stderr
-            return result.returncode == 0, output
-        except subprocess.TimeoutExpired:
-            return False, "timeout (120s)"
-        except Exception as e:
-            return False, str(e)
-
-    def validate(self, events: dict, test_dir: Path):
+        Args:
+            events: Parsed events from Claude's execution
+            test_dir: Directory containing test files
+            outputs: Pre-captured outputs {filename: (success, output, duration_s)}
+        """
         passed, failed = [], []
         file_path = test_dir / self.filename
 
@@ -231,7 +201,11 @@ class PythonFileValidator(Validator):
 
         # Optional: run the file and validate output
         if self.run_file:
-            success, output = self._run_file(test_dir)
+            # Use pre-captured output if available
+            if outputs and self.filename in outputs:
+                success, output, _ = outputs[self.filename]
+            else:
+                success, output = run_python_file(test_dir, self.filename, self.run_args)
 
             if success:
                 passed.append(f"{self.label}: runs successfully")
@@ -292,8 +266,9 @@ class MetricsCollector(Validator):
         passed = []
 
         # Basic metrics
-        passed.append(f"Turns: {events.get('num_turns', 0)}")
-        passed.append(f"Duration: {events.get('duration_seconds', 0):.0f}s")
+        passed.append(f"Turns: {events.get('num_turns', 0) or 0}")
+        duration = events.get('duration_seconds', 0) or 0
+        passed.append(f"Duration: {duration:.0f}s")
 
         # Tool calls
         tool_calls = events.get("tool_calls", [])
@@ -337,7 +312,15 @@ class OutputQualityValidator(Validator):
         self.expected_behavior = expected_behavior
         self.run_args = run_args or []
 
-    def validate(self, events: dict, test_dir: Path):
+    def validate(self, events: dict, test_dir: Path, outputs: Dict[str, tuple] = None):
+        """Validate output quality.
+
+        Args:
+            events: Parsed events from Claude's execution
+            test_dir: Directory containing test files
+            outputs: Pre-captured outputs {filename: (success, output, duration_s)}
+                        If provided, uses cached output instead of running again.
+        """
         passed, failed = [], []
         file_path = test_dir / self.filename
 
@@ -345,11 +328,12 @@ class OutputQualityValidator(Validator):
             failed.append(f"{self.label}: file not created")
             return passed, failed
 
-        # Run the file (uses Docker if available)
-        success, output = self._run_file(test_dir)
-
-        # Save Docker output to logs
-        self._save_docker_output(output, success)
+        # Use pre-captured output if available, otherwise run
+        if outputs and self.filename in outputs:
+            success, output, duration = outputs[self.filename]
+        else:
+            success, output = run_python_file(test_dir, self.filename, self.run_args)
+            duration = None
 
         if not success:
             failed.append(f"{self.label}: runtime error - {output[:100]}")
@@ -359,62 +343,24 @@ class OutputQualityValidator(Validator):
             failed.append(f"{self.label}: output too short ({len(output)} chars)")
             return passed, failed
 
-        passed.append(f"{self.label}: produced output ({len(output)} chars)")
+        duration_str = f" in {duration:.1f}s" if duration else ""
+        passed.append(f"{self.label}: produced output ({len(output)} chars{duration_str})")
 
-        # Use LLM to evaluate output quality
+        # Use LLM to evaluate output quality (tracked as score, not pass/fail)
         eval_result = self._evaluate_output(output)
-        if eval_result["pass"]:
-            passed.append(f"{self.label}: {eval_result['reason']}")
-        else:
-            failed.append(f"{self.label}: {eval_result['reason']}")
+        quality_status = "GOOD" if eval_result["pass"] else "LOW"
+        passed.append(f"{self.label} quality [{quality_status}]: {eval_result['reason']}")
 
         return passed, failed
 
-    def _save_docker_output(self, output: str, success: bool):
-        """Save Docker execution output to logs/docker/ directory."""
-        from scaffold.runner import save_log, LOGS_DIR
-
-        status = "success" if success else "error"
-        safe_name = self.filename.replace(".py", "").replace("/", "_")
-        save_log(output, LOGS_DIR / "docker", safe_name, f"_{status}.txt")
-
-    def _run_file(self, test_dir: Path) -> tuple[bool, str]:
-        """Run the file, using Docker if Dockerfile exists, otherwise local Python."""
-        from scaffold.runner import run_python_in_docker, check_docker_available
-
-        dockerfile = test_dir / "Dockerfile"
-
-        # Use Docker if available and Dockerfile exists
-        if dockerfile.exists() and check_docker_available():
-            return run_python_in_docker(test_dir, self.filename, timeout=120)
-
-        # Fall back to local Python
-        import subprocess
-        import sys
-        import os
-
-        try:
-            cmd = [sys.executable, str(test_dir / self.filename)] + self.run_args
-            result = subprocess.run(
-                cmd, capture_output=True, text=True, timeout=120,
-                cwd=str(test_dir), env=os.environ.copy(),
-            )
-            output = result.stdout + result.stderr
-            return result.returncode == 0, output
-        except subprocess.TimeoutExpired:
-            return False, "timeout (120s)"
-        except Exception as e:
-            return False, str(e)
-
     def _evaluate_output(self, output: str) -> dict:
         """Use LLM to evaluate if output is meaningful."""
-        from .model import evaluate_with_json
-
         # Truncate output if too long
         output_sample = output[:3000] if len(output) > 3000 else output
 
-        prompt = f"""Evaluate this program output. Task: {self.task_description}
+        prompt = f"""Evaluate this program output.
 
+Task: {self.task_description}
 Expected behavior: {self.expected_behavior}
 
 Actual output:
@@ -422,10 +368,9 @@ Actual output:
 {output_sample}
 ```
 
-Does this output demonstrate the expected behavior? Reply with ONLY a JSON object:
-{{"pass": true/false, "reason": "brief explanation (max 10 words)"}}"""
+Does this output demonstrate the expected behavior?"""
 
-        return evaluate_with_json(prompt)
+        return evaluate_with_schema(prompt)
 
 
 # =============================================================================
@@ -434,13 +379,36 @@ Does this output demonstrate the expected behavior? Reply with ONLY a JSON objec
 
 @dataclass
 class Treatment:
-    """Configuration for a single experiment."""
+    """Configuration for a single experiment.
+
+    Example:
+        Treatment(
+            description="Test with multiple skills",
+            skills={
+                "langchain-agents": [HEADER, BODY, EXAMPLES],
+                "docker-patterns": [DOCKER_SECTIONS],
+            },
+            claude_md=CLAUDE_MD_CONTENT,
+            validators=[...],
+        )
+    """
 
     description: str
-    sections: Optional[List[str]] = None  # Skill sections (None = no skill)
-    claude_md: Optional[str] = None       # CLAUDE.md content
+    skills: Dict[str, List[str]] = field(default_factory=dict)  # {skill_name: [sections]}
+    claude_md: Optional[str] = None
     noise_tasks: List[str] = field(default_factory=list)
     validators: List[Validator] = field(default_factory=list)
+
+    def get_files_to_run(self) -> List[str]:
+        """Get list of files that need to be run (from validators that execute code)."""
+        files = []
+        for v in self.validators:
+            if isinstance(v, OutputQualityValidator):
+                files.append(v.filename)
+            elif isinstance(v, PythonFileValidator) and v.run_file:
+                files.append(v.filename)
+        # Remove duplicates while preserving order
+        return list(dict.fromkeys(files))
 
     def build_prompt(self, base_prompt: str, task2_prompt: str = None) -> str:
         """Build experiment prompt, inserting noise tasks if present."""
@@ -459,13 +427,23 @@ class Treatment:
 
         return "Complete these tasks in order:\n\n" + "\n\n".join(parts)
 
-    def validate(self, events: dict, test_dir: Path) -> tuple[List[str], List[str]]:
-        """Run all validators and return (passed, failed) lists."""
+    def validate(self, events: dict, test_dir: Path, outputs: Dict[str, tuple] = None) -> tuple[List[str], List[str]]:
+        """Run all validators and return (passed, failed) lists.
+
+        Args:
+            events: Parsed events from Claude's execution
+            test_dir: Directory containing test files
+            outputs: Pre-captured outputs {filename: (success, output, duration_s)}
+        """
         all_passed, all_failed = [], []
 
         # Run configured validators
         for validator in self.validators:
-            passed, failed = validator.validate(events, test_dir)
+            # Pass outputs to validators that support it
+            if isinstance(validator, (OutputQualityValidator, PythonFileValidator)):
+                passed, failed = validator.validate(events, test_dir, outputs)
+            else:
+                passed, failed = validator.validate(events, test_dir)
             all_passed.extend(passed)
             all_failed.extend(failed)
 
@@ -478,31 +456,3 @@ class Treatment:
         return all_passed, all_failed
 
 
-# =============================================================================
-# HELPERS FOR CREATING COMMON VALIDATOR SETS
-# =============================================================================
-
-def langchain_skill_validator(required: bool = True) -> SkillInvokedValidator:
-    """Validator for langchain-agents skill invocation."""
-    return SkillInvokedValidator("langchain-agents", required=required)
-
-
-def python_files_validator(
-    filenames: List[str],
-    required: Dict[str, str] = None,
-    forbidden: Dict[str, str] = None,
-    run_files: bool = False,
-) -> List[PythonFileValidator]:
-    """Create validators for multiple Python files with same patterns."""
-    return [
-        PythonFileValidator(
-            f, label=f"Agent {i+1}",
-            required=required, forbidden=forbidden, run_file=run_files
-        )
-        for i, f in enumerate(filenames)
-    ]
-
-
-def metrics_collector(filenames: List[str]) -> MetricsCollector:
-    """Create metrics collector for given output files."""
-    return MetricsCollector(filenames)

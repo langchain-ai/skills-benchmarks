@@ -9,7 +9,14 @@ Build production-ready agents with LangGraph, from basic primitives to advanced 
 
 ## Quick Start: Which Tool?
 
-**IMPORTANT:** Use modern abstractions. Older helpers like `create_sql_agent`, `create_tool_calling_agent`, `create_react_agent`, etc. are outdated.
+## Important: Use Modern LangChain Patterns
+
+Use the modern approach:
+- `create_agent()` from `langchain.agents` for simple agents
+- LangGraph `create_react_agent` for complex flows
+- `@tool` decorator for tool definitions
+
+See the examples below for working code.
 
 **Simple tool-calling agent?** → [`create_agent`](https://docs.langchain.com/oss/python/langchain/agents)
 ```python
@@ -56,43 +63,95 @@ result = agent.invoke({"messages": [("user", "Your question")]})
 
 **Pattern applies to:** SQL agents, search agents, Q&A bots, tool-calling workflows.
 
-### Example: SQL Agent (Text-to-SQL)
+### Example: Calculator Agent
 
 ```python
-import sqlite3
 from langchain_anthropic import ChatAnthropic
 from langchain.agents import create_agent
 from langchain_core.tools import tool
 
-def get_schema(db_path: str) -> str:
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-    cursor.execute("SELECT sql FROM sqlite_master WHERE type='table'")
-    schema = "\n".join([row[0] for row in cursor.fetchall()])
-    conn.close()
-    return schema
+@tool
+def calculate(expression: str) -> str:
+    """Evaluate a mathematical expression safely."""
+    try:
+        # Only allow safe math operations
+        allowed = set('0123456789+-*/(). ')
+        if not all(c in allowed for c in expression):
+            return "Error: Invalid characters"
+        return str(eval(expression))
+    except Exception as e:
+        return f"Error: {e}"
 
 @tool
-def query_database(sql_query: str) -> str:
-    """Execute a SQL SELECT query and return results."""
-    if not sql_query.upper().strip().startswith("SELECT"):
-        return "Error: Only SELECT queries allowed"
-    conn = sqlite3.connect("chinook.db")
-    cursor = conn.cursor()
-    cursor.execute(sql_query)
-    results = cursor.fetchall()
-    conn.close()
-    return str(results)
+def convert_units(value: float, from_unit: str, to_unit: str) -> str:
+    """Convert between common units."""
+    conversions = {
+        ("km", "miles"): 0.621371,
+        ("miles", "km"): 1.60934,
+        ("kg", "lbs"): 2.20462,
+        ("lbs", "kg"): 0.453592,
+    }
+    factor = conversions.get((from_unit, to_unit), None)
+    if factor:
+        return f"{value * factor:.2f} {to_unit}"
+    return "Conversion not supported"
 
-schema = get_schema("chinook.db")
 model = ChatAnthropic(model="claude-sonnet-4-5")
 agent = create_agent(
     model=model,
-    tools=[query_database],
-    system_prompt=f"You are a SQL expert. Generate SELECT queries.\n\nSchema:\n{schema}"
+    tools=[calculate, convert_units],
+    system_prompt="You are a helpful calculator assistant."
 )
 
-result = agent.invoke({"messages": [("user", "How many customers are there?")]})
+result = agent.invoke({"messages": [("user", "What is 15% of 250?")]})
+```
+
+## Multi-Agent Patterns
+
+### Supervisor Pattern
+
+```python
+from langgraph.graph import StateGraph, START, END
+from langgraph.types import Command
+from typing import TypedDict, Annotated, Literal
+from langgraph.graph.message import add_messages
+
+class AgentState(TypedDict):
+    messages: Annotated[list, add_messages]
+    next_agent: str
+
+def supervisor(state: AgentState) -> Command[Literal["billing", "technical", END]]:
+    """Route to appropriate specialist based on request type."""
+    last_msg = state["messages"][-1].content.lower()
+
+    # Simple routing logic (use LLM for complex cases)
+    if "invoice" in last_msg or "payment" in last_msg:
+        return Command(goto="billing")
+    elif "error" in last_msg or "not working" in last_msg:
+        return Command(goto="technical")
+    return Command(goto=END)
+
+def billing_agent(state: AgentState) -> dict:
+    """Handle billing-related queries."""
+    response = billing_model.invoke(state["messages"])
+    return {"messages": [response]}
+
+def technical_agent(state: AgentState) -> dict:
+    """Handle technical support queries."""
+    response = tech_model.invoke(state["messages"])
+    return {"messages": [response]}
+
+# Build the graph
+workflow = StateGraph(AgentState)
+workflow.add_node("supervisor", supervisor)
+workflow.add_node("billing", billing_agent)
+workflow.add_node("technical", technical_agent)
+workflow.add_edge(START, "supervisor")
+workflow.add_edge("billing", END)
+workflow.add_edge("technical", END)
+
+app = workflow.compile()
+print(list(app.get_graph().nodes.keys()))  # See graph structure
 ```
 
 ## Quick Reference

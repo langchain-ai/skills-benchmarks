@@ -36,9 +36,10 @@ class TestResult:
     checks_passed: List[str]
     checks_failed: List[str]
     events: Dict[str, Any]
+    run_id: str = ""
 
     def to_dict(self) -> Dict[str, Any]:
-        return {k: getattr(self, k) for k in ['name', 'passed', 'checks_passed', 'checks_failed', 'events']}
+        return {k: getattr(self, k) for k in ['name', 'passed', 'checks_passed', 'checks_failed', 'events', 'run_id']}
 
     @classmethod
     def from_dict(cls, d: Dict[str, Any]) -> "TestResult":
@@ -59,7 +60,7 @@ class WorkItem:
     timeout: int = 600
     model: str = None
     files_to_run: List[str] = None  # Specific files to run, or None for all .py
-    validation_module: str = None  # Path to validation/ground_truth.py module
+    run_id: str = ""  # Unique ID for this run (used for dataset naming)
 
     @property
     def prefix(self) -> str:
@@ -68,8 +69,7 @@ class WorkItem:
     def to_dict(self) -> Dict[str, Any]:
         return {f: getattr(self, f) for f in [
             'treatment_name', 'rep', 'base_dir', 'prompt', 'skills', 'claude_md',
-            'noise_tasks', 'environment_dir', 'timeout', 'model', 'files_to_run',
-            'validation_module'
+            'noise_tasks', 'environment_dir', 'timeout', 'model', 'files_to_run', 'run_id',
         ]}
 
     @classmethod
@@ -155,32 +155,26 @@ def run_single(args: tuple) -> Dict[str, Any]:
     # -------------------------------------------------------------------------
     outputs = _run_generated_files(work, test_dir, base_dir, prefix)
 
-    # Run ground truth generators if validation module specified
-    if work.validation_module:
-        print(f"[{prefix}] Generating ground truth...", flush=True)
-        try:
-            import importlib.util
-            spec = importlib.util.spec_from_file_location("ground_truth", work.validation_module)
-            gt_module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(gt_module)
-            if hasattr(gt_module, 'generate_all_ground_truth'):
-                gt_data = gt_module.generate_all_ground_truth(test_dir)
-                outputs["ground_truth"] = gt_data
-                print(f"[{prefix}] Ground truth generated", flush=True)
+    # Copy shared ground truth (generated once at experiment start in base_dir/ground_truth/)
+    shared_gt_dir = base_dir / "ground_truth"
+    if shared_gt_dir.exists():
+        print(f"[{prefix}] Copying shared ground truth...", flush=True)
+        expected_dir = base_dir / "artifacts" / f"{work.treatment_name.lower()}_rep{work.rep}" / "expected"
+        expected_dir.mkdir(parents=True, exist_ok=True)
 
-                # Save expected outputs to artifacts/rep/expected/
-                expected_dir = base_dir / "artifacts" / f"{work.treatment_name.lower()}_rep{work.rep}" / "expected"
-                expected_dir.mkdir(parents=True, exist_ok=True)
-                for gt_file in ["expected_traces.json", "expected_dataset.json", "evaluator_test_cases.json"]:
-                    src = test_dir / gt_file
-                    if src.exists():
-                        (expected_dir / gt_file).write_text(src.read_text())
-        except Exception as e:
-            print(f"[{prefix}] Ground truth generation failed: {e}", flush=True)
+        for gt_file in ["expected_traces.json", "expected_dataset.json", "evaluator_test_cases.json"]:
+            src = shared_gt_dir / gt_file
+            if src.exists():
+                # Copy to expected dir AND test_dir (for validator access)
+                (expected_dir / gt_file).write_text(src.read_text())
+                (test_dir / gt_file).write_text(src.read_text())
+        print(f"[{prefix}] Ground truth copied", flush=True)
 
     # -------------------------------------------------------------------------
     # PHASE 4: VALIDATION - Check outputs against validators
     # -------------------------------------------------------------------------
+    # Add run_id to outputs so validators can find the correct uploaded dataset
+    outputs["_run_id"] = work.run_id
     print(f"[{prefix}] Validating...", flush=True)
     passed, failed = validate_func(events, test_dir, work.treatment_name, outputs)
     ok = len(failed) == 0
@@ -190,6 +184,7 @@ def run_single(args: tuple) -> Dict[str, Any]:
     # Save report
     save_report(base_dir, work.treatment_name, work.rep, {
         "name": work.treatment_name, "rep": work.rep, "passed": ok,
+        "run_id": work.run_id,  # For finding LangSmith assets (test-{run_id})
         "checks_passed": passed, "checks_failed": failed,
         "events_summary": {
             "duration_seconds": events.get("duration_seconds"),
@@ -252,7 +247,7 @@ def _result(work: WorkItem, ok: bool, passed: List[str], failed: List[str], even
     return {
         "treatment_name": work.treatment_name,
         "rep": work.rep,
-        "result": TestResult(work.treatment_name, ok, passed, failed, events).to_dict()
+        "result": TestResult(work.treatment_name, ok, passed, failed, events, work.run_id).to_dict()
     }
 
 
@@ -298,27 +293,30 @@ def create_work_items(
     repeat: int = 1,
     timeout: int = 600,
     model: str = None,
-    validation_module: str = None,
 ) -> List[WorkItem]:
     """Create WorkItem for each treatment x repetition.
 
     Args:
-        build_prompt_func: (treatment, name, rep) -> prompt string
-        validation_module: Path to validation/ground_truth.py for generating expected outputs
+        build_prompt_func: (treatment, name, rep, run_id) -> prompt string
+
+    Note: Ground truth should be pre-generated to base_dir/ground_truth/ before running.
+          The runner will automatically copy it to each treatment's expected/ directory.
     """
+    import uuid
     items = []
     for name in treatment_names:
         treatment = treatments[name]
         files_to_run = treatment.get_files_to_run() if hasattr(treatment, 'get_files_to_run') else None
 
         for rep in range(1, repeat + 1):
-            # Build prompt with rep for unique dataset naming
-            prompt = build_prompt_func(treatment, name, rep)
+            # Generate unique run_id for dataset naming and validator matching
+            run_id = uuid.uuid4().hex[:8]
+            # Build prompt with run_id for unique dataset naming
+            prompt = build_prompt_func(treatment, name, rep, run_id)
             items.append(WorkItem(
                 treatment_name=name, rep=rep, base_dir=str(base_dir), prompt=prompt,
                 skills=treatment.skills or {}, claude_md=treatment.claude_md or "",
                 noise_tasks=treatment.noise_tasks or [], environment_dir=str(environment_dir),
-                timeout=timeout, model=model, files_to_run=files_to_run or None,
-                validation_module=validation_module,
+                timeout=timeout, model=model, files_to_run=files_to_run or None, run_id=run_id,
             ))
     return items

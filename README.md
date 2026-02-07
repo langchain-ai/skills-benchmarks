@@ -57,12 +57,14 @@ python tests/langchain_agent/test_langchain_agent.py -t GUIDANCE_POS GUIDANCE_NE
 
 Tests whether Claude can use multiple skills together (trace → dataset → evaluator pipeline).
 
+**Important**: Only run one LangSmith experiment at a time. The experiment generates traces in LangSmith and uses "most recent 5 traces" for ground truth. Running multiple experiments simultaneously can cause race conditions where traces from different runs interfere with each other.
+
 ```bash
 # Basic (2 skills: trace + dataset)
-python tests/langsmith_synergy/test_langsmith_synergy.py -t BASIC_CONTROL BASIC_ALL_SECTIONS -r 3 --skip-traces
+python tests/langsmith_synergy/test_langsmith_synergy.py -t basic -r 3 -w 3
 
 # Advanced (3 skills: trace + dataset + evaluator)
-python tests/langsmith_synergy/test_langsmith_synergy.py -t ADV_CONTROL ADV_ALL_SECTIONS -r 3 --skip-traces
+python tests/langsmith_synergy/test_langsmith_synergy.py -t advanced -r 3 -w 3
 ```
 
 | Treatment | Description |

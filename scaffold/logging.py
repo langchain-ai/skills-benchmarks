@@ -105,6 +105,7 @@ class TreatmentResult:
     checks_passed: List[str]
     checks_failed: List[str]
     events_summary: Dict[str, Any] = field(default_factory=dict)
+    run_id: str = ""  # Unique ID for finding LangSmith assets (test-{run_id})
 
     def has_check(self, pattern: str) -> bool:
         """Check if any passed check contains pattern."""
@@ -321,7 +322,8 @@ class ExperimentLogger:
             for i, r in enumerate(runs, 1):
                 run_label = f"Run {i}" if has_reps else "Result"
                 status = "PASS" if r.passed else "FAIL"
-                lines.append(f"**{run_label}:** {status}")
+                run_id_str = f" (run_id: {r.run_id})" if r.run_id else ""
+                lines.append(f"**{run_label}:** {status}{run_id_str}")
 
                 # Show metrics
                 metrics = []

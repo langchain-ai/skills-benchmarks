@@ -21,17 +21,18 @@ sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 from scaffold import (
     TestResult, verify_environment,
     ExperimentLogger, TreatmentResult,
-    bool_column, quality_column,
-    run_parallel, create_work_items,
-    run_python_in_docker, build_docker_image,
+    bool_column, run_parallel, create_work_items,
+    build_docker_image, run_in_docker,
 )
 from tests.langsmith_synergy.config import (
     TREATMENTS, build_prompt,
     BASIC_COMPARISON, ADVANCED_COMPARISON, ALL_TREATMENTS_LIST,
 )
+from tests.langsmith_synergy.validation.ground_truth import generate_all_ground_truth
 
 ENVIRONMENT_DIR = Path(__file__).parent / "environment"
-REQUIRED_FILES = ["Dockerfile", "requirements.txt", "chinook.db", "sql_agent.py"]
+VALIDATION_DIR = Path(__file__).parent / "validation"
+REQUIRED_FILES = ["Dockerfile", "requirements.txt"]
 
 PRESETS = {
     "basic": BASIC_COMPARISON,
@@ -60,6 +61,7 @@ def generate_traces(verbose: bool = True) -> bool:
     """Run sql_agent.py to generate traces in LangSmith.
 
     This must be done before the synergy tests so Claude has traces to work with.
+    Builds Docker image from environment/, runs sql_agent.py from validation/.
     """
     if verbose:
         print("\n" + "=" * 60)
@@ -67,37 +69,95 @@ def generate_traces(verbose: bool = True) -> bool:
         print("=" * 60)
         print("Running sql_agent.py to generate traces in LangSmith...")
 
+    # Build image from environment/ (has Dockerfile)
     image_name = build_docker_image(ENVIRONMENT_DIR, verbose=verbose)
     if not image_name:
         print("ERROR: Failed to build Docker image")
         return False
 
-    success, output = run_python_in_docker(ENVIRONMENT_DIR, "sql_agent.py", timeout=300)
+    # Run sql_agent.py from validation/ (has sql_agent.py + chinook.db)
+    try:
+        result = run_in_docker(
+            VALIDATION_DIR,
+            ["python", "sql_agent.py"],
+            timeout=300,
+            image_name=image_name,
+        )
+        success = result.returncode == 0
+        output = result.stdout + result.stderr
+
+        if verbose:
+            if success:
+                print("SUCCESS: Traces generated")
+                for line in output.strip().split('\n')[-5:]:
+                    print(f"  {line}")
+            else:
+                print(f"WARNING: sql_agent.py returned errors (traces may still exist)")
+                print(output[:500] if len(output) > 500 else output)
+            print("=" * 60 + "\n")
+
+        time.sleep(2)  # Give LangSmith time to index
+        return success
+
+    except Exception as e:
+        if verbose:
+            print(f"ERROR: Failed to run sql_agent.py: {e}")
+        return False
+
+
+def generate_ground_truth(base_dir: Path, verbose: bool = True) -> None:
+    """Generate ground truth ONCE for all treatments.
+
+    Saves to base_dir/ground_truth/ - the runner automatically copies from there.
+
+    This ensures all treatments are validated against the same expected data,
+    avoiding race conditions from generating ground truth per-treatment.
+    """
+    if verbose:
+        print("\n" + "=" * 60)
+        print("GENERATING GROUND TRUTH")
+        print("=" * 60)
+
+    gt_dir = base_dir / "ground_truth"
+    gt_dir.mkdir(parents=True, exist_ok=True)
+
+    gt_data = generate_all_ground_truth(gt_dir)
 
     if verbose:
-        if success:
-            print("SUCCESS: Traces generated")
-            for line in output.strip().split('\n')[-5:]:
-                print(f"  {line}")
-        else:
-            print(f"WARNING: sql_agent.py returned errors (traces may still exist)")
-            print(output[:500] if len(output) > 500 else output)
+        trace_count = gt_data.get("trace_count", 0)
+        example_count = gt_data.get("dataset_example_count", 0)
+        print(f"Generated: {trace_count} traces, {example_count} examples")
+
+        # Show the distinct questions
+        dataset = gt_data.get("dataset", {})
+        examples = dataset.get("examples", [])
+        print(f"\nExpected traces ({len(examples)}):")
+        for ex in examples:
+            inputs = ex.get("inputs", {})
+            msgs = inputs.get("messages", [])
+            question = msgs[0].get("content", "?")[:60] if msgs else "?"
+            trajectory = ex.get("outputs", {}).get("expected_trajectory", [])
+            print(f"  - {question}... ({len(trajectory)} tools)")
+
         print("=" * 60 + "\n")
 
-    time.sleep(2)  # Give LangSmith time to index
-    return success
 
-
-def cleanup_langsmith_datasets(prefix: str = "test-", verbose: bool = True) -> int:
+def cleanup_langsmith_datasets(run_ids: List[str] = None, verbose: bool = True) -> int:
     """Delete LangSmith datasets created during the experiment.
 
     Args:
-        prefix: Dataset name prefix to match (default: "test-")
+        run_ids: List of run_ids to delete (datasets named "test-{run_id}")
+                 If None, no datasets are deleted (safe default)
         verbose: Print cleanup progress
 
     Returns:
         Number of datasets deleted
     """
+    if not run_ids:
+        if verbose:
+            print("No run_ids provided for cleanup, skipping")
+        return 0
+
     if verbose:
         print("\n" + "=" * 60)
         print("CLEANING UP LANGSMITH DATASETS")
@@ -119,13 +179,14 @@ def cleanup_langsmith_datasets(prefix: str = "test-", verbose: bool = True) -> i
         from langsmith import Client
         client = Client(api_key=api_key)
 
-        # Find datasets matching our test prefix
+        # Find datasets matching our specific run_ids
         datasets = list(client.list_datasets())
-        test_datasets = [d for d in datasets if d.name.startswith(prefix)]
+        prefixes = [f"test-{rid}" for rid in run_ids]
+        test_datasets = [d for d in datasets if any(d.name.startswith(p) for p in prefixes)]
 
         if not test_datasets:
             if verbose:
-                print(f"No datasets found with prefix '{prefix}'")
+                print(f"No datasets found for {len(run_ids)} run_ids")
             return 0
 
         if verbose:
@@ -266,13 +327,14 @@ def main():
         if not generate_traces():
             print("WARNING: Trace generation had errors. Continuing anyway...")
 
+    # Generate ground truth ONCE before any treatments run
+    # Saved to base_dir/ground_truth/ - runner automatically copies from there
+    generate_ground_truth(experiment.base_dir)
+
     print(f"LANGSMITH SYNERGY EXPERIMENT\n{'='*60}")
     print(f"Experiment: {experiment.experiment_id}")
     print(f"Treatments: {', '.join(treatments)}")
     print(f"Repetitions: {args.repeat}, Workers: {args.workers}\n")
-
-    # Path to ground truth generators
-    validation_module = str(Path(__file__).parent / "validation" / "ground_truth.py")
 
     work_items = create_work_items(
         treatments=TREATMENTS,
@@ -283,7 +345,6 @@ def main():
         repeat=args.repeat,
         timeout=args.timeout,
         model=args.model,
-        validation_module=validation_module,
     )
 
     print(f"Total runs: {len(work_items)}\n")
@@ -301,6 +362,7 @@ def main():
                     "duration_seconds": events.get("duration_seconds"),
                     "tool_calls": len(events.get("tool_calls", [])),
                 },
+                run_id=r.run_id,
             ))
 
     print_report(all_results)
@@ -308,7 +370,8 @@ def main():
 
     # Cleanup LangSmith datasets after all treatments complete
     if not args.skip_cleanup:
-        cleanup_langsmith_datasets(prefix="test-", verbose=True)
+        run_ids = [w.run_id for w in work_items if w.run_id]
+        cleanup_langsmith_datasets(run_ids=run_ids, verbose=True)
 
     total = sum(len(runs) for runs in all_results.values())
     passed = sum(sum(1 for r in runs if r.passed) for runs in all_results.values())

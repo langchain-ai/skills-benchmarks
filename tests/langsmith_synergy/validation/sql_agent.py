@@ -134,11 +134,13 @@ def run_query(question: str) -> str:
 
 
 if __name__ == "__main__":
-    # Run a few test queries to generate traces
+    # Run 5 distinct queries to generate traces (one per expected dataset example)
     test_questions = [
         "Which 3 genres generated the most revenue?",
         "Who are the top 5 customers by total spending?",
         "What are the most popular artists by number of tracks?",
+        "What is the total revenue by country?",
+        "Which albums have the most tracks?",
     ]
 
     print("=" * 80)

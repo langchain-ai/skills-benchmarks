@@ -37,7 +37,12 @@ def _get_langsmith_client():
     return Client(api_key=api_key), None
 
 
-def generate_expected_traces(test_dir: Path, project: str = None, limit: int = 5, max_age_minutes: int = 1440) -> List[Dict]:
+def generate_expected_traces(
+    test_dir: Path,
+    project: str = None,
+    limit: int = 5,
+    max_age_minutes: int = 1440,
+) -> List[Dict]:
     """Generate expected traces using skill script patterns.
 
     Uses run_type="tool" filter to get tool calls - the key skill script pattern.
@@ -46,7 +51,7 @@ def generate_expected_traces(test_dir: Path, project: str = None, limit: int = 5
     Args:
         test_dir: Test directory to save expected_traces.json
         project: LangSmith project name (defaults to LANGSMITH_PROJECT env var)
-        limit: Max number of traces to fetch
+        limit: Max number of traces to fetch (sql_agent.py generates exactly 5 distinct queries)
         max_age_minutes: Only look at traces from the last N minutes (default: 24 hours)
     """
     project = project or os.environ.get("LANGSMITH_PROJECT")
@@ -62,7 +67,7 @@ def generate_expected_traces(test_dir: Path, project: str = None, limit: int = 5
         from datetime import timezone
         start_time = datetime.now(timezone.utc) - timedelta(minutes=max_age_minutes)
 
-        # Query root traces (same as skill script)
+        # Fetch the most recent traces (sql_agent.py generates exactly 5 distinct queries)
         traces = retry_with_backoff(lambda: list(client.list_runs(
             project_name=project, is_root=True, start_time=start_time, limit=limit
         )))
@@ -203,8 +208,8 @@ def generate_evaluator_test_cases(test_dir: Path, traces: List[Dict] = None) -> 
         },
         "expected_result": {
             "should_pass": True,
-            "min_score": 0.8,
-            "reason": "Identical trajectories should score >= 0.8"
+            "min_score": 1.0,
+            "reason": "Identical trajectories should score 1.0"
         }
     })
 

@@ -35,10 +35,11 @@ from skill_constructs.langchain.langsmith_evaluator.skill import (
 )
 from skill_constructs import CLAUDE_SAMPLE
 from tests.langsmith_synergy.validation.validators import (
-    DatasetValidator,
+    DatasetStructureValidator,
     EvaluatorValidator,
     TraceDataValidator,
     SkillScriptValidator,
+    TrajectoryAccuracyValidator,
 )
 
 # Scripts directories (from skill_constructs)
@@ -130,16 +131,16 @@ EVALUATOR_SKILL_FULL = skill_config(EVALUATOR_FULL_SECTIONS, EVALUATOR_SCRIPTS_D
 # =============================================================================
 
 # Basic test prompt template - {run_id} will be replaced with unique identifier
-BASIC_PROMPT_TEMPLATE = """I want to evaluate my agent's tool usage patterns. Create a trajectory dataset with 5 examples in our LangSmith project (see .env).
+BASIC_PROMPT_TEMPLATE = """Create a trajectory dataset with 5 examples from existing traces in our LangSmith project.
 
-Output: trajectory_dataset.json (make sure to upload with the naming convention of "test-{run_id}")
+Output: trajectory_dataset.json (upload as "{run_id}")
 
 Run any code you write directly."""
 
 # Advanced test prompt template - {run_id} will be replaced with unique identifier
-ADVANCED_PROMPT_TEMPLATE = """I want to test if my agent calls tools correctly. Create a trajectory dataset with 5 examples in our LangSmith project (see .env). Additionally, create an evaluator that validates tool usage.
+ADVANCED_PROMPT_TEMPLATE = """Create a trajectory dataset with 5 examples from existing traces in our LangSmith project, plus an evaluator measuring tool call match percentage.
 
-Output: trajectory_dataset.json and trajectory_evaluator.py (make sure to upload both with the naming convention of "test-{run_id}")
+Output: trajectory_dataset.json and trajectory_evaluator.py (upload both as "{run_id}")
 
 Run any code you write directly."""
 
@@ -164,11 +165,20 @@ def basic_validators():
         # Trace validation (includes API check)
         TraceDataValidator(min_traces=1),
 
-        # Dataset validation
-        DatasetValidator(
+        # Dataset validation (structure)
+        DatasetStructureValidator(
             filename="trajectory_dataset.json",
             min_examples=1,
             dataset_type="trajectory",
+        ),
+
+        # CRITICAL: Trajectory accuracy validation (content matches ground truth)
+        # Every expected trace must appear exactly once with correct trajectory
+        TrajectoryAccuracyValidator(
+            filename="trajectory_dataset.json",
+            expected_filename="expected_dataset.json",
+            verify_upload=True,
+            upload_prefix="test-",
         ),
 
         # Metrics
@@ -193,11 +203,20 @@ def advanced_validators():
         # Trace validation (includes API check)
         TraceDataValidator(min_traces=1),
 
-        # Dataset validation
-        DatasetValidator(
+        # Dataset validation (structure)
+        DatasetStructureValidator(
             filename="trajectory_dataset.json",
             min_examples=1,
             dataset_type="trajectory",
+        ),
+
+        # CRITICAL: Trajectory accuracy validation (content matches ground truth)
+        # Every expected trace must appear exactly once with correct trajectory
+        TrajectoryAccuracyValidator(
+            filename="trajectory_dataset.json",
+            expected_filename="expected_dataset.json",
+            verify_upload=True,
+            upload_prefix="test-",
         ),
 
         # Evaluator validation (uses test cases from ground truth)
@@ -360,34 +379,27 @@ TREATMENTS = {**BASIC_TREATMENTS, **ADVANCED_TREATMENTS}
 # PROMPT BUILDERS
 # =============================================================================
 
-from datetime import datetime
-
-def _get_dataset_name(treatment_name: str, rep: int = 1) -> str:
-    """Generate unique dataset name: treatment-repN-YYYYMMDD-HHMMSS."""
-    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    prefix = treatment_name.lower().replace("_", "-") if treatment_name else "test"
-    return f"{prefix}-rep{rep}-{timestamp}"
-
-
-def build_basic_prompt(treatment: Treatment, treatment_name: str = None, rep: int = 1) -> str:
+def build_basic_prompt(treatment: Treatment, treatment_name: str = None, rep: int = 1, run_id: str = None) -> str:
     """Build prompt for basic test."""
-    dataset_name = _get_dataset_name(treatment_name, rep)
+    # Use provided run_id for unique dataset naming
+    dataset_name = f"test-{run_id}" if run_id else "test-dataset"
     prompt = BASIC_PROMPT_TEMPLATE.format(run_id=dataset_name)
     return treatment.build_prompt(prompt)
 
 
-def build_advanced_prompt(treatment: Treatment, treatment_name: str = None, rep: int = 1) -> str:
+def build_advanced_prompt(treatment: Treatment, treatment_name: str = None, rep: int = 1, run_id: str = None) -> str:
     """Build prompt for advanced test."""
-    dataset_name = _get_dataset_name(treatment_name, rep)
+    # Use provided run_id for unique dataset naming
+    dataset_name = f"test-{run_id}" if run_id else "test-dataset"
     prompt = ADVANCED_PROMPT_TEMPLATE.format(run_id=dataset_name)
     return treatment.build_prompt(prompt)
 
 
-def build_prompt(treatment: Treatment, treatment_name: str = None, rep: int = 1) -> str:
+def build_prompt(treatment: Treatment, treatment_name: str = None, rep: int = 1, run_id: str = None) -> str:
     """Build prompt based on treatment type."""
     if treatment_name and treatment_name.startswith("ADV_"):
-        return build_advanced_prompt(treatment, treatment_name, rep)
-    return build_basic_prompt(treatment, treatment_name, rep)
+        return build_advanced_prompt(treatment, treatment_name, rep, run_id)
+    return build_basic_prompt(treatment, treatment_name, rep, run_id)
 
 
 # =============================================================================

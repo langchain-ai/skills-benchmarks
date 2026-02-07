@@ -108,8 +108,8 @@ class TraceDataValidator(Validator):
             return False
 
 
-class DatasetValidator(Validator):
-    """Validate dataset file and LangSmith upload."""
+class DatasetStructureValidator(Validator):
+    """Validate dataset file structure (not content accuracy - see TrajectoryAccuracyValidator)."""
 
     def __init__(
         self,
@@ -356,3 +356,294 @@ class SkillScriptValidator(Validator):
                 failed.append(f"Script: missing {desc}")
 
         return passed, failed
+
+
+class TrajectoryAccuracyValidator(Validator):
+    """Validate dataset content matches actual LangSmith trace data.
+
+    CRITICAL: This validator ensures Claude's dataset contains REAL trace data,
+    not fabricated content. It checks:
+    1. Every expected trace appears exactly once in actual output
+    2. Tool sequences match expected (ORDER MATTERS)
+    3. Uploaded dataset matches local file
+
+    Example ordering and extra fields are allowed.
+    Duplicates naturally fail because each expected can only match once.
+    """
+
+    def __init__(
+        self,
+        filename: str = "trajectory_dataset.json",
+        expected_filename: str = "expected_dataset.json",
+        verify_upload: bool = True,
+        upload_prefix: str = "test-",
+    ):
+        self.filename = filename
+        self.expected_filename = expected_filename
+        self.verify_upload = verify_upload
+        self.upload_prefix = upload_prefix
+
+    def validate(self, events: dict, test_dir: Path, outputs: Dict = None) -> Tuple[List[str], List[str]]:
+        passed, failed = [], []
+
+        # Load Claude's dataset
+        actual_data, error = read_json_file(test_dir / self.filename)
+        if error:
+            return [], [f"Accuracy: {error}"]
+        actual_examples = extract_examples(actual_data)
+
+        if not actual_examples:
+            return [], ["Accuracy: no examples in dataset"]
+
+        # Load ground truth
+        expected_data, error = read_json_file(test_dir / self.expected_filename)
+        if error:
+            # No ground truth - skip accuracy check but warn
+            return [f"Accuracy: skipped (no ground truth)"], []
+        expected_examples = expected_data.get("examples", [])
+
+        if not expected_examples:
+            return [f"Accuracy: skipped (empty ground truth)"], []
+
+        # Match actual examples against expected - each expected must appear exactly once
+        matches, mismatches, missing = self._compare_datasets(actual_examples, expected_examples)
+
+        # Report results
+        total_expected = len(expected_examples)
+
+        if matches == total_expected:
+            passed.append(f"Accuracy: {matches}/{total_expected} trajectories match")
+        elif matches > 0:
+            failed.append(f"Accuracy: only {matches}/{total_expected} trajectories match")
+        else:
+            failed.append(f"Accuracy: 0/{total_expected} trajectories match")
+
+        if mismatches:
+            first_mm = mismatches[0]
+            failed.append(f"Accuracy: {len(mismatches)} wrong trajectories (e.g., {first_mm})")
+
+        if missing:
+            failed.append(f"Accuracy: {len(missing)} expected traces missing")
+
+        # Verify uploaded dataset matches local file
+        if self.verify_upload:
+            run_id = outputs.get("_run_id") if outputs else None
+            up, uf = self._verify_upload_matches(actual_examples, run_id)
+            passed.extend(up)
+            failed.extend(uf)
+
+        return passed, failed
+
+    def _get_input_query(self, ex: dict) -> str:
+        """Extract input query from example."""
+        if not isinstance(ex, dict):
+            return ""
+
+        # Check various input locations
+        inputs = ex.get("inputs") or ex.get("input") or {}
+        if isinstance(inputs, str):
+            return inputs
+        if isinstance(inputs, dict):
+            return inputs.get("query") or inputs.get("input") or inputs.get("question") or ""
+        return ""
+
+    def _extract_tool_names(self, traj: list) -> List[str]:
+        """Extract tool names from trajectory list.
+
+        Each item must be a string or simple dict with "name"/"tool" key.
+        Returns None if format is invalid (e.g., complex nested objects).
+        """
+        result = []
+        for item in traj:
+            if isinstance(item, str):
+                result.append(item)
+            elif isinstance(item, dict):
+                if "inputs" in item or "outputs" in item:  # Complex run object
+                    return None
+                name = item.get("name") or item.get("tool") or item.get("function")
+                if isinstance(name, str):
+                    result.append(name)
+                else:
+                    return None
+            else:
+                return None
+        return result
+
+    def _get_trajectory(self, ex: dict) -> List[str]:
+        """Extract trajectory from example dict. Returns None if invalid format."""
+        if not isinstance(ex, dict):
+            return None
+
+        outputs = ex.get("outputs") or ex.get("output") or {}
+        for field in ["expected_trajectory", "trajectory", "tools", "tool_calls"]:
+            traj = outputs.get(field) if isinstance(outputs, dict) else ex.get(field)
+            if isinstance(traj, list):
+                return self._extract_tool_names(traj)
+        return None
+
+    def _get_trace_id(self, ex: dict) -> str:
+        """Extract trace_id from example."""
+        return str(ex.get("trace_id") or ex.get("id") or "")
+
+    def _compare_datasets(
+        self, actual: List[dict], expected: List[dict]
+    ) -> Tuple[int, List[str], List[str]]:
+        """Compare actual dataset against expected ground truth.
+
+        Each expected entry must appear exactly once in actual.
+        Once an actual entry is matched, it cannot match another expected.
+
+        Returns: (match_count, mismatch_details, missing_trace_ids)
+        """
+        matches = 0
+        mismatches = []
+        missing = []
+
+        # Build lookup for actual examples by trace_id
+        # Use list to handle potential duplicates (same trace_id appearing multiple times)
+        actual_by_trace = {}
+        for i, ex in enumerate(actual):
+            trace_id = self._get_trace_id(ex)
+            if trace_id:
+                if trace_id not in actual_by_trace:
+                    actual_by_trace[trace_id] = []
+                actual_by_trace[trace_id].append((i, ex))
+
+        # Track which actual entries have been used
+        used_indices = set()
+
+        # Check each expected example
+        for exp_ex in expected:
+            exp_trace_id = self._get_trace_id(exp_ex)
+            exp_trajectory = self._get_trajectory(exp_ex)
+
+            if not exp_trajectory:
+                continue  # Skip expected examples without trajectory
+
+            # Find matching actual example by trace_id
+            actual_ex = None
+            matched_idx = None
+
+            if exp_trace_id and exp_trace_id in actual_by_trace:
+                # Find first unused match with this trace_id
+                for idx, ex in actual_by_trace[exp_trace_id]:
+                    if idx not in used_indices:
+                        actual_ex = ex
+                        matched_idx = idx
+                        break
+
+            if actual_ex is None:
+                missing.append(exp_trace_id or "unknown")
+                continue
+
+            # Mark as used
+            used_indices.add(matched_idx)
+
+            # Compare trajectories (ORDER MATTERS!)
+            actual_trajectory = self._get_trajectory(actual_ex)
+
+            # None means invalid format (e.g., complex nested objects instead of tool names)
+            if actual_trajectory is None:
+                exp_query = self._get_input_query(exp_ex)
+                query_short = (exp_query[:20] + "...") if exp_query and len(exp_query) > 20 else (exp_query or "?")
+                mismatches.append(f"'{query_short}': invalid trajectory format (expected list of tool names)")
+                continue
+
+            if actual_trajectory == exp_trajectory:
+                matches += 1
+            else:
+                # Generate mismatch detail
+                exp_query = self._get_input_query(exp_ex)
+                detail = self._trajectory_diff(exp_trajectory, actual_trajectory, exp_query)
+                mismatches.append(detail)
+
+        return matches, mismatches, missing
+
+    def _verify_upload_matches(self, local_examples: List[dict], run_id: str = None) -> Tuple[List[str], List[str]]:
+        """Verify the uploaded LangSmith dataset matches the local file."""
+        client, error = get_langsmith_client()
+        if error:
+            return [f"Upload check: skipped ({error})"], []
+
+        # Find the uploaded dataset
+        datasets, error = safe_api_call(lambda: list(client.list_datasets()))
+        if error:
+            return [f"Upload check: {error}"], []
+
+        # Use run_id for precise matching if available, otherwise fall back to upload_prefix
+        if run_id:
+            search_pattern = f"{self.upload_prefix}{run_id}"
+        else:
+            search_pattern = self.upload_prefix
+        matching = [d for d in datasets if d.name.startswith(search_pattern)]
+        if not matching:
+            return [], [f"Upload check: no dataset with prefix '{search_pattern}'"]
+
+        recent = max(matching, key=lambda d: getattr(d, 'created_at', d.name))
+
+        # Fetch examples from uploaded dataset
+        try:
+            uploaded_examples = list(client.list_examples(dataset_name=recent.name))
+        except Exception as e:
+            return [f"Upload check: couldn't fetch examples ({str(e)[:30]})"], []
+
+        # Compare counts
+        local_count = len(local_examples)
+        uploaded_count = len(uploaded_examples)
+
+        if uploaded_count != local_count:
+            return [], [f"Upload check: {uploaded_count} uploaded vs {local_count} local"]
+
+        # Compare trajectories
+        # Build lookup of uploaded by trace_id or inputs
+        uploaded_trajectories = set()
+        for ex in uploaded_examples:
+            traj = self._get_trajectory_from_langsmith_example(ex)
+            if traj:
+                uploaded_trajectories.add(tuple(traj))
+
+        local_trajectories = set()
+        for ex in local_examples:
+            traj = self._get_trajectory(ex)
+            if traj:
+                local_trajectories.add(tuple(traj))
+
+        if uploaded_trajectories == local_trajectories:
+            return [f"Upload check: '{recent.name}' matches local ({uploaded_count} examples)"], []
+        else:
+            diff = len(local_trajectories - uploaded_trajectories)
+            return [], [f"Upload check: {diff} trajectories differ from uploaded"]
+
+    def _get_trajectory_from_langsmith_example(self, ex) -> List[str]:
+        """Extract trajectory from a LangSmith example object."""
+        outputs = getattr(ex, 'outputs', None) or {}
+        if not isinstance(outputs, dict):
+            return []
+
+        for field in ["expected_trajectory", "trajectory", "tools"]:
+            traj = outputs.get(field)
+            if isinstance(traj, list):
+                result = self._extract_tool_names(traj)
+                return result if result else []
+        return []
+
+    def _trajectory_diff(self, expected: List[str], actual: List[str], query: str) -> str:
+        """Generate a human-readable diff between trajectories."""
+        query_short = (query[:20] + "...") if query and len(query) > 20 else (query or "?")
+
+        if not actual:
+            return f"'{query_short}': empty vs {len(expected)} tools"
+
+        if len(actual) != len(expected):
+            return f"'{query_short}': {len(actual)} tools vs expected {len(expected)}"
+
+        # Find first difference
+        for i, (a, e) in enumerate(zip(actual, expected)):
+            if a != e:
+                return f"'{query_short}': tool[{i}] '{a}' vs expected '{e}'"
+
+        # Actual is longer
+        if len(actual) > len(expected):
+            return f"'{query_short}': extra tool '{actual[len(expected)]}'"
+
+        return f"'{query_short}': order mismatch"

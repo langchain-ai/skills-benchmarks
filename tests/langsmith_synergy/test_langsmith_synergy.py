@@ -246,10 +246,18 @@ def main():
     experiment = ExperimentLogger(
         args.name or "_".join(treatments[:3]),
         columns=[
-            bool_column("Trace Skill", "Invoked langsmith-trace"),
-            bool_column("Dataset Skill", "Invoked langsmith-dataset"),
-            bool_column("Evaluator Skill", "Invoked langsmith-evaluator"),
-            quality_column("Quality"),
+            bool_column("Trace Skill", "Invoked langsmith-trace skill",
+                        "Whether Claude invoked the langsmith-trace skill"),
+            bool_column("Dataset Skill", "Invoked langsmith-dataset skill",
+                        "Whether Claude invoked the langsmith-dataset skill"),
+            bool_column("Evaluator Skill", "Invoked langsmith-evaluator skill",
+                        "Whether Claude invoked the langsmith-evaluator skill"),
+            bool_column("Trace Tests", "Traces:",
+                        "Whether traces are available in LangSmith project"),
+            bool_column("Dataset Tests", "have trajectory",
+                        "Whether dataset has valid trajectory structure"),
+            bool_column("Eval Tests", "/4 tests",
+                        "Whether the evaluator passed tests (checks for 'X/4 tests' in results)"),
         ],
     )
 

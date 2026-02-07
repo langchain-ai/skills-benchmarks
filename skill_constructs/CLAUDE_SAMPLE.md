@@ -1,17 +1,17 @@
 # LangChain + LangSmith Development Guide
 
-This project contains skills for building, observing, and evaluating LangChain agents.
+This project uses skills that contain up-to-date patterns and working reference scripts.
 
-## CRITICAL: Consult Skills BEFORE Writing Code
+## CRITICAL: Invoke Skills BEFORE Writing Code
 
-**ALWAYS** invoke the appropriate skill before writing any code:
+**ALWAYS** invoke the relevant skill first - skills have the correct imports, patterns, and scripts that prevent common mistakes:
 
-- **langchain-agents** - For ANY LangChain/LangGraph agent code
-- **langsmith-trace** - For ANY trace querying or analysis (`scripts/query_traces.py`)
-- **langsmith-dataset** - For ANY dataset creation from traces (`scripts/generate_datasets.py`)
-- **langsmith-evaluator** - For ANY evaluator creation (`scripts/upload_evaluators.py`)
+- **langchain-agents** - Invoke for ANY LangChain/LangGraph agent code
+- **langsmith-trace** - Invoke for ANY trace querying or analysis
+- **langsmith-dataset** - Invoke for ANY dataset creation from traces
+- **langsmith-evaluator** - Invoke for ANY evaluator creation
 
-Skills contain correct patterns, examples, and reference scripts. Use them first.
+Each skill includes reference scripts in `scripts/` - use these instead of writing from scratch.
 
 ## Modern LangChain Patterns
 
@@ -72,4 +72,4 @@ ANTHROPIC_API_KEY=<your-key>  # For Anthropic models
 
 ## Reference Scripts
 
-The `skills/*/scripts/` directories contain working reference implementations. Use these as starting points rather than writing from scratch.
+When you invoke a skill, check its `scripts/` directory for working implementations you can adapt. These scripts handle common edge cases and use tested patterns.

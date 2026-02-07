@@ -137,6 +137,7 @@ class ReportColumn:
     name: str
     extract: Callable[[TreatmentResult], str]  # Single run -> display value
     aggregate: Callable[[List[TreatmentResult]], str] = None  # Multiple runs -> display value
+    description: str = ""  # Human-readable description of what this column checks
 
     def get_value(self, result: TreatmentResult) -> str:
         return self.extract(result)
@@ -147,12 +148,13 @@ class ReportColumn:
         return self.extract(runs[0]) if runs else "N/A"
 
 
-def bool_column(name: str, pattern: str) -> ReportColumn:
+def bool_column(name: str, pattern: str, description: str = None) -> ReportColumn:
     """Column that checks if pattern exists in passed checks."""
     return ReportColumn(
         name=name,
         extract=lambda r: "Yes" if r.has_check(pattern) else "No",
         aggregate=lambda runs: f"{sum(1 for r in runs if r.has_check(pattern))}/{len(runs)}",
+        description=description or f"Checks if any passed check contains: `{pattern}`",
     )
 
 
@@ -170,7 +172,12 @@ def quality_column(name: str = "Quality") -> ReportColumn:
         good = sum(1 for r in runs if any("[GOOD]" in c for c in r.checks_passed))
         return f"{good}/{len(runs)}"
 
-    return ReportColumn(name=name, extract=extract, aggregate=aggregate)
+    return ReportColumn(
+        name=name,
+        extract=extract,
+        aggregate=aggregate,
+        description="Checks for [GOOD] or [LOW] quality rating from LLM evaluation",
+    )
 
 
 def default_columns() -> List[ReportColumn]:
@@ -268,6 +275,14 @@ class ExperimentLogger:
         columns = self._get_all_columns()
         has_reps = any(len(runs) > 1 for runs in self.results.values())
 
+        # Column definitions section
+        custom_cols = [c for c in self.columns if c.description]
+        if custom_cols:
+            lines.append("## Column Definitions\n")
+            for col in custom_cols:
+                lines.append(f"- **{col.name}**: {col.description}")
+            lines.append("")
+
         col_names = ["Treatment"] + [c.name for c in columns]
         header = "| " + " | ".join(col_names) + " |"
         separator = "|" + "|".join("-" * (len(name) + 2) for name in col_names) + "|"
@@ -297,16 +312,41 @@ class ExperimentLogger:
         lines.append(f"- **Pass Rate:** {total_passed}/{total_runs} ({100*total_passed//total_runs if total_runs else 0}%)")
         lines.append("")
 
-        failed_runs = [
-            (name, r) for name, runs in self.results.items()
-            for r in runs if not r.passed
-        ]
-        if failed_runs:
-            lines.append("## Failed Runs\n")
-            for name, r in failed_runs[:10]:
-                lines.append(f"- **{name}:** {', '.join(r.checks_failed[:2])}")
-            if len(failed_runs) > 10:
-                lines.append(f"- ... and {len(failed_runs) - 10} more")
+        # Detailed per-treatment breakdown
+        lines.append("## Treatment Details\n")
+        for name, runs in self.results.items():
+            passed_count = sum(1 for r in runs if r.passed)
+            lines.append(f"### {name} ({passed_count}/{len(runs)} passed)\n")
+
+            for i, r in enumerate(runs, 1):
+                run_label = f"Run {i}" if has_reps else "Result"
+                status = "PASS" if r.passed else "FAIL"
+                lines.append(f"**{run_label}:** {status}")
+
+                # Show metrics
+                metrics = []
+                if r.turns:
+                    metrics.append(f"Turns: {r.turns}")
+                if r.duration:
+                    metrics.append(f"Duration: {r.duration:.0f}s")
+                if r.tool_calls:
+                    metrics.append(f"Tool calls: {r.tool_calls}")
+                if metrics:
+                    lines.append(f"- Metrics: {', '.join(metrics)}")
+
+                # Show all passed checks
+                if r.checks_passed:
+                    lines.append(f"- Passed checks ({len(r.checks_passed)}):")
+                    for check in r.checks_passed:
+                        lines.append(f"  - {check}")
+
+                # Show all failed checks
+                if r.checks_failed:
+                    lines.append(f"- Failed checks ({len(r.checks_failed)}):")
+                    for check in r.checks_failed:
+                        lines.append(f"  - {check}")
+
+                lines.append("")
 
         return "\n".join(lines)
 

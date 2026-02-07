@@ -13,10 +13,10 @@ uv pip install -r requirements.txt
 python3 -c "from scaffold import verify_environment; print('OK')"
 
 # Run LangChain agent experiment
-.venv/bin/python tests/langchain_agent/test_langchain_agent.py -t BASELINE
+python tests/langchain_agent/test_langchain_agent.py -t CONTROL ALL_SECTIONS -r 3
 
-# Run LangGraph agent experiment
-.venv/bin/python tests/langgraph_agent/test_langgraph_agent.py -t BASELINE
+# Run LangSmith synergy experiment
+python tests/langsmith_synergy/test_langsmith_synergy.py -t ADV_CONTROL ADV_ALL_SECTIONS -r 3 --skip-traces
 ```
 
 ## Requirements
@@ -24,14 +24,14 @@ python3 -c "from scaffold import verify_environment; print('OK')"
 - Python 3.13+
 - Docker (for sandboxed execution of generated code)
 - Claude Code CLI (`claude`)
-- API keys: `OPENAI_API_KEY` (for generated agents), `LANGSMITH_API_KEY` (optional)
+- API keys: `OPENAI_API_KEY` (for generated agents), `LANGSMITH_API_KEY` (for LangSmith experiments)
 
 ## How It Works
 
 1. **Setup**: Creates isolated temp directory with skill files, CLAUDE.md, and environment (Dockerfile, requirements.txt, test data)
 2. **Run**: Executes Claude Code CLI with a prompt asking it to complete a task
 3. **Validate**: Checks generated assets for patterns, runs code in Docker, uses LLM to evaluate output quality
-4. **Cleanup**: Removes temp directory
+4. **Cleanup**: Removes temp directory and LangSmith test datasets
 
 ## Experiments
 
@@ -40,37 +40,39 @@ python3 -c "from scaffold import verify_environment; print('OK')"
 Tests whether Claude uses modern patterns (`create_agent`, `@tool`) vs deprecated patterns (`create_sql_agent`).
 
 ```bash
-.venv/bin/python tests/langchain_agent/test_langchain_agent.py -t control   # CONTROL vs BASELINE
-.venv/bin/python tests/langchain_agent/test_langchain_agent.py -t guidance  # Positive vs negative framing
-.venv/bin/python tests/langchain_agent/test_langchain_agent.py -t noise     # Progressive noise
+python tests/langchain_agent/test_langchain_agent.py -t CONTROL ALL_SECTIONS -r 3
+python tests/langchain_agent/test_langchain_agent.py -t GUIDANCE_POS GUIDANCE_NEG -r 3
 ```
 
-| Preset | Treatments | Tests |
-|--------|------------|-------|
-| `control` | CONTROL, BASELINE | Skill vs no skill |
-| `guidance` | GUIDANCE_POS, GUIDANCE_NEG | Positive vs negative framing |
-| `claudemd` | BASELINE, CLAUDE_MD_POS, CLAUDE_MD_MOVED | CLAUDE.md impact |
-| `noise` | BASELINE, NOISE_1, NOISE_2, NOISE_3 | Progressive noise interference |
-| `minimal` | BASELINE, MINIMAL, NO_SQL_EXAMPLE | Documentation level |
-| `stress` | MINIMAL, MINIMAL_NOISE | Stress tests |
+| Treatment | Description |
+|-----------|-------------|
+| `CONTROL` | No skill, no CLAUDE.md (pure baseline) |
+| `ALL_SECTIONS` | Full skill sections + full CLAUDE.md |
+| `BASELINE` | Skill with positive guidance |
+| `GUIDANCE_POS/NEG` | Positive vs negative framing |
+| `CLAUDE_MD_*` | CLAUDE.md content variations |
+| `NOISE_1/2/3` | Progressive noise interference |
 
-### 2. LangGraph Agent (`tests/langgraph_agent/`)
+### 2. LangSmith Synergy (`tests/langsmith_synergy/`)
 
-Tests whether Claude can generate complex multi-agent LangGraph code with proper patterns.
+Tests whether Claude can use multiple skills together (trace → dataset → evaluator pipeline).
 
 ```bash
-.venv/bin/python tests/langgraph_agent/test_langgraph_agent.py -t control
-.venv/bin/python tests/langgraph_agent/test_langgraph_agent.py -t doc-level
-.venv/bin/python tests/langgraph_agent/test_langgraph_agent.py -t noise
+# Basic (2 skills: trace + dataset)
+python tests/langsmith_synergy/test_langsmith_synergy.py -t BASIC_CONTROL BASIC_ALL_SECTIONS -r 3 --skip-traces
+
+# Advanced (3 skills: trace + dataset + evaluator)
+python tests/langsmith_synergy/test_langsmith_synergy.py -t ADV_CONTROL ADV_ALL_SECTIONS -r 3 --skip-traces
 ```
 
-| Preset | Treatments | Tests |
-|--------|------------|-------|
-| `control` | CONTROL, BASELINE | Skill vs no skill |
-| `doc-level` | MINIMAL, BASIC, FULL | Documentation level |
-| `claudemd` | BASELINE, CLAUDE_MD_POS, CLAUDE_MD_NEG | CLAUDE.md impact |
-| `noise` | BASELINE, NOISE_1, NOISE_2, NOISE_3 | Progressive noise interference |
-| `stress` | MINIMAL, MINIMAL_NOISE, NOISE_CLAUDE_MD | Stress tests |
+| Treatment | Description |
+|-----------|-------------|
+| `*_CONTROL` | No skills, no CLAUDE.md (pure baseline) |
+| `*_BASELINE` | Skills without workflow hints |
+| `*_CLAUDEMD` | Workflow rules in CLAUDE.md only |
+| `*_SKILLS` | Workflow hints in skills only |
+| `*_BOTH` | Workflow rules in both |
+| `*_ALL_SECTIONS` | Full skill sections + full CLAUDE.md |
 
 ## Project Structure
 
@@ -83,48 +85,30 @@ scaffold/
   model.py          # LLM evaluation
 
 tests/
-  langchain_agent/
-    environment/      # Dockerfile, requirements.txt, chinook.db
-    config.py         # Treatment definitions
-    test_langchain_agent.py
-  langgraph_agent/
-    environment/      # Dockerfile, requirements.txt
-    config.py         # Treatment definitions
-    test_langgraph_agent.py
+  langchain_agent/  # Modern LangChain patterns
+  langsmith_synergy/# Multi-skill workflows
 
 skill_constructs/
-  langchain/          # LangChain skill content
-  noise/              # Noise/distractor skills
+  langchain/        # LangChain/LangSmith skill content
+  noise/            # Noise/distractor skills
+  CLAUDE_SAMPLE.md  # Sample CLAUDE.md with skill synergies
 ```
 
 ## Defining Treatments
 
 ```python
 from scaffold import Treatment, PythonFileValidator, OutputQualityValidator, MetricsCollector
+from skill_constructs import CLAUDE_SAMPLE
 
 TREATMENTS = {
-    "BASELINE": Treatment(
-        description="Skill with positive guidance",
-        sections=MY_SKILL_SECTIONS,
-        validators=[
-            PythonFileValidator(
-                "output.py", "Code Check",
-                required={"pattern": "description"},
-                forbidden={"bad_pattern": "description"},
-                require_all=True,
-            ),
-            OutputQualityValidator(
-                "output.py", "Output Check",
-                task_description="What the code should do",
-                expected_behavior="What good output looks like",
-            ),
-            MetricsCollector(["output.py"]),
-        ],
+    "CONTROL": Treatment(
+        description="No skill, no CLAUDE.md",
+        validators=[...],
     ),
-    "WITH_NOISE": Treatment(
-        description="With distractor tasks",
-        sections=MY_SKILL_SECTIONS,
-        noise_tasks=["docker-patterns", "react-components"],
+    "ALL_SECTIONS": Treatment(
+        description="Full skill + CLAUDE.md",
+        skills={"my-skill": FULL_SECTIONS},
+        claude_md=CLAUDE_SAMPLE,
         validators=[...],
     ),
 }
@@ -132,36 +116,9 @@ TREATMENTS = {
 
 ## Validation
 
-Generated code is validated in two ways:
+Generated code is validated via:
 
 1. **Pattern Matching**: Check for required/forbidden code patterns
 2. **Docker Execution**: Run the code in a sandboxed container
-3. **LLM Evaluation**: Use GPT-4o-mini to assess if output is meaningful
-
-### LangChain Agent
-- **PASS**: Uses `create_agent`/`@tool`, valid syntax, runs, produces expected output
-- **FAIL**: Uses deprecated `create_sql_agent`, syntax errors, runtime errors
-
-### LangGraph Agent
-- **PASS**: Uses StateGraph, TypedDict, @tool, valid syntax, runs
-- **FAIL**: No LangGraph patterns, uses deprecated patterns, errors
-
-## Environment Setup
-
-Each test has an `environment/` directory containing:
-- `Dockerfile` - Container image for running generated code
-- `requirements.txt` - Python dependencies
-- Test data (e.g., `chinook.db` for SQL tests)
-
-The environment is copied to the temp test directory and used to build a Docker image for sandboxed execution.
-
-## Key Findings
-
-| Treatment | Result | Finding |
-|-----------|--------|---------|
-| LangChain CONTROL (no skill) | FAIL | Uses deprecated `create_sql_agent` |
-| LangChain BASELINE (with skill) | PASS | Uses modern `create_agent` + `@tool` |
-| LangGraph CONTROL (no skill) | FAIL | Uses raw API, no LangGraph |
-| LangGraph BASELINE (with skill) | PASS | Uses StateGraph, TypedDict |
-
-**Conclusion**: Skills have real, measurable impact on Claude's code generation patterns.
+3. **LLM Evaluation**: Use GPT-4o-mini to assess output quality
+4. **API Verification**: Check LangSmith uploads (for synergy tests)

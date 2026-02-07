@@ -94,7 +94,7 @@ def print_report(results: Dict[str, List[TestResult]]):
             pass_rate = f"{pass_count}/{n}"
 
             skill_count = sum(1 for r in runs
-                              if any("Invoked langchain-agents" in c for c in r.checks_passed))
+                              if any("Invoked langchain-agents skill" in c for c in r.checks_passed))
             skill_rate = f"{skill_count}/{n}"
 
             pattern_count = sum(1 for r in runs
@@ -166,8 +166,10 @@ def main():
     experiment = ExperimentLogger(
         experiment_name,
         columns=[
-            bool_column("Skill", "Invoked langchain-agents"),
-            bool_column("Patterns", "imports create_agent"),
+            bool_column("Skill", "Invoked langchain-agents skill",
+                        "Whether Claude invoked the langchain-agents skill"),
+            bool_column("Patterns", "imports create_agent",
+                        "Whether the generated code uses modern `create_agent` patterns"),
             quality_column("Quality"),
         ],
     )

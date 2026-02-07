@@ -41,9 +41,19 @@ python tests/langsmith_synergy/test_langsmith_synergy.py -t ADV_CONTROL ADV_ALL_
 Tests whether Claude uses modern patterns (`create_agent`, `@tool`) vs deprecated patterns (`create_sql_agent`).
 
 ```bash
-python tests/langchain_agent/test_langchain_agent.py -t CONTROL ALL_SECTIONS -r 3
-python tests/langchain_agent/test_langchain_agent.py -t GUIDANCE_POS GUIDANCE_NEG -r 3
+python tests/langchain_agent/test_langchain_agent.py -t control -r 3
+python tests/langchain_agent/test_langchain_agent.py -t reinforcement -r 3
+python tests/langchain_agent/test_langchain_agent.py -t claudemd -r 3
 ```
+
+**Presets:**
+| Preset | Treatments |
+|--------|------------|
+| `control` | CONTROL, BASELINE |
+| `reinforcement` | GUIDANCE_POS, GUIDANCE_NEG |
+| `claudemd` | BASELINE, CLAUDE_MD_SKILLS, CLAUDE_MD_PATTERNS, CLAUDE_MD_PATTERNS_MOVED, CLAUDE_MD_BOTH, CLAUDE_MD_BOTH_MOVED |
+| `noise` | BASELINE, NOISE_1, NOISE_2, NOISE_3 |
+| `all` | All treatments |
 
 | Treatment | Description |
 |-----------|-------------|

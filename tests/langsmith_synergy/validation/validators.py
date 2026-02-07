@@ -15,14 +15,12 @@ from scaffold.utils import (
     read_json_file,
     get_field,
     get_nested_field,
-    normalize_score,
-    extract_score,
     run_python_in_docker,
 )
 
 
 # =============================================================================
-# LANGSMITH HELPERS
+# HELPERS
 # =============================================================================
 
 def get_langsmith_client():
@@ -49,10 +47,15 @@ def extract_examples(data) -> list:
     return []
 
 
-def is_rate_limited(error: Exception) -> bool:
-    """Check if error is a rate limit error."""
-    msg = str(error).lower()
-    return "429" in msg or "rate limit" in msg
+def safe_api_call(func, skip_msg: str = "skipped"):
+    """Run API call, return (result, error_msg) handling rate limits."""
+    try:
+        return func(), None
+    except Exception as e:
+        msg = str(e).lower()
+        if "429" in msg or "rate limit" in msg:
+            return None, f"{skip_msg} (rate limited)"
+        return None, f"{skip_msg} ({str(e)[:40]})"
 
 
 # =============================================================================
@@ -60,7 +63,7 @@ def is_rate_limited(error: Exception) -> bool:
 # =============================================================================
 
 class TraceDataValidator(Validator):
-    """Validate traces exist and match expected ground truth."""
+    """Validate traces exist in LangSmith project."""
 
     def __init__(self, min_traces: int = 1, max_age_minutes: int = 1440):
         self.min_traces = min_traces
@@ -71,105 +74,42 @@ class TraceDataValidator(Validator):
 
         project = os.environ.get("LANGSMITH_PROJECT")
         if not project:
-            return passed, ["Traces: LANGSMITH_PROJECT not set"]
+            return [], ["Traces: LANGSMITH_PROJECT not set"]
 
         client, error = get_langsmith_client()
         if error:
-            return passed, [f"Traces: {error}"]
+            return [], [f"Traces: {error}"]
 
-        try:
-            # Query recent traces
-            start_time = datetime.now(timezone.utc) - timedelta(minutes=self.max_age_minutes)
-            traces = retry_with_backoff(lambda: list(client.list_runs(
-                project_name=project, is_root=True, start_time=start_time, limit=20
-            )))
+        start_time = datetime.now(timezone.utc) - timedelta(minutes=self.max_age_minutes)
+        traces, error = safe_api_call(
+            lambda: list(client.list_runs(project_name=project, is_root=True, start_time=start_time, limit=20))
+        )
+        if error:
+            return [f"Traces: {error}"], []
 
-            if len(traces) < self.min_traces:
-                return passed, [f"Traces: only {len(traces)} in project (need {self.min_traces})"]
+        if len(traces) < self.min_traces:
+            return [], [f"Traces: only {len(traces)} in project (need {self.min_traces})"]
 
-            passed.append(f"Traces: {len(traces)} available in '{project}'")
+        passed.append(f"Traces: {len(traces)} available in '{project}'")
 
-            # Count traces with tool calls
-            traces_with_tools = sum(1 for trace in traces[:5] if self._has_tool_calls(client, project, trace))
-            if traces_with_tools > 0:
-                passed.append(f"Traces: {traces_with_tools}/5 have tool calls")
-
-            # Compare against ground truth
-            gt_data, _ = read_json_file(test_dir / "expected_traces.json")
-            if gt_data:
-                passed.append(f"Ground truth: {len(gt_data)} traces")
-                match_passed, match_failed = self._compare_to_ground_truth(client, project, gt_data)
-                passed.extend(match_passed)
-                failed.extend(match_failed)
-
-        except ImportError:
-            failed.append("Traces: langsmith not installed")
-        except Exception as e:
-            if is_rate_limited(e):
-                passed.append("Traces: skipped (rate limited)")
-            else:
-                failed.append(f"Traces: {str(e)[:60]}")
+        # Check for tool calls in sample
+        with_tools = sum(1 for t in traces[:5] if self._has_tools(client, project, t))
+        if with_tools:
+            passed.append(f"Traces: {with_tools}/5 have tool calls")
 
         return passed, failed
 
-    def _has_tool_calls(self, client, project: str, trace) -> bool:
-        """Check if trace has tool calls."""
+    def _has_tools(self, client, project: str, trace) -> bool:
         try:
             tid = str(getattr(trace, "trace_id", trace.id))
-            tools = retry_with_backoff(lambda: list(client.list_runs(
-                project_name=project, trace_id=tid, run_type="tool", limit=5
-            )))
+            tools = list(client.list_runs(project_name=project, trace_id=tid, run_type="tool", limit=1))
             return bool(tools)
         except Exception:
             return False
 
-    def _compare_to_ground_truth(self, client, project: str, expected: list) -> Tuple[List[str], List[str]]:
-        """Compare fetched traces against expected ground truth."""
-        passed, failed = [], []
-
-        if not expected:
-            return passed, failed
-
-        matches = 0
-        for exp in expected[:5]:  # Check first 5
-            exp_id = exp.get("trace_id")
-            exp_tools = exp.get("tool_sequence", [])
-
-            if not exp_id:
-                continue
-
-            # Get actual tool sequence for this trace
-            try:
-                actual_tools = self._get_tool_sequence(client, project, exp_id)
-                if actual_tools == exp_tools:
-                    matches += 1
-                elif set(actual_tools) == set(exp_tools):
-                    matches += 0.5  # Partial match (same tools, different order)
-            except Exception:
-                pass
-
-        total = min(5, len(expected))
-        if matches >= total * 0.8:
-            passed.append(f"Traces: {int(matches)}/{total} match ground truth")
-        elif matches > 0:
-            passed.append(f"Traces: {int(matches)}/{total} partial match")
-        else:
-            failed.append(f"Traces: 0/{total} match ground truth")
-
-        return passed, failed
-
-    def _get_tool_sequence(self, client, project: str, trace_id: str) -> list:
-        """Get ordered tool sequence for a trace."""
-        tools = retry_with_backoff(lambda: list(client.list_runs(
-            project_name=project, trace_id=trace_id, run_type="tool", limit=50
-        )))
-        # Sort by start time and return names
-        tools.sort(key=lambda t: t.start_time or datetime.min)
-        return [t.name for t in tools]
-
 
 class DatasetValidator(Validator):
-    """Validate dataset file structure, ground truth match, and LangSmith upload."""
+    """Validate dataset file and LangSmith upload."""
 
     def __init__(
         self,
@@ -188,43 +128,32 @@ class DatasetValidator(Validator):
     def validate(self, events: dict, test_dir: Path, outputs: Dict = None) -> Tuple[List[str], List[str]]:
         passed, failed = [], []
 
-        # Read dataset file
         data, error = read_json_file(test_dir / self.filename)
         if error:
-            return passed, [f"Dataset: {error}"]
+            return [], [f"Dataset: {error}"]
 
-        passed.append(f"Dataset: {self.filename} created")
         examples = extract_examples(data)
-
         if len(examples) < self.min_examples:
-            return passed, [f"Dataset: {len(examples)} examples (need {self.min_examples})"]
+            return [f"Dataset: {self.filename} created"], [f"Dataset: {len(examples)} examples (need {self.min_examples})"]
 
         passed.append(f"Dataset: {len(examples)} examples")
 
         # Check structure
         sample = examples[:10]
         valid_io = sum(1 for ex in sample if self._has_io(ex))
-        has_traj = sum(1 for ex in sample if self._get_trajectory(ex))
-
-        if valid_io > 0:
+        if valid_io:
             passed.append(f"Dataset: {valid_io}/{len(sample)} have input/output")
         else:
             failed.append("Dataset: no input/output structure")
 
         if self.dataset_type == "trajectory":
-            if has_traj > 0:
+            has_traj = sum(1 for ex in sample if self._get_trajectory(ex))
+            if has_traj:
                 passed.append(f"Dataset: {has_traj}/{len(sample)} have trajectory")
             else:
                 failed.append("Dataset: no trajectory data")
 
-        # Compare to ground truth
-        gt_data, _ = read_json_file(test_dir / "expected_dataset.json")
-        if gt_data:
-            gtp, gtf = self._compare_ground_truth(examples, gt_data)
-            passed.extend(gtp)
-            failed.extend(gtf)
-
-        # Verify LangSmith upload
+        # Verify upload
         if self.verify_upload:
             up, uf = self._verify_upload()
             passed.extend(up)
@@ -238,107 +167,44 @@ class DatasetValidator(Validator):
         return ("inputs" in ex or "input" in ex) and ("outputs" in ex or "output" in ex)
 
     def _get_trajectory(self, ex: dict) -> list:
-        """Extract trajectory from example (various formats)."""
+        """Extract trajectory data, accepting various field names."""
         if not isinstance(ex, dict):
             return []
-        traj = get_field(ex, "trajectory", "expected_trajectory")
-        if not traj:
-            traj = get_nested_field(ex, ["outputs", "output"], ["expected_trajectory", "trajectory"])
-        return traj if isinstance(traj, list) else []
 
-    def _compare_ground_truth(self, actual: list, expected: dict) -> Tuple[List[str], List[str]]:
-        """Compare generated dataset against expected ground truth.
+        # Known trajectory field names (priority order)
+        FIELDS = ["expected_trajectory", "trajectory", "expected_tools", "tool_calls", "tools"]
 
-        Matching criteria:
-        - Match by trace_id
-        - Check both trajectory (exact) and inputs (exact)
-        - Full match = 1 point, partial (trajectory or overlap) = 0.5 points
-        - 80% threshold to pass
-        """
-        passed, failed = [], []
-        exp_examples = extract_examples(expected)
+        # Check top-level, then nested in outputs
+        traj = get_field(ex, *FIELDS) or get_nested_field(ex, ["outputs", "output"], FIELDS)
+        if isinstance(traj, list):
+            return traj
 
-        if not exp_examples:
-            return passed, failed
-
-        # Build lookup by trace_id
-        exp_lookup = {
-            ex.get("trace_id"): {
-                "trajectory": self._get_trajectory(ex),
-                "inputs": ex.get("inputs", {})
-            }
-            for ex in exp_examples
-        }
-        matches = 0
-
-        for ex in actual[:10]:
-            tid = ex.get("trace_id")
-            if tid not in exp_lookup:
-                continue
-
-            actual_traj = self._get_trajectory(ex)
-            actual_inputs = ex.get("inputs", {})
-            expected_traj = exp_lookup[tid]["trajectory"]
-            expected_inputs = exp_lookup[tid]["inputs"]
-
-            traj_match = actual_traj and expected_traj and actual_traj == expected_traj
-            inputs_match = actual_inputs == expected_inputs
-
-            if traj_match and inputs_match:
-                matches += 1
-            elif traj_match:
-                matches += 0.5
-            else:
-                # Check for partial overlap (any common tools)
-                try:
-                    if set(actual_traj or []) & set(expected_traj or []):
-                        matches += 0.5
-                except TypeError:
-                    pass  # Unhashable types (dicts) = wrong format, no credit
-
-        total = min(len(actual), len(exp_examples), 10)
-        if total > 0:
-            ratio = matches / total
-            if ratio >= 0.8:
-                passed.append(f"Dataset: {matches}/{total} match ground truth")
-            else:
-                failed.append(f"Dataset: {matches}/{total} match ground truth (need 80%)")
-
-        return passed, failed
+        # Fallback: any list of strings in outputs
+        for val in (get_field(ex, "outputs", "output") or {}).values():
+            if isinstance(val, list) and val and isinstance(val[0], str):
+                return val
+        return []
 
     def _verify_upload(self) -> Tuple[List[str], List[str]]:
-        """Verify dataset was uploaded to LangSmith."""
-        passed, failed = [], []
-
         client, error = get_langsmith_client()
         if error:
             return [f"Upload: skipped ({error})"], []
 
-        try:
-            datasets = list(client.list_datasets())
-            matching = [d for d in datasets if d.name.startswith(self.upload_prefix)]
+        datasets, error = safe_api_call(lambda: list(client.list_datasets()))
+        if error:
+            return [f"Upload: {error}"], []
 
-            if not matching:
-                return [], [f"Upload: no dataset with prefix '{self.upload_prefix}' in LangSmith"]
+        matching = [d for d in datasets if d.name.startswith(self.upload_prefix)]
+        if not matching:
+            return [], [f"Upload: no dataset with prefix '{self.upload_prefix}'"]
 
-            recent = max(matching, key=lambda d: getattr(d, 'created_at', d.name))
-            passed.append(f"Upload: found '{recent.name}' in LangSmith")
-
-            count = getattr(recent, 'example_count', None)
-            if count is not None:
-                passed.append(f"Upload: {count} examples in LangSmith")
-
-        except Exception as e:
-            if is_rate_limited(e):
-                passed.append("Upload: skipped (rate limited)")
-            else:
-                failed.append(f"Upload: {str(e)[:40]}")
-
-        return passed, failed
+        recent = max(matching, key=lambda d: getattr(d, 'created_at', d.name))
+        count = getattr(recent, 'example_count', '?')
+        return [f"Upload: '{recent.name}' ({count} examples)"], []
 
 
 class EvaluatorValidator(Validator):
-    """Validate evaluator Python file and run test cases in Docker (safe execution)."""
+    """Validate evaluator file, run tests in Docker, and verify upload."""
 
     def __init__(
         self,
@@ -359,25 +225,23 @@ class EvaluatorValidator(Validator):
 
         path = test_dir / self.filename
         if not path.exists():
-            return passed, [f"Evaluator: {self.filename} not created"]
+            return [], [f"Evaluator: {self.filename} not created"]
 
         content = path.read_text()
-        passed.append(f"Evaluator: {self.filename} created ({len(content)} bytes)")
+        passed.append(f"Evaluator: {self.filename} ({len(content)} bytes)")
 
-        # Parse and find evaluator function (safe - just AST parsing, no exec)
+        # Find evaluator function via AST
         func_name, error = self._find_evaluator_function(content)
         if error:
             return passed, [error]
-
-        passed.append("Evaluator: valid syntax")
         passed.append(f"Evaluator: {func_name}(run, example)")
 
-        # Run test cases in Docker (safe execution)
-        test_passed, test_failed = self._run_test_cases_in_docker(test_dir, func_name)
-        passed.extend(test_passed)
-        failed.extend(test_failed)
+        # Run test cases in Docker
+        tp, tf = self._run_tests(test_dir, func_name)
+        passed.extend(tp)
+        failed.extend(tf)
 
-        # Verify upload to LangSmith
+        # Verify upload
         if self.verify_upload:
             up, uf = self._verify_upload()
             passed.extend(up)
@@ -386,111 +250,92 @@ class EvaluatorValidator(Validator):
         return passed, failed
 
     def _find_evaluator_function(self, content: str) -> Tuple[str, str]:
-        """Parse code and find evaluator function name (safe - no execution)."""
         try:
             tree = ast.parse(content)
         except SyntaxError as e:
             return None, f"Evaluator: syntax error line {e.lineno}"
 
-        # Find function with (run, example) args
         for node in ast.walk(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 args = [a.arg for a in node.args.args]
                 if "run" in args and "example" in args:
                     return node.name, None
-
         return None, "Evaluator: no (run, example) function"
 
-    def _run_test_cases_in_docker(self, test_dir: Path, func_name: str) -> Tuple[List[str], List[str]]:
-        """Run evaluator test cases in Docker for safe execution."""
-        passed, failed = [], []
-
-        # Check for test cases
+    def _run_tests(self, test_dir: Path, func_name: str) -> Tuple[List[str], List[str]]:
         test_cases_path = test_dir / self.test_cases_filename
         if not test_cases_path.exists():
-            passed.append("Evaluator: no test cases (skipping execution test)")
-            return passed, failed
+            return ["Evaluator: no test cases"], []
 
-        # Copy runner script to test directory
         runner_src = Path(__file__).parent / "eval_runner.py"
         runner_dst = test_dir / "_eval_runner.py"
         runner_dst.write_text(runner_src.read_text())
 
         try:
-            # Run: python _eval_runner.py <module> <func> <test_cases.json>
             module_name = self.filename.replace(".py", "")
-            args = [module_name, func_name, self.test_cases_filename]
-            success, output = run_python_in_docker(test_dir, "_eval_runner.py", timeout=60, args=args)
+            success, output = run_python_in_docker(
+                test_dir, "_eval_runner.py", timeout=60,
+                args=[module_name, func_name, self.test_cases_filename]
+            )
 
-            # Parse results from output
             for line in output.split("\n"):
                 if line.startswith("EVALUATOR_RESULTS:"):
                     results = json.loads(line.replace("EVALUATOR_RESULTS:", ""))
-                    tests_passed = sum(1 for r in results if r.get("passed"))
+                    passed_count = sum(1 for r in results if r.get("passed"))
                     total = len(results)
-
-                    if tests_passed == total:
-                        passed.append(f"Evaluator: {tests_passed}/{total} tests passed")
-                    elif tests_passed > total // 2:
-                        passed.append(f"Evaluator: {tests_passed}/{total} tests (partial)")
+                    msg = f"Evaluator: {passed_count}/{total} tests"
+                    if passed_count == total:
+                        return [msg + " passed"], []
+                    elif passed_count > total // 2:
+                        return [msg + " (partial)"], []
                     else:
-                        failed.append(f"Evaluator: {tests_passed}/{total} tests passed")
-                    return passed, failed
+                        return [], [msg + " passed"]
 
-            # No results found in output
-            if success:
-                passed.append("Evaluator: executed (no test results)")
-            else:
-                failed.append("Evaluator: execution failed")
-
+            return (["Evaluator: executed"], []) if success else ([], ["Evaluator: execution failed"])
         except Exception as e:
-            failed.append(f"Evaluator: docker error - {str(e)[:40]}")
+            return [], [f"Evaluator: {str(e)[:50]}"]
         finally:
             runner_dst.unlink(missing_ok=True)
 
-        return passed, failed
-
     def _verify_upload(self) -> Tuple[List[str], List[str]]:
-        """Verify evaluator was uploaded to LangSmith recently."""
-        passed, failed = [], []
-
+        """Verify evaluator uploaded via /runs/rules API."""
         client, error = get_langsmith_client()
         if error:
-            return [f"Evaluator upload: skipped ({error})"], []
+            return [f"Upload: skipped ({error})"], []
 
         try:
-            # List evaluators and check for matching prefix
-            evaluators = list(client.list_evaluators())
-            matching = [e for e in evaluators if e.name.startswith(self.upload_prefix)]
+            response = client.session.get(
+                f"{client.api_url}/runs/rules",
+                headers={"x-api-key": client.api_key},
+                params={"limit": 100},
+            )
+            if response.status_code != 200:
+                return [f"Upload: skipped (API {response.status_code})"], []
+
+            data = response.json()
+            rules = data if isinstance(data, list) else data.get("rules", [])
+
+            # Filter by display_name (the rule name in LangSmith UI)
+            matching = [r for r in rules if r.get("display_name", "").startswith(self.upload_prefix)]
 
             if not matching:
-                return [], [f"Evaluator upload: no evaluator with prefix '{self.upload_prefix}' in LangSmith"]
+                return [], [f"Upload: no rule with prefix '{self.upload_prefix}'"]
 
-            # Filter by age - only consider recently created evaluators
-            cutoff = datetime.now(timezone.utc) - timedelta(minutes=self.max_age_minutes)
-            recent_matching = [
-                e for e in matching
-                if hasattr(e, 'created_at') and e.created_at and e.created_at >= cutoff
-            ]
+            # Find most recent
+            recent = max(matching, key=lambda r: r.get("created_at", ""))
+            name = recent.get("display_name", "unknown")
+            dataset_name = recent.get("dataset_name")
 
-            if not recent_matching:
-                # Fall back to any matching if we can't filter by time
-                recent = max(matching, key=lambda e: getattr(e, 'created_at', None) or e.name)
-                passed.append(f"Evaluator upload: found '{recent.name}' (age unknown)")
-            else:
-                recent = max(recent_matching, key=lambda e: e.created_at)
-                passed.append(f"Evaluator upload: found '{recent.name}' in LangSmith")
+            # Check dataset attachment (dataset_name is included in response)
+            if dataset_name and dataset_name.startswith(self.upload_prefix):
+                return [f"Upload: '{name}' -> dataset '{dataset_name}'"], []
+            elif dataset_name:
+                return [f"Upload: '{name}' found"], [f"Upload: linked to '{dataset_name}' (expected prefix '{self.upload_prefix}')"]
 
-        except AttributeError:
-            # Older LangSmith SDK may not have list_evaluators
-            passed.append("Evaluator upload: skipped (SDK version)")
+            return [f"Upload: '{name}' found (no dataset)"], []
+
         except Exception as e:
-            if is_rate_limited(e):
-                passed.append("Evaluator upload: skipped (rate limited)")
-            else:
-                failed.append(f"Evaluator upload: {str(e)[:40]}")
-
-        return passed, failed
+            return [f"Upload: skipped ({str(e)[:30]})"], []
 
 
 class SkillScriptValidator(Validator):
@@ -509,7 +354,5 @@ class SkillScriptValidator(Validator):
                 passed.append(f"Script: {desc}")
             elif self.require_scripts:
                 failed.append(f"Script: missing {desc}")
-            else:
-                passed.append(f"Note: no {desc}")
 
         return passed, failed

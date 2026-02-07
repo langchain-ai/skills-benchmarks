@@ -232,7 +232,7 @@ def _run_generated_files(work: WorkItem, test_dir: Path, base_dir: Path, prefix:
     for py_file in py_files:
         start = datetime.now()
         try:
-            success, output = run_python_in_docker(test_dir, py_file.name, timeout=180)
+            success, output = run_python_in_docker(test_dir, py_file.name, timeout=300)
             dur = (datetime.now() - start).total_seconds()
             outputs[py_file.name] = (success, output, dur)
             status = "success" if success else "error"

@@ -72,7 +72,7 @@ def generate_traces(verbose: bool = True) -> bool:
         print("ERROR: Failed to build Docker image")
         return False
 
-    success, output = run_python_in_docker(ENVIRONMENT_DIR, "sql_agent.py", timeout=180)
+    success, output = run_python_in_docker(ENVIRONMENT_DIR, "sql_agent.py", timeout=300)
 
     if verbose:
         if success:

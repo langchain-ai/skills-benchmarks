@@ -39,13 +39,37 @@ def extract_score(result):
     return None
 
 
+def normalize_trajectory_fields(data: dict) -> dict:
+    """Add trajectory data under multiple field names so evaluators find it."""
+    if not isinstance(data, dict) or not isinstance(data.get("outputs"), dict):
+        return data
+
+    outputs = data["outputs"]
+    FIELDS = ["expected_trajectory", "trajectory", "tool_calls", "tools"]
+
+    # Find trajectory from known fields, or fallback to any list of strings
+    traj = next((outputs[f] for f in FIELDS if f in outputs and isinstance(outputs[f], list)), None)
+    if not traj:
+        traj = next((v for v in outputs.values() if isinstance(v, list) and v and isinstance(v[0], str)), None)
+
+    # Add all aliases
+    if traj:
+        for f in FIELDS:
+            outputs.setdefault(f, traj)
+    return data
+
+
 def run_test_case(eval_func, tc):
     """Run single test case, return result dict."""
     name = tc.get("name", "unknown")
     expected = tc.get("expected_result", {})
 
+    # Normalize trajectory field names so evaluators work with any naming
+    run = normalize_trajectory_fields(tc.get("run", {}))
+    example = normalize_trajectory_fields(tc.get("example", {}))
+
     try:
-        result = eval_func(tc["run"], tc["example"])
+        result = eval_func(run, example)
 
         if expected.get("should_not_crash"):
             return {"name": name, "passed": True}

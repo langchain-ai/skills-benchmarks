@@ -66,9 +66,10 @@ This project has LangSmith skills for working with traces, datasets, and evaluat
 - **langsmith-dataset**: Generate datasets from trace data
 - **langsmith-evaluator**: Create evaluators for validating agent outputs
 
-Dependencies:
+Workflow:
 - Datasets require trace data (use trace skill to get data first)
-- Evaluators are designed to work with datasets (create dataset before evaluator)"""
+- Evaluators validate datasets (create dataset before evaluator)
+- Evaluators should use the same field structure as your dataset (e.g., if dataset has `expected_trajectory`, evaluator should read that field)"""
 
 # Base CLAUDE.md that just mentions skills exist
 CLAUDE_MD_SKILLS_ONLY = """# Project Guidelines
@@ -131,8 +132,8 @@ Run any code you write directly."""
 ADVANCED_PROMPT_TEMPLATE = """I want to test if my agent calls tools correctly. Create a dataset and an evaluator from the LangSmith project in .env.
 
 - Include 5 traces
-- Dataset: trajectory_dataset.json (also upload as "test-{run_id}")
-- Evaluator: trajectory_evaluator.py (also upload as "test-{run_id}")
+- Dataset: trajectory_dataset.json (upload to LangSmith as "test-{run_id}")
+- Evaluator: trajectory_evaluator.py (upload to LangSmith as "test-{run_id}", attached to our dataset)
 
 Run any code you write directly."""
 

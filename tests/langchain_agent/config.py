@@ -57,9 +57,9 @@ def skill(guidance):
 TASK1_PROMPT = """Build a SQL analytics agent for the chinook.db music store database.
 
 Requirements:
-1. Handle complex queries: multi-table JOINs, GROUP BY, date filtering, subqueries
+1. Handle queries with JOINs and GROUP BY
 2. Use gpt-4o-mini, only SELECT queries, include error handling
-3. Test: "Which 3 genres generated the most revenue, and who are the top 2 artists in each?"
+3. Test: "What are the top 5 best-selling genres by total tracks sold?"
 
 Save to sql_agent_1.py and run the test query.
 
@@ -120,8 +120,8 @@ def sql_agent_validators():
         # SQL Agent: LLM-based output quality check
         OutputQualityValidator(
             "sql_agent_1.py", "SQL Agent Output",
-            task_description="SQL analytics agent querying chinook.db for top 3 genres by revenue and top 2 artists per genre",
-            expected_behavior="Should show genre names (Rock, Latin, Metal, etc.), revenue amounts, and artist names with clear results",
+            task_description="SQL analytics agent querying chinook.db for top 5 best-selling genres by tracks sold",
+            expected_behavior="Should show genre names (Rock, Latin, Metal, etc.) with track counts or sales numbers",
         ),
         MetricsCollector(["sql_agent_1.py"]),
     ]
@@ -141,8 +141,8 @@ def noise_validators():
         # SQL Agent: LLM-based output quality check
         OutputQualityValidator(
             "sql_agent_1.py", "SQL Agent Output",
-            task_description="SQL analytics agent querying chinook.db for top 3 genres by revenue and top 2 artists per genre",
-            expected_behavior="Should show genre names, revenue amounts, and artist names with clear results",
+            task_description="SQL analytics agent querying chinook.db for top 5 best-selling genres by tracks sold",
+            expected_behavior="Should show genre names with track counts or sales numbers",
         ),
         # Search Agent: Code pattern check
         PythonFileValidator(

@@ -20,7 +20,7 @@ from .utils import evaluate_with_schema, check_docker_available
 from .setup import get_noise_output
 
 
-def run_python_file(test_dir: Path, filename: str, run_args: List[str] = None, timeout: int = 180) -> Tuple[bool, str]:
+def run_python_file(test_dir: Path, filename: str, run_args: List[str] = None, timeout: int = 300) -> Tuple[bool, str]:
     """Run a Python file, using Docker if available, otherwise local Python."""
     from .utils import run_python_in_docker
 

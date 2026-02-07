@@ -6,9 +6,9 @@ Pre-built agent that generates traces in LangSmith for testing trace/dataset ski
 import os
 import sqlite3
 from langchain_openai import ChatOpenAI
-from langchain.agents import create_tool_calling_agent, AgentExecutor
 from langchain_core.tools import tool
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.messages import HumanMessage
+from langchain.agents import create_agent
 
 # Database connection
 DB_PATH = "chinook.db"
@@ -118,18 +118,15 @@ Guidelines:
 
 Remember: Only SELECT queries are allowed for security."""
 
-    agent = create_agent(
-        model=model,
-        tools=[execute_sql_query, get_database_schema],
-        system_prompt=system_prompt
-    )
+    tools = [execute_sql_query, get_database_schema]
+    agent = create_agent(model, tools, system_prompt=system_prompt)
     return agent
 
 
 def run_query(question: str) -> str:
     """Run a single query through the agent and return the response."""
     agent = create_sql_agent()
-    result = agent.invoke({"messages": [("user", question)]})
+    result = agent.invoke({"messages": [HumanMessage(content=question)]})
     messages = result.get("messages", [])
     if messages:
         return messages[-1].content

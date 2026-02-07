@@ -142,11 +142,84 @@ python query_datasets.py show "Skills: Trajectory" --limit 5
 python query_datasets.py view-file /tmp/trajectory_ds.json --limit 3
 ```"""
 
-NEXT_STEPS = """## Next Steps
+OUTPUT_FORMATS = """## Output Formats
+
+All dataset types support both JSON and CSV:
+```bash
+# JSON output (default)
+python generate_datasets.py --type trajectory --project my-project --output ds.json
+
+# CSV output (use .csv extension)
+python generate_datasets.py --type trajectory --project my-project --output ds.csv
+```"""
+
+TIPS = """## Tips for Dataset Generation
+
+1. **Always use `--root-run-name`** - Filter for specific agent framework (e.g., "LangGraph")
+2. **Start with successful traces** - Use recent successful runs for baseline datasets
+3. **Use time windows** - `--last-n-minutes 1440` for last 24 hours of data
+4. **Sample for single_step** - Use `--sample-per-trace 2` to capture conversation evolution
+5. **Match depth to needs** - `--depth 2` typically captures all main tool calls
+6. **Review before upload** - Use `query_datasets.py view-file` to inspect first
+7. **Iterative refinement** - Generate small batches (10-20) first, validate, then scale up
+8. **Use `--replace` carefully** - Overwrites existing datasets, useful for iteration"""
+
+EXAMPLE_WORKFLOW = """## Example Workflow
+
+```bash
+# 1. Generate fresh traces (if needed)
+python tests/test_agent.py --batch  # Your test agent
+
+# 2. Generate all dataset types from LangGraph traces
+python generate_datasets.py --type final_response \\
+  --project skills --root-run-name LangGraph --limit 10 \\
+  --output /tmp/final.json --upload "Skills: Final Response" --replace
+
+python generate_datasets.py --type single_step \\
+  --project skills --root-run-name LangGraph --run-name model \\
+  --sample-per-trace 2 --limit 10 \\
+  --output /tmp/model.json --upload "Skills: Single Step (model)" --replace
+
+python generate_datasets.py --type trajectory \\
+  --project skills --root-run-name LangGraph --limit 10 \\
+  --output /tmp/traj.json --upload "Skills: Trajectory (all depths)" --replace
+
+python generate_datasets.py --type trajectory \\
+  --project skills --root-run-name LangGraph --depth 2 --limit 10 \\
+  --output /tmp/traj_d2.json --upload "Skills: Trajectory (depth=2)" --replace
+
+# 3. Review in LangSmith UI
+# Visit https://smith.langchain.com → Datasets → Filter for "Skills:"
+
+# 4. Query locally if needed
+python query_datasets.py show "Skills: Final Response" --limit 3
+```"""
+
+TROUBLESHOOTING = """## Troubleshooting
+
+**Empty final_response outputs:**
+- Ensure `--root-run-name` matches your agent's root node
+- Check that root run has messages with AI responses
+- Use `--messages-only` if output dict is empty
+
+**No trajectory examples:**
+- Tools might be at different depth - try removing `--depth` or use `--depth 2`
+- Verify tool calls exist: `python query_traces.py trace <id> --show-hierarchy`
+
+**Too many single_step examples:**
+- Use `--sample-per-trace 2` to limit examples per trace
+- Reduces dataset size while maintaining diversity
+
+**Dataset upload fails:**
+- Check dataset doesn't exist or use `--replace`
+- Verify LANGSMITH_API_KEY is set"""
+
+RELATED_SKILLS = """## Related Skills
 
 - Use **langsmith-trace** skill to query and export traces
 - Use **langsmith-evaluator** skill to create evaluators and measure performance"""
 
+# Default sections used in tests
 DEFAULT_SECTIONS = [
     FRONTMATTER,
     HEADER,
@@ -156,5 +229,22 @@ DEFAULT_SECTIONS = [
     DATASET_TYPES,
     UPLOAD,
     QUERY,
-    NEXT_STEPS,
+    RELATED_SKILLS,
+]
+
+# Full sections including tips, examples, and troubleshooting
+FULL_SECTIONS = [
+    FRONTMATTER,
+    HEADER,
+    SETUP,
+    USAGE,
+    TRACE_HIERARCHY,
+    DATASET_TYPES,
+    OUTPUT_FORMATS,
+    UPLOAD,
+    QUERY,
+    TIPS,
+    EXAMPLE_WORKFLOW,
+    TROUBLESHOOTING,
+    RELATED_SKILLS,
 ]

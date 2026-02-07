@@ -135,11 +135,71 @@ BEST_PRACTICES = """## Best Practices
 3. **Use async for LLM judges** - Enables parallel evaluation
 4. **Test evaluators independently** - Validate on known good/bad examples first"""
 
-NEXT_STEPS = """## Next Steps
+RUNNING_EVALUATIONS = """## Running Evaluations
+
+```python
+from langsmith import Client
+
+client = Client()
+
+# Define your agent function
+def run_agent(inputs: dict) -> dict:
+    \"\"\"Your agent invocation logic.\"\"\"
+    result = your_agent.invoke(inputs)
+    return {"expected_response": result}
+
+# Run evaluation
+results = await client.aevaluate(
+    run_agent,
+    data="Skills: Final Response",              # Dataset name
+    evaluators=[
+        exact_match_evaluator,
+        accuracy_evaluator,
+        trajectory_evaluator
+    ],
+    experiment_prefix="skills-eval-v1",
+    max_concurrency=4
+)
+```"""
+
+EXAMPLE_WORKFLOW = """## Example Workflow
+
+```bash
+# 1. Create evaluators file
+cat > evaluators.py <<'EOF'
+def exact_match(run, example):
+    \"\"\"Check if output exactly matches expected.\"\"\"
+    output = run["outputs"].get("expected_response", "").strip().lower()
+    expected = example["outputs"].get("expected_response", "").strip().lower()
+    match = output == expected
+    return {
+        "exact_match": 1 if match else 0,
+        "comment": f"Match: {match}"
+    }
+EOF
+
+# 2. Upload to LangSmith
+python upload_evaluators.py upload evaluators.py \\
+  --name "Exact Match" \\
+  --function exact_match \\
+  --dataset "Skills: Final Response" \\
+  --replace
+
+# 3. Evaluator runs automatically on new dataset runs
+```"""
+
+RESOURCES = """## Resources
+
+- [LangSmith Evaluation Concepts](https://docs.langchain.com/langsmith/evaluation-concepts)
+- [Custom Code Evaluators](https://changelog.langchain.com/announcements/custom-code-evaluators-in-langsmith)
+- [OpenEvals - Readymade Evaluators](https://github.com/langchain-ai/openevals)"""
+
+RELATED_SKILLS = """## Related Skills
 
 - Use **langsmith-trace** skill to query and export traces
 - Use **langsmith-dataset** skill to generate evaluation datasets from traces"""
 
+# Default sections used in tests
 DEFAULT_SECTIONS = [
     FRONTMATTER,
     HEADER,
@@ -149,5 +209,21 @@ DEFAULT_SECTIONS = [
     CODE_EVALUATORS,
     UPLOAD,
     BEST_PRACTICES,
-    NEXT_STEPS,
+    RELATED_SKILLS,
+]
+
+# Full sections including running evaluations, examples, and resources
+FULL_SECTIONS = [
+    FRONTMATTER,
+    HEADER,
+    SETUP,
+    EVALUATOR_FORMAT,
+    LLM_JUDGE,
+    CODE_EVALUATORS,
+    RUNNING_EVALUATIONS,
+    UPLOAD,
+    BEST_PRACTICES,
+    EXAMPLE_WORKFLOW,
+    RESOURCES,
+    RELATED_SKILLS,
 ]

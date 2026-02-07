@@ -227,14 +227,11 @@ class ExperimentLogger:
         self.base_dir = LOGS_DIR / "experiments" / self.experiment_id
 
         # Create subdirectories
-        self.code_dir = self.base_dir / "code"
-        self.docker_dir = self.base_dir / "docker"
         self.events_dir = self.base_dir / "events"
         self.reports_dir = self.base_dir / "reports"
         self.raw_dir = self.base_dir / "raw"
 
-        for d in [self.code_dir, self.docker_dir, self.events_dir,
-                  self.reports_dir, self.raw_dir]:
+        for d in [self.events_dir, self.reports_dir, self.raw_dir]:
             d.mkdir(parents=True, exist_ok=True)
 
         self.columns = columns or []

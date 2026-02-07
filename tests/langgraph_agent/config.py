@@ -224,8 +224,13 @@ TREATMENTS = {
 }
 
 
-def build_langgraph_prompt(treatment: Treatment) -> str:
-    """Build the prompt for a LangGraph treatment."""
+def build_langgraph_prompt(treatment: Treatment, treatment_name: str = None, rep: int = 1) -> str:
+    """Build the prompt for a LangGraph treatment.
+
+    Args:
+        treatment_name: Name of the treatment (unused here)
+        rep: Repetition number (unused here, but required by runner interface)
+    """
     return treatment.build_prompt(TASK1_PROMPT, TASK2_PROMPT)
 
 

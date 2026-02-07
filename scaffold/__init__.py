@@ -1,23 +1,32 @@
 """Testing scaffold for Claude Code skill benchmarks."""
 
+from .utils import (
+    # Retry
+    retry_with_backoff,
+    # CLI checks
+    check_docker_available, check_claude_available,
+    # Docker
+    build_docker_image, run_in_docker, run_python_in_docker, run_claude_in_docker,
+    # Parsing helpers
+    read_json_file, get_field, get_nested_field, normalize_score, extract_score,
+    # Model evaluation
+    get_eval_model, evaluate_with_schema,
+)
 from .runner import (
     TestResult,
-    build_docker_image, run_in_docker, run_python_in_docker,
     WorkItem, run_single, run_parallel, create_work_items,
 )
 from .setup import (
-    check_docker_available, verify_environment,
+    verify_environment,
     setup_test_environment, cleanup_test_environment,
     build_skill, write_skill, setup_test_context,
     NOISE_TASKS, get_noise_prompt, get_noise_output, get_noise_skill_content,
 )
-from .framework import (
-    Treatment, Validator,
+from .config import Treatment
+from .validation import (
+    Validator,
     SkillInvokedValidator, PythonFileValidator, NoiseTaskValidator,
     MetricsCollector, OutputQualityValidator,
-)
-from .model import (
-    EVAL_MODEL, get_eval_model, evaluate_with_schema,
 )
 from .logging import (
     ExperimentLogger, TreatmentResult, ReportColumn,
@@ -27,21 +36,26 @@ from .logging import (
 )
 
 __all__ = [
-    # Runner (Docker utilities + parallel execution)
+    # Utils (retry, docker, checks, parsing, model eval)
+    'retry_with_backoff',
+    'check_docker_available', 'check_claude_available',
+    'build_docker_image', 'run_in_docker', 'run_python_in_docker', 'run_claude_in_docker',
+    'read_json_file', 'get_field', 'get_nested_field', 'normalize_score', 'extract_score',
+    'get_eval_model', 'evaluate_with_schema',
+    # Runner (parallel execution)
     'TestResult',
-    'build_docker_image', 'run_in_docker', 'run_python_in_docker',
     'WorkItem', 'run_single', 'run_parallel', 'create_work_items',
     # Setup
-    'check_docker_available', 'verify_environment',
+    'verify_environment',
     'setup_test_environment', 'cleanup_test_environment',
     'build_skill', 'write_skill', 'setup_test_context',
     'NOISE_TASKS', 'get_noise_prompt', 'get_noise_output', 'get_noise_skill_content',
-    # Framework
-    'Treatment', 'Validator',
+    # Config
+    'Treatment',
+    # Validators
+    'Validator',
     'SkillInvokedValidator', 'PythonFileValidator', 'NoiseTaskValidator',
     'MetricsCollector', 'OutputQualityValidator',
-    # Model
-    'EVAL_MODEL', 'get_eval_model', 'evaluate_with_schema',
     # Logging
     'ExperimentLogger', 'TreatmentResult', 'ReportColumn',
     'bool_column', 'quality_column', 'default_columns',

@@ -117,7 +117,8 @@ def print_report(results: Dict[str, List[TestResult]]):
             r = runs[0]
             status = "PASS" if r.passed else "FAIL"
             turns = str(r.events.get("num_turns", "?")) if r.events else "?"
-            duration = f"{r.events.get('duration_seconds', 0):.0f}s" if r.events else "?"
+            dur = r.events.get('duration_seconds') if r.events else None
+            duration = f"{dur:.0f}s" if dur else "?"
 
             if r.checks_failed:
                 checks_str = f"FAIL: {r.checks_failed[0][:40]}"

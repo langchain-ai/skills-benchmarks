@@ -1,114 +1,36 @@
-"""LangChain Agents skill sections.
-
-Each section is a string that can be assembled into a complete skill.
-Test cases in templates.py define which sections to use and can substitute custom content.
-"""
-
-FRONTMATTER = """---
+---
 name: langchain-agents
 description: Build LangChain agents with modern patterns. Covers create_agent, LangGraph, and context management.
----"""
+---
 
-HEADER = """# LangChain Ecosystem Guide
+# LangChain Ecosystem Guide
 
-Build production-ready agents with LangGraph, from basic primitives to advanced context management."""
+Build production-ready agents with LangGraph, from basic primitives to advanced context management.
 
-QUICK_START = """## Quick Start: Which Tool?"""
+## Quick Start: Which Tool?
 
-# This is the default guidance - tests can substitute their own
-GUIDANCE = """**IMPORTANT:** Use modern abstractions. Older helpers like `create_sql_agent`, `create_tool_calling_agent`, `create_react_agent`, etc. are outdated."""
+**IMPORTANT:** Use modern abstractions. Older helpers like `create_sql_agent`, `create_tool_calling_agent`, `create_react_agent`, etc. are outdated.
 
-# =============================================================================
-# GUIDANCE VARIATIONS (for experiments)
-# =============================================================================
-
-# POSITIVE: Only mentions what TO use (no deprecated pattern names)
-GUIDANCE_POSITIVE = """## Important: Use Modern LangChain Patterns
-
-Use the modern approach:
-- `create_agent()` from `langchain.agents` for simple agents
-- LangGraph `create_react_agent` for complex flows
-- `@tool` decorator for tool definitions
-
-See the examples below for working code."""
-
-# NEGATIVE: Mentions deprecated patterns (puts them in context)
-GUIDANCE_NEGATIVE = """## Important: Use Modern LangChain Patterns
-
-Older helpers like `create_sql_agent`, `create_tool_calling_agent`, and the legacy `create_react_agent` are deprecated and should not be used.
-
-Use the modern approach:
-- `create_agent()` from `langchain.agents` for simple agents
-- LangGraph `create_react_agent` for complex flows
-- `@tool` decorator for tool definitions"""
-
-# =============================================================================
-# CLAUDE.MD VARIATIONS (for experiments)
-# =============================================================================
-
-# =============================================================================
-# CLAUDE.MD EXPERIMENT VARIATIONS
-# =============================================================================
-
-# SKILLS_ONLY: Just tells Claude to check skills (no pattern guidance)
-CLAUDE_MD_SKILLS_ONLY = """# Project Guidelines
-
-Before starting any task, make sure to check project skills to identify best practices.
-"""
-
-# SKILLS_REQUIRED: Explicit requirement to use langchain-agents skill
-CLAUDE_MD_SKILLS_REQUIRED = """# Project Guidelines
-
-Before writing any LangChain code, you MUST invoke the langchain-agents skill. This skill contains critical patterns that prevent common mistakes.
-"""
-
-# PATTERNS_POSITIVE: Use modern patterns (no mention of deprecated)
-CLAUDE_MD_PATTERNS_POSITIVE = """# Project Guidelines
-
-## LangChain Development
-
-Use modern LangChain patterns.
-"""
-
-# PATTERNS_NEGATIVE: Use modern patterns (mentions deprecated to avoid)
-CLAUDE_MD_PATTERNS_NEGATIVE = """# Project Guidelines
-
-## LangChain Development
-
-Use modern LangChain patterns. Avoid deprecated convenience helpers like create_sql_agent or create_react_agent.
-"""
-
-# BOTH: Check skills AND use modern patterns
-CLAUDE_MD_BOTH = """# Project Guidelines
-
-Before starting any coding task, check available project skills to find the best approach.
-
-## LangChain Development
-
-Use modern LangChain patterns.
-"""
-
-
-CREATE_AGENT_OVERVIEW = """**Simple tool-calling agent?** → [`create_agent`](https://docs.langchain.com/oss/python/langchain/agents)
+**Simple tool-calling agent?** → [`create_agent`](https://docs.langchain.com/oss/python/langchain/agents)
 ```python
 from langchain.agents import create_agent
 graph = create_agent(model="anthropic:claude-sonnet-4-5", tools=[search], system_prompt="...")
 ```
-**Use this for:** Basic ReAct loops, tool-calling agents, simple Q&A bots."""
+**Use this for:** Basic ReAct loops, tool-calling agents, simple Q&A bots.
 
-DEEP_AGENT_OVERVIEW = """**Need planning + filesystem + subagents?** → [`create_deep_agent`](https://docs.langchain.com/oss/python/deepagents/overview)
+**Need planning + filesystem + subagents?** → [`create_deep_agent`](https://docs.langchain.com/oss/python/deepagents/overview)
 ```python
 from deepagents import create_deep_agent
 agent = create_deep_agent(model=model, tools=tools, backend=FilesystemBackend())
 ```
-**Use this for:** Research agents, complex workflows, multi-step planning."""
+**Use this for:** Research agents, complex workflows, multi-step planning.
 
-LANGGRAPH_OVERVIEW = """**Custom control flow / multi-agent / advanced context?** → **LangGraph** (this guide)
+**Custom control flow / multi-agent / advanced context?** → **LangGraph** (this guide)
 **Use this for:** Custom routing logic, supervisor patterns, specialized state management, non-standard workflows.
 
-**Start simple:** Build with basic ReAct loops first. Only add complexity (multi-agent, advanced context management) when your use case requires it."""
+**Start simple:** Build with basic ReAct loops first. Only add complexity (multi-agent, advanced context management) when your use case requires it.
 
-CREATE_AGENT_EXAMPLE = """## Core Primitives
+## Core Primitives
 
 ### Using create_agent (Recommended)
 
@@ -119,7 +41,7 @@ from langchain_core.tools import tool
 
 @tool
 def my_tool(query: str) -> str:
-    \"\"\"Tool description that the model sees.\"\"\"
+    """Tool description that the model sees."""
     return perform_operation(query)
 
 model = ChatAnthropic(model="claude-sonnet-4-5")
@@ -132,9 +54,9 @@ agent = create_agent(
 result = agent.invoke({"messages": [("user", "Your question")]})
 ```
 
-**Pattern applies to:** SQL agents, search agents, Q&A bots, tool-calling workflows."""
+**Pattern applies to:** SQL agents, search agents, Q&A bots, tool-calling workflows.
 
-TOOL_EXAMPLE = """### Example: Calculator Agent
+### Example: Calculator Agent
 
 ```python
 from langchain_anthropic import ChatAnthropic
@@ -143,7 +65,7 @@ from langchain_core.tools import tool
 
 @tool
 def calculate(expression: str) -> str:
-    \"\"\"Evaluate a mathematical expression safely.\"\"\"
+    """Evaluate a mathematical expression safely."""
     try:
         # Only allow safe math operations
         allowed = set('0123456789+-*/(). ')
@@ -155,7 +77,7 @@ def calculate(expression: str) -> str:
 
 @tool
 def convert_units(value: float, from_unit: str, to_unit: str) -> str:
-    \"\"\"Convert between common units.\"\"\"
+    """Convert between common units."""
     conversions = {
         ("km", "miles"): 0.621371,
         ("miles", "km"): 1.60934,
@@ -175,30 +97,9 @@ agent = create_agent(
 )
 
 result = agent.invoke({"messages": [("user", "What is 15% of 250?")]})
-```"""
+```
 
-QUICK_REFERENCE = """## Quick Reference
-
-```python
-# Create agent
-from langchain.agents import create_agent
-agent = create_agent(model=model, tools=[my_tool], system_prompt="...")
-
-# Define tools
-@tool
-def my_tool(query: str) -> str:
-    \"\"\"Description the model sees.\"\"\"
-    return result
-
-# Invoke
-result = agent.invoke({"messages": [("user", "question")]})
-```"""
-
-# =============================================================================
-# LANGGRAPH DETAILED SECTIONS
-# =============================================================================
-
-LANGGRAPH_REACT = """### Basic Agent from Scratch
+### Basic Agent from Scratch
 
 ```python
 from langgraph.graph import StateGraph, START, END
@@ -228,9 +129,9 @@ workflow.add_edge("tools", "agent")
 app = workflow.compile()
 ```
 
-**The loop:** Agent → tools → agent → END"""
+**The loop:** Agent → tools → agent → END
 
-LANGGRAPH_TOOLMESSAGES = """### ToolMessages: Critical Detail
+### ToolMessages: Critical Detail
 
 When implementing custom tool execution, you **must** create a `ToolMessage` for each tool call:
 
@@ -238,7 +139,7 @@ When implementing custom tool execution, you **must** create a `ToolMessage` for
 from langchain_core.messages import ToolMessage
 
 def custom_tool_node(state: State) -> dict:
-    \"\"\"Execute tools manually.\"\"\"
+    """Execute tools manually."""
     last_message = state["messages"][-1]
     tool_messages = []
 
@@ -252,16 +153,16 @@ def custom_tool_node(state: State) -> dict:
         ))
 
     return {"messages": tool_messages}
-```"""
+```
 
-LANGGRAPH_COMMANDS = """### Commands: Routing with Updates
+### Commands: Routing with Updates
 
 ```python
 from langgraph.types import Command
 from typing import Literal
 
 def router(state: State) -> Command[Literal["research", "write", END]]:
-    \"\"\"Route and update state simultaneously.\"\"\"
+    """Route and update state simultaneously."""
     if needs_more_context(state):
         return Command(
             update={"notes": "Starting research phase"},
@@ -278,9 +179,9 @@ def ask_user(state: State) -> Command:
     )
 
 # Resume: graph.invoke(Command(resume=user_input), config)
-```"""
+```
 
-LANGGRAPH_CONTEXT_STRATEGIES = """## Context Management Strategies
+## Context Management Strategies
 
 ### Strategy 1: Subagent Delegation
 
@@ -296,7 +197,7 @@ def main_agent(state: State) -> Command:
         result = researcher_subgraph.invoke({"query": extract_query(state)})
         # Add ONLY summary to main context
         return Command(
-            update={"context": state["context"] + f"\\n{result['summary']}"},
+            update={"context": state["context"] + f"\n{result['summary']}"},
             goto="respond"
         )
     return Command(goto="respond")
@@ -310,14 +211,14 @@ def main_agent(state: State) -> Command:
 
 ```python
 def trim_messages(messages: list, max_messages: int = 20) -> list:
-    \"\"\"Keep system messages + recent conversation.\"\"\"
+    """Keep system messages + recent conversation."""
     system_msgs = [m for m in messages if isinstance(m, SystemMessage)]
     conversation = [m for m in messages if not isinstance(m, SystemMessage)]
     recent = conversation[-max_messages:]
     return system_msgs + recent
 
 def agent_with_trimming(state: State) -> dict:
-    \"\"\"Call model with trimmed context.\"\"\"
+    """Call model with trimmed context."""
     trimmed = trim_messages(state["messages"], max_messages=15)
     response = model.invoke(trimmed)
     return {"messages": [response]}
@@ -329,26 +230,26 @@ def agent_with_trimming(state: State) -> dict:
 
 ```python
 def compress_history(state: State) -> dict:
-    \"\"\"Compress old messages into summary.\"\"\"
+    """Compress old messages into summary."""
     messages = state["messages"]
 
     if len(messages) > 30:
         old_messages = messages[:-10]
         recent_messages = messages[-10:]
 
-        summary_prompt = f"Summarize this conversation history concisely:\\n{format_messages(old_messages)}"
+        summary_prompt = f"Summarize this conversation history concisely:\n{format_messages(old_messages)}"
         summary = model.invoke([HumanMessage(content=summary_prompt)])
 
         compressed = [
-            SystemMessage(content=f"Previous context:\\n{summary.content}")
+            SystemMessage(content=f"Previous context:\n{summary.content}")
         ] + recent_messages
 
         return {"messages": compressed}
 
     return {"messages": messages}
-```"""
+```
 
-LANGGRAPH_MULTIAGENT = """## Multi-Agent Patterns
+## Multi-Agent Patterns
 
 ### Supervisor Pattern
 
@@ -363,7 +264,7 @@ class AgentState(TypedDict):
     next_agent: str
 
 def supervisor(state: AgentState) -> Command[Literal["billing", "technical", END]]:
-    \"\"\"Route to appropriate specialist based on request type.\"\"\"
+    """Route to appropriate specialist based on request type."""
     last_msg = state["messages"][-1].content.lower()
 
     # Simple routing logic (use LLM for complex cases)
@@ -374,12 +275,12 @@ def supervisor(state: AgentState) -> Command[Literal["billing", "technical", END
     return Command(goto=END)
 
 def billing_agent(state: AgentState) -> dict:
-    \"\"\"Handle billing-related queries.\"\"\"
+    """Handle billing-related queries."""
     response = billing_model.invoke(state["messages"])
     return {"messages": [response]}
 
 def technical_agent(state: AgentState) -> dict:
-    \"\"\"Handle technical support queries.\"\"\"
+    """Handle technical support queries."""
     response = tech_model.invoke(state["messages"])
     return {"messages": [response]}
 
@@ -394,9 +295,9 @@ workflow.add_edge("technical", END)
 
 app = workflow.compile()
 print(list(app.get_graph().nodes.keys()))  # See graph structure
-```"""
+```
 
-LANGGRAPH_PERSISTENCE = """## Practical Patterns
+## Practical Patterns
 
 ### Checkpointer + Store for Persistence
 
@@ -435,9 +336,9 @@ def structured_research(state: State) -> dict:
     result = model_with_structure.invoke(state["messages"])
     # result is guaranteed to have summary, sources, confidence
     return {"research": result.model_dump()}
-```"""
+```
 
-DEEP_AGENTS = """## DeepAgents: Batteries Included
+## DeepAgents: Batteries Included
 
 When you need context management built-in:
 
@@ -463,51 +364,29 @@ agent = create_deep_agent(
 - Filesystem: Write/read context files automatically
 - Planning: Break tasks into steps
 - Subagents: Delegate to specialists
-- Memory: Persistent storage across sessions"""
+- Memory: Persistent storage across sessions
 
-RESOURCES = """## Resources
+## Quick Reference
+
+```python
+# Create agent
+from langchain.agents import create_agent
+agent = create_agent(model=model, tools=[my_tool], system_prompt="...")
+
+# Define tools
+@tool
+def my_tool(query: str) -> str:
+    """Description the model sees."""
+    return result
+
+# Invoke
+result = agent.invoke({"messages": [("user", "question")]})
+```
+
+## Resources
 
 - [LangGraph Docs](https://docs.langchain.com/langgraph)
 - [create_agent](https://docs.langchain.com/oss/python/langchain/agents)
 - [DeepAgents](https://docs.langchain.com/oss/python/deepagents/overview)
 - [LangGraph 101 Multi-Agent](https://github.com/langchain-ai/langgraph-101/blob/main/notebooks/LG201/multi_agent.ipynb)
-- [Deep Research Example](https://github.com/langchain-samples/deep_research_101)"""
-
-# Default section order for assembly (basic)
-DEFAULT_SECTIONS = [
-    FRONTMATTER,
-    HEADER,
-    QUICK_START,
-    GUIDANCE,
-    CREATE_AGENT_OVERVIEW,
-    DEEP_AGENT_OVERVIEW,
-    LANGGRAPH_OVERVIEW,
-    CREATE_AGENT_EXAMPLE,
-    TOOL_EXAMPLE,
-    QUICK_REFERENCE,
-]
-
-# Full sections including detailed LangGraph guide
-FULL_LANGGRAPH_SECTIONS = [
-    FRONTMATTER,
-    HEADER,
-    QUICK_START,
-    GUIDANCE,
-    CREATE_AGENT_OVERVIEW,
-    DEEP_AGENT_OVERVIEW,
-    LANGGRAPH_OVERVIEW,
-    CREATE_AGENT_EXAMPLE,
-    TOOL_EXAMPLE,
-    LANGGRAPH_REACT,
-    LANGGRAPH_TOOLMESSAGES,
-    LANGGRAPH_COMMANDS,
-    LANGGRAPH_CONTEXT_STRATEGIES,
-    LANGGRAPH_MULTIAGENT,
-    LANGGRAPH_PERSISTENCE,
-    DEEP_AGENTS,
-    QUICK_REFERENCE,
-    RESOURCES,
-]
-
-# Alias for consistency with other skills
-FULL_SECTIONS = FULL_LANGGRAPH_SECTIONS
+- [Deep Research Example](https://github.com/langchain-samples/deep_research_101)

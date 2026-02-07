@@ -30,13 +30,11 @@ from skill_constructs.langchain.langsmith_dataset.skill import (
 from skill_constructs.langchain.langsmith_evaluator.skill import (
     DEFAULT_SECTIONS as EVALUATOR_SECTIONS,
 )
-from tests.langsmith_synergy.validators import (
+from tests.langsmith_synergy.validation.validators import (
     DatasetValidator,
     EvaluatorValidator,
     TraceDataValidator,
-    LangSmithAPIValidator,
     SkillScriptValidator,
-    LangSmithDatasetValidator,
 )
 
 # Scripts directories (from skill_constructs)
@@ -96,9 +94,9 @@ Before starting any coding task, check available project skills to find the best
 # SKILL VARIATIONS
 # =============================================================================
 
-def skill_without_workflow(sections):
-    """Remove the Next Steps section from skill sections."""
-    return [s for s in sections if s and "Next Steps" not in s]
+def skill_without_hints(sections):
+    """Remove the Related Skills section from skill sections."""
+    return [s for s in sections if s and "Related Skills" not in s]
 
 
 def skill_config(sections, scripts_dir=None):
@@ -112,41 +110,31 @@ DATASET_SKILL_STANDARD = skill_config(DATASET_SECTIONS, DATASET_SCRIPTS_DIR)
 EVALUATOR_SKILL_STANDARD = skill_config(EVALUATOR_SECTIONS, EVALUATOR_SCRIPTS_DIR)
 
 # Skills without workflow hints + scripts
-TRACE_SKILL_NO_WORKFLOW = skill_config(skill_without_workflow(TRACE_SECTIONS), TRACE_SCRIPTS_DIR)
-DATASET_SKILL_NO_WORKFLOW = skill_config(skill_without_workflow(DATASET_SECTIONS), DATASET_SCRIPTS_DIR)
-EVALUATOR_SKILL_NO_WORKFLOW = skill_config(skill_without_workflow(EVALUATOR_SECTIONS), EVALUATOR_SCRIPTS_DIR)
+TRACE_SKILL_NO_HINTS = skill_config(skill_without_hints(TRACE_SECTIONS), TRACE_SCRIPTS_DIR)
+DATASET_SKILL_NO_HINTS = skill_config(skill_without_hints(DATASET_SECTIONS), DATASET_SCRIPTS_DIR)
+EVALUATOR_SKILL_NO_HINTS = skill_config(skill_without_hints(EVALUATOR_SECTIONS), EVALUATOR_SCRIPTS_DIR)
 
 
 # =============================================================================
 # PROMPTS
 # =============================================================================
 
-# Basic test prompt: Query traces and generate a dataset
-BASIC_PROMPT = """Query 5 traces from the LangSmith project (use LANGSMITH_PROJECT env variable) and generate a trajectory dataset with 5 examples.
+# Basic test prompt template - {run_id} will be replaced with unique identifier
+BASIC_PROMPT_TEMPLATE = """I need to evaluate whether my agent is using the right tools. Build me a dataset from the LangSmith project in .env that captures the expected tool sequences.
 
-Steps:
-1. Query 5 recent traces from the project
-2. Generate a trajectory dataset from those traces (5 examples)
-3. Save to trajectory_dataset.json
+- Include 5 traces
+- Output: trajectory_dataset.json (also upload as "test-{run_id}")
 
-The sql_agent.py has been run and traces exist in LangSmith.
+Run any code you write directly."""
 
-IMPORTANT: If you create any files, run them directly (not in background). If code fails, you have 2 attempts to fix it."""
+# Advanced test prompt template - {run_id} will be replaced with unique identifier
+ADVANCED_PROMPT_TEMPLATE = """I want to test if my agent calls tools correctly. Create a dataset and an evaluator from the LangSmith project in .env.
 
-# Advanced test prompt: Full pipeline
-ADVANCED_PROMPT = """Query 5 traces from the LangSmith project, generate a trajectory dataset (5 examples), and create an evaluator.
+- Include 5 traces
+- Dataset: trajectory_dataset.json (also upload as "test-{run_id}")
+- Evaluator: trajectory_evaluator.py (also upload as "test-{run_id}")
 
-Steps:
-1. Query 5 recent traces from the project
-2. Generate a trajectory dataset (5 examples)
-3. Create a trajectory evaluator that validates tool call sequences
-4. Save:
-   - Dataset to trajectory_dataset.json
-   - Evaluator to trajectory_evaluator.py
-
-The sql_agent.py has been run and traces exist in LangSmith.
-
-IMPORTANT: If you create any files, run them directly (not in background). If code fails, you have 2 attempts to fix it."""
+Run any code you write directly."""
 
 
 # =============================================================================
@@ -160,36 +148,20 @@ def basic_validators():
         SkillInvokedValidator("langsmith-trace", required=False),
         SkillInvokedValidator("langsmith-dataset", required=False),
 
-        # Skill script usage validation
+        # Skill script usage
         SkillScriptValidator({
             "query_traces.py": "query_traces.py",
             "generate_datasets.py": "generate_datasets.py",
         }),
 
-        # LangSmith API validation - verify traces actually exist
-        LangSmithAPIValidator(
-            min_traces=1,
-            max_age_minutes=1440,  # 24 hours
-            require_tool_calls=True,
-        ),
+        # Trace validation (includes API check)
+        TraceDataValidator(min_traces=1),
 
-        # Trace data validation - verify meaningful trace data was retrieved
-        TraceDataValidator(
-            require_hierarchy=True,
-            min_traces=1,
-        ),
-
-        # Dataset validation - strict trajectory structure checks
+        # Dataset validation
         DatasetValidator(
             filename="trajectory_dataset.json",
             min_examples=1,
             dataset_type="trajectory",
-        ),
-
-        # LangSmith dataset validation - check if uploaded
-        LangSmithDatasetValidator(
-            dataset_name_pattern="trajectory",
-            min_examples=1,
         ),
 
         # Metrics
@@ -205,42 +177,27 @@ def advanced_validators():
         SkillInvokedValidator("langsmith-dataset", required=False),
         SkillInvokedValidator("langsmith-evaluator", required=False),
 
-        # Skill script usage validation
+        # Skill script usage
         SkillScriptValidator({
             "query_traces.py": "query_traces.py",
             "generate_datasets.py": "generate_datasets.py",
         }),
 
-        # LangSmith API validation - verify traces actually exist
-        LangSmithAPIValidator(
-            min_traces=1,
-            max_age_minutes=1440,  # 24 hours
-            require_tool_calls=True,
-        ),
+        # Trace validation (includes API check)
+        TraceDataValidator(min_traces=1),
 
-        # Trace data validation - verify meaningful trace data was retrieved
-        TraceDataValidator(
-            require_hierarchy=True,
-            min_traces=1,
-        ),
-
-        # Dataset validation - strict trajectory structure checks
+        # Dataset validation
         DatasetValidator(
             filename="trajectory_dataset.json",
             min_examples=1,
             dataset_type="trajectory",
         ),
 
-        # LangSmith dataset validation - check if uploaded
-        LangSmithDatasetValidator(
-            dataset_name_pattern="trajectory",
-            min_examples=1,
-        ),
-
-        # Evaluator validation - strict code quality checks for trajectory evaluators
+        # Evaluator validation (uses test cases from ground truth)
         EvaluatorValidator(
             filename="trajectory_evaluator.py",
-            evaluator_type="trajectory",
+            verify_upload=True,
+            upload_prefix="test-",
         ),
 
         # Metrics
@@ -253,12 +210,19 @@ def advanced_validators():
 # =============================================================================
 
 BASIC_TREATMENTS = {
-    # Baseline: Skills only, no CLAUDE.md
+    # Control: No skills, no CLAUDE.md (pure baseline - Claude's native ability)
+    "BASIC_CONTROL": Treatment(
+        description="No skills, no CLAUDE.md (pure baseline)",
+        skills={},
+        validators=basic_validators(),
+    ),
+
+    # Baseline: Skills WITHOUT workflow hints, no CLAUDE.md (hardest - no cross-references)
     "BASIC_BASELINE": Treatment(
-        description="Skills with workflow hints, no CLAUDE.md",
+        description="Skills without workflow hints, no CLAUDE.md (no cross-references)",
         skills={
-            "langsmith-trace": TRACE_SKILL_STANDARD,
-            "langsmith-dataset": DATASET_SKILL_STANDARD,
+            "langsmith-trace": TRACE_SKILL_NO_HINTS,
+            "langsmith-dataset": DATASET_SKILL_NO_HINTS,
         },
         validators=basic_validators(),
     ),
@@ -267,8 +231,8 @@ BASIC_TREATMENTS = {
     "BASIC_CLAUDEMD": Treatment(
         description="Workflow rules in CLAUDE.md, skills without hints",
         skills={
-            "langsmith-trace": TRACE_SKILL_NO_WORKFLOW,
-            "langsmith-dataset": DATASET_SKILL_NO_WORKFLOW,
+            "langsmith-trace": TRACE_SKILL_NO_HINTS,
+            "langsmith-dataset": DATASET_SKILL_NO_HINTS,
         },
         claude_md=CLAUDE_MD_WORKFLOW_BASIC,
         validators=basic_validators(),
@@ -303,13 +267,20 @@ BASIC_TREATMENTS = {
 # =============================================================================
 
 ADVANCED_TREATMENTS = {
-    # Baseline: Skills only, no CLAUDE.md
+    # Control: No skills, no CLAUDE.md (pure baseline - Claude's native ability)
+    "ADV_CONTROL": Treatment(
+        description="No skills, no CLAUDE.md (pure baseline)",
+        skills={},
+        validators=advanced_validators(),
+    ),
+
+    # Baseline: Skills WITHOUT workflow hints, no CLAUDE.md (hardest - no cross-references)
     "ADV_BASELINE": Treatment(
-        description="Skills with workflow hints, no CLAUDE.md",
+        description="Skills without workflow hints, no CLAUDE.md (no cross-references)",
         skills={
-            "langsmith-trace": TRACE_SKILL_STANDARD,
-            "langsmith-dataset": DATASET_SKILL_STANDARD,
-            "langsmith-evaluator": EVALUATOR_SKILL_STANDARD,
+            "langsmith-trace": TRACE_SKILL_NO_HINTS,
+            "langsmith-dataset": DATASET_SKILL_NO_HINTS,
+            "langsmith-evaluator": EVALUATOR_SKILL_NO_HINTS,
         },
         validators=advanced_validators(),
     ),
@@ -318,9 +289,9 @@ ADVANCED_TREATMENTS = {
     "ADV_CLAUDEMD": Treatment(
         description="Workflow rules in CLAUDE.md, skills without hints",
         skills={
-            "langsmith-trace": TRACE_SKILL_NO_WORKFLOW,
-            "langsmith-dataset": DATASET_SKILL_NO_WORKFLOW,
-            "langsmith-evaluator": EVALUATOR_SKILL_NO_WORKFLOW,
+            "langsmith-trace": TRACE_SKILL_NO_HINTS,
+            "langsmith-dataset": DATASET_SKILL_NO_HINTS,
+            "langsmith-evaluator": EVALUATOR_SKILL_NO_HINTS,
         },
         claude_md=CLAUDE_MD_WORKFLOW_ADVANCED,
         validators=advanced_validators(),
@@ -359,21 +330,34 @@ TREATMENTS = {**BASIC_TREATMENTS, **ADVANCED_TREATMENTS}
 # PROMPT BUILDERS
 # =============================================================================
 
-def build_basic_prompt(treatment: Treatment, treatment_name: str = None) -> str:
+from datetime import datetime
+
+def _get_dataset_name(treatment_name: str, rep: int = 1) -> str:
+    """Generate unique dataset name: treatment-repN-YYYYMMDD-HHMMSS."""
+    timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+    prefix = treatment_name.lower().replace("_", "-") if treatment_name else "test"
+    return f"{prefix}-rep{rep}-{timestamp}"
+
+
+def build_basic_prompt(treatment: Treatment, treatment_name: str = None, rep: int = 1) -> str:
     """Build prompt for basic test."""
-    return treatment.build_prompt(BASIC_PROMPT)
+    dataset_name = _get_dataset_name(treatment_name, rep)
+    prompt = BASIC_PROMPT_TEMPLATE.format(run_id=dataset_name)
+    return treatment.build_prompt(prompt)
 
 
-def build_advanced_prompt(treatment: Treatment, treatment_name: str = None) -> str:
+def build_advanced_prompt(treatment: Treatment, treatment_name: str = None, rep: int = 1) -> str:
     """Build prompt for advanced test."""
-    return treatment.build_prompt(ADVANCED_PROMPT)
+    dataset_name = _get_dataset_name(treatment_name, rep)
+    prompt = ADVANCED_PROMPT_TEMPLATE.format(run_id=dataset_name)
+    return treatment.build_prompt(prompt)
 
 
-def build_prompt(treatment: Treatment, treatment_name: str = None) -> str:
+def build_prompt(treatment: Treatment, treatment_name: str = None, rep: int = 1) -> str:
     """Build prompt based on treatment type."""
     if treatment_name and treatment_name.startswith("ADV_"):
-        return build_advanced_prompt(treatment, treatment_name)
-    return build_basic_prompt(treatment, treatment_name)
+        return build_advanced_prompt(treatment, treatment_name, rep)
+    return build_basic_prompt(treatment, treatment_name, rep)
 
 
 # =============================================================================

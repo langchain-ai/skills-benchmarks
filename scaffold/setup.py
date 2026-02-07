@@ -1,4 +1,4 @@
-"""Test environment setup, verification, and skill construction.
+"""Test environment setup and skill construction.
 
 Library usage:
     from scaffold.setup import setup_test_environment, cleanup_test_environment
@@ -9,7 +9,6 @@ import os
 import sys
 import tempfile
 import shutil
-import subprocess
 from pathlib import Path
 from typing import List
 
@@ -17,28 +16,12 @@ from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).parent.parent / ".env")
 
+from .utils import check_docker_available, check_claude_available
+
 
 # =============================================================================
 # VERIFICATION
 # =============================================================================
-
-def check_docker_available() -> bool:
-    """Check if Docker is available."""
-    try:
-        result = subprocess.run(["docker", "info"], capture_output=True, timeout=10)
-        return result.returncode == 0
-    except (subprocess.TimeoutExpired, FileNotFoundError):
-        return False
-
-
-def check_claude_available() -> bool:
-    """Check if Claude Code CLI is available."""
-    try:
-        result = subprocess.run(["claude", "--version"], capture_output=True, timeout=10)
-        return result.returncode == 0
-    except (subprocess.TimeoutExpired, FileNotFoundError):
-        return False
-
 
 def verify_environment(environment_dir: Path, required_files: List[str] = None):
     """Verify Docker, Claude CLI, and environment files are available.

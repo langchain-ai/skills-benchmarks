@@ -124,12 +124,36 @@ def build_skill(sections: List[str]) -> str:
     return "\n\n".join(s for s in sections if s and s.strip())
 
 
-def write_skill(test_dir: Path, skill_name: str, content: str) -> Path:
-    """Write skill content to .claude/skills/ directory."""
+def write_skill(test_dir: Path, skill_name: str, content: str, scripts_dir: Path = None) -> Path:
+    """Write skill content to .claude/skills/ directory.
+
+    Args:
+        test_dir: Test directory root
+        skill_name: Name of the skill (e.g., "langsmith-trace")
+        content: SKILL.md content
+        scripts_dir: Optional path to directory containing scripts to copy
+
+    Returns:
+        Path to the SKILL.md file
+    """
     skill_dir = test_dir / ".claude" / "skills" / skill_name
     skill_dir.mkdir(parents=True, exist_ok=True)
+
+    # Write SKILL.md
     skill_file = skill_dir / "SKILL.md"
     skill_file.write_text(content)
+
+    # Copy scripts if provided
+    if scripts_dir and scripts_dir.exists():
+        dest_scripts = skill_dir / "scripts"
+        if scripts_dir.is_dir():
+            shutil.copytree(scripts_dir, dest_scripts, dirs_exist_ok=True)
+            print(f"  Copied scripts to {skill_name}/scripts/")
+        else:
+            # Single file
+            dest_scripts.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(scripts_dir, dest_scripts / scripts_dir.name)
+
     return skill_file
 
 
@@ -200,13 +224,27 @@ def setup_test_context(
 
     if claude_md:
         (claude_dir / "CLAUDE.md").write_text(claude_md)
+        print(f"✓ Created CLAUDE.md ({len(claude_md)} chars)")
+    else:
+        print("⚠ No CLAUDE.md content provided")
 
     # Create each skill
     if skills:
-        for skill_name, sections in skills.items():
-            if sections:
-                content = build_skill(sections)
-                write_skill(test_dir, skill_name, content)
+        for skill_name, skill_config in skills.items():
+            if skill_config:
+                # Support both formats:
+                # 1. List of sections (legacy): {"skill-name": [section1, section2]}
+                # 2. Dict with sections and scripts: {"skill-name": {"sections": [...], "scripts_dir": Path}}
+                if isinstance(skill_config, dict):
+                    sections = skill_config.get("sections", [])
+                    scripts_dir = skill_config.get("scripts_dir")
+                else:
+                    sections = skill_config
+                    scripts_dir = None
+
+                if sections:
+                    content = build_skill(sections)
+                    write_skill(test_dir, skill_name, content, scripts_dir=scripts_dir)
 
     # Copy environment files (Dockerfile, requirements.txt, test data, etc.)
     if environment_dir and environment_dir.exists():

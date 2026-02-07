@@ -78,7 +78,7 @@ def run_in_docker(
     ]
 
     env_vars = env_vars or {}
-    for key in ["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "LANGSMITH_API_KEY", "TAVILY_API_KEY"]:
+    for key in ["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "LANGSMITH_API_KEY", "LANGSMITH_PROJECT", "LANGSMITH_TRACING", "LANGSMITH_ENDPOINT", "TAVILY_API_KEY"]:
         if key in os.environ:
             env_vars[key] = os.environ[key]
 
@@ -139,7 +139,7 @@ def run_claude_in_docker(
         "-w", "/workspace",
     ]
 
-    for key in ["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "LANGSMITH_API_KEY", "TAVILY_API_KEY"]:
+    for key in ["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "LANGSMITH_API_KEY", "LANGSMITH_PROJECT", "LANGSMITH_TRACING", "LANGSMITH_ENDPOINT", "TAVILY_API_KEY"]:
         if key in os.environ:
             docker_cmd.extend(["-e", f"{key}={os.environ[key]}"])
 
@@ -279,8 +279,32 @@ def run_single(args: tuple) -> Dict[str, Any]:
         events = extract_events(parse_output(result.stdout))
         print(f"[{prefix}] Extracted {len(events.get('tool_calls', []))} tool calls", flush=True)
 
-    except subprocess.TimeoutExpired:
-        print(f"[{prefix}] TIMEOUT after {work.timeout}s", flush=True)
+    except subprocess.TimeoutExpired as e:
+        duration = (datetime.now() - start_time).total_seconds()
+        print(f"[{prefix}] TIMEOUT after {duration:.1f}s", flush=True)
+
+        # Capture partial output from timeout exception (may be bytes or str)
+        partial_stdout = e.stdout or ""
+        partial_stderr = e.stderr or ""
+
+        # Convert bytes to str if needed
+        if isinstance(partial_stdout, bytes):
+            partial_stdout = partial_stdout.decode('utf-8', errors='replace')
+        if isinstance(partial_stderr, bytes):
+            partial_stderr = partial_stderr.decode('utf-8', errors='replace')
+
+        if partial_stdout or partial_stderr:
+            print(f"[{prefix}] Captured {len(partial_stdout)} chars of partial output", flush=True)
+            save_raw(base_dir, work.treatment_name, work.rep, partial_stdout, partial_stderr)
+
+            # Try to parse partial events
+            events = extract_events(parse_output(partial_stdout))
+            save_events(base_dir, work.treatment_name, work.rep, events)
+            print(f"[{prefix}] Saved {len(events.get('tool_calls', []))} tool calls from partial output", flush=True)
+        else:
+            events = {}
+            print(f"[{prefix}] No partial output captured", flush=True)
+
         cleanup_test_environment(test_dir)
         return {
             "treatment_name": work.treatment_name,
@@ -289,8 +313,8 @@ def run_single(args: tuple) -> Dict[str, Any]:
                 name=work.treatment_name,
                 passed=False,
                 checks_passed=[],
-                checks_failed=[f"Timeout after {work.timeout}s"],
-                events={},
+                checks_failed=[f"Timeout after {duration:.1f}s"],
+                events=events,
             ).to_dict()
         }
     except Exception as e:

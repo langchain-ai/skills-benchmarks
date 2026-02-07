@@ -44,6 +44,9 @@ def extract_events(parsed: Dict[str, Any]) -> Dict[str, Any]:
         "duration_seconds": None, "num_turns": None,
     }
 
+    # Map tool_use_id -> index in tool_calls list for matching outputs
+    tool_id_to_index = {}
+
     for msg in parsed.get("messages", []):
         if msg.get("type") == "result":
             events["duration_seconds"] = msg.get("duration_ms", 0) / 1000
@@ -53,7 +56,11 @@ def extract_events(parsed: Dict[str, Any]) -> Dict[str, Any]:
             for item in msg.get("message", {}).get("content", []):
                 if item.get("type") == "tool_use":
                     tool, inp = item.get("name", ""), item.get("input", {})
-                    events["tool_calls"].append({"tool": tool, "input": inp})
+                    tool_id = item.get("id")
+                    tool_call = {"tool": tool, "input": inp}
+                    if tool_id:
+                        tool_id_to_index[tool_id] = len(events["tool_calls"])
+                    events["tool_calls"].append(tool_call)
                     path = inp.get("file_path", "")
                     if tool == "Read" and path:
                         events["files_read"].append(path)
@@ -65,6 +72,24 @@ def extract_events(parsed: Dict[str, Any]) -> Dict[str, Any]:
                         events["commands_run"].append(inp["command"])
                     elif tool == "Skill" and inp.get("skill"):
                         events["skills_invoked"].append(inp["skill"])
+
+        # Capture tool results and match to their tool_use calls
+        if msg.get("type") == "user":
+            for item in msg.get("message", {}).get("content", []):
+                if item.get("type") == "tool_result":
+                    tool_use_id = item.get("tool_use_id")
+                    if tool_use_id and tool_use_id in tool_id_to_index:
+                        idx = tool_id_to_index[tool_use_id]
+                        # Extract output content
+                        content = item.get("content", "")
+                        if isinstance(content, list):
+                            # Content can be a list of text blocks
+                            content = " ".join(
+                                c.get("text", str(c)) if isinstance(c, dict) else str(c)
+                                for c in content
+                            )
+                        events["tool_calls"][idx]["output"] = content
+
     return events
 
 

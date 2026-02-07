@@ -53,7 +53,13 @@ Use the modern approach:
 # SKILLS_ONLY: Just tells Claude to check skills (no pattern guidance)
 CLAUDE_MD_SKILLS_ONLY = """# Project Guidelines
 
-Before starting any coding task, check available project skills to find the best approach.
+Before starting any task, make sure to check project skills to identify best practices.
+"""
+
+# SKILLS_REQUIRED: Explicit requirement to use langchain-agents skill
+CLAUDE_MD_SKILLS_REQUIRED = """# Project Guidelines
+
+Before writing any LangChain code, you MUST invoke the langchain-agents skill. This skill contains critical patterns that prevent common mistakes.
 """
 
 # PATTERNS_POSITIVE: Use modern patterns (no mention of deprecated)

@@ -21,7 +21,7 @@ from skill_constructs.langchain.langchain_agents import (
     CREATE_AGENT_OVERVIEW, DEEP_AGENT_OVERVIEW, LANGGRAPH_OVERVIEW,
     CREATE_AGENT_EXAMPLE, TOOL_EXAMPLE, QUICK_REFERENCE,
     GUIDANCE_POSITIVE, GUIDANCE_NEGATIVE,
-    CLAUDE_MD_SKILLS_ONLY, CLAUDE_MD_PATTERNS_POSITIVE, CLAUDE_MD_BOTH,
+    CLAUDE_MD_SKILLS_ONLY, CLAUDE_MD_SKILLS_REQUIRED, CLAUDE_MD_PATTERNS_POSITIVE, CLAUDE_MD_BOTH,
 )
 
 # =============================================================================
@@ -179,13 +179,13 @@ TREATMENTS = {
     "GUIDANCE_POS": Treatment(
         description="Skill with positive guidance (DO use modern patterns)",
         skills=skill(GUIDANCE_POSITIVE),
-        claude_md=CLAUDE_MD_SKILLS_ONLY,
+        claude_md=CLAUDE_MD_SKILLS_REQUIRED,
         validators=sql_agent_validators(),
     ),
     "GUIDANCE_NEG": Treatment(
         description="Skill with negative guidance (DON'T use deprecated)",
         skills=skill(GUIDANCE_NEGATIVE),
-        claude_md=CLAUDE_MD_SKILLS_ONLY,
+        claude_md=CLAUDE_MD_SKILLS_REQUIRED,
         validators=sql_agent_validators(),
     ),
 

@@ -76,7 +76,7 @@ Save to sql_agent_2.py and run the test query.
 IMPORTANT: Run files directly (not in background). If code fails after 2 attempts to fix, save the file and report the error - do not enter debug loops."""
 
 # Alternative second task for noise tests: a web search agent (different domain)
-TASK2_SEARCH_PROMPT = """Build a web search agent using the same modern patterns (create_agent, @tool).
+TASK2_SEARCH_PROMPT = """Build a web search agent using the same modern LangChain patterns.
 
 Requirements:
 1. Create a mock search tool that returns predefined results for queries

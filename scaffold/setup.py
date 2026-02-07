@@ -148,9 +148,9 @@ NOISE_TASKS = {
     "docker-patterns": {
         "prompt": (
             "Create a Dockerfile for a Node.js application with multi-stage build, "
-            "non-root user, and health check. Save to Dockerfile."
+            "non-root user, and health check. Save to Dockerfile.nodejs."
         ),
-        "output": "Dockerfile",
+        "output": "Dockerfile.nodejs",
     },
     "react-components": {
         "prompt": (

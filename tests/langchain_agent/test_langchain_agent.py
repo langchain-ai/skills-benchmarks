@@ -85,13 +85,17 @@ def print_report(results: Dict[str, List[TestResult]]):
     has_reps = any(len(runs) > 1 for runs in results.values())
 
     if has_reps:
-        print(f"\n{'Treatment':<25} {'Pass':<10} {'Skill':<8} {'Patterns':<10} {'Turns':<8} {'Duration':<10}")
+        print(f"\n{'Treatment':<25} {'Checks':<18} {'Skill':<8} {'Patterns':<10} {'Turns':<8} {'Duration':<10}")
         print("-" * 120)
 
         for name, runs in results.items():
             n = len(runs)
-            pass_count = sum(1 for r in runs if r.passed)
-            pass_rate = f"{pass_count}/{n}"
+
+            # Checks passed/total
+            checks_passed = sum(len(r.checks_passed) for r in runs)
+            checks_total = sum(len(r.checks_passed) + len(r.checks_failed) for r in runs)
+            check_pct = (checks_passed / checks_total * 100) if checks_total > 0 else 0
+            checks_str = f"{checks_passed}/{checks_total} ({check_pct:.0f}%)"
 
             skill_count = sum(1 for r in runs
                               if any("Invoked langchain-agents skill" in c for c in r.checks_passed))
@@ -108,31 +112,37 @@ def print_report(results: Dict[str, List[TestResult]]):
             avg_turns = f"{sum(turns_list)/len(turns_list):.0f}" if turns_list else "N/A"
             avg_duration = f"{sum(durations)/len(durations):.0f}s" if durations else "N/A"
 
-            print(f"{name:<25} {pass_rate:<10} {skill_rate:<8} {pattern_rate:<10} {avg_turns:<8} {avg_duration:<10}")
+            print(f"{name:<25} {checks_str:<18} {skill_rate:<8} {pattern_rate:<10} {avg_turns:<8} {avg_duration:<10}")
     else:
-        print(f"\n{'Treatment':<25} {'Result':<8} {'Turns':<8} {'Duration':<10} {'Key Checks'}")
+        print(f"\n{'Treatment':<25} {'Checks':<18} {'Turns':<8} {'Duration':<10} {'Key Checks'}")
         print("-" * 120)
 
         for name, runs in results.items():
             r = runs[0]
-            status = "PASS" if r.passed else "FAIL"
+            checks_passed = len(r.checks_passed)
+            checks_total = checks_passed + len(r.checks_failed)
+            check_pct = (checks_passed / checks_total * 100) if checks_total > 0 else 0
+            checks_str = f"{checks_passed}/{checks_total} ({check_pct:.0f}%)"
+
             turns = str(r.events.get("num_turns", "?")) if r.events else "?"
             dur = r.events.get('duration_seconds') if r.events else None
             duration = f"{dur:.0f}s" if dur else "?"
 
             if r.checks_failed:
-                checks_str = f"FAIL: {r.checks_failed[0][:40]}"
+                details_str = f"FAIL: {r.checks_failed[0][:40]}"
             else:
                 key_checks = r.checks_passed[:3]
-                checks_str = ", ".join(c[:30] for c in key_checks)
+                details_str = ", ".join(c[:30] for c in key_checks)
 
-            print(f"{name:<25} {status:<8} {turns:<8} {duration:<10} {checks_str}")
+            print(f"{name:<25} {checks_str:<18} {turns:<8} {duration:<10} {details_str}")
 
     print("-" * 120)
 
-    total_runs = sum(len(runs) for runs in results.values())
-    total_passed = sum(sum(1 for r in runs if r.passed) for runs in results.values())
-    print(f"\nSummary: {total_passed}/{total_runs} runs passed")
+    # Summary with checks
+    total_checks_passed = sum(sum(len(r.checks_passed) for r in runs) for runs in results.values())
+    total_checks = sum(sum(len(r.checks_passed) + len(r.checks_failed) for r in runs) for runs in results.values())
+    check_pct = (total_checks_passed / total_checks * 100) if total_checks > 0 else 0
+    print(f"\nSummary: {total_checks_passed}/{total_checks} checks passed ({check_pct:.1f}%)")
     print("=" * 120)
 
 

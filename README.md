@@ -116,6 +116,23 @@ TREATMENTS = {
 }
 ```
 
+## Experiment Results
+
+Results are saved to `logs/experiments/<experiment_id>/`:
+
+```
+logs/experiments/ls_basic_20260205_111553/
+  summary.md              # Human-readable results summary
+  metadata.json           # Experiment config and timing
+  reports/                # Per-run detailed reports
+    basic_control_rep1_report.json
+    basic_control_rep2_report.json
+    ...
+```
+
+- **`summary.md`** - Start here. Shows checks passed per treatment, column breakdowns, and detailed results per run.
+- **`reports/*.json`** - Raw data with all checks passed/failed, event logs, and metrics.
+
 ## Validation
 
 Generated code is validated via:

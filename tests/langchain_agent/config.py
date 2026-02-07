@@ -277,7 +277,7 @@ TREATMENTS = {
 NOISE_TREATMENTS = {"NOISE_1", "NOISE_2", "NOISE_3"}
 
 
-def build_sql_prompt(treatment: Treatment, treatment_name: str = None, rep: int = 1) -> str:
+def build_sql_prompt(treatment: Treatment, treatment_name: str = None, rep: int = 1, run_id: str = None) -> str:
     """Build the prompt for a SQL treatment.
 
     - Non-NOISE treatments: Single SQL task only
@@ -285,6 +285,7 @@ def build_sql_prompt(treatment: Treatment, treatment_name: str = None, rep: int 
 
     Args:
         rep: Repetition number (unused here, but required by runner interface)
+        run_id: Run ID (unused here, but required by runner interface)
     """
     if treatment_name and treatment_name in NOISE_TREATMENTS:
         return treatment.build_prompt(TASK1_PROMPT, TASK2_SEARCH_PROMPT)

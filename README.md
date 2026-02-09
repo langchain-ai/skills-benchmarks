@@ -7,8 +7,7 @@ Note: Tests were conducted with Opus 4.5, early February 2026.
 
 ```bash
 # Setup
-uv venv && source .venv/bin/activate
-uv pip install -r requirements.txt
+uv sync
 
 # Verify imports work
 python3 -c "from scaffold import verify_environment; print('OK')"
@@ -17,7 +16,7 @@ python3 -c "from scaffold import verify_environment; print('OK')"
 python tests/langchain_agent/test_langchain_agent.py -t CONTROL ALL_SECTIONS -r 3
 
 # Run LangSmith synergy experiment
-python tests/langsmith_synergy/test_langsmith_synergy.py -t ADV_CONTROL ADV_ALL_SECTIONS -r 3 --skip-traces
+python tests/langsmith_synergy/test_langsmith_synergy.py -t ADV_CONTROL ADV_ALL_SECTIONS -r 3
 ```
 
 ## Requirements

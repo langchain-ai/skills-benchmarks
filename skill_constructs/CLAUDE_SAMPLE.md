@@ -4,7 +4,7 @@ This project uses skills that contain up-to-date patterns and working reference 
 
 ## CRITICAL: Invoke Skills BEFORE Writing Code
 
-**ALWAYS** invoke the relevant skill first - skills have the correct imports, patterns, and scripts that prevent common mistakes:
+**ALWAYS** invoke the relevant skill first - skills have the correct imports, patterns, and scripts that prevent common mistakes. The skills available to you are:
 
 - **langchain-agents** - Invoke for ANY LangChain/LangGraph agent code
 - **langsmith-trace** - Invoke for ANY trace querying or analysis

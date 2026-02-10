@@ -2,7 +2,7 @@
 
 FRONTMATTER = """---
 name: langsmith-evaluator
-description: Use this skill for ANY question about CREATING evaluators. Covers creating custom metrics, LLM as Judge evaluators, code-based evaluators, and uploading evaluation logic to LangSmith. Does NOT cover RUNNING evaluations.
+description: Use this skill for ANY question about CREATING evaluators. Covers creating custom metrics, LLM as Judge evaluators, code-based evaluators, and uploading evaluation logic to LangSmith. Includes basic usage of evaluators to run evaluations.
 ---"""
 
 HEADER = """# LangSmith Evaluator

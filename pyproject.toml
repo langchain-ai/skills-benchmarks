@@ -1,7 +1,7 @@
 [project]
-name = "langsmith-skills"
+name = "skills-benchmark"
 version = "0.1.0"
-description = "LangSmith skills for Claude Code - trace querying and dataset generation"
+description = "Benchmark for evaluating LangChain skills"
 requires-python = ">=3.11"
 dependencies = [
     "langsmith>=0.2.0",

@@ -104,7 +104,7 @@ python query_traces.py recent --since 2025-01-20T10:00:00Z
 # Get specific trace details
 python query_traces.py trace <trace-id> --show-hierarchy
 
-# Export traces to directory (recommended for bulk collection)
+# Export traces to JSONL (one run per line, recommended for datasets)
 python query_traces.py export ./traces --limit 50 --include-metadata
 python query_traces.py export ./traces --limit 20 --include-io    # With inputs/outputs
 python query_traces.py export ./traces --limit 20 --full          # Everything
@@ -118,7 +118,14 @@ python query_traces.py search "agent" --project my-project --is-root --limit 20
 
 # Output as JSON
 python query_traces.py recent --format json --limit 5
-```"""
+```
+
+### Export Format
+
+Exports produce JSONL files (one JSON object per line):
+- Each line contains a single run with its metadata, inputs, and outputs
+- Files can be stitched together: `cat ./traces/*.jsonl > all.jsonl`
+- Use `--include-io` to include inputs/outputs (required for dataset generation)"""
 
 COMMANDS = """## Commands
 
@@ -170,5 +177,4 @@ FULL_SECTIONS = [
     QUERYING_TRACES,
     COMMANDS,
     TIPS,
-    RELATED_SKILLS,
 ]

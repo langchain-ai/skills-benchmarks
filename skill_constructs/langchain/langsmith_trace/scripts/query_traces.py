@@ -72,13 +72,14 @@ def extract_run(run, include_metadata=False, include_io=False) -> dict:
         "name": run.name,
         "run_type": run.run_type,
         "parent_run_id": str(run.parent_run_id) if run.parent_run_id else None,
+        # Always include timing for trajectory ordering and duration calculation
+        "start_time": run.start_time.isoformat() if hasattr(run, "start_time") and run.start_time else None,
+        "end_time": run.end_time.isoformat() if hasattr(run, "end_time") and run.end_time else None,
     }
 
     if include_metadata:
         data.update({
             "status": getattr(run, "status", None),
-            "start_time": run.start_time.isoformat() if hasattr(run, "start_time") and run.start_time else None,
-            "end_time": run.end_time.isoformat() if hasattr(run, "end_time") and run.end_time else None,
             "duration_ms": calc_duration(run),
             "custom_metadata": run.extra.get("metadata", {}) if hasattr(run, "extra") and run.extra else {},
             "token_usage": {
@@ -101,17 +102,6 @@ def extract_run(run, include_metadata=False, include_io=False) -> dict:
         })
 
     return data
-
-
-# Legacy aliases for backwards compatibility
-def extract_metadata(run) -> dict:
-    """Extract full metadata from run (legacy)."""
-    return extract_run(run, include_metadata=True, include_io=False)
-
-
-def extract_basic(run) -> dict:
-    """Extract basic run info (legacy)."""
-    return extract_run(run, include_metadata=False, include_io=False)
 
 
 def output_json(data, file_path=None):
@@ -181,7 +171,7 @@ def recent(limit, project, last_n_minutes, since, fmt, include_metadata):
         return
 
     if fmt == "json":
-        data = [extract_metadata(r) if include_metadata else {
+        data = [extract_run(r, include_metadata=True, include_io=False) if include_metadata else {
             "trace_id": get_trace_id(r),
             "name": r.name,
             "start_time": r.start_time.isoformat() if r.start_time else None,
@@ -322,21 +312,22 @@ def export(output_dir, limit, project, last_n_minutes, since, include_metadata, 
 
     for idx, (trace_id, trace_runs) in enumerate(results, 1):
         filename = filename_pattern.format(trace_id=trace_id, index=idx)
-        if not filename.endswith(".json"):
-            filename += ".json"
+        # Use .jsonl extension for JSONL format
+        if filename.endswith(".json"):
+            filename = filename[:-5] + ".jsonl"
+        elif not filename.endswith(".jsonl"):
+            filename += ".jsonl"
 
         # Apply run_type filter if specified
         filtered_runs = trace_runs
         if run_type_filter:
             filtered_runs = [r for r in trace_runs if r.run_type == run_type_filter]
 
-        data = {
-            "trace_id": trace_id,
-            "runs": [extract_run(r, include_metadata, include_io) for r in filtered_runs],
-        }
-
+        # Write JSONL format (one run per line)
         with open(output_path / filename, "w") as f:
-            json.dump(data, f, indent=2, default=str)
+            for run in filtered_runs:
+                run_data = extract_run(run, include_metadata, include_io)
+                f.write(json.dumps(run_data, default=str) + "\n")
 
         console.print(f"  [green]✓[/green] {trace_id[:16]}... → {filename} ({len(filtered_runs)} runs)")
 

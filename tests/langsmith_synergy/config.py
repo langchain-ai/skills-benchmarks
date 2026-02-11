@@ -131,14 +131,14 @@ EVALUATOR_SKILL_FULL = skill_config(EVALUATOR_FULL_SECTIONS, EVALUATOR_SCRIPTS_D
 # =============================================================================
 
 # Basic test prompt template - {run_id} will be replaced with unique identifier
-BASIC_PROMPT_TEMPLATE = """Create a trajectory dataset with 5 examples from existing traces in our LangSmith project.
+BASIC_PROMPT_TEMPLATE = """Create a trajectory dataset with 5 examples from the most recent traces in our LangSmith project. Upload the dataset to LangSmith.
 
 Output: trajectory_dataset.json (upload as "{run_id}")
 
 Run any code you write directly."""
 
 # Advanced test prompt template - {run_id} will be replaced with unique identifier
-ADVANCED_PROMPT_TEMPLATE = """Create a trajectory dataset with 5 examples from existing traces in our LangSmith project, plus an evaluator measuring tool call match percentage.
+ADVANCED_PROMPT_TEMPLATE = """Create a trajectory dataset with 5 examples from the most recent traces in our LangSmith project, plus an evaluator measuring tool call match percentage. Upload the dataset and evaluator to LangSmith.
 
 Output: trajectory_dataset.json and trajectory_evaluator.py (upload both as "{run_id}")
 

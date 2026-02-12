@@ -24,7 +24,7 @@ pip install langsmith click rich python-dotenv
 
 ## Input Format
 
-This script requires traces exported in **JSONL format** (one run per line) from `query_traces.py export`.
+This script requires traces exported in **JSONL format** (one run per line).
 
 ### Required Fields
 
@@ -45,6 +45,11 @@ Each line must be a JSON object with these fields:
 | `outputs` | Run outputs (required for dataset generation) |
 
 **Important:** You MUST have inputs and outputs to generate datasets correctly.
+
+**Before generating datasets, verify your traces exist:**
+- Check that JSONL files exist in the output directory
+- Confirm traces have both `inputs` and `outputs` populated
+- Inspect the trace hierarchy to understand the structure
 
 ## Usage
 
@@ -73,7 +78,6 @@ All dataset generation commands support:
 - The script prompts for confirmation before deleting existing datasets with `--replace`
 - **ALWAYS respect these prompts** - wait for user input before proceeding
 - **NEVER use `--yes` flag unless the user explicitly requests it**
-- The `--yes` flag skips all safety prompts and should only be used in automated workflows when explicitly authorized by the user
 
 ### Extraction Priority
 
@@ -283,23 +287,21 @@ python query_datasets.py export "Skills: Final Response" /tmp/exported.json --li
 
 ## Tips for Dataset Generation
 
-1. **Sample for single_step** - Use `--sample-per-trace 2` to capture conversation evolution
-2. **Match depth to needs** - `--depth 2` typically captures all main tool calls
-3. **Review before upload** - Use `query_datasets.py view-file` to inspect first
-4. **Iterative refinement** - Generate small batches (10-20) first, validate, then scale up
-5. **Use `--replace` carefully** - Overwrites existing datasets, useful for iteration
-6. **Stitch files for large datasets** - `cat ./traces/*.jsonl > all.jsonl`
+1. **Export successful traces first** - Use recent successful runs for baseline datasets
+2. **Use time windows when exporting** - `--last-n-minutes 1440` for last 24 hours of data
+3. **Verify exports have I/O** - Check that `inputs` and `outputs` are populated before generating
+4. **Sample for single_step** - Use `--sample-per-trace 2` to capture conversation evolution
+5. **Match depth to needs** - `--depth 2` typically captures all main tool calls
+6. **Review before upload** - Use `query_datasets.py view-file` to inspect first
+7. **Iterative refinement** - Generate small batches (5-20) first, validate, then scale up
+8. **Use `--replace` carefully** - Overwrites existing datasets, useful for iteration
 
 ## Example Workflow
 
 ```bash
-# 1. Export traces as JSONL with inputs/outputs
-query_traces.py export ./traces \
-  --project skills \
-  --limit 30 \
-  --include-io
+# Assuming traces are already exported to ./traces as JSONL files
 
-# 2. Generate all dataset types from exported traces
+# Generate all dataset types from exported traces
 generate_datasets.py --input ./traces --type final_response \
   --output /tmp/final.json \
   --upload "Skills: Final Response" --replace
@@ -326,7 +328,7 @@ python query_datasets.py show "Skills: Final Response" --limit 3
 **"No valid traces found":**
 - Ensure input path contains `.jsonl` files (not `.json`)
 - Check files have required fields (trace_id, inputs, outputs)
-- Verify traces were exported with `--include-io`
+- Verify traces have inputs and outputs populated
 
 **Empty final_response outputs:**
 - Check that root run has outputs
@@ -335,7 +337,7 @@ python query_datasets.py show "Skills: Final Response" --limit 3
 
 **No trajectory examples:**
 - Tools might be at different depth - try removing `--depth` or use `--depth 2`
-- Verify tool calls exist in traces
+- Verify tool calls exist in your exported JSONL files
 
 **Too many single_step examples:**
 - Use `--sample-per-trace 2` to limit examples per trace

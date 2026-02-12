@@ -1,6 +1,6 @@
 ---
 name: langsmith-evaluator
-description: Use this skill for ANY question about CREATING evaluators. Covers creating custom metrics, LLM as Judge evaluators, code-based evaluators, and uploading evaluation logic to LangSmith. Does NOT cover RUNNING evaluations.
+description: Use this skill for ANY question about CREATING evaluators. Covers creating custom metrics, LLM as Judge evaluators, code-based evaluators, and uploading evaluation logic to LangSmith. Includes basic usage of evaluators to run evaluations.
 ---
 
 # LangSmith Evaluator
@@ -191,8 +191,3 @@ python upload_evaluators.py upload evaluators.py \
 - [LangSmith Evaluation Concepts](https://docs.langchain.com/langsmith/evaluation-concepts)
 - [Custom Code Evaluators](https://changelog.langchain.com/announcements/custom-code-evaluators-in-langsmith)
 - [OpenEvals - Readymade Evaluators](https://github.com/langchain-ai/openevals)
-
-## Related Skills
-
-- Use **langsmith-trace** skill to query and export traces
-- Use **langsmith-dataset** skill to generate evaluation datasets from traces

@@ -39,7 +39,7 @@ def main():
         ("skill_constructs.langchain.langsmith_trace.skill", skills_dir / "langsmith_trace" / "SKILL_SAMPLE.md"),
         ("skill_constructs.langchain.langsmith_dataset.skill", skills_dir / "langsmith_dataset" / "SKILL_SAMPLE.md"),
         ("skill_constructs.langchain.langsmith_evaluator.skill", skills_dir / "langsmith_evaluator" / "SKILL_SAMPLE.md"),
-        ("skill_constructs.langchain.langchain_agents.skill", skills_dir / "langchain_agents" / "AGENTS.md"),
+        ("skill_constructs.langchain.langchain_agents.skill", skills_dir / "langchain_agents" / "SKILL_SAMPLE.md"),
     ]
 
     for module_path, output_path in skills:

@@ -143,8 +143,13 @@ def validate_treatment(events: dict, test_dir, treatment_name: str, outputs: dic
 # =============================================================================
 
 if __name__ == "__main__":
-    from tests.langsmith_synergy.runner import run_experiment
     import argparse
+    import time
+    from scaffold import run_experiment
+    from tests.langsmith_synergy.config import ENVIRONMENT_DIR, REQUIRED_FILES, BASIC_COLUMNS
+    from tests.langsmith_synergy.fixtures.hooks import (
+        generate_traces, generate_ground_truth, cleanup_langsmith_datasets,
+    )
 
     parser = argparse.ArgumentParser(description="Basic synergy experiment")
     parser.add_argument("--model", type=str, help="Model to use")
@@ -156,16 +161,27 @@ if __name__ == "__main__":
     parser.add_argument("--skip-cleanup", action="store_true", help="Skip cleanup")
     args = parser.parse_args()
 
+    def pre_run():
+        if not args.skip_traces:
+            if not generate_traces():
+                print("WARNING: Trace generation had errors. Continuing anyway...")
+            print("Waiting 10s for LangSmith to index traces...")
+            time.sleep(10)
+
     run_experiment(
         treatments=TREATMENTS,
         build_prompt_func=build_prompt,
         validate_func=validate_treatment,
         experiment_name="basic_synergy",
+        environment_dir=ENVIRONMENT_DIR,
+        required_files=REQUIRED_FILES,
+        columns=BASIC_COLUMNS,
         treatment_names=args.treatments,
         repeat=args.repeat,
         workers=args.workers,
         timeout=args.timeout,
         model=args.model,
-        skip_traces=args.skip_traces,
-        skip_cleanup=args.skip_cleanup,
+        pre_run=pre_run,
+        post_run=None if args.skip_cleanup else cleanup_langsmith_datasets,
+        ground_truth_func=generate_ground_truth,
     )

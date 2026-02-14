@@ -7,10 +7,9 @@ from scaffold import Treatment
 from skill_constructs.parser import skill_config
 
 from tests.langchain_agent.config import (
-    agents_skill,
-    sections_with_guidance,
-    GUIDANCE_POSITIVE,
-    GUIDANCE_NEGATIVE,
+    with_quickstart,
+    QUICK_START_POSITIVE,
+    QUICK_START_NEGATIVE,
     CLAUDE_MD_SKILLS_REQUIRED,
     sql_agent_validators,
     TASK1_PROMPT,
@@ -24,13 +23,13 @@ from tests.langchain_agent.config import (
 TREATMENTS = {
     "GUIDANCE_POS": Treatment(
         description="Skill with positive guidance (DO use modern patterns)",
-        skills={"langchain-agents": sections_with_guidance(GUIDANCE_POSITIVE)},
+        skills={"langchain-agents": with_quickstart(QUICK_START_POSITIVE)},
         claude_md=CLAUDE_MD_SKILLS_REQUIRED,
         validators=sql_agent_validators(),
     ),
     "GUIDANCE_NEG": Treatment(
         description="Skill with negative guidance (DON'T use deprecated)",
-        skills={"langchain-agents": sections_with_guidance(GUIDANCE_NEGATIVE)},
+        skills={"langchain-agents": with_quickstart(QUICK_START_NEGATIVE)},
         claude_md=CLAUDE_MD_SKILLS_REQUIRED,
         validators=sql_agent_validators(),
     ),

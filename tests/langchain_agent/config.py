@@ -29,24 +29,6 @@ agents_skill = load_skill(SKILL_BASE / "langchain_agents")
 FULL_SECTIONS = agents_skill["all"]
 
 
-# =============================================================================
-# EXPERIMENT-SPECIFIC GUIDANCE
-# =============================================================================
-
-GUIDANCE_POSITIVE = """**DO use these patterns:**
-- `from langchain.agents import create_agent` - The modern way to build agents
-- `@tool` decorator - Modern tool definition
-- LangGraph for complex control flow
-
-These are the current best practices for LangChain agents."""
-
-GUIDANCE_NEGATIVE = """**DON'T use these deprecated patterns:**
-- `create_sql_agent` from langchain_community - Deprecated
-- `create_react_agent` from langgraph.prebuilt - Outdated
-- `AgentExecutor` - Legacy pattern
-- `initialize_agent` - Deprecated
-
-Use `create_agent` from `langchain.agents` instead."""
 
 
 # =============================================================================
@@ -86,25 +68,76 @@ When building LangChain agents:
 
 
 # =============================================================================
-# SKILL SECTION BUILDERS
+# GUIDANCE VARIATIONS (from original skill.py)
+# =============================================================================
+# Original skill.py had a GUIDANCE slot that could be POSITIVE, NEGATIVE, or None.
+# We substitute this into the quick_start section along with tool overviews.
 # =============================================================================
 
-def sections_with_guidance(guidance):
-    """Build skill sections list with guidance inserted after quick_start."""
+# Tool overviews (from skill.py CREATE_AGENT_OVERVIEW + DEEP_AGENT_OVERVIEW + LANGGRAPH_OVERVIEW)
+_TOOL_OVERVIEWS = """**Simple tool-calling agent?** → [`create_agent`](https://docs.langchain.com/oss/python/langchain/agents)
+```python
+from langchain.agents import create_agent
+graph = create_agent(model="anthropic:claude-sonnet-4-5", tools=[search], system_prompt="...")
+```
+**Use this for:** Basic ReAct loops, tool-calling agents, simple Q&A bots.
+
+**Need planning + filesystem + subagents?** → [`create_deep_agent`](https://docs.langchain.com/oss/python/deepagents/overview)
+```python
+from deepagents import create_deep_agent
+agent = create_deep_agent(model=model, tools=tools, backend=FilesystemBackend())
+```
+**Use this for:** Research agents, complex workflows, multi-step planning.
+
+**Custom control flow / multi-agent / advanced context?** → **LangGraph** (this guide)
+**Use this for:** Custom routing logic, supervisor patterns, specialized state management, non-standard workflows.
+
+**Start simple:** Build with basic ReAct loops first. Only add complexity (multi-agent, advanced context management) when your use case requires it."""
+
+# POSITIVE: Only mentions what TO use (no deprecated pattern names)
+GUIDANCE_POSITIVE = """**IMPORTANT:** Use modern LangChain patterns.
+
+- `create_agent()` from `langchain.agents` for simple agents
+- LangGraph `create_react_agent` for complex flows
+- `@tool` decorator for tool definitions
+
+See the examples below for working code."""
+
+# NEGATIVE: Mentions deprecated patterns (puts them in context)
+GUIDANCE_NEGATIVE = """**IMPORTANT:** Use modern LangChain patterns.
+
+Older helpers like `create_sql_agent`, `create_tool_calling_agent`, and the legacy `create_react_agent` are deprecated and should not be used.
+
+- `create_agent()` from `langchain.agents` for simple agents
+- LangGraph `create_react_agent` for complex flows
+- `@tool` decorator for tool definitions"""
+
+
+def _build_quickstart(guidance):
+    """Build quick_start section: guidance + tool overviews."""
+    if guidance:
+        return f"{guidance}\n\n{_TOOL_OVERVIEWS}"
+    else:
+        return _TOOL_OVERVIEWS
+
+
+# Pre-built quick_start variants
+QUICK_START_POSITIVE = _build_quickstart(GUIDANCE_POSITIVE)
+QUICK_START_NEGATIVE = _build_quickstart(GUIDANCE_NEGATIVE)
+QUICK_START_NEUTRAL = _build_quickstart(None)  # No guidance (for "_MOVED" variants)
+
+
+def with_quickstart(content):
+    """Return skill sections with quick_start replaced by custom content."""
     sections = agents_skill["sections"]
-    base = [
+    return [
         sections["frontmatter"],
         sections["oneliner"],
-        sections["quick_start"],
-    ]
-    if guidance:
-        base.append(guidance)
-    base.extend([
+        content if content else QUICK_START_NEUTRAL,
         sections["create_agent"],
         sections["langgraph"],
         sections["resources"],
-    ])
-    return base
+    ]
 
 
 # =============================================================================

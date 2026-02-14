@@ -6,8 +6,8 @@ Tests skill retention when distracted by unrelated tasks.
 from scaffold import Treatment
 
 from tests.langchain_agent.config import (
-    sections_with_guidance,
-    GUIDANCE_POSITIVE,
+    with_quickstart,
+    QUICK_START_POSITIVE,
     noise_validators,
     TASK1_PROMPT,
     TASK2_SEARCH_PROMPT,
@@ -21,24 +21,24 @@ from tests.langchain_agent.config import (
 TREATMENTS = {
     "NOISE_BASELINE": Treatment(
         description="Baseline for noise comparison (no noise)",
-        skills={"langchain-agents": sections_with_guidance(GUIDANCE_POSITIVE)},
+        skills={"langchain-agents": with_quickstart(QUICK_START_POSITIVE)},
         validators=noise_validators(),
     ),
     "NOISE_1": Treatment(
         description="1 noise task (Docker)",
-        skills={"langchain-agents": sections_with_guidance(GUIDANCE_POSITIVE)},
+        skills={"langchain-agents": with_quickstart(QUICK_START_POSITIVE)},
         noise_tasks=["docker-patterns"],
         validators=noise_validators(),
     ),
     "NOISE_2": Treatment(
         description="2 noise tasks (Docker + React)",
-        skills={"langchain-agents": sections_with_guidance(GUIDANCE_POSITIVE)},
+        skills={"langchain-agents": with_quickstart(QUICK_START_POSITIVE)},
         noise_tasks=["docker-patterns", "react-components"],
         validators=noise_validators(),
     ),
     "NOISE_3": Treatment(
         description="3 noise tasks (Docker + React + API)",
-        skills={"langchain-agents": sections_with_guidance(GUIDANCE_POSITIVE)},
+        skills={"langchain-agents": with_quickstart(QUICK_START_POSITIVE)},
         noise_tasks=["docker-patterns", "react-components", "api-docs"],
         validators=noise_validators(),
     ),

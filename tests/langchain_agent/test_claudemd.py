@@ -7,9 +7,8 @@ from scaffold import Treatment
 from skill_constructs import CLAUDE_SAMPLE
 
 from tests.langchain_agent.config import (
-    agents_skill,
-    sections_with_guidance,
-    GUIDANCE_POSITIVE,
+    with_quickstart,
+    QUICK_START_POSITIVE,
     FULL_SECTIONS,
     CLAUDE_MD_SKILLS_ONLY,
     CLAUDE_MD_PATTERNS_POSITIVE,
@@ -37,38 +36,38 @@ TREATMENTS = {
     ),
     "BASELINE": Treatment(
         description="Skill only, no CLAUDE.md (skill baseline)",
-        skills={"langchain-agents": sections_with_guidance(GUIDANCE_POSITIVE)},
+        skills={"langchain-agents": with_quickstart(QUICK_START_POSITIVE)},
         validators=sql_agent_validators(),
     ),
 
     # CLAUDE.md variations
     "CLAUDE_MD_SKILLS": Treatment(
         description="CLAUDE.md says 'check skills' only",
-        skills={"langchain-agents": sections_with_guidance(GUIDANCE_POSITIVE)},
+        skills={"langchain-agents": with_quickstart(QUICK_START_POSITIVE)},
         claude_md=CLAUDE_MD_SKILLS_ONLY,
         validators=sql_agent_validators(),
     ),
     "CLAUDE_MD_PATTERNS": Treatment(
         description="CLAUDE.md has pattern guidance (skill has guidance too)",
-        skills={"langchain-agents": sections_with_guidance(GUIDANCE_POSITIVE)},
+        skills={"langchain-agents": with_quickstart(QUICK_START_POSITIVE)},
         claude_md=CLAUDE_MD_PATTERNS_POSITIVE,
         validators=sql_agent_validators(),
     ),
     "CLAUDE_MD_PATTERNS_MOVED": Treatment(
         description="CLAUDE.md has pattern guidance (skill has NO guidance)",
-        skills={"langchain-agents": sections_with_guidance(None)},
+        skills={"langchain-agents": with_quickstart(None)},
         claude_md=CLAUDE_MD_PATTERNS_POSITIVE,
         validators=sql_agent_validators(),
     ),
     "CLAUDE_MD_BOTH": Treatment(
         description="CLAUDE.md: skills + patterns (skill has guidance too)",
-        skills={"langchain-agents": sections_with_guidance(GUIDANCE_POSITIVE)},
+        skills={"langchain-agents": with_quickstart(QUICK_START_POSITIVE)},
         claude_md=CLAUDE_MD_BOTH,
         validators=sql_agent_validators(),
     ),
     "CLAUDE_MD_BOTH_MOVED": Treatment(
         description="CLAUDE.md: skills + patterns (skill has NO guidance)",
-        skills={"langchain-agents": sections_with_guidance(None)},
+        skills={"langchain-agents": with_quickstart(None)},
         claude_md=CLAUDE_MD_BOTH,
         validators=sql_agent_validators(),
     ),

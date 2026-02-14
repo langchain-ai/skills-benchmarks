@@ -202,3 +202,12 @@ def noise_validators():
         ),
         MetricsCollector(["sql_agent_1.py", "search_agent.py"]),
     ]
+
+
+# =============================================================================
+# PRESETS (used by test files)
+# =============================================================================
+
+GUIDANCE_COMPARISON = ["GUIDANCE_POS", "GUIDANCE_NEG"]
+CLAUDEMD_COMPARISON = ["CONTROL", "BASELINE", "ALL_SECTIONS"]
+NOISE_COMPARISON = ["NOISE_BASELINE", "NOISE_1", "NOISE_2", "NOISE_3"]

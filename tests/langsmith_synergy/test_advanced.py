@@ -144,9 +144,45 @@ def build_prompt(treatment: Treatment, treatment_name: str = None, rep: int = 1,
 
 
 # =============================================================================
+# VALIDATOR (module-level for pickling in multiprocessing)
+# =============================================================================
+
+def validate_treatment(events: dict, test_dir, treatment_name: str, outputs: dict):
+    """Validate using the treatment's validators."""
+    treatment = TREATMENTS.get(treatment_name)
+    if treatment:
+        return treatment.validate(events, test_dir, outputs)
+    return [], [f"Unknown treatment: {treatment_name}"]
+
+
+# =============================================================================
 # CLI RUNNER
 # =============================================================================
 
 if __name__ == "__main__":
-    from tests.langsmith_synergy.runner import main_cli
-    main_cli(TREATMENTS, build_prompt, "advanced_synergy")
+    from tests.langsmith_synergy.runner import run_experiment
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Advanced synergy experiment")
+    parser.add_argument("--model", type=str, help="Model to use")
+    parser.add_argument("-t", "--treatments", nargs="+", help="Treatment names")
+    parser.add_argument("-r", "--repeat", type=int, default=1, help="Repetitions")
+    parser.add_argument("-w", "--workers", type=int, default=3, help="Parallel workers")
+    parser.add_argument("--timeout", type=int, default=600, help="Timeout per run")
+    parser.add_argument("--skip-traces", action="store_true", help="Skip trace generation")
+    parser.add_argument("--skip-cleanup", action="store_true", help="Skip cleanup")
+    args = parser.parse_args()
+
+    run_experiment(
+        treatments=TREATMENTS,
+        build_prompt_func=build_prompt,
+        validate_func=validate_treatment,
+        experiment_name="advanced_synergy",
+        treatment_names=args.treatments,
+        repeat=args.repeat,
+        workers=args.workers,
+        timeout=args.timeout,
+        model=args.model,
+        skip_traces=args.skip_traces,
+        skip_cleanup=args.skip_cleanup,
+    )

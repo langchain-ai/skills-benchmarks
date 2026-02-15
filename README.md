@@ -10,16 +10,16 @@ Note: Tests were conducted with Opus 4.5, early February 2026.
 uv sync
 
 # Run single test
-uv run pytest tests/benchmark_langsmith/test_advanced.py -k "ADV_ALL_SECTIONS" -v
+uv run pytest tests/bench_ls_multiskill/test_advanced.py -k "ADV_ALL_SECTIONS" -v
 
 # Run with repetitions
-uv run pytest tests/benchmark_langsmith/test_advanced.py -k "ADV_ALL_SECTIONS" -v --count=3
+uv run pytest tests/bench_ls_multiskill/test_advanced.py -k "ADV_ALL_SECTIONS" -v --count=3
 
 # Run in parallel (6 workers)
-uv run pytest tests/benchmark_langsmith/test_advanced.py -v -n 6
+uv run pytest tests/bench_ls_multiskill/test_advanced.py -v -n 6
 
 # Run all basic treatments
-uv run pytest tests/benchmark_langsmith/test_basic.py -v
+uv run pytest tests/bench_ls_multiskill/test_basic.py -v
 ```
 
 ## Quick Start (TypeScript)
@@ -58,19 +58,19 @@ npx vitest tests/example/guidance.test.ts
 
 ## Experiments
 
-### 1. Basic Benchmark (`tests/benchmark_basic/`)
+### 1. Basic Benchmark (`tests/bench_lc_basic/`)
 
 Tests whether Claude uses modern patterns (`create_agent`, `@tool`) vs deprecated patterns (`create_sql_agent`).
 
 ```bash
 # Run specific treatments
-uv run pytest tests/benchmark_basic/ -k "CONTROL or ALL_SECTIONS" -v
+uv run pytest tests/bench_lc_basic/ -k "CONTROL or ALL_SECTIONS" -v
 
 # Run with repetitions
-uv run pytest tests/benchmark_basic/ -k "CONTROL" -v --count=3
+uv run pytest tests/bench_lc_basic/ -k "CONTROL" -v --count=3
 
 # Run all treatments in parallel
-uv run pytest tests/benchmark_basic/ -v -n 4
+uv run pytest tests/bench_lc_basic/ -v -n 4
 ```
 
 | Treatment | Description |
@@ -82,7 +82,7 @@ uv run pytest tests/benchmark_basic/ -v -n 4
 | `CLAUDE_MD_*` | CLAUDE.md content variations |
 | `NOISE_1/2/3` | Progressive noise interference |
 
-### 2. LangSmith Benchmark (`tests/benchmark_langsmith/`)
+### 2. LangSmith Benchmark (`tests/bench_ls_multiskill/`)
 
 Tests whether Claude can use multiple skills together (trace → dataset → evaluator pipeline).
 
@@ -90,19 +90,19 @@ Each pytest-xdist worker gets its own LangSmith project for isolation, so parall
 
 ```bash
 # Basic (2 skills: trace + dataset)
-uv run pytest tests/benchmark_langsmith/test_basic.py -v
+uv run pytest tests/bench_ls_multiskill/test_basic.py -v
 
 # Advanced (3 skills: trace + dataset + evaluator)
-uv run pytest tests/benchmark_langsmith/test_advanced.py -v
+uv run pytest tests/bench_ls_multiskill/test_advanced.py -v
 
 # Run specific treatment with repetitions
-uv run pytest tests/benchmark_langsmith/test_advanced.py -k "ADV_ALL_SECTIONS" -v --count=3
+uv run pytest tests/bench_ls_multiskill/test_advanced.py -k "ADV_ALL_SECTIONS" -v --count=3
 
 # Run all treatments in parallel (6 workers)
-uv run pytest tests/benchmark_langsmith/test_advanced.py -v -n 6
+uv run pytest tests/bench_ls_multiskill/test_advanced.py -v -n 6
 
 # Run with repetitions in parallel
-uv run pytest tests/benchmark_langsmith/test_advanced.py -v -n 6 --count=2
+uv run pytest tests/bench_ls_multiskill/test_advanced.py -v -n 6 --count=2
 ```
 
 | Treatment | Description |
@@ -137,8 +137,8 @@ scaffold/
 tests/
   conftest.py          # Python fixtures
   fixtures.ts          # TypeScript fixtures
-  benchmark_basic/     # Basic single-skill benchmark
-  benchmark_langsmith/ # Multi-skill LangSmith benchmark
+  bench_lc_basic/     # Basic single-skill benchmark
+  bench_ls_multiskill/ # Multi-skill LangSmith benchmark
   example/             # TypeScript example test
 
 skills/

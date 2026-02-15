@@ -2,26 +2,118 @@
 
 Each treatment defines its own section selections inline.
 
-Run with: pytest tests/langsmith_synergy/test_basic.py -v
-Parallel:  pytest tests/langsmith_synergy/test_basic.py -n 3
+Run with: pytest tests/bench_ls_multiskill/test_basic.py -v
+Parallel:  pytest tests/bench_ls_multiskill/test_basic.py -n 3
 """
 
 import uuid
+from pathlib import Path
 
 import pytest
 
-from scaffold import Treatment
+from scaffold import MetricsCollector, SkillInvokedValidator, Treatment
 from scaffold.python import extract_events, parse_output
 from skills import CLAUDE_FULL
-from skills.parser import skill_config
-from tests.benchmark_langsmith.config import (
-    BASIC_PROMPT_TEMPLATE,
-    CLAUDE_MD_SKILLS_ONLY,
-    CLAUDE_MD_WORKFLOW_BASIC,
-    basic_validators,
-    skills,
-    without_related_skills,
+from skills.parser import load_skill, skill_config
+from tests.bench_ls_multiskill.validation.validators import (
+    DatasetStructureValidator,
+    SkillScriptValidator,
+    TrajectoryAccuracyValidator,
 )
+
+# =============================================================================
+# SKILL LOADING
+# =============================================================================
+
+SKILL_BASE = Path(__file__).parent.parent.parent / "skills" / "benchmarks"
+
+
+def _load_skills():
+    """Load all skills from skill.md files."""
+    return {
+        "trace": load_skill(SKILL_BASE / "langsmith_trace"),
+        "dataset": load_skill(SKILL_BASE / "langsmith_dataset"),
+    }
+
+
+skills = _load_skills()
+
+
+# =============================================================================
+# SECTION HELPERS
+# =============================================================================
+
+
+def without_related_skills(sections):
+    """Filter out related_skills sections (cross-skill references)."""
+
+    def is_related(s):
+        return s and (
+            "**langsmith-trace**:" in s
+            or "**langsmith-dataset**:" in s
+            or "**langsmith-evaluator**:" in s
+        )
+
+    return [s for s in sections if not is_related(s)]
+
+
+# =============================================================================
+# CONSTANTS
+# =============================================================================
+
+WORKFLOW_RULE_BASIC = """## LangSmith Skills
+
+This project has LangSmith skills for working with traces and datasets:
+
+- **langsmith-trace**: Query and analyze traces from LangSmith projects
+- **langsmith-dataset**: Generate datasets from trace data
+
+Note: The dataset skill requires trace data to work with. Use the trace skill first to understand available data before generating datasets."""
+
+CLAUDE_MD_SKILLS_ONLY = """# Project Guidelines
+
+Before starting any coding task, check available project skills to find the best approach.
+"""
+
+CLAUDE_MD_WORKFLOW_BASIC = CLAUDE_MD_SKILLS_ONLY + "\n" + WORKFLOW_RULE_BASIC
+
+BASIC_PROMPT_TEMPLATE = """Create a trajectory dataset with 5 examples from the 5 most recent traces in our LangSmith project.
+
+Output: trajectory_dataset.json (upload as "{run_id}" to LangSmith)
+
+Run any code you write directly."""
+
+
+# =============================================================================
+# VALIDATORS
+# =============================================================================
+
+
+def basic_validators():
+    """Validators for basic test (trace + dataset)."""
+    return [
+        SkillInvokedValidator("langsmith-trace", required=False),
+        SkillInvokedValidator("langsmith-dataset", required=False),
+        SkillScriptValidator(
+            {
+                "query_traces.py": "query_traces.py",
+                "generate_datasets.py": "generate_datasets.py",
+            }
+        ),
+        DatasetStructureValidator(
+            filename="trajectory_dataset.json",
+            min_examples=1,
+            dataset_type="trajectory",
+        ),
+        TrajectoryAccuracyValidator(
+            filename="trajectory_dataset.json",
+            expected_filename="expected_dataset.json",
+            verify_upload=True,
+            upload_prefix="test-",
+        ),
+        MetricsCollector(),
+    ]
+
 
 # =============================================================================
 # SECTION SELECTIONS FOR BASIC TREATMENTS
@@ -140,6 +232,7 @@ def test_treatment(
     run_claude,
     record_result,
     environment_dir,
+    cleanup_dataset,
 ):
     """Test a single treatment."""
     treatment = TREATMENTS[treatment_name]
@@ -151,9 +244,10 @@ def test_treatment(
         environment_dir=environment_dir,
     )
 
-    # Build prompt with unique run_id for dataset naming
-    run_id = str(uuid.uuid4())[:8]
+    # Build prompt with unique run_id for dataset naming (full UUID for safety)
+    run_id = str(uuid.uuid4())
     dataset_name = f"test-{run_id}"
+    cleanup_dataset(dataset_name)  # Register for cleanup after test
     prompt = BASIC_PROMPT_TEMPLATE.format(run_id=dataset_name)
     prompt = treatment.build_prompt(prompt)
 

@@ -78,7 +78,7 @@ Best Practices:
 </trace_other_frameworks>
 
 <traces_vs_runs>
-Navigate to `skills/langsmith-trace/scripts/` to run commands.
+Use the included scripts to query trace data.
 
 **Understanding the difference is critical:**
 

@@ -130,7 +130,7 @@ results = await client.aevaluate(
 </running_evaluations>
 
 <upload>
-Navigate to `skills/langsmith-evaluator/scripts/` to upload evaluators.
+Use the included scripts to upload evaluators.
 
 ```bash
 # List existing evaluators

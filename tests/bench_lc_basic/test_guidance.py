@@ -1,19 +1,23 @@
-"""LangChain Agent experiment configuration.
+"""Guidance treatments (positive vs negative framing in skills).
 
-Shared utilities for test_guidance.py, test_claudemd.py, and test_noise.py.
+Tests whether framing matters: "DO use modern patterns" vs "DON'T use deprecated".
+
+Run with: pytest tests/bench_lc_basic/test_guidance.py -v
+Parallel:  pytest tests/bench_lc_basic/test_guidance.py -n 3
 """
 
-import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+import pytest
 
 from scaffold import (
     MetricsCollector,
     OutputQualityValidator,
     PythonFileValidator,
     SkillInvokedValidator,
+    Treatment,
 )
+from scaffold.python import extract_events, parse_output
 from skills.parser import load_skill
 
 # =============================================================================
@@ -21,20 +25,13 @@ from skills.parser import load_skill
 # =============================================================================
 
 SKILL_BASE = Path(__file__).parent.parent.parent / "skills" / "benchmarks"
-agents_skill = load_skill(SKILL_BASE / "langchain_agents")
-
-# Full sections from skill.md
-FULL_SECTIONS = agents_skill["all"]
-
+agents_skill = load_skill(SKILL_BASE / "langchain_basic")
 
 # =============================================================================
-# CLAUDE.MD VARIANTS
+# CONSTANTS
 # =============================================================================
 
-CLAUDE_MD_SKILLS_ONLY = """# Project Guidelines
-
-Before starting any coding task, check available project skills to find the best approach.
-"""
+ENVIRONMENT_DIR = Path(__file__).parent / "environment"
 
 CLAUDE_MD_SKILLS_REQUIRED = """# Project Guidelines
 
@@ -42,33 +39,16 @@ Before starting any coding task, check available project skills to find the best
 **Always use skills when they are available for your task.**
 """
 
-CLAUDE_MD_PATTERNS_POSITIVE = """# Project Guidelines
+TASK1_PROMPT = """Build a SQL analytics agent for the chinook.db music store database.
 
-## LangChain Best Practices
-When building LangChain agents:
-- Use `create_agent` from `langchain.agents` (modern approach)
-- Use `@tool` decorator for tool definitions
-- Use LangGraph for complex control flow
-"""
+Requirements:
+1. Handle queries with JOINs and GROUP BY
+2. Use gpt-4o-mini, only SELECT queries, include error handling
+3. Test: "What are the top 5 best-selling genres by total tracks sold?"
 
-CLAUDE_MD_BOTH = """# Project Guidelines
+Save to sql_agent_1.py and run the test query.
 
-Before starting any coding task, check available project skills to find the best approach.
-
-## LangChain Best Practices
-When building LangChain agents:
-- Use `create_agent` from `langchain.agents` (modern approach)
-- Use `@tool` decorator for tool definitions
-- Use LangGraph for complex control flow
-"""
-
-
-# =============================================================================
-# GUIDANCE VARIATIONS (from original skill.py)
-# =============================================================================
-# Original skill.py had a GUIDANCE slot that could be POSITIVE, NEGATIVE, or None.
-# We substitute this into the quick_start section along with tool overviews.
-# =============================================================================
+IMPORTANT: Run files directly (not in background). If code fails after 2 attempts to fix, save the file and report the error - do not enter debug loops."""
 
 # Tool overviews (from skill.py CREATE_AGENT_OVERVIEW + DEEP_AGENT_OVERVIEW + LANGGRAPH_OVERVIEW)
 _TOOL_OVERVIEWS = """**Simple tool-calling agent?** → [`create_agent`](https://docs.langchain.com/oss/python/langchain/agents)
@@ -117,10 +97,8 @@ def _build_quickstart(guidance):
         return _TOOL_OVERVIEWS
 
 
-# Pre-built quick_start variants
 QUICK_START_POSITIVE = _build_quickstart(GUIDANCE_POSITIVE)
 QUICK_START_NEGATIVE = _build_quickstart(GUIDANCE_NEGATIVE)
-QUICK_START_NEUTRAL = _build_quickstart(None)  # No guidance (for "_MOVED" variants)
 
 
 def with_quickstart(content):
@@ -129,55 +107,13 @@ def with_quickstart(content):
     Excludes langgraph and resources for minimal content.
     """
     sections = agents_skill["sections"]
+    quickstart_content = content if content else _build_quickstart(None)
     return [
         sections["frontmatter"],
         sections["oneliner"],
-        content if content else QUICK_START_NEUTRAL,
+        f"<quick_start>\n{quickstart_content}\n</quick_start>",
         sections["create_agent"],
     ]
-
-
-def with_quickstart_all(content):
-    """Return all skill sections including langgraph and resources.
-
-    For ALL_SECTIONS treatment only.
-    """
-    sections = agents_skill["sections"]
-    return [
-        sections["frontmatter"],
-        sections["oneliner"],
-        content if content else QUICK_START_NEUTRAL,
-        sections["create_agent"],
-        sections["langgraph"],
-        sections["resources"],
-    ]
-
-
-# =============================================================================
-# PROMPTS
-# =============================================================================
-
-TASK1_PROMPT = """Build a SQL analytics agent for the chinook.db music store database.
-
-Requirements:
-1. Handle queries with JOINs and GROUP BY
-2. Use gpt-4o-mini, only SELECT queries, include error handling
-3. Test: "What are the top 5 best-selling genres by total tracks sold?"
-
-Save to sql_agent_1.py and run the test query.
-
-IMPORTANT: Run files directly (not in background). If code fails after 2 attempts to fix, save the file and report the error - do not enter debug loops."""
-
-TASK2_SEARCH_PROMPT = """Build a web search agent using the same modern LangChain patterns.
-
-Requirements:
-1. Create a mock search tool that returns predefined results for queries
-2. Agent should interpret user questions and call the search tool
-3. Test with query: "What is the capital of France?"
-
-Save to search_agent.py and run the test.
-
-IMPORTANT: Run files directly (not in background). If code fails after 2 attempts to fix, save the file and report the error - do not enter debug loops."""
 
 
 # =============================================================================
@@ -222,43 +158,76 @@ def sql_agent_validators():
     ]
 
 
-def noise_validators():
-    """Validators for noise treatments (SQL agent + search agent)."""
-    return [
-        SkillInvokedValidator("langchain-agents", required=False),
-        PythonFileValidator(
-            "sql_agent_1.py",
-            "SQL Agent Code",
-            required=AGENT_MODERN_PATTERNS,
-            forbidden=AGENT_FORBIDDEN,
-            require_all=True,
-        ),
-        OutputQualityValidator(
-            "sql_agent_1.py",
-            "SQL Agent Output",
-            task_description="SQL analytics agent querying chinook.db for top 5 best-selling genres by tracks sold",
-            expected_behavior="Should show genre names with track counts or sales numbers",
-        ),
-        PythonFileValidator(
-            "search_agent.py",
-            "Search Agent Code",
-            required=AGENT_MODERN_PATTERNS,
-            forbidden=AGENT_FORBIDDEN,
-            require_all=True,
-        ),
-        OutputQualityValidator(
-            "search_agent.py",
-            "Search Agent Output",
-            task_description="Web search agent with mock search tool answering 'What is the capital of France?'",
-            expected_behavior="Should return 'Paris' as the answer with proper agent reasoning",
-        ),
-        MetricsCollector(["sql_agent_1.py", "search_agent.py"]),
-    ]
+# =============================================================================
+# TREATMENTS
+# =============================================================================
+
+TREATMENTS = {
+    "GUIDANCE_POS": Treatment(
+        description="Skill with positive guidance (DO use modern patterns)",
+        skills={"langchain-agents": with_quickstart(QUICK_START_POSITIVE)},
+        claude_md=CLAUDE_MD_SKILLS_REQUIRED,
+        validators=sql_agent_validators(),
+    ),
+    "GUIDANCE_NEG": Treatment(
+        description="Skill with negative guidance (DON'T use deprecated)",
+        skills={"langchain-agents": with_quickstart(QUICK_START_NEGATIVE)},
+        claude_md=CLAUDE_MD_SKILLS_REQUIRED,
+        validators=sql_agent_validators(),
+    ),
+}
 
 
 # =============================================================================
-# ENVIRONMENT CONFIG
+# FIXTURES
 # =============================================================================
 
-ENVIRONMENT_DIR = Path(__file__).parent / "environment"
-REQUIRED_FILES = ["Dockerfile", "requirements.txt", "chinook.db"]
+
+@pytest.fixture
+def environment_dir():
+    """Path to environment directory with Dockerfile, requirements.txt, etc."""
+    return ENVIRONMENT_DIR
+
+
+# =============================================================================
+# TESTS
+# =============================================================================
+
+
+@pytest.mark.parametrize("treatment_name", list(TREATMENTS.keys()))
+def test_treatment(
+    treatment_name,
+    verify_environment,
+    test_dir,
+    setup_test_context,
+    run_claude,
+    record_result,
+    environment_dir,
+):
+    """Test a single treatment."""
+    treatment = TREATMENTS[treatment_name]
+
+    # Setup test context
+    setup_test_context(
+        skills=treatment.skills,
+        claude_md=treatment.claude_md,
+        environment_dir=environment_dir,
+    )
+
+    # Build prompt
+    prompt = treatment.build_prompt(TASK1_PROMPT)
+
+    # Run Claude (automatically saves raw output)
+    result = run_claude(prompt, timeout=600)
+
+    # Parse output
+    events = extract_events(parse_output(result.stdout))
+
+    # Validate
+    passed, failed = treatment.validate(events, test_dir, {})
+
+    # Record results (saves events, artifacts, reports)
+    record_result(events, passed, failed)
+
+    # Assert
+    assert not failed, f"Validation failed: {failed}"

@@ -307,6 +307,23 @@ class ExperimentLogger:
         metric_cols = defaults[1:]
         return [pass_col] + self.columns + metric_cols
 
+    def _aggregate_by_base_treatment(self) -> dict[str, list[TreatmentResult]]:
+        """Group results by base treatment name (strip -N-M suffix from pytest --count).
+
+        Example: ADV_BASELINE-1-3, ADV_BASELINE-2-3, ADV_BASELINE-3-3 -> ADV_BASELINE
+        """
+        base_treatments: dict[str, list[TreatmentResult]] = {}
+        pattern = re.compile(r"^(.+)-\d+-\d+$")  # Matches NAME-N-M
+
+        for name, runs in self.results.items():
+            match = pattern.match(name)
+            base_name = match.group(1) if match else name
+            if base_name not in base_treatments:
+                base_treatments[base_name] = []
+            base_treatments[base_name].extend(runs)
+
+        return base_treatments
+
     def generate_summary(self) -> str:
         """Generate markdown summary of experiment results."""
         lines = []
@@ -364,6 +381,26 @@ class ExperimentLogger:
             f"- **Checks Passed:** {total_checks_passed}/{total_checks} ({check_pct:.1f}%)"
         )
         lines.append("")
+
+        # Aggregate by base treatment name (strip -N-M suffix from pytest --count)
+        base_treatments = self._aggregate_by_base_treatment()
+        if base_treatments and len(base_treatments) < len(self.results):
+            lines.append("## Aggregated by Treatment\n")
+            lines.append("| Treatment | Reps Passed | Checks | Avg Turns | Avg Duration |")
+            lines.append("|-----------|-------------|--------|-----------|--------------|")
+            for base_name, all_runs in base_treatments.items():
+                # A rep passes if all checks pass (no failures)
+                reps_passed = sum(1 for r in all_runs if not r.checks_failed)
+                total_reps = len(all_runs)
+                total_passed = sum(len(r.checks_passed) for r in all_runs)
+                total_all = sum(len(r.checks_passed) + len(r.checks_failed) for r in all_runs)
+                pct = (total_passed / total_all * 100) if total_all > 0 else 0
+                avg_turns = _avg([r.turns for r in all_runs if r.turns], "{:.0f}")
+                avg_dur = _avg([r.duration for r in all_runs if r.duration], "{:.0f}s")
+                lines.append(
+                    f"| {base_name} | {reps_passed}/{total_reps} | {total_passed}/{total_all} ({pct:.0f}%) | {avg_turns} | {avg_dur} |"
+                )
+            lines.append("")
 
         # Detailed per-treatment breakdown
         lines.append("## Treatment Details\n")

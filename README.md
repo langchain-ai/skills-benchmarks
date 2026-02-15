@@ -6,24 +6,13 @@ Measures how skill documentation design affects Claude Code's adherence to recom
 
 ## Quick Start
 
-**Start with the example tests** - they demonstrate the full test pattern with minimal complexity.
-
 ```bash
-# Python example
-uv sync
-uv run pytest tests/example/test_guidance.py -v -k "MINIMAL"
+# Setup
+uv sync                      # Python
+npm install && npm run build # TypeScript
 
-# TypeScript example
-npm install && npm run build
-npx vitest run tests/example/guidance.test.ts --testNamePattern="MINIMAL"
-```
-
-**Run existing benchmarks:**
-
-```bash
-# Python (pytest)
+# Run a benchmark
 uv run pytest tests/bench_lc_basic/test_guidance.py -k "GUIDANCE_POS" -v
-uv run pytest tests/bench_ls_multiskill/test_advanced.py -k "ADV_ALL_SECTIONS" -v
 
 # With repetitions
 uv run pytest tests/bench_ls_multiskill/test_advanced.py -k "ADV_ALL_SECTIONS" -v --count=3
@@ -72,6 +61,23 @@ skills/benchmarks/
 ---
 
 ## Contributing
+
+### Example Tests
+
+**Start here** - the example tests in `tests/example/` demonstrate the full pattern:
+
+```bash
+# Python
+uv run pytest tests/example/test_guidance.py -v -k "MINIMAL"
+
+# TypeScript
+npx vitest run tests/example/guidance.test.ts --testNamePattern="MINIMAL"
+```
+
+These examples show how to:
+- Load skills using the parser (`load_skill()` / `loadSkill()`)
+- Define treatments with different skill configurations
+- Use validators to check generated code
 
 ### Adding a New Skill
 
@@ -184,7 +190,7 @@ def test_treatment(treatment_name, test_dir, setup_test_context, run_claude, rec
     assert not failed, f"Validation failed: {failed}"
 ```
 
-### Available Validators
+### Built-in Validators
 
 | Validator | Purpose | Example |
 |-----------|---------|---------|

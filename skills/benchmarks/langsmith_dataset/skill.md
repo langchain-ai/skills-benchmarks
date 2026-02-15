@@ -75,8 +75,8 @@ All dataset generation commands support:
 
 **IMPORTANT - Safety Prompts:**
 - The script prompts for confirmation before deleting existing datasets with `--replace`
-- **ALWAYS respect these prompts** - wait for user input before proceeding
-- **NEVER use `--yes` flag unless the user explicitly requests it**
+- **Interactive:** ALWAYS wait for user input; NEVER use `--yes` unless the user explicitly requests it
+- **Non-interactive (automated scripts):** Use `--replace --yes` together to ensure proper replacement
 </usage>
 
 <extraction_priority>

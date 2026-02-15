@@ -13,3 +13,9 @@ __pycache__
 # Pytest
 .pytest_cache/
 .pytest_experiment_id*
+
+# Node.js
+node_modules
+package-lock.json
+dist/
+.vitest_experiment_id*

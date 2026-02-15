@@ -3,7 +3,7 @@
 Measures how skill documentation design affects Claude Code's adherence to recommended patterns.
 Note: Tests were conducted with Opus 4.5, early February 2026.
 
-## Quick Start
+## Quick Start (Python)
 
 ```bash
 # Setup
@@ -22,12 +22,31 @@ uv run pytest tests/langsmith_synergy/test_advanced.py -v -n 6
 uv run pytest tests/langsmith_synergy/test_basic.py -v
 ```
 
+## Quick Start (TypeScript)
+
+```bash
+# Setup
+npm install
+
+# Build TypeScript
+npm run build
+
+# Run example test
+npx vitest run tests/example/guidance.test.ts
+
+# Run in parallel (3 workers)
+npx vitest run tests/example/guidance.test.ts --pool=threads
+
+# Run with watch mode
+npx vitest tests/example/guidance.test.ts
+```
+
 ## Requirements
 
-- Python 3.13+
+- Python 3.13+ (for Python tests) or Node.js 20+ (for TypeScript tests)
 - Docker (for sandboxed execution of generated code)
 - Claude Code CLI (`claude`)
-- API keys: `OPENAI_API_KEY` (for generated agents), `LANGSMITH_API_KEY` (for LangSmith experiments)
+- API keys: `OPENAI_API_KEY` (for generated agents), `LANGSMITH_API_KEY` (for LangSmith experiments), `ANTHROPIC_API_KEY` (for LLM evaluation)
 - macOS only: `brew install coreutils` (provides `gtimeout` for test timeouts)
 
 ## How It Works
@@ -99,23 +118,38 @@ uv run pytest tests/langsmith_synergy/test_advanced.py -v -n 6 --count=2
 
 ```
 scaffold/
-  __init__.py       # Public API exports
-  runner.py         # Test execution, Docker, event parsing
-  setup.py          # Environment setup/verification
-  framework.py      # Treatment, Validators
-  model.py          # LLM evaluation
+  python/           # Python scaffold (pytest)
+    __init__.py     # Public API exports
+    schema.py       # Treatment, NoiseTask, Validator
+    validation.py   # 5 validators
+    utils.py        # Shell wrappers, LLM evaluation
+    logging.py      # Event parsing, ExperimentLogger
+  typescript/       # TypeScript scaffold (vitest)
+    index.ts        # Public API exports
+    schema.ts       # Treatment, NoiseTask types
+    validation.ts   # 5 validators (mirrors Python)
+    utils.ts        # Shell wrappers, LLM evaluation
+    logging.ts      # Event parsing, ExperimentLogger
+  shell/            # Shared shell scripts
+    docker.sh       # Docker operations
+    setup.sh        # Environment setup
 
 tests/
+  conftest.py       # Python fixtures
+  fixtures.ts       # TypeScript fixtures
   langchain_agent/  # Modern LangChain patterns
   langsmith_synergy/# Multi-skill workflows
+  example/          # TypeScript example test
 
 skill_constructs/
   langchain/        # LangChain/LangSmith skill content
   noise/            # Noise/distractor skills
-  CLAUDE_FULL.md  # Sample CLAUDE.md with skill synergies
+  CLAUDE.md         # Sample CLAUDE.md with skill synergies
 ```
 
 ## Defining Treatments
+
+### Python
 
 ```python
 from scaffold import Treatment, PythonFileValidator, OutputQualityValidator, MetricsCollector
@@ -133,6 +167,28 @@ TREATMENTS = {
         validators=[...],
     ),
 }
+```
+
+### TypeScript
+
+```typescript
+import type { Treatment } from '@skills-benchmark/scaffold';
+import { PythonFileValidator, MetricsCollector } from '@skills-benchmark/scaffold';
+
+const TREATMENTS: Record<string, Treatment> = {
+  CONTROL: {
+    description: "No skill, no CLAUDE.md",
+    validators: [
+      new PythonFileValidator("output.py", { required: { pattern: "desc" } }),
+      new MetricsCollector(["output.py"]),
+    ],
+  },
+  BASELINE: {
+    description: "With skill",
+    skills: { "my-skill": [SKILL_CONTENT] },
+    validators: [...],
+  },
+};
 ```
 
 ## Experiment Results

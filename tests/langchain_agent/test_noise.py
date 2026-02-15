@@ -78,8 +78,9 @@ def validate_treatment(events: dict, test_dir, treatment_name: str, outputs: dic
 # =============================================================================
 
 if __name__ == "__main__":
-    from tests.langchain_agent.runner import run_experiment
     import argparse
+    from scaffold import run_experiment
+    from tests.langchain_agent.config import ENVIRONMENT_DIR, REQUIRED_FILES, COLUMNS
 
     parser = argparse.ArgumentParser(description="Noise experiment (distractor tasks)")
     parser.add_argument("--model", type=str, help="Model to use")
@@ -94,6 +95,9 @@ if __name__ == "__main__":
         build_prompt_func=build_prompt,
         validate_func=validate_treatment,
         experiment_name="noise_experiment",
+        environment_dir=ENVIRONMENT_DIR,
+        required_files=REQUIRED_FILES,
+        columns=COLUMNS,
         treatment_names=args.treatments,
         repeat=args.repeat,
         workers=args.workers,

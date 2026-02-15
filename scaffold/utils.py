@@ -391,6 +391,10 @@ def evaluate_with_schema(prompt: str, model: str = None) -> dict:
     Returns:
         Dict with "pass" (bool) and "reason" (str) keys
     """
+    # Use separate LangSmith project for validation to avoid polluting test traces
+    original_project = os.environ.get("LANGSMITH_PROJECT")
+    os.environ["LANGSMITH_PROJECT"] = "skills-validation"
+
     try:
         chat_model = get_eval_model(model=model)
         structured_model = chat_model.with_structured_output(EvalResult)
@@ -398,3 +402,9 @@ def evaluate_with_schema(prompt: str, model: str = None) -> dict:
         return {"pass": result.passed, "reason": result.reason}
     except Exception as e:
         return {"pass": False, "reason": f"eval error: {str(e)[:30]}"}
+    finally:
+        # Restore original project
+        if original_project is not None:
+            os.environ["LANGSMITH_PROJECT"] = original_project
+        elif "LANGSMITH_PROJECT" in os.environ:
+            del os.environ["LANGSMITH_PROJECT"]

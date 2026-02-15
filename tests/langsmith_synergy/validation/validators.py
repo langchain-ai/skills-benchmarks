@@ -62,52 +62,6 @@ def safe_api_call(func, skip_msg: str = "skipped"):
 # VALIDATORS
 # =============================================================================
 
-class TraceDataValidator(Validator):
-    """Validate traces exist in LangSmith project."""
-
-    def __init__(self, min_traces: int = 1, max_age_minutes: int = 1440):
-        self.min_traces = min_traces
-        self.max_age_minutes = max_age_minutes
-
-    def validate(self, events: dict, test_dir: Path, outputs: Dict = None) -> Tuple[List[str], List[str]]:
-        passed, failed = [], []
-
-        project = os.environ.get("LANGSMITH_PROJECT")
-        if not project:
-            return [], ["Traces: LANGSMITH_PROJECT not set"]
-
-        client, error = get_langsmith_client()
-        if error:
-            return [], [f"Traces: {error}"]
-
-        start_time = datetime.now(timezone.utc) - timedelta(minutes=self.max_age_minutes)
-        traces, error = safe_api_call(
-            lambda: list(client.list_runs(project_name=project, is_root=True, start_time=start_time, limit=20))
-        )
-        if error:
-            return [f"Traces: {error}"], []
-
-        if len(traces) < self.min_traces:
-            return [], [f"Traces: only {len(traces)} in project (need {self.min_traces})"]
-
-        passed.append(f"Traces: {len(traces)} available in '{project}'")
-
-        # Check for tool calls in sample
-        with_tools = sum(1 for t in traces[:5] if self._has_tools(client, project, t))
-        if with_tools:
-            passed.append(f"Traces: {with_tools}/5 have tool calls")
-
-        return passed, failed
-
-    def _has_tools(self, client, project: str, trace) -> bool:
-        try:
-            tid = str(getattr(trace, "trace_id", trace.id))
-            tools = list(client.list_runs(project_name=project, trace_id=tid, run_type="tool", limit=1))
-            return bool(tools)
-        except Exception:
-            return False
-
-
 class DatasetStructureValidator(Validator):
     """Validate dataset file structure (not content accuracy - see TrajectoryAccuracyValidator)."""
 

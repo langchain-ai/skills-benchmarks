@@ -15,6 +15,7 @@ from .utils import (
 from .runner import (
     TestResult,
     WorkItem, run_single, run_parallel, create_work_items,
+    run_experiment, print_summary,
 )
 from .setup import (
     verify_environment,
@@ -45,6 +46,7 @@ __all__ = [
     # Runner (parallel execution)
     'TestResult',
     'WorkItem', 'run_single', 'run_parallel', 'create_work_items',
+    'run_experiment', 'print_summary',
     # Setup
     'verify_environment',
     'setup_test_environment', 'cleanup_test_environment',

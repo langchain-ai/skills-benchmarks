@@ -10,6 +10,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 export const PROJECT_ROOT = resolve(__dirname, "..", "..");
 export const LOGS_DIR = join(PROJECT_ROOT, "logs");
 
+// eslint-disable-next-line no-control-regex
 const ANSI_ESCAPE = /\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])/g;
 const NPM_NOISE = [/^npm warn exec.*$/gm, /^npm notice.*$/gm];
 

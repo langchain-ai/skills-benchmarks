@@ -20,7 +20,7 @@ import tempfile
 import time
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Any, Optional
+from typing import Any
 
 import pytest
 from dotenv import load_dotenv
@@ -29,12 +29,10 @@ from scaffold import run_claude_in_docker, run_python_in_docker, run_shell
 from scaffold.python import (
     ExperimentLogger,
     TreatmentResult,
-    parse_output,
-    extract_events,
-    strip_ansi,
     save_events,
     save_raw,
     save_report,
+    strip_ansi,
 )
 
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -47,9 +45,10 @@ XDIST_EXPERIMENT_FILE = PROJECT_ROOT / ".pytest_experiment_id"
 # EXPERIMENT LOGGING PLUGIN
 # =============================================================================
 
+
 def _get_experiment_name(session) -> str:
     """Determine experiment name from test path."""
-    items = getattr(session, 'items', None)
+    items = getattr(session, "items", None)
     first_path = str(items[0].fspath) if items else ""
 
     if "langchain_agent" in first_path:
@@ -93,10 +92,14 @@ def _get_or_create_experiment_id(name: str, use_coordination: bool) -> str:
                 # First worker - create experiment
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                 experiment_id = f"{name}_{timestamp}"
-                XDIST_EXPERIMENT_FILE.write_text(json.dumps({
-                    "experiment_id": experiment_id,
-                    "created_at": datetime.now().isoformat(),
-                }))
+                XDIST_EXPERIMENT_FILE.write_text(
+                    json.dumps(
+                        {
+                            "experiment_id": experiment_id,
+                            "created_at": datetime.now().isoformat(),
+                        }
+                    )
+                )
                 return experiment_id
         finally:
             fcntl.flock(lf.fileno(), fcntl.LOCK_UN)
@@ -120,12 +123,17 @@ class ExperimentPlugin:
 
     def __init__(self, config):
         self.config = config
-        self.logger: Optional[ExperimentLogger] = None
+        self.logger: ExperimentLogger | None = None
         self.start_time = None
-        self.run_counter: Dict[str, int] = {}  # treatment_name -> repetition count
+        self.run_counter: dict[str, int] = {}  # treatment_name -> repetition count
         self.is_xdist_worker = hasattr(config, "workerinput")
-        self.is_xdist_master = hasattr(config, "workerinput") is False and (getattr(config.option, "numprocesses", None) or 0) > 0
-        self.worker_id = config.workerinput.get("workerid", "master") if self.is_xdist_worker else "master"
+        self.is_xdist_master = (
+            hasattr(config, "workerinput") is False
+            and (getattr(config.option, "numprocesses", None) or 0) > 0
+        )
+        self.worker_id = (
+            config.workerinput.get("workerid", "master") if self.is_xdist_worker else "master"
+        )
 
     def pytest_sessionstart(self, session):
         """Create or join experiment logger at session start."""
@@ -139,10 +147,10 @@ class ExperimentPlugin:
         self.logger = ExperimentLogger(experiment_name=name, experiment_id=experiment_id)
         self.start_time = time.time()
 
-        print(f"\n{'='*60}")
+        print(f"\n{'=' * 60}")
         print(f"EXPERIMENT: {self.logger.experiment_id}")
         print(f"Logging to: {self.logger.base_dir}")
-        print(f"{'='*60}\n")
+        print(f"{'=' * 60}\n")
 
     def get_rep_number(self, treatment_name: str) -> int:
         """Get the next repetition number for a treatment."""
@@ -206,9 +214,9 @@ class ExperimentPlugin:
 
     def _print_summary(self):
         """Print summary to console."""
-        print(f"\n{'='*80}")
+        print(f"\n{'=' * 80}")
         print("  RESULTS")
-        print(f"{'='*80}\n")
+        print(f"{'=' * 80}\n")
 
         print(f"{'Treatment':<30} {'Checks':<15} {'Turns':<8} {'Duration':<10}")
         print("-" * 80)
@@ -224,15 +232,22 @@ class ExperimentPlugin:
                 print(f"{treatment:<30} {checks_str:<15} {turns:<8} {dur:<10}")
 
         print("-" * 80)
-        total_passed = sum(sum(len(r.checks_passed) for r in runs) for runs in self.logger.results.values())
-        total_checks = sum(sum(len(r.checks_passed) + len(r.checks_failed) for r in runs) for runs in self.logger.results.values())
+        total_passed = sum(
+            sum(len(r.checks_passed) for r in runs) for runs in self.logger.results.values()
+        )
+        total_checks = sum(
+            sum(len(r.checks_passed) + len(r.checks_failed) for r in runs)
+            for runs in self.logger.results.values()
+        )
         if total_checks:
-            print(f"Total: {total_passed}/{total_checks} checks passed ({total_passed/total_checks*100:.1f}%)")
-        print(f"{'='*80}")
+            print(
+                f"Total: {total_passed}/{total_checks} checks passed ({total_passed / total_checks * 100:.1f}%)"
+            )
+        print(f"{'=' * 80}")
 
 
 # Global plugin instance (set during pytest_configure)
-_plugin: Optional[ExperimentPlugin] = None
+_plugin: ExperimentPlugin | None = None
 
 
 def pytest_configure(config):
@@ -245,6 +260,7 @@ def pytest_configure(config):
 # =============================================================================
 # FIXTURES
 # =============================================================================
+
 
 @pytest.fixture(scope="session")
 def project_root():
@@ -300,10 +316,11 @@ def setup_test_context(test_dir):
 
     Uses shell scripts for file operations.
     """
+
     def _setup(skills: dict = None, claude_md: str = None, environment_dir: Path = None):
         # Write CLAUDE.md using shell
         if claude_md:
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.md', delete=False) as f:
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
                 f.write(claude_md)
                 temp_file = f.name
             try:
@@ -327,7 +344,7 @@ def setup_test_context(test_dir):
 
                     if sections:
                         content = "\n\n".join(s for s in sections if s and s.strip())
-                        with tempfile.NamedTemporaryFile(mode='w', suffix='.md', delete=False) as f:
+                        with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
                             f.write(content)
                             temp_file = f.name
                         try:
@@ -343,6 +360,7 @@ def setup_test_context(test_dir):
             run_shell("setup.sh", "copy-env", str(test_dir), str(environment_dir))
 
         return test_dir
+
     return _setup
 
 
@@ -355,11 +373,12 @@ def run_claude(test_dir, experiment_logger, request):
     - Saves raw output to the experiment logs
     - Returns the result for further processing
     """
+
     def _run(prompt: str, timeout: int = 600, model: str = None):
         result = run_claude_in_docker(test_dir, prompt, timeout=timeout, model=model)
 
         # Save raw output if we have a logger
-        if experiment_logger and hasattr(request, 'node'):
+        if experiment_logger and hasattr(request, "node"):
             treatment_name = _get_treatment_name(request.node)
             rep = _plugin.get_rep_number(treatment_name) if _plugin else 1
             save_raw(
@@ -378,8 +397,10 @@ def run_claude(test_dir, experiment_logger, request):
 @pytest.fixture
 def run_python_file(test_dir):
     """Factory fixture to run Python files in Docker."""
+
     def _run(filename: str, timeout: int = 300):
         return run_python_in_docker(test_dir, filename, timeout=timeout)
+
     return _run
 
 
@@ -393,10 +414,11 @@ def record_result(test_dir, experiment_logger, request):
         passed, failed = treatment.validate(events, test_dir, {})
         record_result(events, passed, failed, run_id="abc123")
     """
+
     def _record(
-        events: Dict[str, Any],
-        passed: List[str],
-        failed: List[str],
+        events: dict[str, Any],
+        passed: list[str],
+        failed: list[str],
         run_id: str = "",
     ):
         if not experiment_logger:
@@ -447,7 +469,7 @@ def record_result(test_dir, experiment_logger, request):
                     "tool_calls": len(events.get("tool_calls", [])),
                 },
                 run_id=run_id,
-            )
+            ),
         )
 
     return _record
@@ -456,6 +478,7 @@ def record_result(test_dir, experiment_logger, request):
 # =============================================================================
 # HELPERS
 # =============================================================================
+
 
 def _get_treatment_name(node) -> str:
     """Extract treatment name from pytest node."""

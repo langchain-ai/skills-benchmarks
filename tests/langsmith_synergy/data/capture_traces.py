@@ -19,7 +19,7 @@ import argparse
 import json
 import os
 import sys
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 # Add project root to path
@@ -32,11 +32,13 @@ def get_langsmith_client():
     """Get LangSmith client."""
     try:
         from dotenv import load_dotenv
+
         load_dotenv(override=False)
     except ImportError:
         pass
 
     from langsmith import Client
+
     api_key = os.environ.get("LANGSMITH_API_KEY")
     if not api_key:
         print("Error: LANGSMITH_API_KEY not set")
@@ -46,24 +48,30 @@ def get_langsmith_client():
 
 def capture_trace(client, project: str, trace_id: str) -> dict:
     """Capture complete trace structure."""
-    runs = retry_with_backoff(lambda: list(client.list_runs(
-        project_name=project,
-        trace_id=trace_id,
-        limit=100,
-    )))
+    runs = retry_with_backoff(
+        lambda: list(
+            client.list_runs(
+                project_name=project,
+                trace_id=trace_id,
+                limit=100,
+            )
+        )
+    )
 
     run_data = []
     for run in runs:
-        run_data.append({
-            "id": str(run.id),
-            "parent_run_id": str(run.parent_run_id) if run.parent_run_id else None,
-            "name": run.name,
-            "run_type": run.run_type,
-            "inputs": dict(run.inputs) if run.inputs else {},
-            "outputs": dict(run.outputs) if run.outputs else {},
-            "start_time": run.start_time.isoformat() if run.start_time else None,
-            "end_time": run.end_time.isoformat() if run.end_time else None,
-        })
+        run_data.append(
+            {
+                "id": str(run.id),
+                "parent_run_id": str(run.parent_run_id) if run.parent_run_id else None,
+                "name": run.name,
+                "run_type": run.run_type,
+                "inputs": dict(run.inputs) if run.inputs else {},
+                "outputs": dict(run.outputs) if run.outputs else {},
+                "start_time": run.start_time.isoformat() if run.start_time else None,
+                "end_time": run.end_time.isoformat() if run.end_time else None,
+            }
+        )
 
     # Find root run to get query
     root = next((r for r in run_data if r["parent_run_id"] is None), None)
@@ -95,14 +103,18 @@ def capture_trace(client, project: str, trace_id: str) -> dict:
 
 def capture_recent_traces(client, project: str, limit: int = 5) -> list:
     """Capture recent root traces from project."""
-    start_time = datetime.now(timezone.utc) - timedelta(hours=24)
+    start_time = datetime.now(UTC) - timedelta(hours=24)
 
-    root_runs = retry_with_backoff(lambda: list(client.list_runs(
-        project_name=project,
-        is_root=True,
-        start_time=start_time,
-        limit=limit,
-    )))
+    root_runs = retry_with_backoff(
+        lambda: list(
+            client.list_runs(
+                project_name=project,
+                is_root=True,
+                start_time=start_time,
+                limit=limit,
+            )
+        )
+    )
 
     traces = []
     for run in root_runs:
@@ -139,7 +151,7 @@ def main():
     output = {
         "description": "Full trace fixtures captured from LangSmith. Used to replay exact traces for testing.",
         "source_project": project,
-        "captured_at": datetime.now(timezone.utc).isoformat(),
+        "captured_at": datetime.now(UTC).isoformat(),
         "full_traces": traces,
         # Also include simplified format for backwards compatibility
         "traces": [
@@ -184,28 +196,46 @@ def _generate_test_cases(traces: list) -> list:
             "name": "perfect_match",
             "description": "Identical trajectory should score high",
             "run": {"inputs": {"query": "Test"}, "outputs": {"expected_trajectory": base_tools}},
-            "example": {"inputs": {"query": "Test"}, "outputs": {"expected_trajectory": base_tools}},
+            "example": {
+                "inputs": {"query": "Test"},
+                "outputs": {"expected_trajectory": base_tools},
+            },
             "expected_result": {"should_pass": True, "min_score": 1.0},
         },
         {
             "name": "partial_match",
             "description": "Partial overlap should score medium",
-            "run": {"inputs": {"query": "Test"}, "outputs": {"expected_trajectory": base_tools[:1]}},
-            "example": {"inputs": {"query": "Test"}, "outputs": {"expected_trajectory": base_tools}},
+            "run": {
+                "inputs": {"query": "Test"},
+                "outputs": {"expected_trajectory": base_tools[:1]},
+            },
+            "example": {
+                "inputs": {"query": "Test"},
+                "outputs": {"expected_trajectory": base_tools},
+            },
             "expected_result": {"should_pass": True, "min_score": 0.2, "max_score": 0.9},
         },
         {
             "name": "no_match",
             "description": "Different trajectory should score low",
-            "run": {"inputs": {"query": "Test"}, "outputs": {"expected_trajectory": ["unknown_tool"]}},
-            "example": {"inputs": {"query": "Test"}, "outputs": {"expected_trajectory": base_tools}},
+            "run": {
+                "inputs": {"query": "Test"},
+                "outputs": {"expected_trajectory": ["unknown_tool"]},
+            },
+            "example": {
+                "inputs": {"query": "Test"},
+                "outputs": {"expected_trajectory": base_tools},
+            },
             "expected_result": {"should_pass": True, "max_score": 0.4},
         },
         {
             "name": "empty_trajectory",
             "description": "Empty trajectory should not crash",
             "run": {"inputs": {"query": "Test"}, "outputs": {"expected_trajectory": []}},
-            "example": {"inputs": {"query": "Test"}, "outputs": {"expected_trajectory": base_tools}},
+            "example": {
+                "inputs": {"query": "Test"},
+                "outputs": {"expected_trajectory": base_tools},
+            },
             "expected_result": {"should_not_crash": True},
         },
     ]

@@ -166,9 +166,8 @@ export class NoiseTaskValidator implements Validator {
     const passed: string[] = [];
     const failed: string[] = [];
     for (const f of this.outputFiles) {
-      existsSync(join(testDir, f))
-        ? passed.push(`Noise: ${f} created`)
-        : failed.push(`Noise: ${f} NOT created`);
+      if (existsSync(join(testDir, f))) passed.push(`Noise: ${f} created`);
+      else failed.push(`Noise: ${f} NOT created`);
     }
     return { passed, failed };
   }

@@ -8,9 +8,9 @@ If dataset.json is provided and has valid trajectory format, generates test case
 dynamically. Otherwise falls back to test_cases.json.
 """
 
+import importlib
 import json
 import sys
-import importlib
 from pathlib import Path
 
 
@@ -83,7 +83,10 @@ def normalize_trajectory_fields(data: dict) -> dict:
 
     traj = next((outputs[f] for f in FIELDS if f in outputs and isinstance(outputs[f], list)), None)
     if not traj:
-        traj = next((v for v in outputs.values() if isinstance(v, list) and v and isinstance(v[0], str)), None)
+        traj = next(
+            (v for v in outputs.values() if isinstance(v, list) and v and isinstance(v[0], str)),
+            None,
+        )
 
     if traj:
         for f in FIELDS:
@@ -138,29 +141,29 @@ def generate_test_cases_from_dataset(dataset_path: str) -> list:
                 "description": "Identical trajectory should score high",
                 "run": json.loads(json.dumps(template)),
                 "example": template,
-                "expected_result": {"should_pass": True, "min_score": 0.9}
+                "expected_result": {"should_pass": True, "min_score": 0.9},
             },
             {
                 "name": "partial_match",
                 "description": "Partial tool overlap should score medium",
                 "run": modify_trajectory(trajectory[:1] if len(trajectory) > 1 else trajectory),
                 "example": template,
-                "expected_result": {"should_pass": True, "min_score": 0.1, "max_score": 0.95}
+                "expected_result": {"should_pass": True, "min_score": 0.1, "max_score": 0.95},
             },
             {
                 "name": "no_match",
                 "description": "Different trajectory should score low",
                 "run": modify_trajectory(["unknown_tool_xyz"]),
                 "example": template,
-                "expected_result": {"should_pass": True, "max_score": 0.5}
+                "expected_result": {"should_pass": True, "max_score": 0.5},
             },
             {
                 "name": "empty_trajectory",
                 "description": "Empty trajectory should not crash",
                 "run": modify_trajectory([]),
                 "example": template,
-                "expected_result": {"should_not_crash": True}
-            }
+                "expected_result": {"should_not_crash": True},
+            },
         ]
     except Exception:
         return None
@@ -195,7 +198,10 @@ def run_test_case(eval_func, tc):
 
 def main():
     if len(sys.argv) < 4:
-        print("Usage: python eval_runner.py <module> <func> <test_cases.json> [dataset.json]", file=sys.stderr)
+        print(
+            "Usage: python eval_runner.py <module> <func> <test_cases.json> [dataset.json]",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
     module_name, func_name, test_cases_file = sys.argv[1:4]

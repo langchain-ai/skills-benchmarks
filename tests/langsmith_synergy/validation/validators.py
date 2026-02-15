@@ -3,34 +3,34 @@
 import ast
 import json
 import os
-from datetime import datetime, timedelta, timezone
-from pathlib import Path
-from typing import Dict, List, Tuple
-
 import sys
+from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
 from scaffold import (
     Validator,
-    read_json_file,
     get_field,
     get_nested_field,
+    read_json_file,
     run_python_in_docker,
 )
-
 
 # =============================================================================
 # HELPERS
 # =============================================================================
 
+
 def get_langsmith_client():
     """Get LangSmith client. Returns (client, error_string)."""
     try:
         from dotenv import load_dotenv
+
         load_dotenv(override=False)
     except ImportError:
         pass
 
     from langsmith import Client
+
     api_key = os.environ.get("LANGSMITH_API_KEY")
     if not api_key:
         return None, "LANGSMITH_API_KEY not set"
@@ -61,6 +61,7 @@ def safe_api_call(func, skip_msg: str = "skipped"):
 # VALIDATORS
 # =============================================================================
 
+
 class DatasetStructureValidator(Validator):
     """Validate dataset file structure (not content accuracy - see TrajectoryAccuracyValidator)."""
 
@@ -78,7 +79,9 @@ class DatasetStructureValidator(Validator):
         self.verify_upload = verify_upload
         self.upload_prefix = upload_prefix
 
-    def validate(self, events: dict, test_dir: Path, outputs: Dict = None) -> Tuple[List[str], List[str]]:
+    def validate(
+        self, events: dict, test_dir: Path, outputs: dict = None
+    ) -> tuple[list[str], list[str]]:
         passed, failed = [], []
 
         data, error = read_json_file(test_dir / self.filename)
@@ -87,7 +90,9 @@ class DatasetStructureValidator(Validator):
 
         examples = extract_examples(data)
         if len(examples) < self.min_examples:
-            return [f"Dataset: {self.filename} created"], [f"Dataset: {len(examples)} examples (need {self.min_examples})"]
+            return [f"Dataset: {self.filename} created"], [
+                f"Dataset: {len(examples)} examples (need {self.min_examples})"
+            ]
 
         passed.append(f"Dataset: {len(examples)} examples")
 
@@ -139,7 +144,7 @@ class DatasetStructureValidator(Validator):
                 return val
         return []
 
-    def _verify_upload(self, run_id: str = None) -> Tuple[List[str], List[str]]:
+    def _verify_upload(self, run_id: str = None) -> tuple[list[str], list[str]]:
         client, error = get_langsmith_client()
         if error:
             return [f"Upload: skipped ({error})"], []
@@ -157,8 +162,8 @@ class DatasetStructureValidator(Validator):
         if not matching:
             return [], [f"Upload: no dataset with prefix '{search_pattern}'"]
 
-        recent = max(matching, key=lambda d: getattr(d, 'created_at', d.name))
-        count = getattr(recent, 'example_count', '?')
+        recent = max(matching, key=lambda d: getattr(d, "created_at", d.name))
+        count = getattr(recent, "example_count", "?")
         return [f"Upload: '{recent.name}' ({count} examples)"], []
 
 
@@ -179,7 +184,9 @@ class EvaluatorValidator(Validator):
         self.verify_upload = verify_upload
         self.upload_prefix = upload_prefix
 
-    def validate(self, events: dict, test_dir: Path, outputs: Dict = None) -> Tuple[List[str], List[str]]:
+    def validate(
+        self, events: dict, test_dir: Path, outputs: dict = None
+    ) -> tuple[list[str], list[str]]:
         passed, failed = [], []
 
         path = test_dir / self.filename
@@ -209,7 +216,7 @@ class EvaluatorValidator(Validator):
 
         return passed, failed
 
-    def _find_evaluator_function(self, content: str) -> Tuple[str, str]:
+    def _find_evaluator_function(self, content: str) -> tuple[str, str]:
         try:
             tree = ast.parse(content)
         except SyntaxError as e:
@@ -222,7 +229,7 @@ class EvaluatorValidator(Validator):
                     return node.name, None
         return None, "Evaluator: no (run, example) function"
 
-    def _run_tests(self, test_dir: Path, func_name: str) -> Tuple[List[str], List[str]]:
+    def _run_tests(self, test_dir: Path, func_name: str) -> tuple[list[str], list[str]]:
         # Copy test cases from data if not in test_dir
         test_cases_path = test_dir / self.test_cases_filename
         if not test_cases_path.exists():
@@ -241,8 +248,7 @@ class EvaluatorValidator(Validator):
             # Pass dataset filename so eval_runner can generate test cases dynamically
             args = [module_name, func_name, self.test_cases_filename, self.dataset_filename]
             success, output = run_python_in_docker(
-                test_dir, "_eval_runner.py", timeout=60,
-                args=args
+                test_dir, "_eval_runner.py", timeout=60, args=args
             )
 
             for line in output.split("\n"):
@@ -258,13 +264,15 @@ class EvaluatorValidator(Validator):
                     else:
                         return [], [msg + " passed"]
 
-            return (["Evaluator: executed"], []) if success else ([], ["Evaluator: execution failed"])
+            return (
+                (["Evaluator: executed"], []) if success else ([], ["Evaluator: execution failed"])
+            )
         except Exception as e:
             return [], [f"Evaluator: {str(e)[:50]}"]
         finally:
             runner_dst.unlink(missing_ok=True)
 
-    def _verify_upload(self, run_id: str = None) -> Tuple[List[str], List[str]]:
+    def _verify_upload(self, run_id: str = None) -> tuple[list[str], list[str]]:
         """Verify evaluator uploaded via /runs/rules API."""
         client, error = get_langsmith_client()
         if error:
@@ -303,7 +311,9 @@ class EvaluatorValidator(Validator):
             if dataset_name and dataset_name.startswith(search_pattern):
                 return [f"Upload: '{name}' -> dataset '{dataset_name}'"], []
             elif dataset_name:
-                return [f"Upload: '{name}' found"], [f"Upload: linked to '{dataset_name}' (expected prefix '{search_pattern}')"]
+                return [f"Upload: '{name}' found"], [
+                    f"Upload: linked to '{dataset_name}' (expected prefix '{search_pattern}')"
+                ]
 
             return [f"Upload: '{name}' found (no dataset)"], []
 
@@ -314,11 +324,13 @@ class EvaluatorValidator(Validator):
 class SkillScriptValidator(Validator):
     """Validate that skill scripts were used in commands."""
 
-    def __init__(self, script_patterns: Dict[str, str], require_scripts: bool = False):
+    def __init__(self, script_patterns: dict[str, str], require_scripts: bool = False):
         self.script_patterns = script_patterns
         self.require_scripts = require_scripts
 
-    def validate(self, events: dict, test_dir: Path, outputs: Dict = None) -> Tuple[List[str], List[str]]:
+    def validate(
+        self, events: dict, test_dir: Path, outputs: dict = None
+    ) -> tuple[list[str], list[str]]:
         passed, failed = [], []
         commands = " ".join(events.get("commands_run", [])).lower()
 
@@ -359,7 +371,9 @@ class TrajectoryAccuracyValidator(Validator):
         self.verify_upload = verify_upload
         self.upload_prefix = upload_prefix
 
-    def validate(self, events: dict, test_dir: Path, outputs: Dict = None) -> Tuple[List[str], List[str]]:
+    def validate(
+        self, events: dict, test_dir: Path, outputs: dict = None
+    ) -> tuple[list[str], list[str]]:
         passed, failed = [], []
 
         # Load Claude's dataset
@@ -374,16 +388,18 @@ class TrajectoryAccuracyValidator(Validator):
         # Load ground truth from data directory
         expected_data, error = read_json_file(self.DATA_DIR / self.expected_filename)
         if error:
-            return [f"Accuracy: skipped (no ground truth)"], []
+            return ["Accuracy: skipped (no ground truth)"], []
         expected_examples = expected_data.get("examples", [])
 
         if not expected_examples:
-            return [f"Accuracy: skipped (empty ground truth)"], []
+            return ["Accuracy: skipped (empty ground truth)"], []
 
         # Match actual examples against expected - each expected must appear exactly once
         # Use trace_id_map to remap expected IDs to actual IDs (since IDs are regenerated on upload)
         trace_id_map = outputs.get("trace_id_map", {}) if outputs else {}
-        matches, mismatches, missing = self._compare_datasets(actual_examples, expected_examples, trace_id_map)
+        matches, mismatches, missing = self._compare_datasets(
+            actual_examples, expected_examples, trace_id_map
+        )
 
         # Report results
         total_expected = len(expected_examples)
@@ -428,7 +444,7 @@ class TrajectoryAccuracyValidator(Validator):
             return inputs.get("query") or inputs.get("input") or inputs.get("question") or ""
         return ""
 
-    def _get_trajectory(self, ex: dict) -> List[str]:
+    def _get_trajectory(self, ex: dict) -> list[str]:
         """Extract tool name list from example. Returns None if not found or invalid."""
         if not isinstance(ex, dict):
             return None
@@ -442,7 +458,7 @@ class TrajectoryAccuracyValidator(Validator):
                     return self._to_tool_names(traj)
         return None
 
-    def _to_tool_names(self, traj: list) -> List[str]:
+    def _to_tool_names(self, traj: list) -> list[str]:
         """Convert trajectory items to tool name strings."""
         names = []
         for item in traj:
@@ -463,8 +479,8 @@ class TrajectoryAccuracyValidator(Validator):
         return str(ex.get("trace_id") or ex.get("id") or "")
 
     def _compare_datasets(
-        self, actual: List[dict], expected: List[dict], trace_id_map: Dict[str, str] = None
-    ) -> Tuple[int, List[str], List[str]]:
+        self, actual: list[dict], expected: list[dict], trace_id_map: dict[str, str] = None
+    ) -> tuple[int, list[str], list[str]]:
         """Compare actual dataset against expected ground truth by trace_id.
 
         Args:
@@ -502,7 +518,9 @@ class TrajectoryAccuracyValidator(Validator):
 
         return matches, mismatches, missing
 
-    def _verify_upload_matches(self, local_examples: List[dict], run_id: str = None) -> Tuple[List[str], List[str]]:
+    def _verify_upload_matches(
+        self, local_examples: list[dict], run_id: str = None
+    ) -> tuple[list[str], list[str]]:
         """Verify the uploaded LangSmith dataset matches the local file."""
         client, error = get_langsmith_client()
         if error:
@@ -522,7 +540,7 @@ class TrajectoryAccuracyValidator(Validator):
         if not matching:
             return [], [f"Upload check: no dataset with prefix '{search_pattern}'"]
 
-        recent = max(matching, key=lambda d: getattr(d, 'created_at', d.name))
+        recent = max(matching, key=lambda d: getattr(d, "created_at", d.name))
 
         # Fetch examples from uploaded dataset
         try:
@@ -557,9 +575,9 @@ class TrajectoryAccuracyValidator(Validator):
             diff = len(local_trajectories - uploaded_trajectories)
             return [], [f"Upload check: {diff} trajectories differ from uploaded"]
 
-    def _get_trajectory_from_langsmith_example(self, ex) -> List[str]:
+    def _get_trajectory_from_langsmith_example(self, ex) -> list[str]:
         """Extract trajectory from a LangSmith example object."""
-        outputs = getattr(ex, 'outputs', None) or {}
+        outputs = getattr(ex, "outputs", None) or {}
         if not isinstance(outputs, dict):
             return []
 
@@ -569,7 +587,7 @@ class TrajectoryAccuracyValidator(Validator):
                 return self._to_tool_names(traj) or []
         return []
 
-    def _trajectory_diff(self, expected: List[str], actual: List[str], query: str) -> str:
+    def _trajectory_diff(self, expected: list[str], actual: list[str], query: str) -> str:
         """Generate human-readable diff between trajectories."""
         q = (query[:20] + "...") if query and len(query) > 20 else (query or "?")
 
@@ -577,7 +595,7 @@ class TrajectoryAccuracyValidator(Validator):
             return f"'{q}': empty vs {len(expected)} tools"
 
         # Find first difference
-        for i, (a, e) in enumerate(zip(actual, expected)):
+        for i, (a, e) in enumerate(zip(actual, expected, strict=False)):
             if a != e:
                 return f"'{q}': tool[{i}] '{a}' vs expected '{e}'"
 

@@ -10,17 +10,15 @@ import pytest
 
 from scaffold import Treatment
 from scaffold.python import extract_events, parse_output
-
 from tests.langchain_agent.config import (
-    with_quickstart,
+    ENVIRONMENT_DIR,
     QUICK_START_POSITIVE,
-    noise_validators,
     TASK1_PROMPT,
     TASK2_SEARCH_PROMPT,
-    ENVIRONMENT_DIR,
+    noise_validators,
+    with_quickstart,
 )
 from tests.noise import get_tasks
-
 
 # =============================================================================
 # TREATMENTS
@@ -57,6 +55,7 @@ TREATMENTS = {
 # FIXTURES
 # =============================================================================
 
+
 @pytest.fixture
 def environment_dir():
     """Path to environment directory with Dockerfile, requirements.txt, etc."""
@@ -66,6 +65,7 @@ def environment_dir():
 # =============================================================================
 # TESTS
 # =============================================================================
+
 
 @pytest.mark.parametrize("treatment_name", list(TREATMENTS.keys()))
 def test_treatment(

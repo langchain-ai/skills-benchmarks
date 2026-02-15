@@ -11,19 +11,17 @@ import pytest
 from scaffold import Treatment
 from scaffold.python import extract_events, parse_output
 from skill_constructs import CLAUDE_FULL
-
 from tests.langchain_agent.config import (
-    with_quickstart,
-    QUICK_START_POSITIVE,
-    FULL_SECTIONS,
-    CLAUDE_MD_SKILLS_ONLY,
-    CLAUDE_MD_PATTERNS_POSITIVE,
     CLAUDE_MD_BOTH,
-    sql_agent_validators,
-    TASK1_PROMPT,
+    CLAUDE_MD_PATTERNS_POSITIVE,
+    CLAUDE_MD_SKILLS_ONLY,
     ENVIRONMENT_DIR,
+    FULL_SECTIONS,
+    QUICK_START_POSITIVE,
+    TASK1_PROMPT,
+    sql_agent_validators,
+    with_quickstart,
 )
-
 
 # =============================================================================
 # TREATMENTS
@@ -46,7 +44,6 @@ TREATMENTS = {
         skills={"langchain-agents": with_quickstart(QUICK_START_POSITIVE)},
         validators=sql_agent_validators(),
     ),
-
     # CLAUDE.md variations
     "CLAUDE_MD_SKILLS": Treatment(
         description="CLAUDE.md says 'check skills' only",
@@ -85,6 +82,7 @@ TREATMENTS = {
 # FIXTURES
 # =============================================================================
 
+
 @pytest.fixture
 def environment_dir():
     """Path to environment directory with Dockerfile, requirements.txt, etc."""
@@ -94,6 +92,7 @@ def environment_dir():
 # =============================================================================
 # TESTS
 # =============================================================================
+
 
 @pytest.mark.parametrize("treatment_name", list(TREATMENTS.keys()))
 def test_treatment(

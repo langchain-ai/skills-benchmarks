@@ -9,12 +9,10 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from scaffold import (
-    Treatment,
-    SkillInvokedValidator,
     MetricsCollector,
+    SkillInvokedValidator,
 )
-from skill_constructs.parser import load_skill, skill_config
-from skill_constructs import CLAUDE_FULL
+from skill_constructs.parser import load_skill
 from tests.langsmith_synergy.validation.validators import (
     DatasetStructureValidator,
     EvaluatorValidator,
@@ -28,6 +26,7 @@ from tests.langsmith_synergy.validation.validators import (
 
 SKILL_BASE = Path(__file__).parent.parent.parent / "skill_constructs" / "langchain"
 
+
 def load_skills():
     """Load all skills from skill.md files."""
     return {
@@ -36,6 +35,7 @@ def load_skills():
         "evaluator": load_skill(SKILL_BASE / "langsmith_evaluator"),
     }
 
+
 skills = load_skills()
 
 
@@ -43,10 +43,17 @@ skills = load_skills()
 # SECTION HELPERS
 # =============================================================================
 
+
 def without_related_skills(sections):
     """Filter out related_skills sections (cross-skill references)."""
+
     def is_related(s):
-        return s and ('**langsmith-trace**:' in s or '**langsmith-dataset**:' in s or '**langsmith-evaluator**:' in s)
+        return s and (
+            "**langsmith-trace**:" in s
+            or "**langsmith-dataset**:" in s
+            or "**langsmith-evaluator**:" in s
+        )
+
     return [s for s in sections if not is_related(s)]
 
 
@@ -106,15 +113,18 @@ Run any code you write directly."""
 # VALIDATOR FACTORIES
 # =============================================================================
 
+
 def basic_validators():
     """Validators for basic test (trace + dataset)."""
     return [
         SkillInvokedValidator("langsmith-trace", required=False),
         SkillInvokedValidator("langsmith-dataset", required=False),
-        SkillScriptValidator({
-            "query_traces.py": "query_traces.py",
-            "generate_datasets.py": "generate_datasets.py",
-        }),
+        SkillScriptValidator(
+            {
+                "query_traces.py": "query_traces.py",
+                "generate_datasets.py": "generate_datasets.py",
+            }
+        ),
         DatasetStructureValidator(
             filename="trajectory_dataset.json",
             min_examples=1,
@@ -136,10 +146,12 @@ def advanced_validators():
         SkillInvokedValidator("langsmith-trace", required=False),
         SkillInvokedValidator("langsmith-dataset", required=False),
         SkillInvokedValidator("langsmith-evaluator", required=False),
-        SkillScriptValidator({
-            "query_traces.py": "query_traces.py",
-            "generate_datasets.py": "generate_datasets.py",
-        }),
+        SkillScriptValidator(
+            {
+                "query_traces.py": "query_traces.py",
+                "generate_datasets.py": "generate_datasets.py",
+            }
+        ),
         DatasetStructureValidator(
             filename="trajectory_dataset.json",
             min_examples=1,

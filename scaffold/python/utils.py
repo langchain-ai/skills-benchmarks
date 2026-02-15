@@ -16,15 +16,20 @@ load_dotenv(Path(__file__).parent.parent.parent / ".env")
 SHELL_DIR = Path(__file__).parent.parent / "shell"
 
 
-def run_shell(script: str, *args, timeout: int = None, check: bool = True) -> subprocess.CompletedProcess:
+def run_shell(
+    script: str, *args, timeout: int = None, check: bool = True
+) -> subprocess.CompletedProcess:
     """Run a shell script from scaffold/shell/."""
     cmd = ["bash", str(SHELL_DIR / script)] + [str(a) for a in args]
-    return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, check=check, env=os.environ.copy())
+    return subprocess.run(
+        cmd, capture_output=True, text=True, timeout=timeout, check=check, env=os.environ.copy()
+    )
 
 
 # =============================================================================
 # DOCKER (via docker.sh)
 # =============================================================================
+
 
 def check_docker_available() -> bool:
     """Check if Docker is available."""
@@ -37,7 +42,9 @@ def check_docker_available() -> bool:
 def check_claude_available() -> bool:
     """Check if Claude CLI is available."""
     try:
-        return subprocess.run(["claude", "--version"], capture_output=True, timeout=10).returncode == 0
+        return (
+            subprocess.run(["claude", "--version"], capture_output=True, timeout=10).returncode == 0
+        )
     except (subprocess.TimeoutExpired, FileNotFoundError):
         return False
 
@@ -52,7 +59,9 @@ def build_docker_image(test_dir: Path, force: bool = False, verbose: bool = Fals
         return None
 
 
-def run_in_docker(test_dir: Path, command: list, timeout: int = 120, env_vars: dict = None, image_name: str = None) -> subprocess.CompletedProcess:
+def run_in_docker(
+    test_dir: Path, command: list, timeout: int = 120, env_vars: dict = None, image_name: str = None
+) -> subprocess.CompletedProcess:
     """Run command in Docker container."""
     old_env = {k: os.environ.get(k) for k in (env_vars or {})}
     for k, v in (env_vars or {}).items():
@@ -67,7 +76,9 @@ def run_in_docker(test_dir: Path, command: list, timeout: int = 120, env_vars: d
                 os.environ[k] = v
 
 
-def run_python_in_docker(test_dir: Path, script_name: str, timeout: int = 120, args: list = None) -> tuple[bool, str]:
+def run_python_in_docker(
+    test_dir: Path, script_name: str, timeout: int = 120, args: list = None
+) -> tuple[bool, str]:
     """Run Python script in Docker. Returns (success, output)."""
     if not check_docker_available():
         return False, "Docker not available"
@@ -81,7 +92,9 @@ def run_python_in_docker(test_dir: Path, script_name: str, timeout: int = 120, a
         return False, str(e)
 
 
-def run_claude_in_docker(test_dir: Path, prompt: str, timeout: int = 300, model: str = None) -> subprocess.CompletedProcess:
+def run_claude_in_docker(
+    test_dir: Path, prompt: str, timeout: int = 300, model: str = None
+) -> subprocess.CompletedProcess:
     """Run Claude CLI in Docker container."""
     if not check_docker_available():
         raise RuntimeError("Docker not available")
@@ -98,6 +111,7 @@ def run_claude_in_docker(test_dir: Path, prompt: str, timeout: int = 300, model:
 # HELPERS
 # =============================================================================
 
+
 def retry_with_backoff(func, max_retries=3, base_delay=1.0, max_delay=10.0, retry_on=None):
     """Retry with exponential backoff."""
     retry_on = retry_on or (lambda e: "429" in str(e) or "rate limit" in str(e).lower())
@@ -109,13 +123,14 @@ def retry_with_backoff(func, max_retries=3, base_delay=1.0, max_delay=10.0, retr
             last_exc = e
             if not retry_on(e) or attempt == max_retries:
                 raise
-            time.sleep(min(base_delay * (2 ** attempt) + random.uniform(0, 1), max_delay))
+            time.sleep(min(base_delay * (2**attempt) + random.uniform(0, 1), max_delay))
     raise last_exc
 
 
 def read_json_file(path: Path) -> tuple:
     """Read JSON file. Returns (data, None) or (None, error)."""
     import json
+
     if not path.exists():
         return None, f"{path.name} not found"
     try:
@@ -161,10 +176,14 @@ def extract_score(result: dict):
 # LLM EVALUATION
 # =============================================================================
 
+
 def get_eval_model(model: str = None, temperature: float = 0):
     """Get evaluation model."""
     from langchain.chat_models import init_chat_model
-    return init_chat_model(model or os.getenv("EVAL_MODEL", "openai:gpt-4o-mini"), temperature=temperature)
+
+    return init_chat_model(
+        model or os.getenv("EVAL_MODEL", "openai:gpt-4o-mini"), temperature=temperature
+    )
 
 
 def evaluate_with_schema(prompt: str, model: str = None) -> dict:

@@ -10,7 +10,7 @@ import pytest
 
 from scaffold import Treatment
 from scaffold.python import extract_events, parse_output
-from tests.langchain_agent.config import (
+from tests.benchmark_basic.config import (
     CLAUDE_MD_SKILLS_REQUIRED,
     ENVIRONMENT_DIR,
     QUICK_START_NEGATIVE,

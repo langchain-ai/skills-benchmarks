@@ -1,9 +1,7 @@
-<frontmatter>
 ---
 name: langsmith-dataset
 description: Use this skill for ANY question about creating test or evaluation datasets for agents. Covers generating datasets from exported trace files (final_response, single_step, trajectory, RAG types), uploading to LangSmith, and managing evaluation data.
 ---
-</frontmatter>
 
 <oneliner>
 Auto-generate evaluation datasets from exported JSONL trace files for testing and validation.

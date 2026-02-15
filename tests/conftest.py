@@ -69,12 +69,12 @@ def _get_experiment_name(session) -> str:
     return "experiment"
 
 
-def _get_or_create_experiment_id(name: str, is_xdist_worker: bool) -> str:
+def _get_or_create_experiment_id(name: str, use_coordination: bool) -> str:
     """Get shared experiment ID or create new one.
 
-    Uses file locking to coordinate between xdist workers.
+    Uses file locking to coordinate between xdist workers and master.
     """
-    if not is_xdist_worker:
+    if not use_coordination:
         # Not using xdist, create fresh experiment
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         return f"{name}_{timestamp}"
@@ -131,8 +131,9 @@ class ExperimentPlugin:
         """Create or join experiment logger at session start."""
         name = _get_experiment_name(session)
 
-        # Get or create shared experiment ID
-        experiment_id = _get_or_create_experiment_id(name, self.is_xdist_worker)
+        # Get or create shared experiment ID (master also participates when xdist is active)
+        use_coordination = self.is_xdist_worker or self.is_xdist_master
+        experiment_id = _get_or_create_experiment_id(name, use_coordination)
 
         # Join existing experiment (workers) or create new (master/single)
         self.logger = ExperimentLogger(experiment_name=name, experiment_id=experiment_id)

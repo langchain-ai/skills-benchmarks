@@ -39,6 +39,7 @@ PROJECT_ROOT = Path(__file__).parent.parent
 
 # Shared file for xdist worker coordination
 XDIST_EXPERIMENT_FILE = PROJECT_ROOT / ".pytest_experiment_id"
+DOCKER_BUILD_LOCK = PROJECT_ROOT / ".pytest_docker_build.lock"
 
 
 # =============================================================================
@@ -296,6 +297,58 @@ def verify_environment(project_root):
     result = subprocess.run(["which", "claude"], capture_output=True)
     if result.returncode != 0:
         pytest.skip("Claude CLI not available")
+
+
+def _build_docker_image_with_lock(environment_dir: Path) -> str | None:
+    """Build Docker image with file locking to prevent race conditions.
+
+    Uses file locking to ensure only one process builds the image at a time.
+    Other processes wait for the build to complete, then use the cached image.
+    """
+    if not environment_dir or not (environment_dir / "Dockerfile").exists():
+        return None
+
+    # Create lock file
+    lock_file = DOCKER_BUILD_LOCK
+
+    with open(lock_file, "w") as lf:
+        # Acquire exclusive lock (blocks until available)
+        fcntl.flock(lf.fileno(), fcntl.LOCK_EX)
+        try:
+            # Build image (will use cache if already built by another process)
+            result = run_shell("docker.sh", "build", str(environment_dir), timeout=300, check=False)
+            if result.returncode == 0:
+                return result.stdout.strip()
+            return None
+        finally:
+            fcntl.flock(lf.fileno(), fcntl.LOCK_UN)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def prebuild_docker_image(request):
+    """Pre-build Docker image once per session to avoid race conditions.
+
+    This fixture uses file locking to ensure only one worker builds the image.
+    Other workers wait for the build to complete.
+
+    Tests should depend on this fixture via environment_dir fixture.
+    """
+    # Find environment_dir from test module if available
+    # This is a session fixture, so we build for common environments
+    for marker in ["benchmark_basic", "benchmark_langsmith"]:
+        env_dir = PROJECT_ROOT / "tests" / marker / "environment"
+        if env_dir.exists():
+            image = _build_docker_image_with_lock(env_dir)
+            if image:
+                print(f"\nPre-built Docker image: {image}")
+
+    yield
+
+    # Cleanup lock file at session end (only if we're the last one)
+    try:
+        DOCKER_BUILD_LOCK.unlink(missing_ok=True)
+    except Exception:
+        pass
 
 
 @pytest.fixture

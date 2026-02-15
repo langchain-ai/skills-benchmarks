@@ -21,10 +21,8 @@
 // Schema types and functions
 export {
   type NoiseTask,
-  NoiseTaskSchema,
   type SkillConfig,
   type Treatment,
-  TreatmentSchema,
   getFilesToRun,
   buildPrompt,
   validate,
@@ -49,6 +47,8 @@ export {
   PROJECT_ROOT,
   LOGS_DIR,
   stripAnsi,
+  stripNpmNoise,
+  cleanOutput,
   parseOutput,
   type ParsedOutput,
   extractEvents,

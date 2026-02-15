@@ -1,12 +1,5 @@
 /**
  * Validators for experiment results.
- *
- * Mirrors scaffold/python/validation.py - provides 5 validators:
- * - SkillInvokedValidator
- * - FileValidator (supports .py and .js/.ts files)
- * - NoiseTaskValidator
- * - MetricsCollector
- * - OutputQualityValidator
  */
 
 import { existsSync, readFileSync } from "node:fs";
@@ -35,38 +28,30 @@ export interface Validator {
 // SKILL INVOKED VALIDATOR
 // =============================================================================
 
-/**
- * Check if a skill was invoked.
- */
 export class SkillInvokedValidator implements Validator {
-  skillName: string;
-  required: boolean;
-
-  constructor(skillName: string, options: { required?: boolean } = {}) {
-    this.skillName = skillName;
-    this.required = options.required ?? true;
-  }
+  constructor(
+    public skillName: string,
+    public options: { required?: boolean } = {}
+  ) {}
 
   validate(events: Record<string, unknown>): ValidationResult {
     const skillsInvoked = (events.skills_invoked as string[]) || [];
     const invoked = skillsInvoked.includes(this.skillName);
+    const required = this.options.required ?? true;
 
-    if (invoked) {
-      return { passed: [`Invoked ${this.skillName} skill`], failed: [] };
-    } else if (this.required) {
-      return { passed: [], failed: [`Did NOT invoke ${this.skillName} skill`] };
-    }
+    if (invoked) return { passed: [`Invoked ${this.skillName} skill`], failed: [] };
+    if (required) return { passed: [], failed: [`Did NOT invoke ${this.skillName} skill`] };
     return { passed: [`Note: did not invoke ${this.skillName}`], failed: [] };
   }
 }
 
 // =============================================================================
-// FILE VALIDATOR (Python/JavaScript)
+// FILE VALIDATOR
 // =============================================================================
 
 export interface FileValidatorOptions {
   label?: string;
-  required?: Record<string, string>;
+  required?: Record<string, string>; // pattern -> description
   forbidden?: Record<string, string>;
   anyOf?: Record<string, string>;
   runFile?: boolean;
@@ -76,152 +61,90 @@ export interface FileValidatorOptions {
   minOutputLines?: number;
 }
 
-/**
- * Validate TypeScript/JavaScript file existence, patterns, and optionally run it.
- */
+/** Validate TypeScript/JavaScript file existence, patterns, and optionally run it. */
 export class TypeScriptFileValidator implements Validator {
-  filename: string;
-  label: string;
-  required: Record<string, string>;
-  forbidden: Record<string, string>;
-  anyOf: Record<string, string>;
-  runFile: boolean;
-  requireAll: boolean;
-  runArgs: string[];
-  outputPatterns: Record<string, string>;
-  minOutputLines: number;
-
-  constructor(filename: string, options: FileValidatorOptions = {}) {
-    this.filename = filename;
-    this.label = options.label || filename;
-    this.required = options.required || {};
-    this.forbidden = options.forbidden || {};
-    this.anyOf = options.anyOf || {};
-    this.runFile = options.runFile ?? false;
-    this.requireAll = options.requireAll ?? false;
-    this.runArgs = options.runArgs || [];
-    this.outputPatterns = options.outputPatterns || {};
-    this.minOutputLines = options.minOutputLines ?? 0;
-  }
+  constructor(
+    public filename: string,
+    public opts: FileValidatorOptions = {}
+  ) {}
 
   async validate(
-    events: Record<string, unknown>,
+    _events: Record<string, unknown>,
     testDir: string,
     outputs?: Record<string, unknown>
   ): Promise<ValidationResult> {
     const passed: string[] = [];
     const failed: string[] = [];
+    const label = this.opts.label || this.filename;
     const filePath = join(testDir, this.filename);
 
     if (!existsSync(filePath)) {
-      return { passed: [], failed: [`${this.label}: file not created`] };
+      return { passed: [], failed: [`${label}: file not created`] };
     }
+    passed.push(`${label}: created`);
 
     const content = readFileSync(filePath, "utf8");
-    passed.push(`${this.label}: created`);
 
-    // Required patterns
-    if (Object.keys(this.required).length > 0) {
-      const found: [string, string][] = [];
-      const missing: [string, string][] = [];
+    // Check required patterns
+    const required = this.opts.required || {};
+    if (Object.keys(required).length > 0) {
+      const found = Object.entries(required).filter(([p]) => content.includes(p));
+      const missing = Object.entries(required).filter(([p]) => !content.includes(p));
 
-      for (const [pattern, desc] of Object.entries(this.required)) {
-        if (content.includes(pattern)) {
-          found.push([pattern, desc]);
-        } else {
-          missing.push([pattern, desc]);
-        }
-      }
-
-      if (this.requireAll) {
-        for (const [, desc] of missing) {
-          failed.push(`${this.label}: missing ${desc}`);
-        }
-        if (found.length > 0) {
-          passed.push(
-            `${this.label}: ${found
-              .slice(0, 3)
-              .map(([, d]) => d)
-              .join(", ")}`
-          );
-        }
-      } else if (found.length > 0) {
-        passed.push(
-          `${this.label}: ${found
-            .slice(0, 3)
-            .map(([, d]) => d)
-            .join(", ")}`
-        );
+      if (this.opts.requireAll) {
+        missing.forEach(([, d]) => failed.push(`${label}: missing ${d}`));
+        if (found.length) passed.push(`${label}: ${found.slice(0, 3).map(([, d]) => d).join(", ")}`);
+      } else if (found.length) {
+        passed.push(`${label}: ${found.slice(0, 3).map(([, d]) => d).join(", ")}`);
       } else {
-        failed.push(`${this.label}: missing required patterns`);
+        failed.push(`${label}: missing required patterns`);
       }
     }
 
-    // Any-of patterns
-    if (Object.keys(this.anyOf).length > 0) {
-      const found = Object.entries(this.anyOf).find(([pattern]) =>
-        content.includes(pattern)
-      );
+    // Check any-of patterns
+    const anyOf = this.opts.anyOf || {};
+    if (Object.keys(anyOf).length > 0) {
+      const found = Object.entries(anyOf).find(([p]) => content.includes(p));
       if (found) {
-        passed.push(`${this.label}: ${found[1]}`);
+        passed.push(`${label}: ${found[1]}`);
       } else {
-        const descriptions = Object.values(this.anyOf).join(", ");
-        failed.push(`${this.label}: missing (need one of: ${descriptions})`);
+        failed.push(`${label}: missing (need one of: ${Object.values(anyOf).join(", ")})`);
       }
     }
 
-    // Forbidden patterns
-    for (const [pattern, desc] of Object.entries(this.forbidden)) {
-      if (content.includes(pattern)) {
-        failed.push(`${this.label}: ${desc}`);
-      }
+    // Check forbidden patterns
+    for (const [pattern, desc] of Object.entries(this.opts.forbidden || {})) {
+      if (content.includes(pattern)) failed.push(`${label}: ${desc}`);
     }
 
-    // Basic syntax check for Python files
-    if (this.filename.endsWith(".py")) {
-      // We can't do Python AST parsing in JS, so we just check for obvious issues
-      // The actual run will catch syntax errors
-      passed.push(`${this.label}: valid syntax`);
-    }
-
-    // Run file
-    if (this.runFile) {
-      let success: boolean;
-      let output: string;
-
+    // Run file if requested
+    if (this.opts.runFile) {
+      let success: boolean, output: string;
       if (outputs && this.filename in outputs) {
-        const cachedOutput = outputs[this.filename] as [boolean, string];
-        [success, output] = cachedOutput;
+        [success, output] = outputs[this.filename] as [boolean, string];
       } else {
-        [success, output] = runNodeInDocker(testDir, this.filename, {
-          args: this.runArgs,
-        });
+        [success, output] = runNodeInDocker(testDir, this.filename, { args: this.opts.runArgs || [] });
       }
 
       if (success) {
-        passed.push(`${this.label}: runs successfully`);
-        const lines = output
-          .trim()
-          .split("\n")
-          .filter((l) => l.trim()).length;
+        passed.push(`${label}: runs successfully`);
+        const lines = output.trim().split("\n").filter((l) => l.trim()).length;
 
-        if (this.minOutputLines && lines < this.minOutputLines) {
-          failed.push(
-            `${this.label}: only ${lines} lines (need ${this.minOutputLines})`
-          );
-        } else if (this.minOutputLines) {
-          passed.push(`${this.label}: ${lines} lines output`);
+        if (this.opts.minOutputLines && lines < this.opts.minOutputLines) {
+          failed.push(`${label}: only ${lines} lines (need ${this.opts.minOutputLines})`);
+        } else if (this.opts.minOutputLines) {
+          passed.push(`${label}: ${lines} lines output`);
         }
 
-        for (const [pattern, desc] of Object.entries(this.outputPatterns)) {
+        for (const [pattern, desc] of Object.entries(this.opts.outputPatterns || {})) {
           if (output.toLowerCase().includes(pattern.toLowerCase())) {
-            passed.push(`${this.label}: output has ${desc}`);
+            passed.push(`${label}: output has ${desc}`);
           } else {
-            failed.push(`${this.label}: output missing ${desc}`);
+            failed.push(`${label}: output missing ${desc}`);
           }
         }
       } else {
-        failed.push(`${this.label}: ${output.slice(0, 150)}`);
+        failed.push(`${label}: ${output.slice(0, 150)}`);
       }
     }
 
@@ -229,39 +152,24 @@ export class TypeScriptFileValidator implements Validator {
   }
 }
 
-// Alias for convenience
 export { TypeScriptFileValidator as FileValidator };
 
 // =============================================================================
 // NOISE TASK VALIDATOR
 // =============================================================================
 
-/**
- * Validate noise task output files were created.
- */
+/** Validate noise task output files were created. */
 export class NoiseTaskValidator implements Validator {
-  outputFiles: string[];
+  constructor(public outputFiles: string[]) {}
 
-  constructor(outputFiles: string[]) {
-    this.outputFiles = outputFiles;
-  }
-
-  validate(
-    events: Record<string, unknown>,
-    testDir: string
-  ): ValidationResult {
+  validate(_events: Record<string, unknown>, testDir: string): ValidationResult {
     const passed: string[] = [];
     const failed: string[] = [];
-
     for (const f of this.outputFiles) {
-      const exists = existsSync(join(testDir, f));
-      if (exists) {
-        passed.push(`Noise: ${f} created`);
-      } else {
-        failed.push(`Noise: ${f} NOT created`);
-      }
+      existsSync(join(testDir, f))
+        ? passed.push(`Noise: ${f} created`)
+        : failed.push(`Noise: ${f} NOT created`);
     }
-
     return { passed, failed };
   }
 }
@@ -270,39 +178,25 @@ export class NoiseTaskValidator implements Validator {
 // METRICS COLLECTOR
 // =============================================================================
 
-/**
- * Collect metrics (always passes).
- */
+/** Collect metrics (always passes). */
 export class MetricsCollector implements Validator {
-  outputFiles: string[];
-
-  constructor(outputFiles: string[] = []) {
-    this.outputFiles = outputFiles;
-  }
+  constructor(public outputFiles: string[] = []) {}
 
   validate(events: Record<string, unknown>): ValidationResult {
     const evts = events as unknown as Events;
-    const passed: string[] = [
+    const passed = [
       `Turns: ${evts.num_turns ?? 0}`,
       `Duration: ${(evts.duration_seconds ?? 0).toFixed(0)}s`,
       `Tool calls: ${evts.tool_calls?.length ?? 0}`,
     ];
 
+    // Check for deprecated API usage attempts
     const deprecated = ["create_sql_agent", "AgentExecutor", "initialize_agent"];
-    const toolCalls = (evts.tool_calls || []) as Array<{
-      tool: string;
-      input: Record<string, unknown>;
-    }>;
-
+    const toolCalls = (evts.tool_calls || []) as Array<{ tool: string; input: Record<string, unknown> }>;
     const depCount = toolCalls.filter(
-      (tc) =>
-        (tc.tool === "Write" || tc.tool === "Edit") &&
-        deprecated.some((d) => JSON.stringify(tc.input).includes(d))
+      (tc) => (tc.tool === "Write" || tc.tool === "Edit") && deprecated.some((d) => JSON.stringify(tc.input).includes(d))
     ).length;
-
-    if (depCount) {
-      passed.push(`Deprecated attempts: ${depCount}`);
-    }
+    if (depCount) passed.push(`Deprecated attempts: ${depCount}`);
 
     return { passed, failed: [] };
   }
@@ -316,73 +210,46 @@ export interface OutputQualityOptions {
   runArgs?: string[];
 }
 
-/**
- * Use LLM to evaluate output quality.
- */
+/** Use LLM to evaluate output quality. */
 export class OutputQualityValidator implements Validator {
-  filename: string;
-  label: string;
-  taskDescription: string;
-  expectedBehavior: string;
-  runArgs: string[];
-
   constructor(
-    filename: string,
-    label: string,
-    options: {
-      taskDescription: string;
-      expectedBehavior: string;
-      runArgs?: string[];
-    }
-  ) {
-    this.filename = filename;
-    this.label = label;
-    this.taskDescription = options.taskDescription;
-    this.expectedBehavior = options.expectedBehavior;
-    this.runArgs = options.runArgs || [];
-  }
+    public filename: string,
+    public label: string,
+    public opts: { taskDescription: string; expectedBehavior: string; runArgs?: string[] }
+  ) {}
 
   async validate(
-    events: Record<string, unknown>,
+    _events: Record<string, unknown>,
     testDir: string,
     outputs?: Record<string, unknown>
   ): Promise<ValidationResult> {
     const passed: string[] = [];
-    const failed: string[] = [];
     const filePath = join(testDir, this.filename);
 
     if (!existsSync(filePath)) {
       return { passed: [], failed: [`${this.label}: file not created`] };
     }
 
-    let success: boolean;
-    let output: string;
-    let duration: number | null = null;
-
+    // Get output (from cache or by running)
+    let success: boolean, output: string, duration: number | null = null;
     if (outputs && this.filename in outputs) {
       const cached = outputs[this.filename] as [boolean, string, number?];
-      success = cached[0];
-      output = cached[1];
-      duration = cached[2] ?? null;
+      [success, output, duration] = [cached[0], cached[1], cached[2] ?? null];
     } else {
-      [success, output] = runNodeInDocker(testDir, this.filename, {
-        args: this.runArgs,
-      });
+      [success, output] = runNodeInDocker(testDir, this.filename, { args: this.opts.runArgs || [] });
     }
 
     if (!success) {
-      return {
-        passed: [],
-        failed: [`${this.label}: runtime error - ${output.slice(0, 100)}`],
-      };
+      return { passed: [], failed: [`${this.label}: runtime error - ${output.slice(0, 100)}`] };
     }
 
     const durStr = duration ? ` in ${duration.toFixed(1)}s` : "";
     passed.push(`${this.label}: produced output (${output.length} chars${durStr})`);
 
+    // Evaluate with LLM
     const prompt = `Evaluate this program output.
-Task: ${this.taskDescription}
-Expected: ${this.expectedBehavior}
+Task: ${this.opts.taskDescription}
+Expected: ${this.opts.expectedBehavior}
 Output:
 \`\`\`
 ${output.slice(0, 3000)}
@@ -390,10 +257,8 @@ ${output.slice(0, 3000)}
 Does this demonstrate the expected behavior?`;
 
     const result = await evaluateWithSchema(prompt);
-    passed.push(
-      `${this.label} quality [${result.pass ? "GOOD" : "LOW"}]: ${result.reason}`
-    );
+    passed.push(`${this.label} quality [${result.pass ? "GOOD" : "LOW"}]: ${result.reason}`);
 
-    return { passed, failed };
+    return { passed, failed: [] };
   }
 }

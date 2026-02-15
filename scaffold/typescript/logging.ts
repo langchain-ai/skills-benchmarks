@@ -1,7 +1,5 @@
 /**
- * Output parsing, event extraction, and experiment logging for Claude CLI.
- *
- * Mirrors scaffold/python/logging.py - writes to same logs/experiments/ directory.
+ * Output parsing, event extraction, and experiment logging.
  */
 
 import { existsSync, mkdirSync, writeFileSync, readdirSync, readFileSync } from "node:fs";
@@ -12,14 +10,21 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 export const PROJECT_ROOT = resolve(__dirname, "..", "..");
 export const LOGS_DIR = join(PROJECT_ROOT, "logs");
 
-// Regex to strip ANSI escape codes
 const ANSI_ESCAPE = /\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])/g;
+const NPM_NOISE = [/^npm warn exec.*$/gm, /^npm notice.*$/gm];
 
-/**
- * Remove ANSI escape codes from text.
- */
 export function stripAnsi(text: string): string {
   return text.replace(ANSI_ESCAPE, "");
+}
+
+export function stripNpmNoise(text: string): string {
+  let result = text;
+  for (const pattern of NPM_NOISE) result = result.replace(pattern, "");
+  return result.replace(/\n{3,}/g, "\n\n").trim();
+}
+
+export function cleanOutput(text: string): string {
+  return stripNpmNoise(stripAnsi(text));
 }
 
 // =============================================================================
@@ -30,20 +35,12 @@ export interface ParsedOutput {
   messages: Record<string, unknown>[];
 }
 
-/**
- * Parse stream-json output into structured data.
- */
+/** Parse stream-json output into structured data. */
 export function parseOutput(stdout: string): ParsedOutput {
-  if (!stdout) {
-    return { messages: [] };
-  }
+  if (!stdout) return { messages: [] };
   const messages: Record<string, unknown>[] = [];
   for (const line of stdout.trim().split("\n")) {
-    try {
-      messages.push(JSON.parse(line));
-    } catch {
-      // Skip non-JSON lines
-    }
+    try { messages.push(JSON.parse(line)); } catch { /* skip non-JSON */ }
   }
   return { messages };
 }
@@ -182,9 +179,6 @@ export interface TreatmentResult {
   run_id: string;
 }
 
-/**
- * Create a TreatmentResult from validation results.
- */
 export function createTreatmentResult(
   name: string,
   checksPassed: string[],
@@ -206,16 +200,10 @@ export function createTreatmentResult(
   };
 }
 
-/**
- * Check if any passed check contains pattern.
- */
 export function hasCheck(result: TreatmentResult, pattern: string): boolean {
   return result.checks_passed.some((c) => c.includes(pattern));
 }
 
-/**
- * Check if any failed check contains pattern.
- */
 export function hasFailedCheck(result: TreatmentResult, pattern: string): boolean {
   return result.checks_failed.some((c) => c.includes(pattern));
 }
@@ -231,21 +219,15 @@ export interface ReportColumn {
   aggregate?: (runs: TreatmentResult[]) => string;
 }
 
-/**
- * Column that checks if pattern exists in passed checks.
- */
 export function boolColumn(name: string, pattern: string, description?: string): ReportColumn {
   return {
     name,
     description: description || `Checks if any passed check contains: \`${pattern}\``,
-    extract: (r) => (hasCheck(r, pattern) ? "Yes" : "No"),
+    extract: (r) => hasCheck(r, pattern) ? "Yes" : "No",
     aggregate: (runs) => `${runs.filter((r) => hasCheck(r, pattern)).length}/${runs.length}`,
   };
 }
 
-/**
- * Column for output quality ([GOOD] vs [LOW]).
- */
 export function qualityColumn(name = "Quality"): ReportColumn {
   return {
     name,
@@ -257,12 +239,7 @@ export function qualityColumn(name = "Quality"): ReportColumn {
       }
       return "N/A";
     },
-    aggregate: (runs) => {
-      const good = runs.filter((r) =>
-        r.checks_passed.some((c) => c.includes("[GOOD]"))
-      ).length;
-      return `${good}/${runs.length}`;
-    },
+    aggregate: (runs) => `${runs.filter((r) => r.checks_passed.some((c) => c.includes("[GOOD]"))).length}/${runs.length}`,
   };
 }
 
@@ -553,97 +530,48 @@ export class ExperimentLogger {
 }
 
 // =============================================================================
-// PARALLEL SAVE HELPERS (for multiprocessing workers)
+// PARALLEL SAVE HELPERS
 // =============================================================================
 
-/**
- * Save events JSON.
- */
-export function saveEvents(
-  baseDir: string,
-  treatmentName: string,
-  rep: number,
-  events: Events
-): string {
-  const eventsDir = join(baseDir, "events");
-  mkdirSync(eventsDir, { recursive: true });
-  const savePath = join(eventsDir, `${treatmentName.toLowerCase()}_rep${rep}.json`);
-  writeFileSync(savePath, JSON.stringify(events, null, 2));
-  return savePath;
+export function saveEvents(baseDir: string, treatmentName: string, rep: number, events: Events): string {
+  const dir = join(baseDir, "events");
+  mkdirSync(dir, { recursive: true });
+  const path = join(dir, `${treatmentName.toLowerCase()}_rep${rep}.json`);
+  writeFileSync(path, JSON.stringify(events, null, 2));
+  return path;
 }
 
-/**
- * Save raw CLI output.
- */
-export function saveRaw(
-  baseDir: string,
-  treatmentName: string,
-  rep: number,
-  stdout: string,
-  stderr?: string
-): void {
-  const rawDir = join(baseDir, "raw");
-  mkdirSync(rawDir, { recursive: true });
-  const stdoutPath = join(rawDir, `${treatmentName.toLowerCase()}_rep${rep}_stdout.json`);
-  writeFileSync(stdoutPath, stdout);
-
-  if (stderr) {
-    const stderrPath = join(rawDir, `${treatmentName.toLowerCase()}_rep${rep}_stderr.txt`);
-    writeFileSync(stderrPath, stderr);
-  }
+export function saveRaw(baseDir: string, treatmentName: string, rep: number, stdout: string, stderr?: string): void {
+  const dir = join(baseDir, "raw");
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(join(dir, `${treatmentName.toLowerCase()}_rep${rep}_stdout.json`), stdout);
+  if (stderr) writeFileSync(join(dir, `${treatmentName.toLowerCase()}_rep${rep}_stderr.txt`), stderr);
 }
 
-/**
- * Save treatment report.
- */
-export function saveReport(
-  baseDir: string,
-  treatmentName: string,
-  rep: number,
-  report: Record<string, unknown>
-): string {
-  const reportsDir = join(baseDir, "reports");
-  mkdirSync(reportsDir, { recursive: true });
-  const savePath = join(reportsDir, `${treatmentName.toLowerCase()}_rep${rep}_report.json`);
-  writeFileSync(savePath, JSON.stringify(report, null, 2));
-  return savePath;
+export function saveReport(baseDir: string, treatmentName: string, rep: number, report: Record<string, unknown>): string {
+  const dir = join(baseDir, "reports");
+  mkdirSync(dir, { recursive: true });
+  const path = join(dir, `${treatmentName.toLowerCase()}_rep${rep}_report.json`);
+  writeFileSync(path, JSON.stringify(report, null, 2));
+  return path;
 }
 
-/**
- * Load results from saved report files (for aggregating parallel runs).
- */
 export function loadResultsFromReports(reportsDir: string): TreatmentResult[] {
-  if (!existsSync(reportsDir)) {
-    return [];
-  }
-
+  if (!existsSync(reportsDir)) return [];
   const results: TreatmentResult[] = [];
-  const files = readdirSync(reportsDir).filter((f) => f.endsWith(".json")).sort();
 
-  for (const file of files) {
+  for (const file of readdirSync(reportsDir).filter((f) => f.endsWith(".json")).sort()) {
     try {
-      const content = readFileSync(join(reportsDir, file), "utf8");
-      const report = JSON.parse(content) as {
-        name?: string;
-        passed?: boolean;
-        checks_passed?: string[];
-        checks_failed?: string[];
-        events_summary?: EventsSummary;
-        run_id?: string;
-      };
-
+      const report = JSON.parse(readFileSync(join(reportsDir, file), "utf8")) as Record<string, unknown>;
       results.push({
-        name: report.name || "unknown",
-        passed: report.passed ?? false,
-        checks_passed: report.checks_passed || [],
-        checks_failed: report.checks_failed || [],
-        events_summary: report.events_summary || {},
-        run_id: report.run_id || "",
+        name: (report.name as string) || "unknown",
+        passed: (report.passed as boolean) ?? false,
+        checks_passed: (report.checks_passed as string[]) || [],
+        checks_failed: (report.checks_failed as string[]) || [],
+        events_summary: (report.events_summary as EventsSummary) || {},
+        run_id: (report.run_id as string) || "",
       });
-    } catch {
-      // Skip invalid files
-    }
+    } catch { /* skip invalid */ }
   }
-
   return results;
 }

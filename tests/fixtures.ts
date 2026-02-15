@@ -42,7 +42,7 @@ import {
   saveEvents,
   saveReport,
   createTreatmentResult,
-  stripAnsi,
+  cleanOutput,
   type Events,
   type TreatmentResult,
 } from "../scaffold/typescript/logging.js";
@@ -356,7 +356,7 @@ function saveArtifacts(
         const status = success ? "success" : "error";
         const baseName = scriptFile.replace(/\.(ts|js)$/, "");
         const outputFile = join(executionDir, `${baseName}_${status}.txt`);
-        writeFileSync(outputFile, stripAnsi(output));
+        writeFileSync(outputFile, cleanOutput(output));
       } catch (e) {
         const baseName = scriptFile.replace(/\.(ts|js)$/, "");
         const errorFile = join(executionDir, `${baseName}_error.txt`);

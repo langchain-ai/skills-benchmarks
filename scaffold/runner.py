@@ -14,10 +14,12 @@ from pathlib import Path
 from dataclasses import dataclass, field
 from datetime import datetime
 from multiprocessing import Pool
-from typing import Dict, Any, List, Callable
+from typing import Dict, Any, List, Callable, Optional
 from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).parent.parent / ".env")
+
+from .logging import ExperimentLogger, TreatmentResult
 
 from .logging import parse_output, extract_events, strip_ansi, save_events, save_raw, save_report
 from .setup import setup_test_environment, cleanup_test_environment, setup_test_context, write_skill, get_noise_skill_content
@@ -323,3 +325,139 @@ def create_work_items(
                 timeout=timeout, model=model, files_to_run=files_to_run or None, run_id=run_id,
             ))
     return items
+
+
+# =============================================================================
+# HIGH-LEVEL EXPERIMENT RUNNER
+# =============================================================================
+
+def print_summary(results: Dict[str, List[TestResult]]):
+    """Print experiment results summary."""
+    print("\n" + "=" * 100)
+    print("  RESULTS")
+    print("=" * 100)
+
+    print(f"\n{'Treatment':<25} {'Checks':<15} {'Turns':<8} {'Duration':<10} {'Details'}")
+    print("-" * 100)
+
+    for name, runs in results.items():
+        for r in runs:
+            checks_passed = len(r.checks_passed)
+            checks_total = checks_passed + len(r.checks_failed)
+            check_pct = (checks_passed / checks_total * 100) if checks_total > 0 else 0
+            checks_str = f"{checks_passed}/{checks_total} ({check_pct:.0f}%)"
+            turns = str(r.events.get("num_turns", "?")) if r.events else "?"
+            dur = r.events.get('duration_seconds') if r.events else None
+            duration = f"{dur:.0f}s" if dur else "?"
+            details = r.checks_failed[0][:30] if r.checks_failed else "OK"
+            print(f"{name:<25} {checks_str:<15} {turns:<8} {duration:<10} {details}")
+
+    print("-" * 100)
+    total_passed = sum(sum(len(r.checks_passed) for r in runs) for runs in results.values())
+    total = sum(sum(len(r.checks_passed) + len(r.checks_failed) for r in runs) for runs in results.values())
+    print(f"Total: {total_passed}/{total} checks passed ({total_passed/total*100:.1f}%)" if total else "No results")
+    print("=" * 100)
+
+
+def run_experiment(
+    treatments: Dict[str, Any],
+    build_prompt_func: Callable,
+    validate_func: Callable,
+    experiment_name: str,
+    environment_dir: Path,
+    required_files: List[str],
+    columns: List[Any],
+    treatment_names: List[str] = None,
+    repeat: int = 1,
+    workers: int = 3,
+    timeout: int = 600,
+    model: str = None,
+    pre_run: Callable = None,
+    post_run: Callable = None,
+    ground_truth_func: Callable = None,
+) -> Dict[str, List[TestResult]]:
+    """Run an experiment with the given treatments.
+
+    Args:
+        treatments: Dict of treatment_name -> Treatment
+        build_prompt_func: (treatment, name, rep, run_id) -> prompt string
+        validate_func: (events, test_dir, treatment_name, outputs) -> (passed, failed)
+        experiment_name: Name for the experiment
+        environment_dir: Path to environment directory (Dockerfile, etc.)
+        required_files: List of required files in environment_dir
+        columns: List of ReportColumn for the experiment logger
+        treatment_names: List of treatment names to run (None = all)
+        repeat: Number of repetitions per treatment
+        workers: Number of parallel workers
+        timeout: Timeout per run in seconds
+        model: Model to use (None = default)
+        pre_run: Optional function to call before running (e.g., generate traces)
+        post_run: Optional function(run_ids) to call after running (e.g., cleanup)
+        ground_truth_func: Optional function(base_dir) to generate ground truth
+
+    Returns:
+        Dict of treatment_name -> list of TestResult
+    """
+    from .setup import verify_environment
+
+    verify_environment(environment_dir, required_files)
+
+    if treatment_names is None:
+        treatment_names = list(treatments.keys())
+
+    experiment = ExperimentLogger(experiment_name, columns=columns)
+
+    # Pre-run hook (e.g., generate traces)
+    if pre_run:
+        pre_run()
+
+    # Generate ground truth
+    if ground_truth_func:
+        ground_truth_func(experiment.base_dir)
+
+    print(f"\n{'='*60}")
+    print(f"EXPERIMENT: {experiment.experiment_id}")
+    print(f"Treatments: {', '.join(treatment_names)}")
+    print(f"Repetitions: {repeat}, Workers: {workers}")
+    print(f"{'='*60}\n")
+
+    work_items = create_work_items(
+        treatments=treatments,
+        treatment_names=treatment_names,
+        base_dir=experiment.base_dir,
+        build_prompt_func=build_prompt_func,
+        environment_dir=environment_dir,
+        repeat=repeat,
+        timeout=timeout,
+        model=model,
+    )
+
+    print(f"Total runs: {len(work_items)}\n")
+
+    all_results = run_parallel(work_items, validate_func, max_workers=workers)
+
+    # Log results
+    for name, runs in all_results.items():
+        for r in runs:
+            events = r.events or {}
+            experiment.add_result(name, TreatmentResult(
+                name=r.name, passed=r.passed,
+                checks_passed=r.checks_passed, checks_failed=r.checks_failed,
+                events_summary={
+                    "num_turns": events.get("num_turns"),
+                    "duration_seconds": events.get("duration_seconds"),
+                    "tool_calls": len(events.get("tool_calls", [])),
+                },
+                run_id=r.run_id,
+            ))
+
+    # Print summary and finalize
+    print_summary(all_results)
+    experiment.finalize()
+
+    # Post-run hook (e.g., cleanup)
+    if post_run:
+        run_ids = [w.run_id for w in work_items if w.run_id]
+        post_run(run_ids)
+
+    return all_results

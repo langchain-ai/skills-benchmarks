@@ -18,9 +18,8 @@ from pathlib import Path
 
 import pytest
 
-from tests.benchmark_langsmith.config import ENVIRONMENT_DIR
-
 DATA_DIR = Path(__file__).parent / "data"
+ENVIRONMENT_DIR = Path(__file__).parent / "environment"
 
 
 def _get_langsmith_client():

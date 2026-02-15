@@ -125,8 +125,7 @@ tests/my_benchmark/
 For TypeScript (vitest):
 ```
 tests/my_benchmark/
-  config.ts             # Treatment definitions
-  mytest.test.ts        # Your test file
+  mytest.test.ts        # Test file with treatments defined inline
 ```
 
 #### 2. Define treatments

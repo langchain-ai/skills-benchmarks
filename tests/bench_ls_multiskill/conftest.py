@@ -9,6 +9,7 @@ Fixture files (in data/):
 - evaluator_test_cases.json - Test cases for evaluator validation
 """
 
+import atexit
 import json
 import os
 import time
@@ -17,6 +18,22 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 import pytest
+
+# Track projects to cleanup on exit (survives Ctrl+C)
+_projects_to_cleanup: set[str] = set()
+
+
+def _atexit_cleanup():
+    """Cleanup all registered projects on exit."""
+    for name in list(_projects_to_cleanup):
+        try:
+            from langsmith import Client
+            Client().delete_project(project_name=name)
+        except Exception:
+            pass
+
+
+atexit.register(_atexit_cleanup)
 
 DATA_DIR = Path(__file__).parent / "data"
 ENVIRONMENT_DIR = Path(__file__).parent / "environment"
@@ -145,6 +162,9 @@ def langsmith_project(worker_id, verify_environment):
     suffix = "main" if worker_id == "master" else worker_id
     project_name = f"benchmark-{suffix}-{uuid.uuid4().hex[:8]}"
 
+    # Register for cleanup on interrupt
+    _projects_to_cleanup.add(project_name)
+
     old_project = os.environ.get("LANGSMITH_PROJECT")
     os.environ["LANGSMITH_PROJECT"] = project_name
 
@@ -154,7 +174,8 @@ def langsmith_project(worker_id, verify_environment):
 
     yield project_name
 
-    # Cleanup
+    # Cleanup (also removes from atexit set)
+    _projects_to_cleanup.discard(project_name)
     client, _ = _get_langsmith_client()
     if client:
         try:

@@ -128,7 +128,24 @@ QUICK_START_NEUTRAL = _build_quickstart(None)  # No guidance (for "_MOVED" varia
 
 
 def with_quickstart(content):
-    """Return skill sections with quick_start replaced by custom content."""
+    """Return curated skill sections (matches old DEFAULT_SECTIONS).
+
+    Excludes langgraph and resources for minimal content.
+    """
+    sections = agents_skill["sections"]
+    return [
+        sections["frontmatter"],
+        sections["oneliner"],
+        content if content else QUICK_START_NEUTRAL,
+        sections["create_agent"],
+    ]
+
+
+def with_quickstart_all(content):
+    """Return all skill sections including langgraph and resources.
+
+    For ALL_SECTIONS treatment only.
+    """
     sections = agents_skill["sections"]
     return [
         sections["frontmatter"],

@@ -118,13 +118,13 @@ TREATMENTS = {
         validators=advanced_validators(),
     ),
 
-    # All sections: Complete skill content + full CLAUDE.md sample
+    # All sections: Complete skill content (without cross-skill hints) + full CLAUDE.md sample
     "ADV_ALL_SECTIONS": Treatment(
         description="All skill sections + full CLAUDE.md",
         skills={
-            "langsmith-trace": skill_config(skills["trace"]["all"], skills["trace"]["scripts_dir"]),
-            "langsmith-dataset": skill_config(skills["dataset"]["all"], skills["dataset"]["scripts_dir"]),
-            "langsmith-evaluator": skill_config(skills["evaluator"]["all"], skills["evaluator"]["scripts_dir"]),
+            "langsmith-trace": skill_config(without_related_skills(skills["trace"]["all"]), skills["trace"]["scripts_dir"]),
+            "langsmith-dataset": skill_config(without_related_skills(skills["dataset"]["all"]), skills["dataset"]["scripts_dir"]),
+            "langsmith-evaluator": skill_config(without_related_skills(skills["evaluator"]["all"]), skills["evaluator"]["scripts_dir"]),
         },
         claude_md=CLAUDE_SAMPLE,
         validators=advanced_validators(),

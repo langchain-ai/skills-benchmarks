@@ -6,10 +6,9 @@ Used by __init__.py files to provide backwards-compatible section exports.
 
 import re
 from pathlib import Path
-from typing import Dict, List, Tuple
 
 
-def parse_skill_md(skill_md_path: Path) -> Dict[str, str]:
+def parse_skill_md(skill_md_path: Path) -> dict[str, str]:
     """Parse skill.md and return sections dict keyed by tag name.
 
     Args:
@@ -26,7 +25,7 @@ def parse_skill_md(skill_md_path: Path) -> Dict[str, str]:
 
     # Find all XML tags and their content
     # Pattern matches <tagname>content</tagname> including nested content
-    pattern = r'<(\w+)>(.*?)</\1>'
+    pattern = r"<(\w+)>(.*?)</\1>"
     for match in re.finditer(pattern, content, re.DOTALL):
         tag_name = match.group(1)
         tag_content = match.group(2).strip()
@@ -35,7 +34,7 @@ def parse_skill_md(skill_md_path: Path) -> Dict[str, str]:
     return sections
 
 
-def parse_skill_md_ordered(skill_md_path: Path) -> List[Tuple[str, str]]:
+def parse_skill_md_ordered(skill_md_path: Path) -> list[tuple[str, str]]:
     """Parse skill.md and return sections as ordered list of (tag, content) tuples.
 
     Preserves the order of sections as they appear in the file.
@@ -49,7 +48,7 @@ def parse_skill_md_ordered(skill_md_path: Path) -> List[Tuple[str, str]]:
     content = skill_md_path.read_text()
     sections = []
 
-    pattern = r'<(\w+)>(.*?)</\1>'
+    pattern = r"<(\w+)>(.*?)</\1>"
     for match in re.finditer(pattern, content, re.DOTALL):
         tag_name = match.group(1)
         tag_content = match.group(2).strip()
@@ -73,7 +72,7 @@ def load_skill_content(skill_md_path: Path) -> str:
     return skill_md_path.read_text()
 
 
-def get_section_list(skill_md_path: Path, exclude_tags: List[str] = None) -> List[str]:
+def get_section_list(skill_md_path: Path, exclude_tags: list[str] = None) -> list[str]:
     """Get ordered list of section contents (without tags).
 
     This is useful for building FULL_SECTIONS-style lists where you want
@@ -148,7 +147,9 @@ def load_skill(skill_dir: Path) -> dict:
     }
 
 
-def split_skill(skill: dict, splits: Dict[str, List[str]], base_name: str = None) -> Dict[str, dict]:
+def split_skill(
+    skill: dict, splits: dict[str, list[str]], base_name: str = None
+) -> dict[str, dict]:
     """Split one skill into multiple skill configs by section groups.
 
     Useful for experiments testing whether smaller, focused skills improve
@@ -194,7 +195,7 @@ def split_skill(skill: dict, splits: Dict[str, List[str]], base_name: str = None
     return result
 
 
-def skill_config(sections: List[str], scripts_dir: Path = None) -> dict:
+def skill_config(sections: list[str], scripts_dir: Path = None) -> dict:
     """Create a skill config dict for use in treatments.
 
     Convenience function for creating skill configs inline.

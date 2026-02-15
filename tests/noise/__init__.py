@@ -14,7 +14,6 @@ Example:
 
 import json
 from pathlib import Path
-from typing import List
 
 from scaffold import NoiseTask
 
@@ -35,6 +34,6 @@ def get_task(name: str) -> NoiseTask:
     return NoiseTask(prompt=data["prompt"], deliverables=[data["output"]])
 
 
-def get_tasks(names: List[str]) -> List[NoiseTask]:
+def get_tasks(names: list[str]) -> list[NoiseTask]:
     """Get multiple noise tasks by name."""
     return [get_task(n) for n in names]

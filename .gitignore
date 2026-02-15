@@ -14,6 +14,9 @@ __pycache__
 .pytest_cache/
 .pytest_experiment_id*
 
+# Ruff
+.ruff_cache/
+
 # Node.js
 node_modules
 package-lock.json

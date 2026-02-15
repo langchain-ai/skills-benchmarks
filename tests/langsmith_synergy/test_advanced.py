@@ -7,22 +7,21 @@ Parallel:  pytest tests/langsmith_synergy/test_advanced.py -n 3
 """
 
 import uuid
+
 import pytest
 
 from scaffold import Treatment
 from scaffold.python import extract_events, parse_output
-from skill_constructs.parser import skill_config
 from skill_constructs import CLAUDE_FULL
-
+from skill_constructs.parser import skill_config
 from tests.langsmith_synergy.config import (
-    skills,
-    without_related_skills,
-    advanced_validators,
+    ADVANCED_PROMPT_TEMPLATE,
     CLAUDE_MD_SKILLS_ONLY,
     CLAUDE_MD_WORKFLOW_ADVANCED,
-    ADVANCED_PROMPT_TEMPLATE,
+    advanced_validators,
+    skills,
+    without_related_skills,
 )
-
 
 # =============================================================================
 # SECTION SELECTIONS FOR ADVANCED TREATMENTS
@@ -82,61 +81,71 @@ TREATMENTS = {
         skills={},
         validators=advanced_validators(),
     ),
-
     # Baseline: Skills WITHOUT workflow hints, no CLAUDE.md (hardest - no cross-references)
     "ADV_BASELINE": Treatment(
         description="Skills without workflow hints, no CLAUDE.md (no cross-references)",
         skills={
             "langsmith-trace": skill_config(trace_no_hints, skills["trace"]["scripts_dir"]),
             "langsmith-dataset": skill_config(dataset_no_hints, skills["dataset"]["scripts_dir"]),
-            "langsmith-evaluator": skill_config(evaluator_no_hints, skills["evaluator"]["scripts_dir"]),
+            "langsmith-evaluator": skill_config(
+                evaluator_no_hints, skills["evaluator"]["scripts_dir"]
+            ),
         },
         validators=advanced_validators(),
     ),
-
     # CLAUDE.md only: Workflow rules in CLAUDE.md, skills without hints
     "ADV_CLAUDEMD": Treatment(
         description="Workflow rules in CLAUDE.md, skills without hints",
         skills={
             "langsmith-trace": skill_config(trace_no_hints, skills["trace"]["scripts_dir"]),
             "langsmith-dataset": skill_config(dataset_no_hints, skills["dataset"]["scripts_dir"]),
-            "langsmith-evaluator": skill_config(evaluator_no_hints, skills["evaluator"]["scripts_dir"]),
+            "langsmith-evaluator": skill_config(
+                evaluator_no_hints, skills["evaluator"]["scripts_dir"]
+            ),
         },
         claude_md=CLAUDE_MD_WORKFLOW_ADVANCED,
         validators=advanced_validators(),
     ),
-
     # Skills only: Workflow hints in skills (related_skills section), minimal CLAUDE.md
     "ADV_SKILLS": Treatment(
         description="Workflow hints in skills, minimal CLAUDE.md",
         skills={
             "langsmith-trace": skill_config(trace_curated, skills["trace"]["scripts_dir"]),
             "langsmith-dataset": skill_config(dataset_curated, skills["dataset"]["scripts_dir"]),
-            "langsmith-evaluator": skill_config(evaluator_curated, skills["evaluator"]["scripts_dir"]),
+            "langsmith-evaluator": skill_config(
+                evaluator_curated, skills["evaluator"]["scripts_dir"]
+            ),
         },
         claude_md=CLAUDE_MD_SKILLS_ONLY,
         validators=advanced_validators(),
     ),
-
     # Both: Workflow rules in CLAUDE.md AND skill hints (reinforcement)
     "ADV_BOTH": Treatment(
         description="Workflow rules in CLAUDE.md AND skill hints",
         skills={
             "langsmith-trace": skill_config(trace_curated, skills["trace"]["scripts_dir"]),
             "langsmith-dataset": skill_config(dataset_curated, skills["dataset"]["scripts_dir"]),
-            "langsmith-evaluator": skill_config(evaluator_curated, skills["evaluator"]["scripts_dir"]),
+            "langsmith-evaluator": skill_config(
+                evaluator_curated, skills["evaluator"]["scripts_dir"]
+            ),
         },
         claude_md=CLAUDE_MD_WORKFLOW_ADVANCED,
         validators=advanced_validators(),
     ),
-
     # All sections: Complete skill content (without cross-skill hints) + full CLAUDE.md sample
     "ADV_ALL_SECTIONS": Treatment(
         description="All skill sections + full CLAUDE.md",
         skills={
-            "langsmith-trace": skill_config(without_related_skills(skills["trace"]["all"]), skills["trace"]["scripts_dir"]),
-            "langsmith-dataset": skill_config(without_related_skills(skills["dataset"]["all"]), skills["dataset"]["scripts_dir"]),
-            "langsmith-evaluator": skill_config(without_related_skills(skills["evaluator"]["all"]), skills["evaluator"]["scripts_dir"]),
+            "langsmith-trace": skill_config(
+                without_related_skills(skills["trace"]["all"]), skills["trace"]["scripts_dir"]
+            ),
+            "langsmith-dataset": skill_config(
+                without_related_skills(skills["dataset"]["all"]), skills["dataset"]["scripts_dir"]
+            ),
+            "langsmith-evaluator": skill_config(
+                without_related_skills(skills["evaluator"]["all"]),
+                skills["evaluator"]["scripts_dir"],
+            ),
         },
         claude_md=CLAUDE_FULL,
         validators=advanced_validators(),
@@ -147,6 +156,7 @@ TREATMENTS = {
 # =============================================================================
 # TESTS
 # =============================================================================
+
 
 @pytest.mark.parametrize("treatment_name", list(TREATMENTS.keys()))
 def test_treatment(

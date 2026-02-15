@@ -44,7 +44,6 @@ import {
   createTreatmentResult,
   cleanOutput,
   type Events,
-  type TreatmentResult,
 } from "../scaffold/typescript/logging.js";
 import type { SkillConfig } from "../scaffold/typescript/schema.js";
 

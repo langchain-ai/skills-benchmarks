@@ -7,22 +7,21 @@ Parallel:  pytest tests/langsmith_synergy/test_basic.py -n 3
 """
 
 import uuid
+
 import pytest
 
 from scaffold import Treatment
 from scaffold.python import extract_events, parse_output
-from skill_constructs.parser import skill_config
 from skill_constructs import CLAUDE_FULL
-
+from skill_constructs.parser import skill_config
 from tests.langsmith_synergy.config import (
-    skills,
-    without_related_skills,
-    basic_validators,
+    BASIC_PROMPT_TEMPLATE,
     CLAUDE_MD_SKILLS_ONLY,
     CLAUDE_MD_WORKFLOW_BASIC,
-    BASIC_PROMPT_TEMPLATE,
+    basic_validators,
+    skills,
+    without_related_skills,
 )
-
 
 # =============================================================================
 # SECTION SELECTIONS FOR BASIC TREATMENTS
@@ -70,7 +69,6 @@ TREATMENTS = {
         skills={},
         validators=basic_validators(),
     ),
-
     # Baseline: Skills WITHOUT workflow hints, no CLAUDE.md (hardest - no cross-references)
     "BASIC_BASELINE": Treatment(
         description="Skills without workflow hints, no CLAUDE.md (no cross-references)",
@@ -80,7 +78,6 @@ TREATMENTS = {
         },
         validators=basic_validators(),
     ),
-
     # CLAUDE.md only: Workflow rules in CLAUDE.md, skills without hints
     "BASIC_CLAUDEMD": Treatment(
         description="Workflow rules in CLAUDE.md, skills without hints",
@@ -91,7 +88,6 @@ TREATMENTS = {
         claude_md=CLAUDE_MD_WORKFLOW_BASIC,
         validators=basic_validators(),
     ),
-
     # Skills only: Workflow hints in skills (related_skills section), minimal CLAUDE.md
     "BASIC_SKILLS": Treatment(
         description="Workflow hints in skills, minimal CLAUDE.md",
@@ -102,7 +98,6 @@ TREATMENTS = {
         claude_md=CLAUDE_MD_SKILLS_ONLY,
         validators=basic_validators(),
     ),
-
     # Both: Workflow rules in CLAUDE.md AND skill hints (reinforcement)
     "BASIC_BOTH": Treatment(
         description="Workflow rules in CLAUDE.md AND skill hints",
@@ -113,13 +108,16 @@ TREATMENTS = {
         claude_md=CLAUDE_MD_WORKFLOW_BASIC,
         validators=basic_validators(),
     ),
-
     # All sections: Complete skill content (without cross-skill hints) + full CLAUDE.md sample
     "BASIC_ALL_SECTIONS": Treatment(
         description="All skill sections + full CLAUDE.md",
         skills={
-            "langsmith-trace": skill_config(without_related_skills(skills["trace"]["all"]), skills["trace"]["scripts_dir"]),
-            "langsmith-dataset": skill_config(without_related_skills(skills["dataset"]["all"]), skills["dataset"]["scripts_dir"]),
+            "langsmith-trace": skill_config(
+                without_related_skills(skills["trace"]["all"]), skills["trace"]["scripts_dir"]
+            ),
+            "langsmith-dataset": skill_config(
+                without_related_skills(skills["dataset"]["all"]), skills["dataset"]["scripts_dir"]
+            ),
         },
         claude_md=CLAUDE_FULL,
         validators=basic_validators(),
@@ -130,6 +128,7 @@ TREATMENTS = {
 # =============================================================================
 # TESTS
 # =============================================================================
+
 
 @pytest.mark.parametrize("treatment_name", list(TREATMENTS.keys()))
 def test_treatment(

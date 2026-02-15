@@ -21,16 +21,16 @@ Example:
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Dict, Optional
 
-from .validation import Validator, NoiseTaskValidator, OutputQualityValidator, PythonFileValidator
+from .validation import NoiseTaskValidator, OutputQualityValidator, PythonFileValidator, Validator
 
 
 @dataclass
 class NoiseTask:
     """A distractor task with a prompt and expected deliverables."""
+
     prompt: str
-    deliverables: List[str]  # Files this task should create
+    deliverables: list[str]  # Files this task should create
 
 
 @dataclass
@@ -38,12 +38,12 @@ class Treatment:
     """Configuration for a single experiment."""
 
     description: str
-    skills: Dict[str, List[str]] = field(default_factory=dict)
-    claude_md: Optional[str] = None
-    noise_tasks: List[NoiseTask] = field(default_factory=list)
-    validators: List[Validator] = field(default_factory=list)
+    skills: dict[str, list[str]] = field(default_factory=dict)
+    claude_md: str | None = None
+    noise_tasks: list[NoiseTask] = field(default_factory=list)
+    validators: list[Validator] = field(default_factory=list)
 
-    def get_files_to_run(self) -> List[str]:
+    def get_files_to_run(self) -> list[str]:
         """Get list of files that validators need to run."""
         files = []
         for v in self.validators:
@@ -68,7 +68,9 @@ class Treatment:
 
         return "Complete these tasks in order:\n\n" + "\n\n".join(parts)
 
-    def validate(self, events: dict, test_dir: Path, outputs: Dict = None) -> tuple[List[str], List[str]]:
+    def validate(
+        self, events: dict, test_dir: Path, outputs: dict = None
+    ) -> tuple[list[str], list[str]]:
         """Run all validators and return (passed, failed) lists."""
         all_passed, all_failed = [], []
 

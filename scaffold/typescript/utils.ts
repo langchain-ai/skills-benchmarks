@@ -104,7 +104,8 @@ export function runInDocker(
     return runShell("docker.sh", ["run", resolve(testDir), ...command], { timeout, check: false });
   } finally {
     for (const [k, v] of Object.entries(savedEnv)) {
-      v === undefined ? delete process.env[k] : (process.env[k] = v);
+      if (v === undefined) delete process.env[k];
+      else process.env[k] = v;
     }
   }
 }

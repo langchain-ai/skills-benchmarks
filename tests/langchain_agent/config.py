@@ -9,14 +9,12 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from scaffold import (
-    Treatment,
-    SkillInvokedValidator,
-    PythonFileValidator,
     MetricsCollector,
     OutputQualityValidator,
+    PythonFileValidator,
+    SkillInvokedValidator,
 )
 from skill_constructs.parser import load_skill
-from skill_constructs import CLAUDE_FULL
 
 # =============================================================================
 # SKILL LOADING
@@ -27,8 +25,6 @@ agents_skill = load_skill(SKILL_BASE / "langchain_agents")
 
 # Full sections from skill.md
 FULL_SECTIONS = agents_skill["all"]
-
-
 
 
 # =============================================================================
@@ -210,13 +206,15 @@ def sql_agent_validators():
     return [
         SkillInvokedValidator("langchain-agents", required=False),
         PythonFileValidator(
-            "sql_agent_1.py", "SQL Agent Code",
+            "sql_agent_1.py",
+            "SQL Agent Code",
             required=AGENT_MODERN_PATTERNS,
             forbidden=AGENT_FORBIDDEN,
             require_all=True,
         ),
         OutputQualityValidator(
-            "sql_agent_1.py", "SQL Agent Output",
+            "sql_agent_1.py",
+            "SQL Agent Output",
             task_description="SQL analytics agent querying chinook.db for top 5 best-selling genres by tracks sold",
             expected_behavior="Should show genre names (Rock, Latin, Metal, etc.) with track counts or sales numbers",
         ),
@@ -229,24 +227,28 @@ def noise_validators():
     return [
         SkillInvokedValidator("langchain-agents", required=False),
         PythonFileValidator(
-            "sql_agent_1.py", "SQL Agent Code",
+            "sql_agent_1.py",
+            "SQL Agent Code",
             required=AGENT_MODERN_PATTERNS,
             forbidden=AGENT_FORBIDDEN,
             require_all=True,
         ),
         OutputQualityValidator(
-            "sql_agent_1.py", "SQL Agent Output",
+            "sql_agent_1.py",
+            "SQL Agent Output",
             task_description="SQL analytics agent querying chinook.db for top 5 best-selling genres by tracks sold",
             expected_behavior="Should show genre names with track counts or sales numbers",
         ),
         PythonFileValidator(
-            "search_agent.py", "Search Agent Code",
+            "search_agent.py",
+            "Search Agent Code",
             required=AGENT_MODERN_PATTERNS,
             forbidden=AGENT_FORBIDDEN,
             require_all=True,
         ),
         OutputQualityValidator(
-            "search_agent.py", "Search Agent Output",
+            "search_agent.py",
+            "Search Agent Output",
             task_description="Web search agent with mock search tool answering 'What is the capital of France?'",
             expected_behavior="Should return 'Paris' as the answer with proper agent reasoning",
         ),

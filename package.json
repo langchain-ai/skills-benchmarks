@@ -7,9 +7,12 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
+    "check": "npm run typecheck && npm run lint",
     "clean": "rm -rf dist"
   },
   "dependencies": {
@@ -19,7 +22,9 @@
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
+    "eslint": "^9.0.0",
     "typescript": "^5.7.0",
+    "typescript-eslint": "^8.0.0",
     "vitest": "^2.1.0"
   },
   "engines": {

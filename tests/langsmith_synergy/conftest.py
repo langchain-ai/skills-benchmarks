@@ -13,9 +13,8 @@ import json
 import os
 import time
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Dict, List
 
 import pytest
 
@@ -28,12 +27,13 @@ def _get_langsmith_client():
     """Get LangSmith client."""
     try:
         from langsmith import Client
+
         return Client(), None
     except Exception as e:
         return None, str(e)
 
 
-def _upload_fixture_traces(project: str) -> Dict[str, str]:
+def _upload_fixture_traces(project: str) -> dict[str, str]:
     """Upload fixture traces to LangSmith project (date-shifted to now).
 
     Returns: Dict mapping original trace_id -> new trace_id
@@ -48,14 +48,27 @@ def _upload_fixture_traces(project: str) -> Dict[str, str]:
     id_mapping = {}  # old_trace_id -> new_trace_id
 
     for jsonl_file in sorted(DATA_DIR.glob("trace_*.jsonl")):
-        operations = [json.loads(line) for line in jsonl_file.read_text().splitlines() if line.strip()]
+        operations = [
+            json.loads(line) for line in jsonl_file.read_text().splitlines() if line.strip()
+        ]
         if not operations:
             continue
 
         # Get original root trace_id and query for logging
-        first_post = next((op for op in operations if op.get("operation") == "post" and not op.get("parent_run_id")), None)
+        first_post = next(
+            (
+                op
+                for op in operations
+                if op.get("operation") == "post" and not op.get("parent_run_id")
+            ),
+            None,
+        )
         old_trace_id = first_post.get("id") if first_post else None
-        query = first_post.get("inputs", {}).get("messages", [{}])[0].get("content", "")[:40] if first_post else ""
+        query = (
+            first_post.get("inputs", {}).get("messages", [{}])[0].get("content", "")[:40]
+            if first_post
+            else ""
+        )
 
         try:
             new_trace_id = _replay_operations(client, project, operations)
@@ -69,9 +82,13 @@ def _upload_fixture_traces(project: str) -> Dict[str, str]:
     return id_mapping
 
 
-def _replay_operations(client, project: str, operations: List[Dict]) -> str:
+def _replay_operations(client, project: str, operations: list[dict]) -> str:
     """Replay trace operations with new IDs and date-shifted timestamps."""
-    id_map = {op["id"]: str(uuid.uuid4()) for op in operations if op.get("operation") == "post" and op.get("id")}
+    id_map = {
+        op["id"]: str(uuid.uuid4())
+        for op in operations
+        if op.get("operation") == "post" and op.get("id")
+    }
 
     def parse_ts(s):
         if not s:
@@ -81,11 +98,13 @@ def _replay_operations(client, project: str, operations: List[Dict]) -> str:
         except ValueError:
             return None
 
-    timestamps = [parse_ts(op.get("start_time")) for op in operations if op.get("operation") == "post"]
+    timestamps = [
+        parse_ts(op.get("start_time")) for op in operations if op.get("operation") == "post"
+    ]
     earliest = min((t for t in timestamps if t), default=None)
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     if earliest and earliest.tzinfo is None:
-        earliest = earliest.replace(tzinfo=timezone.utc)
+        earliest = earliest.replace(tzinfo=UTC)
     offset = (now - earliest) if earliest else timedelta(0)
 
     root_id = None
@@ -163,7 +182,9 @@ def langsmith_traces(langsmith_project, verify_environment):
 
     trace_id_map = _upload_fixture_traces(langsmith_project)
     if not trace_id_map:
-        pytest.fail("Failed to upload fixture traces - check trace_*.jsonl files exist and LANGSMITH_API_KEY is valid")
+        pytest.fail(
+            "Failed to upload fixture traces - check trace_*.jsonl files exist and LANGSMITH_API_KEY is valid"
+        )
 
     print(f"SUCCESS: Uploaded {len(trace_id_map)} traces")
     print(f"{'=' * 60}\n")

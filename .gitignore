@@ -18,7 +18,6 @@ __pycache__
 .ruff_cache/
 
 # Node.js
-node_modules
-package-lock.json
+node_modules/
 dist/
 .vitest_experiment_id*

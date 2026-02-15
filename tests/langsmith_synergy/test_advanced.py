@@ -28,9 +28,21 @@ from tests.langsmith_synergy.config import (
 # SECTION SELECTIONS FOR ADVANCED TREATMENTS
 # =============================================================================
 
-# Trace: all sections (primary skill)
+# Trace: curated subset (matches old DEFAULT_SECTIONS - excludes detailed examples)
+trace_curated = [
+    skills["trace"]["sections"]["frontmatter"],
+    skills["trace"]["sections"]["oneliner"],
+    skills["trace"]["sections"]["setup"],
+    skills["trace"]["sections"]["trace_langchain_oss"],
+    skills["trace"]["sections"]["traces_vs_runs"],
+    skills["trace"]["sections"]["command_structure"],
+    skills["trace"]["sections"]["filters"],
+    skills["trace"]["sections"]["related_skills"],
+]
+trace_no_hints = without_related_skills(trace_curated)
+
+# Trace: all sections (for ALL_SECTIONS treatment only)
 trace_all = skills["trace"]["all"]
-trace_no_hints = without_related_skills(trace_all)
 
 # Dataset: curated subset (exclude detailed examples)
 dataset_curated = [
@@ -98,7 +110,7 @@ TREATMENTS = {
     "ADV_SKILLS": Treatment(
         description="Workflow hints in skills, minimal CLAUDE.md",
         skills={
-            "langsmith-trace": skill_config(trace_all, skills["trace"]["scripts_dir"]),
+            "langsmith-trace": skill_config(trace_curated, skills["trace"]["scripts_dir"]),
             "langsmith-dataset": skill_config(dataset_curated, skills["dataset"]["scripts_dir"]),
             "langsmith-evaluator": skill_config(evaluator_curated, skills["evaluator"]["scripts_dir"]),
         },
@@ -110,7 +122,7 @@ TREATMENTS = {
     "ADV_BOTH": Treatment(
         description="Workflow rules in CLAUDE.md AND skill hints",
         skills={
-            "langsmith-trace": skill_config(trace_all, skills["trace"]["scripts_dir"]),
+            "langsmith-trace": skill_config(trace_curated, skills["trace"]["scripts_dir"]),
             "langsmith-dataset": skill_config(dataset_curated, skills["dataset"]["scripts_dir"]),
             "langsmith-evaluator": skill_config(evaluator_curated, skills["evaluator"]["scripts_dir"]),
         },

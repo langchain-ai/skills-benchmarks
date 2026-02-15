@@ -4,36 +4,32 @@ Measures how skill documentation design affects Claude Code's adherence to recom
 
 > **Note**: Tests were conducted with Opus 4.5, early February 2026.
 
-## Quick Start (Python)
+## Quick Start
+
+**Start with the example tests** - they demonstrate the full test pattern with minimal complexity.
 
 ```bash
-# Setup
+# Python example
 uv sync
+uv run pytest tests/example/test_guidance.py -v -k "MINIMAL"
 
-# Run single test
-uv run pytest tests/bench_ls_multiskill/test_advanced.py -k "ADV_ALL_SECTIONS" -v
-
-# Run with repetitions
-uv run pytest tests/bench_ls_multiskill/test_advanced.py -k "ADV_ALL_SECTIONS" -v --count=3
-
-# Run in parallel (6 workers)
-uv run pytest tests/bench_ls_multiskill/test_advanced.py -v -n 6
+# TypeScript example
+npm install && npm run build
+npx vitest run tests/example/guidance.test.ts --testNamePattern="MINIMAL"
 ```
 
-## Quick Start (TypeScript)
+**Run existing benchmarks:**
 
 ```bash
-# Setup
-npm install
+# Python (pytest)
+uv run pytest tests/bench_lc_basic/test_guidance.py -k "GUIDANCE_POS" -v
+uv run pytest tests/bench_ls_multiskill/test_advanced.py -k "ADV_ALL_SECTIONS" -v
 
-# Build TypeScript
-npm run build
+# With repetitions
+uv run pytest tests/bench_ls_multiskill/test_advanced.py -k "ADV_ALL_SECTIONS" -v --count=3
 
-# Run example test
-npx vitest run tests/example/guidance.test.ts
-
-# Run in parallel (3 workers)
-npx vitest run tests/example/guidance.test.ts --pool=threads
+# Parallel (6 workers)
+uv run pytest tests/bench_ls_multiskill/test_advanced.py -v -n 6
 ```
 
 ## Requirements

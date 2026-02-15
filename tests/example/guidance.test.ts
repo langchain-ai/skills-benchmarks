@@ -116,7 +116,7 @@ const TREATMENTS: Record<string, Treatment> = {
 const ENVIRONMENT_DIR = resolve(
   __dirname,
   "..",
-  "langchain_agent",
+  "bench_lc_basic",
   "environment"
 );
 

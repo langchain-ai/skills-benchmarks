@@ -102,7 +102,7 @@ TREATMENTS = {
 # ENVIRONMENT
 # =============================================================================
 
-ENVIRONMENT_DIR = Path(__file__).parent.parent / "langchain_agent" / "environment"
+ENVIRONMENT_DIR = Path(__file__).parent.parent / "bench_lc_basic" / "environment"
 
 
 @pytest.fixture

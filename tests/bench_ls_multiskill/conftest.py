@@ -196,3 +196,30 @@ def langsmith_traces(langsmith_project, verify_environment):
 def environment_dir():
     """Path to environment directory with Dockerfile, requirements.txt, etc."""
     return ENVIRONMENT_DIR
+
+
+@pytest.fixture
+def cleanup_dataset():
+    """Fixture to register and cleanup LangSmith datasets after test.
+
+    Usage in test:
+        cleanup_dataset(f"test-{run_id}")
+    """
+    datasets_to_delete = []
+
+    def _register(dataset_name: str):
+        datasets_to_delete.append(dataset_name)
+
+    yield _register
+
+    # Cleanup: delete any registered datasets
+    if datasets_to_delete:
+        client, _ = _get_langsmith_client()
+        if client:
+            for name in datasets_to_delete:
+                try:
+                    ds = client.read_dataset(dataset_name=name)
+                    client.delete_dataset(dataset_id=ds.id)
+                    print(f"Cleaned up dataset: {name}")
+                except Exception:
+                    pass  # Dataset doesn't exist or already deleted

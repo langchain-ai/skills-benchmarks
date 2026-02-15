@@ -272,6 +272,7 @@ def test_treatment(
     run_claude,
     record_result,
     environment_dir,
+    cleanup_dataset,
 ):
     """Test a single treatment."""
     treatment = TREATMENTS[treatment_name]
@@ -283,9 +284,10 @@ def test_treatment(
         environment_dir=environment_dir,
     )
 
-    # Build prompt with unique run_id for dataset naming
-    run_id = str(uuid.uuid4())[:8]
+    # Build prompt with unique run_id for dataset naming (full UUID for safety)
+    run_id = str(uuid.uuid4())
     dataset_name = f"test-{run_id}"
+    cleanup_dataset(dataset_name)  # Register for cleanup after test
     prompt = ADVANCED_PROMPT_TEMPLATE.format(run_id=dataset_name)
     prompt = treatment.build_prompt(prompt)
 

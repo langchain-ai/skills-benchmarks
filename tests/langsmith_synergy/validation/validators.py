@@ -108,7 +108,7 @@ class DatasetStructureValidator(Validator):
 
         # Verify upload
         if self.verify_upload:
-            run_id = outputs.get("_run_id") if outputs else None
+            run_id = outputs.get("run_id") if outputs else None
             up, uf = self._verify_upload(run_id)
             passed.extend(up)
             failed.extend(uf)
@@ -202,7 +202,7 @@ class EvaluatorValidator(Validator):
 
         # Verify upload
         if self.verify_upload:
-            run_id = outputs.get("_run_id") if outputs else None
+            run_id = outputs.get("run_id") if outputs else None
             up, uf = self._verify_upload(run_id)
             passed.extend(up)
             failed.extend(uf)
@@ -404,7 +404,7 @@ class TrajectoryAccuracyValidator(Validator):
 
         # Verify uploaded dataset matches local file
         if self.verify_upload:
-            run_id = outputs.get("_run_id") if outputs else None
+            run_id = outputs.get("run_id") if outputs else None
             up, uf = self._verify_upload_matches(actual_examples, run_id)
             passed.extend(up)
             failed.extend(uf)

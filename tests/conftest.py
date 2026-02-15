@@ -7,8 +7,11 @@ Generates rich experiment logs in logs/experiments/ including:
 - reports/: Per-run validation reports
 - artifacts/: Files Claude generated and their execution output
 - metadata.json: Experiment metadata
+
+Supports pytest-xdist parallel execution via worker coordination.
 """
 
+import fcntl
 import json
 import os
 import shutil
@@ -36,49 +39,103 @@ from scaffold.python import (
 
 PROJECT_ROOT = Path(__file__).parent.parent
 
+# Shared file for xdist worker coordination
+XDIST_EXPERIMENT_FILE = PROJECT_ROOT / ".pytest_experiment_id"
+
 
 # =============================================================================
 # EXPERIMENT LOGGING PLUGIN
 # =============================================================================
 
-class ExperimentPlugin:
-    """Pytest plugin that generates rich experiment logs in logs/experiments/."""
+def _get_experiment_name(session) -> str:
+    """Determine experiment name from test path."""
+    items = getattr(session, 'items', None)
+    first_path = str(items[0].fspath) if items else ""
 
-    def __init__(self):
+    if "langchain_agent" in first_path:
+        if "guidance" in first_path:
+            return "lc_guide"
+        elif "claudemd" in first_path:
+            return "lc_claude"
+        elif "noise" in first_path:
+            return "lc_noise"
+        return "lc_agent"
+    elif "langsmith_synergy" in first_path:
+        if "basic" in first_path:
+            return "ls_basic"
+        elif "advanced" in first_path:
+            return "ls_adv"
+        return "ls_synergy"
+    return "experiment"
+
+
+def _get_or_create_experiment_id(name: str, is_xdist_worker: bool) -> str:
+    """Get shared experiment ID or create new one.
+
+    Uses file locking to coordinate between xdist workers.
+    """
+    if not is_xdist_worker:
+        # Not using xdist, create fresh experiment
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        return f"{name}_{timestamp}"
+
+    # Using xdist - coordinate via shared file
+    lock_file = XDIST_EXPERIMENT_FILE.with_suffix(".lock")
+
+    with open(lock_file, "w") as lf:
+        fcntl.flock(lf.fileno(), fcntl.LOCK_EX)
+        try:
+            if XDIST_EXPERIMENT_FILE.exists():
+                # Another worker already created experiment
+                data = json.loads(XDIST_EXPERIMENT_FILE.read_text())
+                return data["experiment_id"]
+            else:
+                # First worker - create experiment
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                experiment_id = f"{name}_{timestamp}"
+                XDIST_EXPERIMENT_FILE.write_text(json.dumps({
+                    "experiment_id": experiment_id,
+                    "created_at": datetime.now().isoformat(),
+                }))
+                return experiment_id
+        finally:
+            fcntl.flock(lf.fileno(), fcntl.LOCK_UN)
+
+
+def _cleanup_experiment_coordination():
+    """Remove coordination files after experiment."""
+    for f in [XDIST_EXPERIMENT_FILE, XDIST_EXPERIMENT_FILE.with_suffix(".lock")]:
+        try:
+            f.unlink(missing_ok=True)
+        except Exception:
+            pass
+
+
+class ExperimentPlugin:
+    """Pytest plugin that generates rich experiment logs in logs/experiments/.
+
+    Supports pytest-xdist parallel execution by coordinating workers via
+    a shared file to ensure all workers log to the same experiment folder.
+    """
+
+    def __init__(self, config):
+        self.config = config
         self.logger: Optional[ExperimentLogger] = None
         self.start_time = None
         self.run_counter: Dict[str, int] = {}  # treatment_name -> repetition count
+        self.is_xdist_worker = hasattr(config, "workerinput")
+        self.is_xdist_master = hasattr(config, "workerinput") is False and (getattr(config.option, "numprocesses", None) or 0) > 0
+        self.worker_id = config.workerinput.get("workerid", "master") if self.is_xdist_worker else "master"
 
     def pytest_sessionstart(self, session):
-        """Create experiment logger at session start."""
-        # Determine experiment name from the test path
-        # e.g., tests/langchain_agent/test_guidance.py -> "guidance"
-        items = getattr(session, 'items', None)
-        if items:
-            first_path = str(items[0].fspath) if items else ""
-        else:
-            first_path = ""
+        """Create or join experiment logger at session start."""
+        name = _get_experiment_name(session)
 
-        if "langchain_agent" in first_path:
-            if "guidance" in first_path:
-                name = "lc_guide"
-            elif "claudemd" in first_path:
-                name = "lc_claude"
-            elif "noise" in first_path:
-                name = "lc_noise"
-            else:
-                name = "lc_agent"
-        elif "langsmith_synergy" in first_path:
-            if "basic" in first_path:
-                name = "ls_basic"
-            elif "advanced" in first_path:
-                name = "ls_adv"
-            else:
-                name = "ls_synergy"
-        else:
-            name = "experiment"
+        # Get or create shared experiment ID
+        experiment_id = _get_or_create_experiment_id(name, self.is_xdist_worker)
 
-        self.logger = ExperimentLogger(experiment_name=name)
+        # Join existing experiment (workers) or create new (master/single)
+        self.logger = ExperimentLogger(experiment_name=name, experiment_id=experiment_id)
         self.start_time = time.time()
 
         print(f"\n{'='*60}")
@@ -94,10 +151,57 @@ class ExperimentPlugin:
         return self.run_counter[treatment_name]
 
     def pytest_sessionfinish(self, session, exitstatus):
-        """Generate and save summary at session end."""
-        if self.logger and self.logger.results:
+        """Generate and save summary at session end.
+
+        With xdist, only the master process generates the final summary
+        after all workers complete.
+        """
+        if not self.logger:
+            return
+
+        # Workers: just ensure their results are saved (already done via record_result)
+        # Master/single: generate summary from all saved reports
+        if self.is_xdist_worker:
+            # Worker done - results already saved to files
+            return
+
+        # Master or single process - wait briefly for workers to finish writing
+        if self.is_xdist_master:
+            time.sleep(1)  # Brief wait for file system sync
+
+        # Reload results from report files (aggregates all workers)
+        self._reload_results_from_reports()
+
+        if self.logger.results:
             self.logger.finalize()
             self._print_summary()
+
+        # Cleanup coordination files
+        _cleanup_experiment_coordination()
+
+    def _reload_results_from_reports(self):
+        """Reload results from saved report files (aggregates all workers)."""
+        reports_dir = self.logger.reports_dir
+        if not reports_dir.exists():
+            return
+
+        for report_file in sorted(reports_dir.glob("*.json")):
+            try:
+                report = json.loads(report_file.read_text())
+                treatment_name = report.get("name", "unknown")
+                result = TreatmentResult(
+                    name=treatment_name,
+                    passed=report.get("passed", False),
+                    checks_passed=report.get("checks_passed", []),
+                    checks_failed=report.get("checks_failed", []),
+                    events_summary=report.get("events_summary", {}),
+                    run_id=report.get("run_id", ""),
+                )
+                if treatment_name not in self.logger.results:
+                    self.logger.results[treatment_name] = []
+                self.logger.results[treatment_name].append(result)
+            except Exception:
+                pass
 
     def _print_summary(self):
         """Print summary to console."""
@@ -133,7 +237,7 @@ _plugin: Optional[ExperimentPlugin] = None
 def pytest_configure(config):
     """Register experiment plugin."""
     global _plugin
-    _plugin = ExperimentPlugin()
+    _plugin = ExperimentPlugin(config)
     config.pluginmanager.register(_plugin, "experiment_plugin")
 
 

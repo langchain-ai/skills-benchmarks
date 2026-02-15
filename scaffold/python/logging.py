@@ -238,16 +238,30 @@ def _avg(values: List, fmt: str = "{:.1f}") -> str:
 class ExperimentLogger:
     """Manages logging for a single experiment run."""
 
-    def __init__(self, experiment_name: str = None, columns: List[ReportColumn] = None):
+    def __init__(
+        self,
+        experiment_name: str = None,
+        columns: List[ReportColumn] = None,
+        experiment_id: str = None,
+    ):
         """Create experiment logger.
 
         Args:
-            experiment_name: Name for this experiment
+            experiment_name: Name for this experiment (used to generate ID if not provided)
             columns: Custom columns for reporting (in addition to defaults)
+            experiment_id: Existing experiment ID to join (for parallel workers)
         """
-        self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.name = experiment_name or f"experiment_{self.timestamp}"
-        self.experiment_id = f"{self.name}_{self.timestamp}"
+        if experiment_id:
+            # Join existing experiment
+            self.experiment_id = experiment_id
+            self.name = experiment_id.rsplit("_", 2)[0] if "_" in experiment_id else experiment_id
+            self.timestamp = experiment_id.rsplit("_", 1)[-1] if "_" in experiment_id else ""
+        else:
+            # Create new experiment
+            self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            self.name = experiment_name or f"experiment_{self.timestamp}"
+            self.experiment_id = f"{self.name}_{self.timestamp}"
+
         self.base_dir = LOGS_DIR / "experiments" / self.experiment_id
 
         # Create subdirectories

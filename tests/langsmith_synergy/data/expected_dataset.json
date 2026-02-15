@@ -1,0 +1,96 @@
+{
+  "name": "expected_trajectory_dataset",
+  "description": "Expected trajectory dataset from LangSmith traces",
+  "examples": [
+    {
+      "trace_id": "019c5e98-5524-7711-96c4-7b0763d22c39",
+      "inputs": {
+        "messages": [
+          {
+            "content": "Which albums have the most tracks?",
+            "type": "human"
+          }
+        ]
+      },
+      "outputs": {
+        "expected_trajectory": [
+          "execute_sql_query",
+          "get_database_schema",
+          "execute_sql_query"
+        ]
+      }
+    },
+    {
+      "trace_id": "019c5e97-dbf1-7013-ac8c-c100c254d28e",
+      "inputs": {
+        "messages": [
+          {
+            "content": "Which 3 genres generated the most revenue?",
+            "type": "human"
+          }
+        ]
+      },
+      "outputs": {
+        "expected_trajectory": [
+          "execute_sql_query",
+          "get_database_schema",
+          "execute_sql_query"
+        ]
+      }
+    },
+    {
+      "trace_id": "019c5e98-0cba-7101-b456-b541f283a28b",
+      "inputs": {
+        "messages": [
+          {
+            "content": "What are the most popular artists by number of tracks?",
+            "type": "human"
+          }
+        ]
+      },
+      "outputs": {
+        "expected_trajectory": [
+          "execute_sql_query",
+          "get_database_schema",
+          "execute_sql_query"
+        ]
+      }
+    },
+    {
+      "trace_id": "019c5e98-3151-7823-8ad6-c175b59d6b8b",
+      "inputs": {
+        "messages": [
+          {
+            "content": "What is the total revenue by country?",
+            "type": "human"
+          }
+        ]
+      },
+      "outputs": {
+        "expected_trajectory": [
+          "execute_sql_query",
+          "get_database_schema",
+          "execute_sql_query"
+        ]
+      }
+    },
+    {
+      "trace_id": "019c5e97-f228-7e20-93ef-61ee3479e880",
+      "inputs": {
+        "messages": [
+          {
+            "content": "Who are the top 5 customers by total spending?",
+            "type": "human"
+          }
+        ]
+      },
+      "outputs": {
+        "expected_trajectory": [
+          "get_database_schema",
+          "execute_sql_query",
+          "execute_sql_query"
+        ]
+      }
+    }
+  ]
+}

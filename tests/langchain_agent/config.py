@@ -16,7 +16,7 @@ from scaffold import (
     OutputQualityValidator,
 )
 from skill_constructs.parser import load_skill
-from skill_constructs import CLAUDE_SAMPLE
+from skill_constructs import CLAUDE_FULL
 
 # =============================================================================
 # SKILL LOADING

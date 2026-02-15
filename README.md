@@ -112,14 +112,14 @@ tests/
 skill_constructs/
   langchain/        # LangChain/LangSmith skill content
   noise/            # Noise/distractor skills
-  CLAUDE_SAMPLE.md  # Sample CLAUDE.md with skill synergies
+  CLAUDE_FULL.md  # Sample CLAUDE.md with skill synergies
 ```
 
 ## Defining Treatments
 
 ```python
 from scaffold import Treatment, PythonFileValidator, OutputQualityValidator, MetricsCollector
-from skill_constructs import CLAUDE_SAMPLE
+from skill_constructs import CLAUDE_FULL
 
 TREATMENTS = {
     "CONTROL": Treatment(
@@ -129,7 +129,7 @@ TREATMENTS = {
     "ALL_SECTIONS": Treatment(
         description="Full skill + CLAUDE.md",
         skills={"my-skill": FULL_SECTIONS},
-        claude_md=CLAUDE_SAMPLE,
+        claude_md=CLAUDE_FULL,
         validators=[...],
     ),
 }

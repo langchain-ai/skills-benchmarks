@@ -10,7 +10,7 @@ import pytest
 
 from scaffold import Treatment
 from scaffold.python import extract_events, parse_output
-from skill_constructs import CLAUDE_SAMPLE
+from skill_constructs import CLAUDE_FULL
 
 from tests.langchain_agent.config import (
     with_quickstart,
@@ -38,7 +38,7 @@ TREATMENTS = {
     "ALL_SECTIONS": Treatment(
         description="All skill sections + full CLAUDE.md",
         skills={"langchain-agents": FULL_SECTIONS},
-        claude_md=CLAUDE_SAMPLE,
+        claude_md=CLAUDE_FULL,
         validators=sql_agent_validators(),
     ),
     "BASELINE": Treatment(

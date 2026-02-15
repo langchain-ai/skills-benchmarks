@@ -14,7 +14,7 @@ from scaffold import (
     MetricsCollector,
 )
 from skill_constructs.parser import load_skill, skill_config
-from skill_constructs import CLAUDE_SAMPLE
+from skill_constructs import CLAUDE_FULL
 from tests.langsmith_synergy.validation.validators import (
     DatasetStructureValidator,
     EvaluatorValidator,

@@ -32,7 +32,7 @@ import { config as loadEnv } from "dotenv";
 
 import {
   runClaudeInDocker,
-  runPythonInDocker,
+  runNodeInDocker,
 } from "../scaffold/typescript/utils.js";
 import {
   ExperimentLogger,
@@ -340,33 +340,31 @@ function saveArtifacts(
     // Skip if directory doesn't exist or can't be read
   }
 
-  // Run Python files and save execution output
+  // Run TypeScript/JavaScript files and save execution output
   try {
-    const pyFiles = readdirSync(testDir).filter(
-      (f: string) => f.endsWith(".py") && !envFiles.has(f)
+    const scriptFiles = readdirSync(testDir).filter(
+      (f: string) =>
+        (f.endsWith(".ts") || f.endsWith(".js")) &&
+        !envFiles.has(f)
     );
 
-    for (const pyFile of pyFiles) {
+    for (const scriptFile of scriptFiles) {
       try {
-        const [success, output] = runPythonInDocker(testDir, pyFile, {
+        const [success, output] = runNodeInDocker(testDir, scriptFile, {
           timeout: 300,
         });
         const status = success ? "success" : "error";
-        const outputFile = join(
-          executionDir,
-          `${pyFile.replace(".py", "")}_${status}.txt`
-        );
+        const baseName = scriptFile.replace(/\.(ts|js)$/, "");
+        const outputFile = join(executionDir, `${baseName}_${status}.txt`);
         writeFileSync(outputFile, stripAnsi(output));
       } catch (e) {
-        const errorFile = join(
-          executionDir,
-          `${pyFile.replace(".py", "")}_error.txt`
-        );
+        const baseName = scriptFile.replace(/\.(ts|js)$/, "");
+        const errorFile = join(executionDir, `${baseName}_error.txt`);
         writeFileSync(errorFile, String(e));
       }
     }
   } catch {
-    // Skip if no Python files
+    // Skip if no script files
   }
 }
 

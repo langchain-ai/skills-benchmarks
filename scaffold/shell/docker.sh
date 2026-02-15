@@ -169,6 +169,21 @@ docker_run_python() {
     docker_run "$dir" python "$script" "$@"
 }
 
+# Run Node.js/TypeScript script in Docker
+# Usage: docker_run_node <directory> <script.js|script.ts> [args...]
+docker_run_node() {
+    local dir="$1"
+    local script="$2"
+    shift 2
+
+    # Use tsx for TypeScript, node for JavaScript
+    if [[ "$script" == *.ts ]]; then
+        docker_run "$dir" npx tsx "$script" "$@"
+    else
+        docker_run "$dir" node "$script" "$@"
+    fi
+}
+
 # Run Claude CLI in Docker
 # Usage: docker_run_claude <directory> <prompt> [--model MODEL] [--timeout SECONDS]
 docker_run_claude() {
@@ -269,6 +284,15 @@ if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
         shift 2
         docker_run_python "$(realpath "$dir")" "$script" "$@"
         ;;
+    run-node)
+        dir="${1:-}"
+        script="${2:-}"
+        if [[ -z "$dir" || -z "$script" ]]; then
+            die "Usage: $0 run-node <directory> <script.js|ts> [args...]"
+        fi
+        shift 2
+        docker_run_node "$(realpath "$dir")" "$script" "$@"
+        ;;
     run-claude)
         dir="${1:-}"
         prompt="${2:-}"
@@ -289,6 +313,7 @@ Commands:
   build <dir> [--force]              Build image (cached by Dockerfile hash)
   run <dir> <cmd...>                 Run command in container
   run-python <dir> <script> [args]   Run Python script in container
+  run-node <dir> <script> [args]     Run Node.js/TypeScript in container
   run-claude <dir> <prompt> [opts]   Run Claude CLI in container
 
 Options for run-claude:

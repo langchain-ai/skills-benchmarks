@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 import type { Treatment } from "../../scaffold/typescript/index.js";
 import {
   SkillInvokedValidator,
-  PythonFileValidator,
+  TypeScriptFileValidator,
   MetricsCollector,
 } from "../../scaffold/typescript/index.js";
 
@@ -21,34 +21,33 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 // =============================================================================
 
 /**
- * Example skill content - teaches modern Python patterns.
+ * Example skill content - teaches modern TypeScript patterns.
  */
 const SKILL_CONTENT = `---
-name: python-patterns
-description: Modern Python patterns guide
+name: ts-patterns
+description: Modern TypeScript patterns guide
 ---
 
-# Python Best Practices
+# TypeScript Best Practices
 
-## Type Hints
-Always use type hints for function signatures:
+## Interfaces
+Always define interfaces for data structures:
 
-\`\`\`python
-def greet(name: str) -> str:
-    return f"Hello, {name}!"
+\`\`\`typescript
+interface User {
+  name: string;
+  email: string;
+  age?: number;
+}
 \`\`\`
 
-## Dataclasses
-Use dataclasses for data containers:
+## Functions with Types
+Use explicit return types:
 
-\`\`\`python
-from dataclasses import dataclass
-
-@dataclass
-class User:
-    name: str
-    email: str
-    age: int = 0
+\`\`\`typescript
+function greet(name: string): string {
+  return \`Hello, \${name}!\`;
+}
 \`\`\`
 `;
 
@@ -56,35 +55,35 @@ class User:
 // PROMPTS
 // =============================================================================
 
-export const TASK_PROMPT = `Create a simple Python script that:
-1. Defines a User dataclass with name, email, and age fields
+export const TASK_PROMPT = `Create a simple TypeScript script that:
+1. Defines a User interface with name, email, and optional age fields
 2. Creates a function that greets a user by name
-3. Use type hints throughout
+3. Use explicit types throughout
 
-Save to user_greeting.py and test it prints a greeting.
+Save to user_greeting.ts and test it prints a greeting.
 
-IMPORTANT: Run the file directly. If it fails after 2 attempts, save and report.`;
+IMPORTANT: Run the file directly with tsx. If it fails after 2 attempts, save and report.`;
 
 // =============================================================================
 // VALIDATORS
 // =============================================================================
 
 const REQUIRED_PATTERNS = {
-  "@dataclass": "uses @dataclass decorator",
-  "def greet": "defines greet function",
-  "-> str": "uses return type hint",
+  "interface User": "defines User interface",
+  "function greet": "defines greet function",
+  ": string": "uses type annotations",
 };
 
 export function createValidators() {
   return [
-    new SkillInvokedValidator("python-patterns", { required: false }),
-    new PythonFileValidator("user_greeting.py", {
+    new SkillInvokedValidator("ts-patterns", { required: false }),
+    new TypeScriptFileValidator("user_greeting.ts", {
       label: "User Greeting Script",
       required: REQUIRED_PATTERNS,
       requireAll: true,
       runFile: true,
     }),
-    new MetricsCollector(["user_greeting.py"]),
+    new MetricsCollector(["user_greeting.ts"]),
   ];
 }
 
@@ -107,9 +106,9 @@ export const TREATMENTS: Record<string, Treatment> = {
    * Tests if the skill improves code quality.
    */
   BASELINE: {
-    description: "With python-patterns skill",
+    description: "With ts-patterns skill",
     skills: {
-      "python-patterns": [SKILL_CONTENT],
+      "ts-patterns": [SKILL_CONTENT],
     },
     validators: createValidators(),
   },

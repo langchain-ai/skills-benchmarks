@@ -186,6 +186,54 @@ export function runPythonInDocker(
 }
 
 /**
+ * Run Node.js/TypeScript script in Docker. Returns [success, output].
+ */
+export function runNodeInDocker(
+  testDir: string,
+  scriptName: string,
+  options: {
+    timeout?: number;
+    args?: string[];
+  } = {}
+): [boolean, string] {
+  const { timeout = 120, args = [] } = options;
+
+  if (!checkDockerAvailable()) {
+    return [false, "Docker not available"];
+  }
+
+  try {
+    const cmdArgs = ["run-node", resolve(testDir), scriptName, ...args];
+    const result = runShell("docker.sh", cmdArgs, { timeout, check: false });
+    return [result.returncode === 0, result.stdout + result.stderr];
+  } catch (error) {
+    if ((error as Error).message?.includes("ETIMEDOUT")) {
+      return [false, `Timeout (${timeout}s)`];
+    }
+    return [false, String(error)];
+  }
+}
+
+/**
+ * Run script in Docker based on file extension. Returns [success, output].
+ */
+export function runScriptInDocker(
+  testDir: string,
+  scriptName: string,
+  options: {
+    timeout?: number;
+    args?: string[];
+  } = {}
+): [boolean, string] {
+  if (scriptName.endsWith(".py")) {
+    return runPythonInDocker(testDir, scriptName, options);
+  } else if (scriptName.endsWith(".ts") || scriptName.endsWith(".js")) {
+    return runNodeInDocker(testDir, scriptName, options);
+  }
+  return [false, `Unsupported file type: ${scriptName}`];
+}
+
+/**
  * Run Claude CLI in Docker container.
  */
 export function runClaudeInDocker(

@@ -11,7 +11,7 @@
 
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { runPythonInDocker, evaluateWithSchema } from "./utils.js";
+import { runNodeInDocker, evaluateWithSchema } from "./utils.js";
 import type { Events } from "./logging.js";
 
 // =============================================================================
@@ -77,10 +77,9 @@ export interface FileValidatorOptions {
 }
 
 /**
- * Validate file existence, syntax, patterns, and optionally run it.
- * Supports both Python (.py) and JavaScript/TypeScript (.js/.ts) files.
+ * Validate TypeScript/JavaScript file existence, patterns, and optionally run it.
  */
-export class PythonFileValidator implements Validator {
+export class TypeScriptFileValidator implements Validator {
   filename: string;
   label: string;
   required: Record<string, string>;
@@ -194,7 +193,7 @@ export class PythonFileValidator implements Validator {
         const cachedOutput = outputs[this.filename] as [boolean, string];
         [success, output] = cachedOutput;
       } else {
-        [success, output] = runPythonInDocker(testDir, this.filename, {
+        [success, output] = runNodeInDocker(testDir, this.filename, {
           args: this.runArgs,
         });
       }
@@ -230,8 +229,8 @@ export class PythonFileValidator implements Validator {
   }
 }
 
-// Alias for consistency
-export { PythonFileValidator as FileValidator };
+// Alias for convenience
+export { TypeScriptFileValidator as FileValidator };
 
 // =============================================================================
 // NOISE TASK VALIDATOR
@@ -366,7 +365,7 @@ export class OutputQualityValidator implements Validator {
       output = cached[1];
       duration = cached[2] ?? null;
     } else {
-      [success, output] = runPythonInDocker(testDir, this.filename, {
+      [success, output] = runNodeInDocker(testDir, this.filename, {
         args: this.runArgs,
       });
     }

@@ -14,8 +14,6 @@ from scaffold import (
     PythonFileValidator,
     MetricsCollector,
     OutputQualityValidator,
-    bool_column,
-    quality_column,
 )
 from skill_constructs.parser import load_skill
 from skill_constructs import CLAUDE_SAMPLE
@@ -240,30 +238,8 @@ def noise_validators():
 
 
 # =============================================================================
-# PRESETS (used by test files)
-# =============================================================================
-
-GUIDANCE_COMPARISON = ["GUIDANCE_POS", "GUIDANCE_NEG"]
-CLAUDEMD_COMPARISON = ["CONTROL", "BASELINE", "ALL_SECTIONS"]
-NOISE_COMPARISON = ["NOISE_BASELINE", "NOISE_1", "NOISE_2", "NOISE_3"]
-
-
-# =============================================================================
 # ENVIRONMENT CONFIG
 # =============================================================================
 
 ENVIRONMENT_DIR = Path(__file__).parent / "environment"
 REQUIRED_FILES = ["Dockerfile", "requirements.txt", "chinook.db"]
-
-
-# =============================================================================
-# EXPERIMENT COLUMNS
-# =============================================================================
-
-COLUMNS = [
-    bool_column("Skill", "Invoked langchain-agents skill",
-                "Whether Claude invoked the langchain-agents skill"),
-    bool_column("Patterns", "imports create_agent",
-                "Whether the generated code uses modern create_agent patterns"),
-    quality_column("Quality"),
-]

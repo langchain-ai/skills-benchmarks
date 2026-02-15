@@ -9,9 +9,8 @@ from typing import Dict, List, Tuple
 
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
-from scaffold.validation import Validator
-from scaffold.utils import (
-    retry_with_backoff,
+from scaffold import (
+    Validator,
     read_json_file,
     get_field,
     get_nested_field,
@@ -224,9 +223,14 @@ class EvaluatorValidator(Validator):
         return None, "Evaluator: no (run, example) function"
 
     def _run_tests(self, test_dir: Path, func_name: str) -> Tuple[List[str], List[str]]:
+        # Copy test cases from data if not in test_dir
         test_cases_path = test_dir / self.test_cases_filename
         if not test_cases_path.exists():
-            return ["Evaluator: no test cases"], []
+            data_path = Path(__file__).parent.parent / "data" / self.test_cases_filename
+            if data_path.exists():
+                test_cases_path.write_text(data_path.read_text())
+            else:
+                return ["Evaluator: no test cases"], []
 
         runner_src = Path(__file__).parent / "eval_runner.py"
         runner_dst = test_dir / "_eval_runner.py"
@@ -340,6 +344,9 @@ class TrajectoryAccuracyValidator(Validator):
     Duplicates naturally fail because each expected can only match once.
     """
 
+    # Path to pre-generated expected dataset
+    DATA_DIR = Path(__file__).parent.parent / "data"
+
     def __init__(
         self,
         filename: str = "trajectory_dataset.json",
@@ -364,10 +371,9 @@ class TrajectoryAccuracyValidator(Validator):
         if not actual_examples:
             return [], ["Accuracy: no examples in dataset"]
 
-        # Load ground truth
-        expected_data, error = read_json_file(test_dir / self.expected_filename)
+        # Load ground truth from data directory
+        expected_data, error = read_json_file(self.DATA_DIR / self.expected_filename)
         if error:
-            # No ground truth - skip accuracy check but warn
             return [f"Accuracy: skipped (no ground truth)"], []
         expected_examples = expected_data.get("examples", [])
 

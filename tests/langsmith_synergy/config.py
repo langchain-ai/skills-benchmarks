@@ -12,7 +12,6 @@ from scaffold import (
     Treatment,
     SkillInvokedValidator,
     MetricsCollector,
-    bool_column,
 )
 from skill_constructs.parser import load_skill, skill_config
 from skill_constructs import CLAUDE_SAMPLE
@@ -167,28 +166,3 @@ def advanced_validators():
 
 ENVIRONMENT_DIR = Path(__file__).parent / "environment"
 REQUIRED_FILES = ["Dockerfile", "requirements.txt"]
-
-
-# =============================================================================
-# EXPERIMENT COLUMNS
-# =============================================================================
-
-BASIC_COLUMNS = [
-    bool_column("Trace Skill", "Invoked langsmith-trace skill",
-                "Whether Claude invoked the langsmith-trace skill"),
-    bool_column("Dataset Skill", "Invoked langsmith-dataset skill",
-                "Whether Claude invoked the langsmith-dataset skill"),
-    bool_column("Trace Tests", "Traces:",
-                "Whether traces are available in LangSmith project"),
-    bool_column("Dataset Tests", "have trajectory",
-                "Whether dataset has valid trajectory structure"),
-]
-
-ADVANCED_COLUMNS = BASIC_COLUMNS + [
-    bool_column("Evaluator Skill", "Invoked langsmith-evaluator skill",
-                "Whether Claude invoked the langsmith-evaluator skill"),
-    bool_column("Eval Tests", "/4 tests",
-                "Whether the evaluator passed tests"),
-]
-
-

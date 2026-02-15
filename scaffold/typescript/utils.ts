@@ -4,7 +4,7 @@
  * Mirrors scaffold/python/utils.py - shell scripts (scaffold/shell/) are the source of truth.
  */
 
-import { execSync, type ExecSyncOptions } from "node:child_process";
+import { spawnSync, type SpawnSyncOptions } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -29,6 +29,7 @@ export interface ShellResult {
 
 /**
  * Run a shell script from scaffold/shell/.
+ * Uses spawnSync with array args to properly handle special characters in arguments.
  */
 export function runShell(
   script: string,
@@ -40,9 +41,9 @@ export function runShell(
   } = {}
 ): ShellResult {
   const { timeout, check = true, cwd } = options;
-  const cmd = ["bash", join(SHELL_DIR, script), ...args].join(" ");
+  const scriptPath = join(SHELL_DIR, script);
 
-  const execOptions: ExecSyncOptions = {
+  const spawnOptions: SpawnSyncOptions = {
     encoding: "utf8",
     stdio: ["pipe", "pipe", "pipe"],
     timeout: timeout ? timeout * 1000 : undefined,
@@ -50,24 +51,17 @@ export function runShell(
     env: process.env,
   };
 
-  try {
-    const stdout = execSync(cmd, execOptions) as string;
-    return { stdout, stderr: "", returncode: 0 };
-  } catch (error: unknown) {
-    const execError = error as {
-      stdout?: Buffer | string;
-      stderr?: Buffer | string;
-      status?: number;
-    };
-    const stdout = execError.stdout?.toString() || "";
-    const stderr = execError.stderr?.toString() || "";
-    const returncode = execError.status ?? 1;
+  const result = spawnSync("bash", [scriptPath, ...args], spawnOptions);
 
-    if (check) {
-      throw new Error(`Shell command failed: ${cmd}\n${stderr}`);
-    }
-    return { stdout, stderr, returncode };
+  const stdout = result.stdout?.toString() || "";
+  const stderr = result.stderr?.toString() || "";
+  const returncode = result.status ?? 1;
+
+  if (check && returncode !== 0) {
+    throw new Error(`Shell command failed: bash ${scriptPath} ${args.join(" ")}\n${stderr}`);
   }
+
+  return { stdout, stderr, returncode };
 }
 
 // =============================================================================
@@ -91,8 +85,8 @@ export function checkDockerAvailable(): boolean {
  */
 export function checkClaudeAvailable(): boolean {
   try {
-    execSync("claude --version", { stdio: "pipe", timeout: 10000 });
-    return true;
+    const result = spawnSync("claude", ["--version"], { stdio: "pipe", timeout: 10000 });
+    return result.status === 0;
   } catch {
     return false;
   }

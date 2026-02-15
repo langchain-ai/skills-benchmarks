@@ -1,15 +1,16 @@
+<frontmatter>
 ---
 name: langsmith-evaluator
 description: Use this skill for ANY question about CREATING evaluators. Covers creating custom metrics, LLM as Judge evaluators, code-based evaluators, and uploading evaluation logic to LangSmith. Includes basic usage of evaluators to run evaluations.
 ---
+</frontmatter>
 
-# LangSmith Evaluator
-
+<oneliner>
 Create evaluators to measure agent performance on your datasets. LangSmith supports two types: **LLM as Judge** (uses LLM to grade outputs) and **Custom Code** (deterministic logic).
+</oneliner>
 
-## Setup
-
-### Environment Variables
+<setup>
+Environment Variables
 
 ```bash
 LANGSMITH_API_KEY=lsv2_pt_your_api_key_here          # Required
@@ -17,14 +18,14 @@ LANGSMITH_WORKSPACE_ID=your-workspace-id              # Optional: for org-scoped
 OPENAI_API_KEY=your_openai_key                        # For LLM as Judge
 ```
 
-### Dependencies
+Dependencies
 
 ```bash
 pip install langsmith langchain-openai python-dotenv
 ```
+</setup>
 
-## Evaluator Format
-
+<evaluator_format>
 Evaluators use `(run, example)` signature for LangSmith:
 
 ```python
@@ -43,9 +44,15 @@ def evaluator_name(run, example):
         "comment": "Reason..."    # Optional explanation
     }
 ```
+</evaluator_format>
 
-## LLM as Judge Evaluators
+<evaluator_types>
+- **LLM as Judge** - Uses an LLM to grade outputs. Best for subjective quality (accuracy, helpfulness, relevance). Use structured output for reliable grading.
+- **Custom Code** - Deterministic logic. Best for objective checks (exact match, trajectory validation, format compliance).
+- **Trajectory Evaluators** - Check tool call sequences. Compare `run["outputs"]["expected_trajectory"]` against expected.
+</evaluator_types>
 
+<llm_judge>
 Use structured output for reliable grading:
 
 ```python
@@ -76,10 +83,11 @@ Evaluate accuracy:"""
         "comment": f"{grade['reasoning']} (confidence: {grade['confidence']})"
     }
 ```
+</llm_judge>
 
-## Custom Code Evaluators
-
+<code_evaluators>
 ### Exact Match
+
 ```python
 def exact_match_evaluator(run, example):
     output = run["outputs"].get("expected_response", "").strip().lower()
@@ -89,6 +97,7 @@ def exact_match_evaluator(run, example):
 ```
 
 ### Trajectory Validation
+
 ```python
 def trajectory_evaluator(run, example):
     trajectory = run["outputs"].get("expected_trajectory", [])
@@ -100,36 +109,29 @@ def trajectory_evaluator(run, example):
         "comment": f"Exact: {exact}, All tools: {all_tools}"
     }
 ```
+</code_evaluators>
 
-## Running Evaluations
-
+<running_evaluations>
 ```python
 from langsmith import Client
 
 client = Client()
 
-# Define your agent function
 def run_agent(inputs: dict) -> dict:
-    """Your agent invocation logic."""
     result = your_agent.invoke(inputs)
     return {"expected_response": result}
 
-# Run evaluation
 results = await client.aevaluate(
     run_agent,
-    data="Skills: Final Response",              # Dataset name
-    evaluators=[
-        exact_match_evaluator,
-        accuracy_evaluator,
-        trajectory_evaluator
-    ],
+    data="Skills: Final Response",
+    evaluators=[exact_match_evaluator, accuracy_evaluator, trajectory_evaluator],
     experiment_prefix="skills-eval-v1",
     max_concurrency=4
 )
 ```
+</running_evaluations>
 
-## Upload Evaluators to LangSmith
-
+<upload>
 Navigate to `skills/langsmith-evaluator/scripts/` to upload evaluators.
 
 ```bash
@@ -150,17 +152,19 @@ python upload_evaluators.py delete "Trajectory Match"
 **IMPORTANT - Safety Prompts:**
 - The script prompts for confirmation before destructive operations
 - **NEVER use `--yes` flag unless the user explicitly requests it**
+</upload>
 
-## Best Practices
-
+<best_practices>
 1. **Use structured output for LLM judges** - More reliable than parsing free-text
 2. **Match evaluator to dataset type**
    - Final Response → LLM as Judge for quality
    - Trajectory → Custom Code for sequence
 3. **Use async for LLM judges** - Enables parallel evaluation
 4. **Test evaluators independently** - Validate on known good/bad examples first
+</best_practices>
 
-## Example Workflow
+<example_workflow>
+Complete workflow to create and upload an evaluator:
 
 ```bash
 # 1. Create evaluators file
@@ -170,10 +174,7 @@ def exact_match(run, example):
     output = run["outputs"].get("expected_response", "").strip().lower()
     expected = example["outputs"].get("expected_response", "").strip().lower()
     match = output == expected
-    return {
-        "exact_match": 1 if match else 0,
-        "comment": f"Match: {match}"
-    }
+    return {"exact_match": 1 if match else 0, "comment": f"Match: {match}"}
 EOF
 
 # 2. Upload to LangSmith
@@ -185,9 +186,15 @@ python upload_evaluators.py upload evaluators.py \
 
 # 3. Evaluator runs automatically on new dataset runs
 ```
+</example_workflow>
 
-## Resources
-
+<resources>
 - [LangSmith Evaluation Concepts](https://docs.langchain.com/langsmith/evaluation-concepts)
 - [Custom Code Evaluators](https://changelog.langchain.com/announcements/custom-code-evaluators-in-langsmith)
 - [OpenEvals - Readymade Evaluators](https://github.com/langchain-ai/openevals)
+</resources>
+
+<related_skills>
+- **langsmith-trace**: Queries execution data. Traces show what tools were called, helping you understand what evaluators should check.
+- **langsmith-dataset**: Generates evaluation datasets. Evaluators validate the expected outputs defined in datasets.
+</related_skills>

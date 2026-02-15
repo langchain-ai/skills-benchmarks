@@ -1,15 +1,16 @@
+<frontmatter>
 ---
 name: langsmith-trace
-description: "Use this skill for ANY LangSmith/LangChain observability question. Covers two topics: (1) Adding tracing to your application (LangChain/LangGraph or vanilla Python/TS with @traceable), and (2) Querying traces for debugging, analyzing execution flow, and exporting trace data."
+description: "Use this skill for ANY LangSmith/LangChain observability question. Covers two topics: (1) Adding tracing to your application (LangChain/LangGraph or vanilla Python with @traceable), and (2) Querying traces for debugging, analyzing execution flow, and exporting trace data."
 ---
+</frontmatter>
 
-# LangSmith Trace
-
+<oneliner>
 Two main topics: **adding tracing** to your application, and **querying traces** for debugging and analysis.
+</oneliner>
 
-## Setup
-
-### Environment Variables
+<setup>
+Environment Variables
 
 ```bash
 LANGSMITH_API_KEY=lsv2_pt_your_api_key_here          # Required
@@ -17,17 +18,15 @@ LANGSMITH_PROJECT=your-project-name                   # Optional: default projec
 LANGSMITH_WORKSPACE_ID=your-workspace-id              # Optional: for org-scoped keys
 ```
 
-### Dependencies
+Dependencies
 
 ```bash
 pip install langsmith click rich python-dotenv
 ```
+</setup>
 
-## Adding Tracing to Your Application
-
-### LangChain/LangGraph Apps
-
-Just set environment variables — tracing is automatic:
+<trace_langchain_oss>
+For LangChain/LangGraph apps, tracing is automatic. Just set environment variables:
 
 ```bash
 export LANGSMITH_TRACING=true
@@ -38,10 +37,10 @@ export OPENAI_API_KEY=<your-openai-api-key>  # or your LLM provider's key
 Optional variables:
 - `LANGSMITH_PROJECT` - specify project name (defaults to "default")
 - `LANGCHAIN_CALLBACKS_BACKGROUND=false` - use for serverless to ensure traces complete before function exit
+</trace_langchain_oss>
 
-### Non-LangChain/LangGraph Apps
-
-Use the `@traceable` decorator and wrap your LLM client:
+<trace_other_frameworks>
+For non-LangChain apps, use the `@traceable` decorator and wrap your LLM client:
 
 ```python
 from langsmith import traceable
@@ -57,20 +56,11 @@ def my_llm_pipeline(question: str) -> str:
         messages=[{"role": "user", "content": question}],
     )
     return resp.choices[0].message.content
-```
 
-### Best Practices
-
-- **Apply `@traceable` to all nested functions** you want visible in LangSmith
-- **Wrapped clients auto-trace all calls** — `wrap_openai()` records every LLM call
-- **Name your traces** for easier filtering: `@traceable(name="retrieve_docs")`
-- **Add metadata** for searchability: `@traceable(metadata={"user_id": "123"})`
-
-```python
-# Example: nested tracing
+# Nested tracing example
 @traceable
 def rag_pipeline(question: str) -> str:
-    docs = retrieve_docs(question)  # traced if @traceable applied
+    docs = retrieve_docs(question)
     return generate_answer(question, docs)
 
 @traceable(name="retrieve_docs")
@@ -82,11 +72,15 @@ def generate_answer(question: str, docs: list[str]) -> str:
     return client.chat.completions.create(...)
 ```
 
-## Querying Traces and Runs
+Best Practices:
+- **Apply `@traceable` to all nested functions** you want visible in LangSmith
+- **Wrapped clients auto-trace all calls** — `wrap_openai()` records every LLM call
+- **Name your traces** for easier filtering: `@traceable(name="retrieve_docs")`
+- **Add metadata** for searchability: `@traceable(metadata={"user_id": "123"})`
+</trace_other_frameworks>
 
+<traces_vs_runs>
 Navigate to `skills/langsmith-trace/scripts/` to run commands.
-
-### Traces vs Runs
 
 **Understanding the difference is critical:**
 
@@ -94,9 +88,9 @@ Navigate to `skills/langsmith-trace/scripts/` to run commands.
 - **Run** = A single node in the tree (one LLM call, one tool call, etc.)
 
 **Generally, query traces first** — they provide complete context and preserve hierarchy needed for trajectory analysis and dataset generation.
+</traces_vs_runs>
 
-### Command Structure
-
+<command_structure>
 Two command groups with consistent behavior:
 
 ```
@@ -120,9 +114,9 @@ query_traces.py
 | `--run-type` | Not available | Available |
 | Returns | Full hierarchy | Flat list |
 | Export output | Directory (one file/trace) | Single file |
+</command_structure>
 
-### Quick Reference
-
+<querying_traces>
 ```bash
 # List recent traces (most common operation)
 python query_traces.py traces list --limit 10 --project my-project
@@ -166,9 +160,9 @@ python query_traces.py runs get <run-id> --full
 # Export LLM runs for analysis
 python query_traces.py runs export ./llm_runs.jsonl --run-type llm --limit 100 --full
 ```
+</querying_traces>
 
-### Filters
-
+<filters>
 All commands support these filters (all AND together):
 
 **Basic filters:**
@@ -193,21 +187,27 @@ All commands support these filters (all AND together):
 # Example: Filter by feedback score
 python query_traces.py traces list --filter 'and(eq(feedback_key, "correctness"), gte(feedback_score, 0.8))'
 ```
+</filters>
 
-### Export Format
-
+<export_format>
 Export creates `.jsonl` files (one run per line) with these fields:
 ```json
 {"run_id": "...", "trace_id": "...", "name": "...", "run_type": "...", "parent_run_id": "...", "inputs": {...}, "outputs": {...}}
 ```
 
 Use `--include-io` or `--full` to include inputs/outputs (required for dataset generation).
+</export_format>
 
-### Tips
-
+<tips>
 - **Start with traces** — they provide complete context needed for trajectory and dataset generation
 - Use `traces export --full` for bulk data destined for datasets
 - Always specify `--project` to avoid mixing data from different projects
 - Use `/tmp` for temporary exports
 - Include `--include-metadata` for performance/cost analysis
 - Stitch files: `cat ./traces/*.jsonl > all.jsonl`
+</tips>
+
+<related_skills>
+- **langsmith-dataset**: Generates evaluation datasets from trace data. Traces provide the raw execution data that datasets structure for testing.
+- **langsmith-evaluator**: Creates evaluators that validate agent outputs. Evaluators can check trajectories captured in traces.
+</related_skills>

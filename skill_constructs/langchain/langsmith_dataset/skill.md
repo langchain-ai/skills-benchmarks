@@ -1,29 +1,30 @@
+<frontmatter>
 ---
 name: langsmith-dataset
 description: Use this skill for ANY question about creating test or evaluation datasets for agents. Covers generating datasets from exported trace files (final_response, single_step, trajectory, RAG types), uploading to LangSmith, and managing evaluation data.
 ---
+</frontmatter>
 
-# LangSmith Dataset
-
+<oneliner>
 Auto-generate evaluation datasets from exported JSONL trace files for testing and validation.
+</oneliner>
 
-## Setup
-
-### Environment Variables
+<setup>
+Environment Variables
 
 ```bash
 LANGSMITH_API_KEY=lsv2_pt_your_api_key_here          # Required
 LANGSMITH_WORKSPACE_ID=your-workspace-id              # Optional: for org-scoped keys
 ```
 
-### Dependencies
+Dependencies
 
 ```bash
 pip install langsmith click rich python-dotenv
 ```
+</setup>
 
-## Input Format
-
+<input_format>
 This script requires traces exported in **JSONL format** (one run per line).
 
 ### Required Fields
@@ -50,9 +51,9 @@ Each line must be a JSON object with these fields:
 - Check that JSONL files exist in the output directory
 - Confirm traces have both `inputs` and `outputs` populated
 - Inspect the trace hierarchy to understand the structure
+</input_format>
 
-## Usage
-
+<usage>
 Navigate to `skills/langsmith-dataset/scripts/` to run commands.
 
 ### Scripts
@@ -78,18 +79,18 @@ All dataset generation commands support:
 - The script prompts for confirmation before deleting existing datasets with `--replace`
 - **ALWAYS respect these prompts** - wait for user input before proceeding
 - **NEVER use `--yes` flag unless the user explicitly requests it**
+</usage>
 
-### Extraction Priority
-
+<extraction_priority>
 When extracting inputs/outputs for dataset generation, the script uses this priority:
 
 1. **User-specified fields** (`--input-fields`, `--output-fields`)
 2. **Messages array** (LangChain/OpenAI format)
 3. **Common fields** (inputs: query, input, question, message, prompt, text; outputs: answer, output, response, result)
 4. **Raw dict** (fallback)
+</extraction_priority>
 
-### Understanding Trace Hierarchy
-
+<trace_hierarchy>
 Traces have depth levels based on parent-child relationships:
 
 ```
@@ -99,11 +100,18 @@ Depth 0: Root agent (e.g., "LangGraph")
   │     └── Depth 2: LLM calls (ChatOpenAI, ChatAnthropic)
   └── Depth 3+: Nested subagent calls
 ```
+</trace_hierarchy>
 
-## Dataset Types
+<dataset_types_overview>
+Use `--type <type>` flag with `generate_datasets.py`:
 
-### 1. Final Response
+- **final_response** - Full conversation with expected output. Tests complete agent behavior.
+- **single_step** - Single node inputs/outputs. Tests specific node behavior. Use `--run-name` to target a node.
+- **trajectory** - Tool call sequence. Tests execution path. Use `--depth` to control depth.
+- **rag** - Question/chunks/answer/citations. Tests retrieval quality. Only matches `run_type="retriever"`.
+</dataset_types_overview>
 
+<dataset_final_response>
 Full conversation with expected output - tests complete agent behavior.
 
 ```bash
@@ -134,9 +142,9 @@ generate_datasets.py --input ./traces --type final_response \
 With `--input-fields`, inputs become `{"expected_input": "extracted value"}`.
 
 **Important:** Always checks root run first for final response to avoid intermediate tool outputs.
+</dataset_final_response>
 
-### 2. Single Step
-
+<dataset_single_step>
 Single node inputs/outputs - tests any specific node's behavior. **Supports multiple occurrences per trace** to capture conversation evolution.
 
 ```bash
@@ -180,9 +188,9 @@ generate_datasets.py --input ./traces --type single_step \
 - `model` (depth 1) - LLM invocations with growing context
 - `tools` (depth 1) - Tool execution chain
 - Any custom node name
+</dataset_single_step>
 
-### 3. Trajectory
-
+<dataset_trajectory>
 Tool call sequence - tests execution path with configurable depth.
 
 ```bash
@@ -218,9 +226,9 @@ generate_datasets.py --input ./traces --type trajectory \
 - `--depth 0` = root only (no tool calls)
 
 **Note:** Tool calls are typically at depth 2 in LangGraph/DeepAgents architecture.
+</dataset_trajectory>
 
-### 4. RAG
-
+<dataset_rag>
 Question/chunks/answer - tests retrieval quality. Only matches runs with `run_type="retriever"`.
 
 ```bash
@@ -239,9 +247,9 @@ generate_datasets.py --input ./traces --type rag --output /tmp/rag_ds.json
 ```
 
 Extracts LangChain Documents (`page_content`) if present, otherwise returns raw outputs.
+</dataset_rag>
 
-## Output Formats
-
+<output_formats>
 All dataset types support both JSON and CSV:
 ```bash
 # JSON output (default)
@@ -250,9 +258,9 @@ generate_datasets.py --input ./traces --type trajectory --output ds.json
 # CSV output (use .csv extension)
 generate_datasets.py --input ./traces --type trajectory --output ds.csv
 ```
+</output_formats>
 
-## Upload to LangSmith
-
+<upload>
 ```bash
 # Generate and upload in one command
 generate_datasets.py --input ./traces --type trajectory \
@@ -265,9 +273,9 @@ generate_datasets.py --input ./traces --type final_response \
   --upload "Skills: Final Response" \
   --replace
 ```
+</upload>
 
-## Query Datasets
-
+<query>
 ```bash
 # List all datasets
 python query_datasets.py list-datasets
@@ -284,9 +292,9 @@ python query_datasets.py structure /tmp/trajectory_ds.json
 # Export from LangSmith to local
 python query_datasets.py export "Skills: Final Response" /tmp/exported.json --limit 100
 ```
+</query>
 
-## Tips for Dataset Generation
-
+<tips>
 1. **Export successful traces first** - Use recent successful runs for baseline datasets
 2. **Use time windows when exporting** - `--last-n-minutes 1440` for last 24 hours of data
 3. **Verify exports have I/O** - Check that `inputs` and `outputs` are populated before generating
@@ -295,8 +303,10 @@ python query_datasets.py export "Skills: Final Response" /tmp/exported.json --li
 6. **Review before upload** - Use `query_datasets.py view-file` to inspect first
 7. **Iterative refinement** - Generate small batches (5-20) first, validate, then scale up
 8. **Use `--replace` carefully** - Overwrites existing datasets, useful for iteration
+</tips>
 
-## Example Workflow
+<example_workflow>
+Complete workflow from exported traces to LangSmith datasets:
 
 ```bash
 # Assuming traces are already exported to ./traces as JSONL files
@@ -322,9 +332,9 @@ generate_datasets.py --input ./traces --type trajectory \
 # 4. Query locally if needed
 python query_datasets.py show "Skills: Final Response" --limit 3
 ```
+</example_workflow>
 
-## Troubleshooting
-
+<troubleshooting>
 **"No valid traces found":**
 - Ensure input path contains `.jsonl` files (not `.json`)
 - Check files have required fields (trace_id, inputs, outputs)
@@ -350,3 +360,9 @@ python query_datasets.py show "Skills: Final Response" --limit 3
 **Dataset upload fails:**
 - Check dataset doesn't exist or use `--replace`
 - Verify LANGSMITH_API_KEY is set
+</troubleshooting>
+
+<related_skills>
+- **langsmith-trace**: Queries and exports trace data. Datasets are built from trace data - traces contain the inputs, outputs, and tool calls that become dataset examples.
+- **langsmith-evaluator**: Creates evaluators that validate outputs. Evaluators run against datasets to measure performance.
+</related_skills>

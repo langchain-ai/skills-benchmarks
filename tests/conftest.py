@@ -52,20 +52,22 @@ def _get_experiment_name(session) -> str:
     items = getattr(session, "items", None)
     first_path = str(items[0].fspath) if items else ""
 
-    if "langchain_agent" in first_path:
+    if "bench_lc_basic" in first_path:
         if "guidance" in first_path:
             return "lc_guide"
         elif "claudemd" in first_path:
             return "lc_claude"
         elif "noise" in first_path:
             return "lc_noise"
-        return "lc_agent"
-    elif "langsmith_synergy" in first_path:
+        return "lc_basic"
+    elif "bench_ls_multiskill" in first_path:
         if "basic" in first_path:
             return "ls_basic"
         elif "advanced" in first_path:
             return "ls_adv"
-        return "ls_synergy"
+        return "ls_multi"
+    elif "example" in first_path:
+        return "example"
     return "experiment"
 
 

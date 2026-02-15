@@ -4,36 +4,21 @@ Measures how skill documentation design affects Claude Code's adherence to recom
 
 > **Note**: Tests were conducted with Opus 4.5, early February 2026.
 
-## Quick Start (Python)
+## Quick Start
 
 ```bash
 # Setup
-uv sync
+uv sync                      # Python
+npm install && npm run build # TypeScript
 
-# Run single test
-uv run pytest tests/bench_ls_multiskill/test_advanced.py -k "ADV_ALL_SECTIONS" -v
+# Run a benchmark
+uv run pytest tests/bench_lc_basic/test_guidance.py -k "GUIDANCE_POS" -v
 
-# Run with repetitions
+# With repetitions
 uv run pytest tests/bench_ls_multiskill/test_advanced.py -k "ADV_ALL_SECTIONS" -v --count=3
 
-# Run in parallel (6 workers)
+# Parallel (6 workers)
 uv run pytest tests/bench_ls_multiskill/test_advanced.py -v -n 6
-```
-
-## Quick Start (TypeScript)
-
-```bash
-# Setup
-npm install
-
-# Build TypeScript
-npm run build
-
-# Run example test
-npx vitest run tests/example/guidance.test.ts
-
-# Run in parallel (3 workers)
-npx vitest run tests/example/guidance.test.ts --pool=threads
 ```
 
 ## Requirements
@@ -76,6 +61,23 @@ skills/benchmarks/
 ---
 
 ## Contributing
+
+### Example Tests
+
+**Start here** - the example tests in `tests/example/` demonstrate the full pattern:
+
+```bash
+# Python
+uv run pytest tests/example/test_guidance.py -v -k "MINIMAL"
+
+# TypeScript
+npx vitest run tests/example/guidance.test.ts --testNamePattern="MINIMAL"
+```
+
+These examples show how to:
+- Load skills using the parser (`load_skill()` / `loadSkill()`)
+- Define treatments with different skill configurations
+- Use validators to check generated code
 
 ### Adding a New Skill
 
@@ -188,7 +190,7 @@ def test_treatment(treatment_name, test_dir, setup_test_context, run_claude, rec
     assert not failed, f"Validation failed: {failed}"
 ```
 
-### Available Validators
+### Built-in Validators
 
 | Validator | Purpose | Example |
 |-----------|---------|---------|

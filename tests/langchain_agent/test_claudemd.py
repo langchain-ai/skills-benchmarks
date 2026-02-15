@@ -1,9 +1,15 @@
 """CLAUDE.md treatments (effects of CLAUDE.md presence and content).
 
 Tests whether CLAUDE.md is needed and what instructions work best.
+
+Run with: pytest tests/langchain_agent/test_claudemd.py -v
+Parallel:  pytest tests/langchain_agent/test_claudemd.py -n 3
 """
 
+import pytest
+
 from scaffold import Treatment
+from scaffold.python import extract_events, parse_output
 from skill_constructs import CLAUDE_SAMPLE
 
 from tests.langchain_agent.config import (
@@ -15,6 +21,7 @@ from tests.langchain_agent.config import (
     CLAUDE_MD_BOTH,
     sql_agent_validators,
     TASK1_PROMPT,
+    ENVIRONMENT_DIR,
 )
 
 
@@ -75,63 +82,53 @@ TREATMENTS = {
 
 
 # =============================================================================
-# PRESETS
+# FIXTURES
 # =============================================================================
 
-CLAUDEMD_COMPARISON = list(TREATMENTS.keys())
-CONTROL_COMPARISON = ["CONTROL", "BASELINE"]
-ALL_SECTIONS_VS_CONTROL = ["CONTROL", "ALL_SECTIONS"]
-
-
-# =============================================================================
-# PROMPT BUILDER
-# =============================================================================
-
-def build_prompt(treatment: Treatment, treatment_name: str = None, rep: int = 1, run_id: str = None) -> str:
-    """Build prompt for CLAUDE.md treatments."""
-    return treatment.build_prompt(TASK1_PROMPT)
+@pytest.fixture
+def environment_dir():
+    """Path to environment directory with Dockerfile, requirements.txt, etc."""
+    return ENVIRONMENT_DIR
 
 
 # =============================================================================
-# VALIDATOR (module-level for pickling)
+# TESTS
 # =============================================================================
 
-def validate_treatment(events: dict, test_dir, treatment_name: str, outputs: dict):
-    """Validate using the treatment's validators."""
-    treatment = TREATMENTS.get(treatment_name)
-    if treatment:
-        return treatment.validate(events, test_dir, outputs)
-    return [], [f"Unknown treatment: {treatment_name}"]
+@pytest.mark.parametrize("treatment_name", list(TREATMENTS.keys()))
+def test_treatment(
+    treatment_name,
+    verify_environment,
+    test_dir,
+    setup_test_context,
+    run_claude,
+    record_result,
+    environment_dir,
+):
+    """Test a single treatment."""
+    treatment = TREATMENTS[treatment_name]
 
-
-# =============================================================================
-# CLI RUNNER
-# =============================================================================
-
-if __name__ == "__main__":
-    import argparse
-    from scaffold import run_experiment
-    from tests.langchain_agent.config import ENVIRONMENT_DIR, REQUIRED_FILES, COLUMNS
-
-    parser = argparse.ArgumentParser(description="CLAUDE.md experiment")
-    parser.add_argument("--model", type=str, help="Model to use")
-    parser.add_argument("-t", "--treatments", nargs="+", help="Treatment names")
-    parser.add_argument("-r", "--repeat", type=int, default=1, help="Repetitions")
-    parser.add_argument("-w", "--workers", type=int, default=3, help="Parallel workers")
-    parser.add_argument("--timeout", type=int, default=600, help="Timeout per run")
-    args = parser.parse_args()
-
-    run_experiment(
-        treatments=TREATMENTS,
-        build_prompt_func=build_prompt,
-        validate_func=validate_treatment,
-        experiment_name="claudemd_experiment",
-        environment_dir=ENVIRONMENT_DIR,
-        required_files=REQUIRED_FILES,
-        columns=COLUMNS,
-        treatment_names=args.treatments,
-        repeat=args.repeat,
-        workers=args.workers,
-        timeout=args.timeout,
-        model=args.model,
+    # Setup test context
+    setup_test_context(
+        skills=treatment.skills,
+        claude_md=treatment.claude_md,
+        environment_dir=environment_dir,
     )
+
+    # Build prompt
+    prompt = treatment.build_prompt(TASK1_PROMPT)
+
+    # Run Claude (automatically saves raw output)
+    result = run_claude(prompt, timeout=600)
+
+    # Parse output
+    events = extract_events(parse_output(result.stdout))
+
+    # Validate
+    passed, failed = treatment.validate(events, test_dir, {})
+
+    # Record results (saves events, artifacts, reports)
+    record_result(events, passed, failed)
+
+    # Assert
+    assert not failed, f"Validation failed: {failed}"

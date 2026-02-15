@@ -9,14 +9,17 @@ Note: Tests were conducted with Opus 4.5, early February 2026.
 # Setup
 uv sync
 
-# Verify imports work
-python3 -c "from scaffold import verify_environment; print('OK')"
+# Run single test
+uv run pytest tests/langsmith_synergy/test_advanced.py -k "ADV_ALL_SECTIONS" -v
 
-# Run LangChain agent experiment
-python tests/langchain_agent/test_langchain_agent.py -t CONTROL ALL_SECTIONS -r 3
+# Run with repetitions
+uv run pytest tests/langsmith_synergy/test_advanced.py -k "ADV_ALL_SECTIONS" -v --count=3
 
-# Run LangSmith synergy experiment
-python tests/langsmith_synergy/test_langsmith_synergy.py -t ADV_CONTROL ADV_ALL_SECTIONS -r 3
+# Run in parallel (6 workers)
+uv run pytest tests/langsmith_synergy/test_advanced.py -v -n 6
+
+# Run all basic treatments
+uv run pytest tests/langsmith_synergy/test_basic.py -v
 ```
 
 ## Requirements
@@ -25,6 +28,7 @@ python tests/langsmith_synergy/test_langsmith_synergy.py -t ADV_CONTROL ADV_ALL_
 - Docker (for sandboxed execution of generated code)
 - Claude Code CLI (`claude`)
 - API keys: `OPENAI_API_KEY` (for generated agents), `LANGSMITH_API_KEY` (for LangSmith experiments)
+- macOS only: `brew install coreutils` (provides `gtimeout` for test timeouts)
 
 ## How It Works
 
@@ -40,19 +44,15 @@ python tests/langsmith_synergy/test_langsmith_synergy.py -t ADV_CONTROL ADV_ALL_
 Tests whether Claude uses modern patterns (`create_agent`, `@tool`) vs deprecated patterns (`create_sql_agent`).
 
 ```bash
-python tests/langchain_agent/test_langchain_agent.py -t control -r 3
-python tests/langchain_agent/test_langchain_agent.py -t reinforcement -r 3
-python tests/langchain_agent/test_langchain_agent.py -t claudemd -r 3
-```
+# Run specific treatments
+uv run pytest tests/langchain_agent/ -k "CONTROL or ALL_SECTIONS" -v
 
-**Presets:**
-| Preset | Treatments |
-|--------|------------|
-| `control` | CONTROL, BASELINE |
-| `reinforcement` | GUIDANCE_POS, GUIDANCE_NEG |
-| `claudemd` | BASELINE, CLAUDE_MD_SKILLS, CLAUDE_MD_PATTERNS, CLAUDE_MD_PATTERNS_MOVED, CLAUDE_MD_BOTH, CLAUDE_MD_BOTH_MOVED |
-| `noise` | BASELINE, NOISE_1, NOISE_2, NOISE_3 |
-| `all` | All treatments |
+# Run with repetitions
+uv run pytest tests/langchain_agent/ -k "CONTROL" -v --count=3
+
+# Run all treatments in parallel
+uv run pytest tests/langchain_agent/ -v -n 4
+```
 
 | Treatment | Description |
 |-----------|-------------|
@@ -67,25 +67,24 @@ python tests/langchain_agent/test_langchain_agent.py -t claudemd -r 3
 
 Tests whether Claude can use multiple skills together (trace → dataset → evaluator pipeline).
 
-**Important**: Only run one LangSmith experiment at a time. The experiment generates traces in LangSmith and uses "most recent 5 traces" for ground truth. Running multiple experiments simultaneously can cause race conditions where traces from different runs interfere with each other.
+Each pytest-xdist worker gets its own LangSmith project for isolation, so parallel execution is safe.
 
 ```bash
-# Quick sanity check (control vs all_sections for both basic and advanced)
-python tests/langsmith_synergy/test_langsmith_synergy.py -t all_sections -r 3 -w 3
-
 # Basic (2 skills: trace + dataset)
-python tests/langsmith_synergy/test_langsmith_synergy.py -t basic -r 3 -w 3
+uv run pytest tests/langsmith_synergy/test_basic.py -v
 
 # Advanced (3 skills: trace + dataset + evaluator)
-python tests/langsmith_synergy/test_langsmith_synergy.py -t advanced -r 3 -w 3
-```
+uv run pytest tests/langsmith_synergy/test_advanced.py -v
 
-**Presets:**
-| Preset | Treatments |
-|--------|------------|
-| `all_sections` | BASIC_CONTROL, BASIC_ALL_SECTIONS, ADV_CONTROL, ADV_ALL_SECTIONS |
-| `basic` | All BASIC_* treatments |
-| `advanced` | All ADV_* treatments |
+# Run specific treatment with repetitions
+uv run pytest tests/langsmith_synergy/test_advanced.py -k "ADV_ALL_SECTIONS" -v --count=3
+
+# Run all treatments in parallel (6 workers)
+uv run pytest tests/langsmith_synergy/test_advanced.py -v -n 6
+
+# Run with repetitions in parallel
+uv run pytest tests/langsmith_synergy/test_advanced.py -v -n 6 --count=2
+```
 
 | Treatment | Description |
 |-----------|-------------|

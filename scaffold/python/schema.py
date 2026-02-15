@@ -1,15 +1,20 @@
-"""Experiment configuration for skill benchmarks.
+"""Python schema for skill benchmarks.
 
-Provides the Treatment dataclass for defining experimental conditions.
+Provides the NoiseTask and Treatment dataclasses for defining experimental conditions.
 
 Example:
-    from scaffold import Treatment, PythonFileValidator
+    from scaffold import Treatment, NoiseTask, PythonFileValidator
+    from tests.noise import get_tasks
 
     TREATMENTS = {
         "BASELINE": Treatment(
             description="Test with skill",
             skills={"my-skill": [HEADER, EXAMPLES]},
             validators=[PythonFileValidator("output.py", required={"pattern": "desc"})],
+        ),
+        "WITH_NOISE": Treatment(
+            description="Test with noise tasks",
+            noise_tasks=get_tasks(["docker-patterns", "react-components"]),
         ),
     }
 """
@@ -18,8 +23,14 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Dict, Optional
 
-from .setup import get_noise_prompt
 from .validation import Validator, NoiseTaskValidator, OutputQualityValidator, PythonFileValidator
+
+
+@dataclass
+class NoiseTask:
+    """A distractor task with a prompt and expected deliverables."""
+    prompt: str
+    deliverables: List[str]  # Files this task should create
 
 
 @dataclass
@@ -29,7 +40,7 @@ class Treatment:
     description: str
     skills: Dict[str, List[str]] = field(default_factory=dict)
     claude_md: Optional[str] = None
-    noise_tasks: List[str] = field(default_factory=list)
+    noise_tasks: List[NoiseTask] = field(default_factory=list)
     validators: List[Validator] = field(default_factory=list)
 
     def get_files_to_run(self) -> List[str]:
@@ -49,10 +60,9 @@ class Treatment:
                 return f"Complete these tasks in order:\n\n1. {base_prompt}\n\n2. {task2_prompt}"
             return base_prompt
 
-        noise_prompts = [get_noise_prompt(t) for t in self.noise_tasks]
         parts = [f"1. {base_prompt}"]
-        for i, noise in enumerate(noise_prompts, start=2):
-            parts.append(f"{i}. {noise}")
+        for i, task in enumerate(self.noise_tasks, start=2):
+            parts.append(f"{i}. {task.prompt}")
         if task2_prompt:
             parts.append(f"{len(parts) + 1}. {task2_prompt}")
 
@@ -68,7 +78,8 @@ class Treatment:
             all_failed.extend(failed)
 
         if self.noise_tasks:
-            passed, failed = NoiseTaskValidator(self.noise_tasks).validate(events, test_dir, outputs)
+            expected_files = [f for t in self.noise_tasks for f in t.deliverables]
+            passed, failed = NoiseTaskValidator(expected_files).validate(events, test_dir, outputs)
             all_passed.extend(passed)
             all_failed.extend(failed)
 

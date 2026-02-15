@@ -1,4 +1,4 @@
-"""Experiment-based logging and summary generation."""
+"""Output parsing, event extraction, and experiment logging for Claude CLI."""
 
 import json
 import re
@@ -7,7 +7,7 @@ from datetime import datetime
 from dataclasses import dataclass, field
 from typing import Dict, List, Any, Optional, Callable
 
-PROJECT_ROOT = Path(__file__).parent.parent
+PROJECT_ROOT = Path(__file__).parent.parent.parent  # scaffold/python/ -> scaffold/ -> project root
 LOGS_DIR = PROJECT_ROOT / "logs"
 
 # Regex to strip ANSI escape codes
@@ -238,16 +238,30 @@ def _avg(values: List, fmt: str = "{:.1f}") -> str:
 class ExperimentLogger:
     """Manages logging for a single experiment run."""
 
-    def __init__(self, experiment_name: str = None, columns: List[ReportColumn] = None):
+    def __init__(
+        self,
+        experiment_name: str = None,
+        columns: List[ReportColumn] = None,
+        experiment_id: str = None,
+    ):
         """Create experiment logger.
 
         Args:
-            experiment_name: Name for this experiment
+            experiment_name: Name for this experiment (used to generate ID if not provided)
             columns: Custom columns for reporting (in addition to defaults)
+            experiment_id: Existing experiment ID to join (for parallel workers)
         """
-        self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.name = experiment_name or f"experiment_{self.timestamp}"
-        self.experiment_id = f"{self.name}_{self.timestamp}"
+        if experiment_id:
+            # Join existing experiment
+            self.experiment_id = experiment_id
+            self.name = experiment_id.rsplit("_", 2)[0] if "_" in experiment_id else experiment_id
+            self.timestamp = experiment_id.rsplit("_", 1)[-1] if "_" in experiment_id else ""
+        else:
+            # Create new experiment
+            self.timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            self.name = experiment_name or f"experiment_{self.timestamp}"
+            self.experiment_id = f"{self.name}_{self.timestamp}"
+
         self.base_dir = LOGS_DIR / "experiments" / self.experiment_id
 
         # Create subdirectories
@@ -402,6 +416,7 @@ class ExperimentLogger:
 def save_events(base_dir: Path, treatment_name: str, rep: int, events: Dict[str, Any]):
     """Save events JSON."""
     events_dir = base_dir / "events"
+    events_dir.mkdir(parents=True, exist_ok=True)
     save_path = events_dir / f"{treatment_name.lower()}_rep{rep}.json"
     save_path.write_text(json.dumps(events, indent=2))
     return save_path
@@ -410,6 +425,7 @@ def save_events(base_dir: Path, treatment_name: str, rep: int, events: Dict[str,
 def save_raw(base_dir: Path, treatment_name: str, rep: int, stdout: str, stderr: str = None):
     """Save raw CLI output."""
     raw_dir = base_dir / "raw"
+    raw_dir.mkdir(parents=True, exist_ok=True)
     stdout_path = raw_dir / f"{treatment_name.lower()}_rep{rep}_stdout.json"
     stdout_path.write_text(stdout)
 
@@ -421,6 +437,7 @@ def save_raw(base_dir: Path, treatment_name: str, rep: int, stdout: str, stderr:
 def save_report(base_dir: Path, treatment_name: str, rep: int, report: Dict[str, Any]):
     """Save treatment report."""
     reports_dir = base_dir / "reports"
+    reports_dir.mkdir(parents=True, exist_ok=True)
     save_path = reports_dir / f"{treatment_name.lower()}_rep{rep}_report.json"
     save_path.write_text(json.dumps(report, indent=2))
     return save_path

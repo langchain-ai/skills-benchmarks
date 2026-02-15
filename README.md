@@ -227,6 +227,24 @@ OutputQualityValidator(
 
 ---
 
+## Experiment Results
+
+Results are saved to `logs/experiments/<experiment_id>/`:
+
+```
+logs/experiments/experiment_20260205_111553/
+  summary.md              # Human-readable results summary
+  metadata.json           # Experiment config and timing
+  reports/                # Per-run detailed reports
+    basic_control_rep1_report.json
+    ...
+```
+
+- **`summary.md`** - Start here. Shows checks passed per treatment with breakdowns.
+- **`reports/*.json`** - Raw data with all checks passed/failed and metrics.
+
+---
+
 ## How It Works
 
 1. **Setup**: Creates isolated temp directory with skill files, CLAUDE.md, and environment (Dockerfile, requirements.txt, test data)
@@ -324,21 +342,3 @@ uv run pytest tests/bench_ls_multiskill/test_advanced.py -v -n 6
 | `*_SKILLS` | Workflow hints in skills only | May fail |
 | `*_BOTH` | Workflow rules in both | Pass |
 | `*_ALL_SECTIONS` | Full skill sections + full CLAUDE.md | Pass |
-
----
-
-## Experiment Results
-
-Results are saved to `logs/experiments/<experiment_id>/`:
-
-```
-logs/experiments/experiment_20260205_111553/
-  summary.md              # Human-readable results summary
-  metadata.json           # Experiment config and timing
-  reports/                # Per-run detailed reports
-    basic_control_rep1_report.json
-    ...
-```
-
-- **`summary.md`** - Start here. Shows checks passed per treatment with breakdowns.
-- **`reports/*.json`** - Raw data with all checks passed/failed and metrics.

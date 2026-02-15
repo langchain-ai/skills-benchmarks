@@ -1,9 +1,7 @@
-<frontmatter>
 ---
 name: langsmith-evaluator
 description: Use this skill for ANY question about CREATING evaluators. Covers creating custom metrics, LLM as Judge evaluators, code-based evaluators, and uploading evaluation logic to LangSmith. Includes basic usage of evaluators to run evaluations.
 ---
-</frontmatter>
 
 <oneliner>
 Create evaluators to measure agent performance on your datasets. LangSmith supports two types: **LLM as Judge** (uses LLM to grade outputs) and **Custom Code** (deterministic logic).

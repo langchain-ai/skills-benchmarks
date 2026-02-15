@@ -10,8 +10,8 @@ import pytest
 
 from scaffold import Treatment
 from scaffold.python import extract_events, parse_output
-from skill_constructs import CLAUDE_FULL
-from tests.langchain_agent.config import (
+from skills import CLAUDE_FULL
+from tests.benchmark_basic.config import (
     CLAUDE_MD_BOTH,
     CLAUDE_MD_PATTERNS_POSITIVE,
     CLAUDE_MD_SKILLS_ONLY,

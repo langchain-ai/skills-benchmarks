@@ -1,9 +1,7 @@
-<frontmatter>
 ---
 name: langchain-agents
 description: Build LangChain agents with modern patterns. Covers create_agent, LangGraph, and context management.
 ---
-</frontmatter>
 
 <oneliner>
 Build production-ready agents with LangGraph, from basic primitives to advanced context management.

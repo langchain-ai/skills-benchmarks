@@ -14,13 +14,13 @@ from scaffold import (
     PythonFileValidator,
     SkillInvokedValidator,
 )
-from skill_constructs.parser import load_skill
+from skills.parser import load_skill
 
 # =============================================================================
 # SKILL LOADING
 # =============================================================================
 
-SKILL_BASE = Path(__file__).parent.parent.parent / "skill_constructs" / "langchain"
+SKILL_BASE = Path(__file__).parent.parent.parent / "skills" / "benchmarks"
 agents_skill = load_skill(SKILL_BASE / "langchain_agents")
 
 # Full sections from skill.md

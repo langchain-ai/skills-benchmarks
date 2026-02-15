@@ -8,39 +8,56 @@ import re
 from pathlib import Path
 
 
-def parse_skill_md(skill_md_path: Path) -> dict[str, str]:
+def parse_skill_md(skill_md_path: Path, keep_tags: bool = True) -> dict[str, str]:
     """Parse skill.md and return sections dict keyed by tag name.
+
+    Frontmatter is extracted using --- delimiters (no XML tag needed).
+    All other sections preserve their XML tags for delineation.
 
     Args:
         skill_md_path: Path to skill.md file
+        keep_tags: If True, preserve XML tags around content (except frontmatter).
 
     Returns:
-        Dict mapping tag names to their content (without the tags themselves)
+        Dict mapping tag names to their content
 
     Example:
-        {"frontmatter": "---\\nname: ...\\n---", "oneliner": "Build production-ready..."}
+        {"frontmatter": "---\\nname: ...\\n---", "oneliner": "<oneliner>\\nBuild...\\n</oneliner>"}
     """
     content = skill_md_path.read_text()
     sections = {}
 
-    # Find all XML tags and their content
-    # Pattern matches <tagname>content</tagname> including nested content
+    # Extract frontmatter using --- delimiters
+    frontmatter_pattern = r"^---\n(.*?)\n---"
+    fm_match = re.search(frontmatter_pattern, content, re.DOTALL)
+    if fm_match:
+        sections["frontmatter"] = f"---\n{fm_match.group(1).strip()}\n---"
+
+    # Find all XML tags and their content (skip frontmatter if present)
     pattern = r"<(\w+)>(.*?)</\1>"
     for match in re.finditer(pattern, content, re.DOTALL):
         tag_name = match.group(1)
+        if tag_name == "frontmatter":
+            continue  # Already handled above
         tag_content = match.group(2).strip()
-        sections[tag_name] = tag_content
+
+        if keep_tags:
+            sections[tag_name] = f"<{tag_name}>\n{tag_content}\n</{tag_name}>"
+        else:
+            sections[tag_name] = tag_content
 
     return sections
 
 
-def parse_skill_md_ordered(skill_md_path: Path) -> list[tuple[str, str]]:
+def parse_skill_md_ordered(skill_md_path: Path, keep_tags: bool = True) -> list[tuple[str, str]]:
     """Parse skill.md and return sections as ordered list of (tag, content) tuples.
 
     Preserves the order of sections as they appear in the file.
+    Frontmatter is extracted using --- delimiters and placed first.
 
     Args:
         skill_md_path: Path to skill.md file
+        keep_tags: If True, preserve XML tags around content (except frontmatter).
 
     Returns:
         List of (tag_name, content) tuples in document order
@@ -48,11 +65,24 @@ def parse_skill_md_ordered(skill_md_path: Path) -> list[tuple[str, str]]:
     content = skill_md_path.read_text()
     sections = []
 
+    # Extract frontmatter using --- delimiters (always first)
+    frontmatter_pattern = r"^---\n(.*?)\n---"
+    fm_match = re.search(frontmatter_pattern, content, re.DOTALL)
+    if fm_match:
+        sections.append(("frontmatter", f"---\n{fm_match.group(1).strip()}\n---"))
+
+    # Find all XML tags and their content (skip frontmatter if present)
     pattern = r"<(\w+)>(.*?)</\1>"
     for match in re.finditer(pattern, content, re.DOTALL):
         tag_name = match.group(1)
+        if tag_name == "frontmatter":
+            continue  # Already handled above
         tag_content = match.group(2).strip()
-        sections.append((tag_name, tag_content))
+
+        if keep_tags:
+            sections.append((tag_name, f"<{tag_name}>\n{tag_content}\n</{tag_name}>"))
+        else:
+            sections.append((tag_name, tag_content))
 
     return sections
 
@@ -72,8 +102,10 @@ def load_skill_content(skill_md_path: Path) -> str:
     return skill_md_path.read_text()
 
 
-def get_section_list(skill_md_path: Path, exclude_tags: list[str] = None) -> list[str]:
-    """Get ordered list of section contents (without tags).
+def get_section_list(
+    skill_md_path: Path, exclude_tags: list[str] = None, keep_tags: bool = True
+) -> list[str]:
+    """Get ordered list of section contents.
 
     This is useful for building FULL_SECTIONS-style lists where you want
     all section contents joined together.
@@ -81,12 +113,13 @@ def get_section_list(skill_md_path: Path, exclude_tags: list[str] = None) -> lis
     Args:
         skill_md_path: Path to skill.md file
         exclude_tags: Optional list of tag names to exclude (e.g., ['frontmatter'])
+        keep_tags: If True, preserve XML tags around content (except frontmatter).
 
     Returns:
         List of section content strings in document order
     """
     exclude_tags = exclude_tags or []
-    sections = parse_skill_md_ordered(skill_md_path)
+    sections = parse_skill_md_ordered(skill_md_path, keep_tags=keep_tags)
     return [content for tag, content in sections if tag not in exclude_tags]
 
 
@@ -120,7 +153,7 @@ def load_skill(skill_dir: Path) -> dict:
         - scripts_dir: Path to scripts/ subdirectory (or None if doesn't exist)
 
     Example:
-        trace = load_skill(Path("skill_constructs/langchain/langsmith_trace"))
+        trace = load_skill(Path("skills/benchmarks/langsmith_trace"))
 
         # Get specific sections
         my_sections = [
@@ -164,7 +197,7 @@ def split_skill(
         Dict mapping skill names to skill configs (sections list + scripts_dir)
 
     Example:
-        trace = load_skill(Path("skill_constructs/langchain/langsmith_trace"))
+        trace = load_skill(Path("skills/benchmarks/langsmith_trace"))
 
         # Split into setup + querying skills
         split_skills = split_skill(trace, {

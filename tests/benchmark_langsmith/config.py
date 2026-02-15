@@ -12,8 +12,8 @@ from scaffold import (
     MetricsCollector,
     SkillInvokedValidator,
 )
-from skill_constructs.parser import load_skill
-from tests.langsmith_synergy.validation.validators import (
+from skills.parser import load_skill
+from tests.benchmark_langsmith.validation.validators import (
     DatasetStructureValidator,
     EvaluatorValidator,
     SkillScriptValidator,
@@ -24,7 +24,7 @@ from tests.langsmith_synergy.validation.validators import (
 # SKILL LOADING
 # =============================================================================
 
-SKILL_BASE = Path(__file__).parent.parent.parent / "skill_constructs" / "langchain"
+SKILL_BASE = Path(__file__).parent.parent.parent / "skills" / "benchmarks"
 
 
 def load_skills():

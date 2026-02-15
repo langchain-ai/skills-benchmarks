@@ -18,7 +18,7 @@ from pathlib import Path
 
 import pytest
 
-from tests.langsmith_synergy.config import ENVIRONMENT_DIR
+from tests.benchmark_langsmith.config import ENVIRONMENT_DIR
 
 DATA_DIR = Path(__file__).parent / "data"
 

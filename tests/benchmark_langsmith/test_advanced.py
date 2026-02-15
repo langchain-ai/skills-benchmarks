@@ -1,9 +1,9 @@
-"""Basic LangSmith Synergy treatments (2 skills: trace + dataset).
+"""Advanced LangSmith Synergy treatments (3 skills: trace + dataset + evaluator).
 
 Each treatment defines its own section selections inline.
 
-Run with: pytest tests/langsmith_synergy/test_basic.py -v
-Parallel:  pytest tests/langsmith_synergy/test_basic.py -n 3
+Run with: pytest tests/langsmith_synergy/test_advanced.py -v
+Parallel:  pytest tests/langsmith_synergy/test_advanced.py -n 3
 """
 
 import uuid
@@ -12,19 +12,19 @@ import pytest
 
 from scaffold import Treatment
 from scaffold.python import extract_events, parse_output
-from skill_constructs import CLAUDE_FULL
-from skill_constructs.parser import skill_config
-from tests.langsmith_synergy.config import (
-    BASIC_PROMPT_TEMPLATE,
+from skills import CLAUDE_FULL
+from skills.parser import skill_config
+from tests.benchmark_langsmith.config import (
+    ADVANCED_PROMPT_TEMPLATE,
     CLAUDE_MD_SKILLS_ONLY,
-    CLAUDE_MD_WORKFLOW_BASIC,
-    basic_validators,
+    CLAUDE_MD_WORKFLOW_ADVANCED,
+    advanced_validators,
     skills,
     without_related_skills,
 )
 
 # =============================================================================
-# SECTION SELECTIONS FOR BASIC TREATMENTS
+# SECTION SELECTIONS FOR ADVANCED TREATMENTS
 # =============================================================================
 
 # Trace: curated subset (matches old DEFAULT_SECTIONS - excludes detailed examples)
@@ -43,7 +43,7 @@ trace_no_hints = without_related_skills(trace_curated)
 # Trace: all sections (for ALL_SECTIONS treatment only)
 trace_all = skills["trace"]["all"]
 
-# Dataset: curated subset (exclude detailed examples to stress test Claude)
+# Dataset: curated subset (exclude detailed examples)
 dataset_curated = [
     skills["dataset"]["sections"]["frontmatter"],
     skills["dataset"]["sections"]["oneliner"],
@@ -57,6 +57,18 @@ dataset_curated = [
 ]
 dataset_no_hints = without_related_skills(dataset_curated)
 
+# Evaluator: curated subset (exclude detailed examples)
+evaluator_curated = [
+    skills["evaluator"]["sections"]["frontmatter"],
+    skills["evaluator"]["sections"]["oneliner"],
+    skills["evaluator"]["sections"]["setup"],
+    skills["evaluator"]["sections"]["evaluator_format"],
+    skills["evaluator"]["sections"]["evaluator_types"],
+    skills["evaluator"]["sections"]["best_practices"],
+    skills["evaluator"]["sections"]["related_skills"],
+]
+evaluator_no_hints = without_related_skills(evaluator_curated)
+
 
 # =============================================================================
 # TREATMENTS
@@ -64,52 +76,64 @@ dataset_no_hints = without_related_skills(dataset_curated)
 
 TREATMENTS = {
     # Control: No skills, no CLAUDE.md (pure baseline - Claude's native ability)
-    "BASIC_CONTROL": Treatment(
+    "ADV_CONTROL": Treatment(
         description="No skills, no CLAUDE.md (pure baseline)",
         skills={},
-        validators=basic_validators(),
+        validators=advanced_validators(),
     ),
     # Baseline: Skills WITHOUT workflow hints, no CLAUDE.md (hardest - no cross-references)
-    "BASIC_BASELINE": Treatment(
+    "ADV_BASELINE": Treatment(
         description="Skills without workflow hints, no CLAUDE.md (no cross-references)",
         skills={
             "langsmith-trace": skill_config(trace_no_hints, skills["trace"]["scripts_dir"]),
             "langsmith-dataset": skill_config(dataset_no_hints, skills["dataset"]["scripts_dir"]),
+            "langsmith-evaluator": skill_config(
+                evaluator_no_hints, skills["evaluator"]["scripts_dir"]
+            ),
         },
-        validators=basic_validators(),
+        validators=advanced_validators(),
     ),
     # CLAUDE.md only: Workflow rules in CLAUDE.md, skills without hints
-    "BASIC_CLAUDEMD": Treatment(
+    "ADV_CLAUDEMD": Treatment(
         description="Workflow rules in CLAUDE.md, skills without hints",
         skills={
             "langsmith-trace": skill_config(trace_no_hints, skills["trace"]["scripts_dir"]),
             "langsmith-dataset": skill_config(dataset_no_hints, skills["dataset"]["scripts_dir"]),
+            "langsmith-evaluator": skill_config(
+                evaluator_no_hints, skills["evaluator"]["scripts_dir"]
+            ),
         },
-        claude_md=CLAUDE_MD_WORKFLOW_BASIC,
-        validators=basic_validators(),
+        claude_md=CLAUDE_MD_WORKFLOW_ADVANCED,
+        validators=advanced_validators(),
     ),
     # Skills only: Workflow hints in skills (related_skills section), minimal CLAUDE.md
-    "BASIC_SKILLS": Treatment(
+    "ADV_SKILLS": Treatment(
         description="Workflow hints in skills, minimal CLAUDE.md",
         skills={
             "langsmith-trace": skill_config(trace_curated, skills["trace"]["scripts_dir"]),
             "langsmith-dataset": skill_config(dataset_curated, skills["dataset"]["scripts_dir"]),
+            "langsmith-evaluator": skill_config(
+                evaluator_curated, skills["evaluator"]["scripts_dir"]
+            ),
         },
         claude_md=CLAUDE_MD_SKILLS_ONLY,
-        validators=basic_validators(),
+        validators=advanced_validators(),
     ),
     # Both: Workflow rules in CLAUDE.md AND skill hints (reinforcement)
-    "BASIC_BOTH": Treatment(
+    "ADV_BOTH": Treatment(
         description="Workflow rules in CLAUDE.md AND skill hints",
         skills={
             "langsmith-trace": skill_config(trace_curated, skills["trace"]["scripts_dir"]),
             "langsmith-dataset": skill_config(dataset_curated, skills["dataset"]["scripts_dir"]),
+            "langsmith-evaluator": skill_config(
+                evaluator_curated, skills["evaluator"]["scripts_dir"]
+            ),
         },
-        claude_md=CLAUDE_MD_WORKFLOW_BASIC,
-        validators=basic_validators(),
+        claude_md=CLAUDE_MD_WORKFLOW_ADVANCED,
+        validators=advanced_validators(),
     ),
     # All sections: Complete skill content (without cross-skill hints) + full CLAUDE.md sample
-    "BASIC_ALL_SECTIONS": Treatment(
+    "ADV_ALL_SECTIONS": Treatment(
         description="All skill sections + full CLAUDE.md",
         skills={
             "langsmith-trace": skill_config(
@@ -118,9 +142,13 @@ TREATMENTS = {
             "langsmith-dataset": skill_config(
                 without_related_skills(skills["dataset"]["all"]), skills["dataset"]["scripts_dir"]
             ),
+            "langsmith-evaluator": skill_config(
+                without_related_skills(skills["evaluator"]["all"]),
+                skills["evaluator"]["scripts_dir"],
+            ),
         },
         claude_md=CLAUDE_FULL,
-        validators=basic_validators(),
+        validators=advanced_validators(),
     ),
 }
 
@@ -154,7 +182,7 @@ def test_treatment(
     # Build prompt with unique run_id for dataset naming
     run_id = str(uuid.uuid4())[:8]
     dataset_name = f"test-{run_id}"
-    prompt = BASIC_PROMPT_TEMPLATE.format(run_id=dataset_name)
+    prompt = ADVANCED_PROMPT_TEMPLATE.format(run_id=dataset_name)
     prompt = treatment.build_prompt(prompt)
 
     # Run Claude (automatically saves raw output)

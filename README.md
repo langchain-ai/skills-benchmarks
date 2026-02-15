@@ -25,6 +25,7 @@ python tests/langsmith_synergy/test_langsmith_synergy.py -t ADV_CONTROL ADV_ALL_
 - Docker (for sandboxed execution of generated code)
 - Claude Code CLI (`claude`)
 - API keys: `OPENAI_API_KEY` (for generated agents), `LANGSMITH_API_KEY` (for LangSmith experiments)
+- macOS only: `brew install coreutils` (provides `gtimeout` for test timeouts)
 
 ## How It Works
 

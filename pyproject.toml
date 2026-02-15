@@ -18,6 +18,8 @@ dependencies = [
     "sqlalchemy>=2.0.0",
     "pexpect>=4.9.0",
     "openai>=1.0.0",
+    "pytest>=8.0.0",
+    "pytest-xdist>=3.5.0",
 ]
 
 [tool.setuptools]

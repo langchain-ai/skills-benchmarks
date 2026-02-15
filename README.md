@@ -320,6 +320,14 @@ Tests whether Claude can use multiple skills together (trace → dataset → eva
 
 Each pytest-xdist worker gets its own LangSmith project for isolation, so parallel execution is safe.
 
+> **Warning: Orphaned Projects**
+>
+> If tests are interrupted (Ctrl+C, force kill), LangSmith projects may not be cleaned up automatically. Check for and delete orphaned `benchmark-*` projects manually:
+> ```bash
+> # List orphaned projects (via LangSmith UI or API)
+> # Delete any benchmark-gw*-* or benchmark-main-* projects older than a few hours
+> ```
+
 ```bash
 # Basic (2 skills: trace + dataset)
 uv run pytest tests/bench_ls_multiskill/test_basic.py -v

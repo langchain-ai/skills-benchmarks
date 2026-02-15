@@ -79,7 +79,7 @@ describe("Example Guidance Experiment", () => {
       // 4. Validate
       const { passed, failed } = await validate(
         treatment,
-        events as Record<string, unknown>,
+        events as unknown as Record<string, unknown>,
         testDir,
         {}
       );

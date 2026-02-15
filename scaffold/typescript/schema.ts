@@ -145,7 +145,7 @@ export async function validate(
     const { NoiseTaskValidator } = await import("./validation.js");
     const expectedFiles = treatment.noiseTasks.flatMap((t) => t.deliverables);
     const noiseValidator = new NoiseTaskValidator(expectedFiles);
-    const { passed, failed } = await noiseValidator.validate(events, testDir, outputs);
+    const { passed, failed } = noiseValidator.validate(events, testDir);
     allPassed.push(...passed);
     allFailed.push(...failed);
   }

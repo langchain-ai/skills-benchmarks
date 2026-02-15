@@ -282,7 +282,7 @@ export class MetricsCollector implements Validator {
   }
 
   validate(events: Record<string, unknown>): ValidationResult {
-    const evts = events as Events;
+    const evts = events as unknown as Events;
     const passed: string[] = [
       `Turns: ${evts.num_turns ?? 0}`,
       `Duration: ${(evts.duration_seconds ?? 0).toFixed(0)}s`,

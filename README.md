@@ -305,14 +305,14 @@ uv run pytest tests/bench_lc_basic/ -k "CONTROL" -v --count=3
 uv run pytest tests/bench_lc_basic/ -v -n 4
 ```
 
-| Treatment | Description | Expected |
-|-----------|-------------|----------|
-| `CONTROL` | No skill, no CLAUDE.md (pure baseline) | May fail |
-| `ALL_SECTIONS` | Full skill sections + full CLAUDE.md | Pass |
-| `BASELINE` | Skill with positive guidance | Pass |
-| `GUIDANCE_POS/NEG` | Positive vs negative framing | Pass |
-| `CLAUDE_MD_*` | CLAUDE.md content variations | Varies |
-| `NOISE_1/2/3` | Progressive noise interference | Varies |
+| Treatment | Description |
+|-----------|-------------|
+| `CONTROL` | No skill, no CLAUDE.md (pure baseline) |
+| `ALL_SECTIONS` | Full skill sections + full CLAUDE.md |
+| `BASELINE` | Skill with positive guidance |
+| `GUIDANCE_POS/NEG` | Positive vs negative framing |
+| `CLAUDE_MD_*` | CLAUDE.md content variations |
+| `NOISE_1/2/3` | Progressive noise interference |
 
 ### 2. LangSmith Benchmark (`tests/bench_ls_multiskill/`)
 
@@ -320,13 +320,11 @@ Tests whether Claude can use multiple skills together (trace → dataset → eva
 
 Each pytest-xdist worker gets its own LangSmith project for isolation, so parallel execution is safe.
 
-> **Warning: Orphaned Projects**
+> **Warning: Orphaned Resources on Interrupt**
 >
-> If tests are interrupted (Ctrl+C, force kill), LangSmith projects may not be cleaned up automatically. Check for and delete orphaned `benchmark-*` projects manually:
-> ```bash
-> # List orphaned projects (via LangSmith UI or API)
-> # Delete any benchmark-gw*-* or benchmark-main-* projects older than a few hours
-> ```
+> If tests are interrupted (Ctrl+C, force kill), LangSmith resources may not be cleaned up automatically:
+> - **Projects**: Delete any `benchmark-gw*-*` or `benchmark-main-*` projects older than a few hours
+> - **Datasets**: Delete any `test-*` datasets (these have UUID suffixes like `test-a1b2c3d4-...`)
 
 ```bash
 # Basic (2 skills: trace + dataset)
@@ -342,11 +340,11 @@ uv run pytest tests/bench_ls_multiskill/test_advanced.py -k "ADV_ALL_SECTIONS" -
 uv run pytest tests/bench_ls_multiskill/test_advanced.py -v -n 6
 ```
 
-| Treatment | Description | Expected |
-|-----------|-------------|----------|
-| `*_CONTROL` | No skills, no CLAUDE.md (pure baseline) | Fail |
-| `*_BASELINE` | Skills without workflow hints | May fail |
-| `*_CLAUDEMD` | Workflow rules in CLAUDE.md only | Pass |
-| `*_SKILLS` | Workflow hints in skills only | May fail |
-| `*_BOTH` | Workflow rules in both | Pass |
-| `*_ALL_SECTIONS` | Full skill sections + full CLAUDE.md | Pass |
+| Treatment | Description |
+|-----------|-------------|
+| `*_CONTROL` | No skills, no CLAUDE.md (pure baseline) |
+| `*_BASELINE` | Skills without workflow hints |
+| `*_CLAUDEMD` | Workflow rules in CLAUDE.md only |
+| `*_SKILLS` | Workflow hints in skills only |
+| `*_BOTH` | Workflow rules in both |
+| `*_ALL_SECTIONS` | Full skill sections + full CLAUDE.md |

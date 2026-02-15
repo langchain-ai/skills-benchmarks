@@ -33,36 +33,40 @@ def _get_langsmith_client():
         return None, str(e)
 
 
-def _upload_fixture_traces(project: str) -> List[str]:
-    """Upload fixture traces to LangSmith project (date-shifted to now)."""
+def _upload_fixture_traces(project: str) -> Dict[str, str]:
+    """Upload fixture traces to LangSmith project (date-shifted to now).
+
+    Returns: Dict mapping original trace_id -> new trace_id
+    """
     from langsmith import Client
 
     api_key = os.environ.get("LANGSMITH_API_KEY")
     if not api_key:
-        return []
+        return {}
 
     client = Client(api_key=api_key)
-    trace_ids = []
+    id_mapping = {}  # old_trace_id -> new_trace_id
 
     for jsonl_file in sorted(DATA_DIR.glob("trace_*.jsonl")):
         operations = [json.loads(line) for line in jsonl_file.read_text().splitlines() if line.strip()]
         if not operations:
             continue
 
-        # Get query for logging
+        # Get original root trace_id and query for logging
         first_post = next((op for op in operations if op.get("operation") == "post" and not op.get("parent_run_id")), None)
+        old_trace_id = first_post.get("id") if first_post else None
         query = first_post.get("inputs", {}).get("messages", [{}])[0].get("content", "")[:40] if first_post else ""
 
         try:
-            trace_id = _replay_operations(client, project, operations)
-            if trace_id:
-                trace_ids.append(trace_id)
+            new_trace_id = _replay_operations(client, project, operations)
+            if new_trace_id and old_trace_id:
+                id_mapping[old_trace_id] = new_trace_id
                 print(f"  Uploaded: {query}...")
         except Exception as e:
             print(f"  Failed ({query}): {e}")
 
     client.flush()
-    return trace_ids
+    return id_mapping
 
 
 def _replay_operations(client, project: str, operations: List[Dict]) -> str:
@@ -149,20 +153,23 @@ def langsmith_project(worker_id, verify_environment):
 
 @pytest.fixture(scope="session")
 def langsmith_traces(langsmith_project, verify_environment):
-    """Upload fixture traces to worker's LangSmith project (date-shifted to now)."""
+    """Upload fixture traces to worker's LangSmith project (date-shifted to now).
+
+    Returns: Dict with 'project' and 'trace_id_map' (old_id -> new_id mapping)
+    """
     print(f"\n{'=' * 60}")
     print(f"UPLOADING FIXTURE TRACES to {langsmith_project}")
     print(f"{'=' * 60}")
 
-    trace_ids = _upload_fixture_traces(langsmith_project)
-    if not trace_ids:
+    trace_id_map = _upload_fixture_traces(langsmith_project)
+    if not trace_id_map:
         pytest.fail("Failed to upload fixture traces - check trace_*.jsonl files exist and LANGSMITH_API_KEY is valid")
 
-    print(f"SUCCESS: Uploaded {len(trace_ids)} traces")
+    print(f"SUCCESS: Uploaded {len(trace_id_map)} traces")
     print(f"{'=' * 60}\n")
 
     time.sleep(3)  # Wait for LangSmith to index
-    return langsmith_project
+    return {"project": langsmith_project, "trace_id_map": trace_id_map}
 
 
 @pytest.fixture

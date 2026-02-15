@@ -152,8 +152,9 @@ def test_treatment(
     # Parse output
     events = extract_events(parse_output(result.stdout))
 
-    # Validate
-    outputs = {"run_id": run_id}
+    # Validate (pass trace_id_map for remapping expected -> actual trace IDs)
+    trace_id_map = langsmith_traces.get("trace_id_map", {})
+    outputs = {"run_id": run_id, "trace_id_map": trace_id_map}
     passed, failed = treatment.validate(events, test_dir, outputs)
 
     # Record results (saves events, artifacts, reports)

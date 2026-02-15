@@ -381,7 +381,9 @@ class TrajectoryAccuracyValidator(Validator):
             return [f"Accuracy: skipped (empty ground truth)"], []
 
         # Match actual examples against expected - each expected must appear exactly once
-        matches, mismatches, missing = self._compare_datasets(actual_examples, expected_examples)
+        # Use trace_id_map to remap expected IDs to actual IDs (since IDs are regenerated on upload)
+        trace_id_map = outputs.get("trace_id_map", {}) if outputs else {}
+        matches, mismatches, missing = self._compare_datasets(actual_examples, expected_examples, trace_id_map)
 
         # Report results
         total_expected = len(expected_examples)
@@ -419,118 +421,84 @@ class TrajectoryAccuracyValidator(Validator):
         if isinstance(inputs, str):
             return inputs
         if isinstance(inputs, dict):
+            # Check for messages array (LangSmith trace format)
+            messages = inputs.get("messages", [])
+            if messages and isinstance(messages, list) and isinstance(messages[0], dict):
+                return messages[0].get("content", "")
             return inputs.get("query") or inputs.get("input") or inputs.get("question") or ""
         return ""
 
-    def _extract_tool_names(self, traj: list) -> List[str]:
-        """Extract tool names from trajectory list.
+    def _get_trajectory(self, ex: dict) -> List[str]:
+        """Extract tool name list from example. Returns None if not found or invalid."""
+        if not isinstance(ex, dict):
+            return None
 
-        Each item must be a string or simple dict with "name"/"tool" key.
-        Returns None if format is invalid (e.g., complex nested objects).
-        """
-        result = []
+        # Look in outputs.expected_trajectory, outputs.trajectory, etc.
+        outputs = ex.get("outputs") or ex.get("output") or {}
+        if isinstance(outputs, dict):
+            for field in ["expected_trajectory", "trajectory", "tools", "tool_calls"]:
+                traj = outputs.get(field)
+                if isinstance(traj, list):
+                    return self._to_tool_names(traj)
+        return None
+
+    def _to_tool_names(self, traj: list) -> List[str]:
+        """Convert trajectory items to tool name strings."""
+        names = []
         for item in traj:
             if isinstance(item, str):
-                result.append(item)
-            elif isinstance(item, dict):
-                if "inputs" in item or "outputs" in item:  # Complex run object
-                    return None
+                names.append(item)
+            elif isinstance(item, dict) and "inputs" not in item:  # Simple dict, not run object
                 name = item.get("name") or item.get("tool") or item.get("function")
-                if isinstance(name, str):
-                    result.append(name)
+                if name:
+                    names.append(name)
                 else:
                     return None
             else:
                 return None
-        return result
-
-    def _get_trajectory(self, ex: dict) -> List[str]:
-        """Extract trajectory from example dict. Returns None if invalid format."""
-        if not isinstance(ex, dict):
-            return None
-
-        outputs = ex.get("outputs") or ex.get("output") or {}
-        for field in ["expected_trajectory", "trajectory", "tools", "tool_calls"]:
-            traj = outputs.get(field) if isinstance(outputs, dict) else ex.get(field)
-            if isinstance(traj, list):
-                return self._extract_tool_names(traj)
-        return None
+        return names
 
     def _get_trace_id(self, ex: dict) -> str:
         """Extract trace_id from example."""
         return str(ex.get("trace_id") or ex.get("id") or "")
 
     def _compare_datasets(
-        self, actual: List[dict], expected: List[dict]
+        self, actual: List[dict], expected: List[dict], trace_id_map: Dict[str, str] = None
     ) -> Tuple[int, List[str], List[str]]:
-        """Compare actual dataset against expected ground truth.
+        """Compare actual dataset against expected ground truth by trace_id.
 
-        Each expected entry must appear exactly once in actual.
-        Once an actual entry is matched, it cannot match another expected.
+        Args:
+            trace_id_map: Mapping of original -> new trace_id (for re-uploaded traces)
 
         Returns: (match_count, mismatch_details, missing_trace_ids)
         """
-        matches = 0
-        mismatches = []
-        missing = []
+        trace_id_map = trace_id_map or {}
 
-        # Build lookup for actual examples by trace_id
-        # Use list to handle potential duplicates (same trace_id appearing multiple times)
-        actual_by_trace = {}
-        for i, ex in enumerate(actual):
-            trace_id = self._get_trace_id(ex)
-            if trace_id:
-                if trace_id not in actual_by_trace:
-                    actual_by_trace[trace_id] = []
-                actual_by_trace[trace_id].append((i, ex))
+        # Index actual examples by trace_id
+        actual_by_id = {self._get_trace_id(ex): ex for ex in actual if self._get_trace_id(ex)}
 
-        # Track which actual entries have been used
-        used_indices = set()
+        matches, mismatches, missing = 0, [], []
 
-        # Check each expected example
-        for exp_ex in expected:
-            exp_trace_id = self._get_trace_id(exp_ex)
-            exp_trajectory = self._get_trajectory(exp_ex)
-
-            if not exp_trajectory:
-                continue  # Skip expected examples without trajectory
-
-            # Find matching actual example by trace_id
-            actual_ex = None
-            matched_idx = None
-
-            if exp_trace_id and exp_trace_id in actual_by_trace:
-                # Find first unused match with this trace_id
-                for idx, ex in actual_by_trace[exp_trace_id]:
-                    if idx not in used_indices:
-                        actual_ex = ex
-                        matched_idx = idx
-                        break
-
-            if actual_ex is None:
-                missing.append(exp_trace_id or "unknown")
+        for exp in expected:
+            exp_id = self._get_trace_id(exp)
+            exp_traj = self._get_trajectory(exp)
+            if not exp_traj:
                 continue
 
-            # Mark as used
-            used_indices.add(matched_idx)
+            # Look up using remapped ID
+            actual_id = trace_id_map.get(exp_id, exp_id)
+            actual_ex = actual_by_id.get(actual_id)
 
-            # Compare trajectories (ORDER MATTERS!)
-            actual_trajectory = self._get_trajectory(actual_ex)
-
-            # None means invalid format (e.g., complex nested objects instead of tool names)
-            if actual_trajectory is None:
-                exp_query = self._get_input_query(exp_ex)
-                query_short = (exp_query[:20] + "...") if exp_query and len(exp_query) > 20 else (exp_query or "?")
-                mismatches.append(f"'{query_short}': invalid trajectory format (expected list of tool names)")
+            if not actual_ex:
+                missing.append(exp_id or "unknown")
                 continue
 
-            if actual_trajectory == exp_trajectory:
+            actual_traj = self._get_trajectory(actual_ex)
+            if actual_traj == exp_traj:
                 matches += 1
             else:
-                # Generate mismatch detail
-                exp_query = self._get_input_query(exp_ex)
-                detail = self._trajectory_diff(exp_trajectory, actual_trajectory, exp_query)
-                mismatches.append(detail)
+                query = self._get_input_query(exp)
+                mismatches.append(self._trajectory_diff(exp_traj, actual_traj, query))
 
         return matches, mismatches, missing
 
@@ -598,27 +566,22 @@ class TrajectoryAccuracyValidator(Validator):
         for field in ["expected_trajectory", "trajectory", "tools"]:
             traj = outputs.get(field)
             if isinstance(traj, list):
-                result = self._extract_tool_names(traj)
-                return result if result else []
+                return self._to_tool_names(traj) or []
         return []
 
     def _trajectory_diff(self, expected: List[str], actual: List[str], query: str) -> str:
-        """Generate a human-readable diff between trajectories."""
-        query_short = (query[:20] + "...") if query and len(query) > 20 else (query or "?")
+        """Generate human-readable diff between trajectories."""
+        q = (query[:20] + "...") if query and len(query) > 20 else (query or "?")
 
         if not actual:
-            return f"'{query_short}': empty vs {len(expected)} tools"
-
-        if len(actual) != len(expected):
-            return f"'{query_short}': {len(actual)} tools vs expected {len(expected)}"
+            return f"'{q}': empty vs {len(expected)} tools"
 
         # Find first difference
         for i, (a, e) in enumerate(zip(actual, expected)):
             if a != e:
-                return f"'{query_short}': tool[{i}] '{a}' vs expected '{e}'"
+                return f"'{q}': tool[{i}] '{a}' vs expected '{e}'"
 
-        # Actual is longer
-        if len(actual) > len(expected):
-            return f"'{query_short}': extra tool '{actual[len(expected)]}'"
+        if len(actual) != len(expected):
+            return f"'{q}': {len(actual)} tools vs expected {len(expected)}"
 
-        return f"'{query_short}': order mismatch"
+        return f"'{q}': order mismatch"

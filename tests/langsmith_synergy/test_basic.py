@@ -12,7 +12,7 @@ import pytest
 from scaffold import Treatment
 from scaffold.python import extract_events, parse_output
 from skill_constructs.parser import skill_config
-from skill_constructs import CLAUDE_SAMPLE
+from skill_constructs import CLAUDE_FULL
 
 from tests.langsmith_synergy.config import (
     skills,
@@ -121,7 +121,7 @@ TREATMENTS = {
             "langsmith-trace": skill_config(without_related_skills(skills["trace"]["all"]), skills["trace"]["scripts_dir"]),
             "langsmith-dataset": skill_config(without_related_skills(skills["dataset"]["all"]), skills["dataset"]["scripts_dir"]),
         },
-        claude_md=CLAUDE_SAMPLE,
+        claude_md=CLAUDE_FULL,
         validators=basic_validators(),
     ),
 }

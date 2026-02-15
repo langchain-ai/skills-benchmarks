@@ -11,8 +11,8 @@ Structure:
 
 from pathlib import Path
 
-# Load CLAUDE_SAMPLE.md content
-_claude_sample_path = Path(__file__).parent / "CLAUDE_SAMPLE.md"
-CLAUDE_SAMPLE = _claude_sample_path.read_text() if _claude_sample_path.exists() else ""
+# Load sample CLAUDE.md content for tests
+_claude_md_path = Path(__file__).parent / "CLAUDE.md"
+CLAUDE_FULL = _claude_md_path.read_text() if _claude_md_path.exists() else ""
 
-__all__ = ["CLAUDE_SAMPLE"]
+__all__ = ["CLAUDE_FULL"]

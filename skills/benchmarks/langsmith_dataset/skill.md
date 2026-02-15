@@ -52,7 +52,7 @@ Each line must be a JSON object with these fields:
 </input_format>
 
 <usage>
-Navigate to `skills/langsmith-dataset/scripts/` to run commands.
+Use the included scripts to generate datasets.
 
 ### Scripts
 
@@ -75,8 +75,8 @@ All dataset generation commands support:
 
 **IMPORTANT - Safety Prompts:**
 - The script prompts for confirmation before deleting existing datasets with `--replace`
-- **Interactive:** ALWAYS wait for user input; NEVER use `--yes` unless the user explicitly requests it
-- **Non-interactive (automated scripts):** Use `--replace --yes` together to ensure proper replacement
+- **If you are running with user input:** ALWAYS wait for user input; NEVER use `--yes` unless the user explicitly requests it
+- **If you are running non-interactively:** Use `--replace --yes` together to ensure proper replacement
 </usage>
 
 <extraction_priority>

@@ -37,14 +37,16 @@ uv run pytest tests/bench_ls_multiskill/test_advanced.py -v -n 6
 
 This repository has two types of skills with different purposes:
 
-| Directory | Purpose | Tests Expected to Pass? |
+| Directory | Purpose | Expected Test Behavior |
 |-----------|---------|------------------------|
-| `skills/main/` | **Production skills** - Complete, well-documented skills ready for use | Yes, all tests should pass |
-| `skills/benchmarks/` | **Benchmark skills** - May use weakened/partial versions to test specific behaviors | No, some treatments are *designed* to fail |
+| `skills/main/` | **Production skills** - Complete, well-documented skills ready for use | All tests should pass |
+| `skills/benchmarks/` | **Benchmark skills** - May use weakened/partial versions to test specific behaviors | No, some tests expected to fail |
 
-**Why benchmark tests fail**: Benchmark experiments test how Claude responds to different skill configurations. For example, a `CONTROL` treatment with no skills tests Claude's baseline capability - it's *expected* to fail because Claude doesn't have the guidance it needs.
+**Benchmarks**: Benchmark experiments test how Claude responds to different skill configurations. Claude is tested against difficult tasks that require the skills to pass, so weaker skill configuraitons are expected to produce failures.
 
-**Benchmark skill organization**: Skills in `skills/benchmarks/` are organized by the benchmark they support. It's fine to have "duplicate" skills with distinct names if they're testing different configurations:
+Skills in `skills/benchmarks/` are support different benchmarks, but are flexible for re-use. New skills may freely be added under benchmarks, but their naming scheme should clearly distinguish their uses. Different skills may have conceptual overlap for this reason - there may be multiple "how to use LangChain" skills designed for different benchmarks. 
+
+**Main**: Main tests are designed to test skills before use, whether internally or publishing for external users. Main tests should all pass to verify that new skills we utilize are functional and enable Claude Code to accomplish new tasks or increase efficiency. 
 
 ```
 skills/benchmarks/

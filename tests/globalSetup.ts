@@ -72,7 +72,7 @@ export default async function globalSetup(): Promise<void> {
   }
 
   // Pre-build Docker images for test environments
-  const environments = ["benchmark_basic", "benchmark_langsmith"];
+  const environments = ["bench_lc_basic", "bench_ls_multiskill"];
   const builtImages: string[] = [];
 
   for (const env of environments) {

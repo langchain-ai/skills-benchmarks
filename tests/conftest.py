@@ -335,7 +335,7 @@ def prebuild_docker_image(request):
     """
     # Find environment_dir from test module if available
     # This is a session fixture, so we build for common environments
-    for marker in ["benchmark_basic", "benchmark_langsmith"]:
+    for marker in ["bench_lc_basic", "bench_ls_multiskill"]:
         env_dir = PROJECT_ROOT / "tests" / marker / "environment"
         if env_dir.exists():
             image = _build_docker_image_with_lock(env_dir)

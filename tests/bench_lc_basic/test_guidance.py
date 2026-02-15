@@ -1,9 +1,9 @@
-"""CLAUDE.md treatments (effects of CLAUDE.md presence and content).
+"""Guidance treatments (positive vs negative framing in skills).
 
-Tests whether CLAUDE.md is needed and what instructions work best.
+Tests whether framing matters: "DO use modern patterns" vs "DON'T use deprecated".
 
-Run with: pytest tests/benchmark_basic/test_claudemd.py -v
-Parallel:  pytest tests/benchmark_basic/test_claudemd.py -n 3
+Run with: pytest tests/bench_lc_basic/test_guidance.py -v
+Parallel:  pytest tests/bench_lc_basic/test_guidance.py -n 3
 """
 
 from pathlib import Path
@@ -18,7 +18,6 @@ from scaffold import (
     Treatment,
 )
 from scaffold.python import extract_events, parse_output
-from skills import CLAUDE_FULL
 from skills.parser import load_skill
 
 # =============================================================================
@@ -28,38 +27,16 @@ from skills.parser import load_skill
 SKILL_BASE = Path(__file__).parent.parent.parent / "skills" / "benchmarks"
 agents_skill = load_skill(SKILL_BASE / "langchain_basic")
 
-# Full sections from skill.md
-FULL_SECTIONS = agents_skill["all"]
-
 # =============================================================================
 # CONSTANTS
 # =============================================================================
 
 ENVIRONMENT_DIR = Path(__file__).parent / "environment"
 
-CLAUDE_MD_SKILLS_ONLY = """# Project Guidelines
+CLAUDE_MD_SKILLS_REQUIRED = """# Project Guidelines
 
 Before starting any coding task, check available project skills to find the best approach.
-"""
-
-CLAUDE_MD_PATTERNS_POSITIVE = """# Project Guidelines
-
-## LangChain Best Practices
-When building LangChain agents:
-- Use `create_agent` from `langchain.agents` (modern approach)
-- Use `@tool` decorator for tool definitions
-- Use LangGraph for complex control flow
-"""
-
-CLAUDE_MD_BOTH = """# Project Guidelines
-
-Before starting any coding task, check available project skills to find the best approach.
-
-## LangChain Best Practices
-When building LangChain agents:
-- Use `create_agent` from `langchain.agents` (modern approach)
-- Use `@tool` decorator for tool definitions
-- Use LangGraph for complex control flow
+**Always use skills when they are available for your task.**
 """
 
 TASK1_PROMPT = """Build a SQL analytics agent for the chinook.db music store database.
@@ -73,7 +50,7 @@ Save to sql_agent_1.py and run the test query.
 
 IMPORTANT: Run files directly (not in background). If code fails after 2 attempts to fix, save the file and report the error - do not enter debug loops."""
 
-# Tool overviews
+# Tool overviews (from skill.py CREATE_AGENT_OVERVIEW + DEEP_AGENT_OVERVIEW + LANGGRAPH_OVERVIEW)
 _TOOL_OVERVIEWS = """**Simple tool-calling agent?** → [`create_agent`](https://docs.langchain.com/oss/python/langchain/agents)
 ```python
 from langchain.agents import create_agent
@@ -93,6 +70,7 @@ agent = create_deep_agent(model=model, tools=tools, backend=FilesystemBackend())
 
 **Start simple:** Build with basic ReAct loops first. Only add complexity (multi-agent, advanced context management) when your use case requires it."""
 
+# POSITIVE: Only mentions what TO use (no deprecated pattern names)
 GUIDANCE_POSITIVE = """**IMPORTANT:** Use modern LangChain patterns.
 
 - `create_agent()` from `langchain.agents` for simple agents
@@ -100,6 +78,15 @@ GUIDANCE_POSITIVE = """**IMPORTANT:** Use modern LangChain patterns.
 - `@tool` decorator for tool definitions
 
 See the examples below for working code."""
+
+# NEGATIVE: Mentions deprecated patterns (puts them in context)
+GUIDANCE_NEGATIVE = """**IMPORTANT:** Use modern LangChain patterns.
+
+Older helpers like `create_sql_agent`, `create_tool_calling_agent`, and the legacy `create_react_agent` are deprecated and should not be used.
+
+- `create_agent()` from `langchain.agents` for simple agents
+- LangGraph `create_react_agent` for complex flows
+- `@tool` decorator for tool definitions"""
 
 
 def _build_quickstart(guidance):
@@ -111,7 +98,7 @@ def _build_quickstart(guidance):
 
 
 QUICK_START_POSITIVE = _build_quickstart(GUIDANCE_POSITIVE)
-QUICK_START_NEUTRAL = _build_quickstart(None)
+QUICK_START_NEGATIVE = _build_quickstart(GUIDANCE_NEGATIVE)
 
 
 def with_quickstart(content):
@@ -120,7 +107,7 @@ def with_quickstart(content):
     Excludes langgraph and resources for minimal content.
     """
     sections = agents_skill["sections"]
-    quickstart_content = content if content else QUICK_START_NEUTRAL
+    quickstart_content = content if content else _build_quickstart(None)
     return [
         sections["frontmatter"],
         sections["oneliner"],
@@ -176,51 +163,16 @@ def sql_agent_validators():
 # =============================================================================
 
 TREATMENTS = {
-    # Baselines
-    "CONTROL": Treatment(
-        description="No skill, no CLAUDE.md (pure control)",
-        validators=sql_agent_validators(),
-    ),
-    "ALL_SECTIONS": Treatment(
-        description="All skill sections + full CLAUDE.md",
-        skills={"langchain-agents": FULL_SECTIONS},
-        claude_md=CLAUDE_FULL,
-        validators=sql_agent_validators(),
-    ),
-    "BASELINE": Treatment(
-        description="Skill only, no CLAUDE.md (skill baseline)",
+    "GUIDANCE_POS": Treatment(
+        description="Skill with positive guidance (DO use modern patterns)",
         skills={"langchain-agents": with_quickstart(QUICK_START_POSITIVE)},
+        claude_md=CLAUDE_MD_SKILLS_REQUIRED,
         validators=sql_agent_validators(),
     ),
-    # CLAUDE.md variations
-    "CLAUDE_MD_SKILLS": Treatment(
-        description="CLAUDE.md says 'check skills' only",
-        skills={"langchain-agents": with_quickstart(QUICK_START_POSITIVE)},
-        claude_md=CLAUDE_MD_SKILLS_ONLY,
-        validators=sql_agent_validators(),
-    ),
-    "CLAUDE_MD_PATTERNS": Treatment(
-        description="CLAUDE.md has pattern guidance (skill has guidance too)",
-        skills={"langchain-agents": with_quickstart(QUICK_START_POSITIVE)},
-        claude_md=CLAUDE_MD_PATTERNS_POSITIVE,
-        validators=sql_agent_validators(),
-    ),
-    "CLAUDE_MD_PATTERNS_MOVED": Treatment(
-        description="CLAUDE.md has pattern guidance (skill has NO guidance)",
-        skills={"langchain-agents": with_quickstart(None)},
-        claude_md=CLAUDE_MD_PATTERNS_POSITIVE,
-        validators=sql_agent_validators(),
-    ),
-    "CLAUDE_MD_BOTH": Treatment(
-        description="CLAUDE.md: skills + patterns (skill has guidance too)",
-        skills={"langchain-agents": with_quickstart(QUICK_START_POSITIVE)},
-        claude_md=CLAUDE_MD_BOTH,
-        validators=sql_agent_validators(),
-    ),
-    "CLAUDE_MD_BOTH_MOVED": Treatment(
-        description="CLAUDE.md: skills + patterns (skill has NO guidance)",
-        skills={"langchain-agents": with_quickstart(None)},
-        claude_md=CLAUDE_MD_BOTH,
+    "GUIDANCE_NEG": Treatment(
+        description="Skill with negative guidance (DON'T use deprecated)",
+        skills={"langchain-agents": with_quickstart(QUICK_START_NEGATIVE)},
+        claude_md=CLAUDE_MD_SKILLS_REQUIRED,
         validators=sql_agent_validators(),
     ),
 }

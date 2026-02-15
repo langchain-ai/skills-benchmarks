@@ -48,18 +48,18 @@ describe("Example Guidance Experiment", () => {
   // PARAMETERIZED TESTS
   // =============================================================================
 
-  it.each(Object.entries(TREATMENTS))(
+  it.for(Object.entries(TREATMENTS))(
     "%s",
-    async (treatmentName, treatment) => {
+    { timeout: 600000 },
+    async ([treatmentName, treatment]) => {
       // Skip if environment doesn't exist
       if (!existsSync(ENVIRONMENT_DIR)) {
-        expect(true).toBe(true); // Pass silently
+        expect(true).toBe(true);
         return;
       }
 
       // 1. Set up test context
       const { testDir, logger } = setupTest("ts_example");
-
       setupTestContext(testDir, {
         skills: treatment.skills,
         claudeMd: treatment.claudeMd,
@@ -89,7 +89,6 @@ describe("Example Guidance Experiment", () => {
 
       // 6. Assert
       expect(failed).toEqual([]);
-    },
-    { timeout: 600000 } // 10 minute timeout per test
+    }
   );
 });

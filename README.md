@@ -235,7 +235,41 @@ OutputQualityValidator(
 
 ---
 
-## Experiments
+## Project Structure
+
+```
+skills/
+  main/             # Production skills (complete, all tests pass)
+  benchmarks/       # Benchmark skills (may be weakened for testing)
+  noise/            # Noise/distractor skills for interference tests
+
+scaffold/
+  python/           # Python scaffold (pytest) - Treatment, validators, utils
+  typescript/       # TypeScript scaffold (vitest) - mirrors Python
+  shell/            # Shared shell scripts (docker.sh, setup.sh)
+
+tests/
+  bench_lc_basic/        # Basic single-skill benchmark
+  bench_ls_multiskill/   # Multi-skill LangSmith benchmark
+
+logs/experiments/        # Test results output
+```
+
+---
+
+## Validation Details
+
+Generated code is validated via:
+
+1. **Pattern Matching** (`PythonFileValidator`): Check for required/forbidden code patterns
+2. **Docker Execution**: Run the code in a sandboxed container
+3. **LLM Evaluation** (`OutputQualityValidator`): Use GPT-4o-mini to assess output quality
+4. **API Verification**: Check LangSmith uploads (for multi-skill tests)
+5. **Skill Invocation** (`SkillInvokedValidator`): Verify Claude loaded the right skills
+
+---
+
+## Existing Experiments
 
 ### 1. Basic Benchmark (`tests/bench_lc_basic/`)
 
@@ -292,49 +326,6 @@ uv run pytest tests/bench_ls_multiskill/test_advanced.py -v -n 6
 
 ---
 
-## Project Structure
-
-```
-skills/
-  main/             # Production skills (complete, all tests pass)
-  benchmarks/       # Benchmark skills (may be weakened for testing)
-    langchain_basic/
-    langsmith_trace/
-    langsmith_dataset/
-    langsmith_evaluator/
-  noise/            # Noise/distractor skills for interference tests
-  CLAUDE.md         # Sample CLAUDE.md with skill synergies
-  parser.py         # Skill loading utilities
-
-scaffold/
-  python/           # Python scaffold (pytest)
-    __init__.py     # Public API exports
-    schema.py       # Treatment, NoiseTask, Validator
-    validation.py   # 5 validators
-    utils.py        # Shell wrappers, LLM evaluation
-    logging.py      # Event parsing, ExperimentLogger
-  typescript/       # TypeScript scaffold (vitest)
-    index.ts        # Public exports
-    schema.ts       # Treatment, NoiseTask types
-    validation.ts   # 5 validators (mirrors Python)
-    utils.ts        # Shell wrappers
-    logging.ts      # Event parsing
-  shell/            # Shared shell scripts
-    docker.sh       # Docker operations
-    setup.sh        # Environment setup
-
-tests/
-  conftest.py            # Python fixtures
-  fixtures.ts            # TypeScript fixtures
-  bench_lc_basic/        # Basic single-skill benchmark
-  bench_ls_multiskill/   # Multi-skill LangSmith benchmark
-  example/               # TypeScript example test
-
-logs/experiments/        # Test results output
-```
-
----
-
 ## Experiment Results
 
 Results are saved to `logs/experiments/<experiment_id>/`:
@@ -350,15 +341,3 @@ logs/experiments/experiment_20260205_111553/
 
 - **`summary.md`** - Start here. Shows checks passed per treatment with breakdowns.
 - **`reports/*.json`** - Raw data with all checks passed/failed and metrics.
-
----
-
-## Validation Details
-
-Generated code is validated via:
-
-1. **Pattern Matching** (`PythonFileValidator`): Check for required/forbidden code patterns
-2. **Docker Execution**: Run the code in a sandboxed container
-3. **LLM Evaluation** (`OutputQualityValidator`): Use GPT-4o-mini to assess output quality
-4. **API Verification**: Check LangSmith uploads (for multi-skill tests)
-5. **Skill Invocation** (`SkillInvokedValidator`): Verify Claude loaded the right skills

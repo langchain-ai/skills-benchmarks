@@ -22,7 +22,7 @@ import {
   finalizeExperiment,
   parseOutput,
   extractEvents,
-} from "../conftest.js";
+} from "../fixtures.js";
 import { validate } from "../../scaffold/typescript/index.js";
 import { TREATMENTS, TASK_PROMPT, ENVIRONMENT_DIR } from "./config.js";
 

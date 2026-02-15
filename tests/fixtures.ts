@@ -4,7 +4,7 @@
  * Mirrors tests/conftest.py - provides the same fixtures for TypeScript tests.
  *
  * Usage:
- *   import { setupTest, runClaude, recordResult } from './conftest.js';
+ *   import { setupTest, runClaude, recordResult } from './fixtures.js';
  *
  *   const { testDir, logger } = setupTest('my_experiment');
  *   setupTestContext(testDir, { skills: treatment.skills });

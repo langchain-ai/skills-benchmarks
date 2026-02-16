@@ -6,7 +6,9 @@ our mocks accurately reflect actual API behavior.
 Data captured on 2026-02-16 from project "skills".
 """
 
+import json
 from datetime import datetime
+from pathlib import Path
 
 # ============================================================================
 # TRACE DATA - Captured from real API responses
@@ -449,3 +451,90 @@ def create_mock_examples_from_real_data() -> list[MockExample]:
             },
         ),
     ]
+
+
+# ============================================================================
+# LOCAL FILE FIXTURES - Sample data for testing without API
+# ============================================================================
+
+# Sample trace runs in JSONL format (for generate_datasets testing)
+SAMPLE_TRACE_RUNS = [
+    {
+        "run_id": "run-001",
+        "trace_id": "trace-001",
+        "name": "agent",
+        "run_type": "chain",
+        "parent_run_id": None,
+        "start_time": "2025-01-15T10:00:00Z",
+        "end_time": "2025-01-15T10:00:05Z",
+        "inputs": {"query": "What is the capital of France?"},
+        "outputs": {"answer": "Paris"},
+    },
+    {
+        "run_id": "run-002",
+        "trace_id": "trace-001",
+        "name": "search_tool",
+        "run_type": "tool",
+        "parent_run_id": "run-001",
+        "start_time": "2025-01-15T10:00:01Z",
+        "end_time": "2025-01-15T10:00:02Z",
+        "inputs": {"query": "capital France"},
+        "outputs": {"result": "Paris is the capital"},
+    },
+    {
+        "run_id": "run-003",
+        "trace_id": "trace-001",
+        "name": "llm",
+        "run_type": "llm",
+        "parent_run_id": "run-001",
+        "start_time": "2025-01-15T10:00:03Z",
+        "end_time": "2025-01-15T10:00:04Z",
+        "inputs": {"messages": [{"role": "user", "content": "summarize"}]},
+        "outputs": {"answer": "Paris"},
+    },
+]
+
+# Sample dataset for query_datasets testing
+SAMPLE_LOCAL_DATASET = [
+    {
+        "trace_id": "trace-001",
+        "inputs": {"query": "What is the capital of France?"},
+        "outputs": {"expected_response": "Paris"},
+    },
+    {
+        "trace_id": "trace-002",
+        "inputs": {"query": "What is 2 + 2?"},
+        "outputs": {"expected_response": "4"},
+    },
+]
+
+
+def create_sample_trace_jsonl(tmp_path: Path) -> Path:
+    """Create a sample JSONL trace file for testing.
+
+    Args:
+        tmp_path: pytest tmp_path fixture
+
+    Returns:
+        Path to the created JSONL file
+    """
+    jsonl_file = tmp_path / "trace-001.jsonl"
+    with open(jsonl_file, "w") as f:
+        for run in SAMPLE_TRACE_RUNS:
+            f.write(json.dumps(run) + "\n")
+    return jsonl_file
+
+
+def create_sample_dataset_json(tmp_path: Path) -> Path:
+    """Create a sample dataset JSON file for testing.
+
+    Args:
+        tmp_path: pytest tmp_path fixture
+
+    Returns:
+        Path to the created JSON file
+    """
+    json_file = tmp_path / "dataset.json"
+    with open(json_file, "w") as f:
+        json.dump(SAMPLE_LOCAL_DATASET, f, indent=2)
+    return json_file

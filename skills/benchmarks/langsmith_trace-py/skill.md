@@ -1,6 +1,6 @@
 ---
-name: langsmith-trace
-description: "Use this skill for ANY LangSmith/LangChain observability question. Covers two topics: (1) Adding tracing to your application (LangChain/LangGraph or vanilla Python with @traceable), and (2) Querying traces for debugging, analyzing execution flow, and exporting trace data."
+name: langsmith-trace-py
+description: "Use this skill for ANY LangSmith/LangChain observability question (Python). Covers two topics: (1) Adding tracing to your application (LangChain/LangGraph or vanilla Python with @traceable), and (2) Querying traces for debugging, analyzing execution flow, and exporting trace data."
 ---
 
 <oneliner>

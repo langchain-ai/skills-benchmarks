@@ -32,9 +32,9 @@ SKILL_BASE = Path(__file__).parent.parent.parent / "skills" / "benchmarks"
 def _load_skills():
     """Load all skills from skill.md files."""
     return {
-        "trace": load_skill(SKILL_BASE / "langsmith_trace"),
-        "dataset": load_skill(SKILL_BASE / "langsmith_dataset"),
-        "evaluator": load_skill(SKILL_BASE / "langsmith_evaluator"),
+        "trace": load_skill(SKILL_BASE / "langsmith_trace-py"),
+        "dataset": load_skill(SKILL_BASE / "langsmith_dataset-py"),
+        "evaluator": load_skill(SKILL_BASE / "langsmith_evaluator-py"),
     }
 
 

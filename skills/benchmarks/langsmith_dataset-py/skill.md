@@ -1,6 +1,6 @@
 ---
-name: langsmith-dataset
-description: Use this skill for ANY question about creating test or evaluation datasets for agents. Covers generating datasets from exported trace files (final_response, single_step, trajectory, RAG types), uploading to LangSmith, and managing evaluation data.
+name: langsmith-dataset-py
+description: Use this skill for ANY question about creating test or evaluation datasets for agents (Python). Covers generating datasets from exported trace files (final_response, single_step, trajectory, RAG types), uploading to LangSmith, and managing evaluation data.
 ---
 
 <oneliner>

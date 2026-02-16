@@ -26,7 +26,6 @@ from .utils import (
     check_claude_available,
     check_docker_available,
     evaluate_with_schema,
-    extract_score,
     get_eval_model,
     get_field,
     get_nested_field,
@@ -71,7 +70,6 @@ __all__ = [
     "get_field",
     "get_nested_field",
     "normalize_score",
-    "extract_score",
     "get_eval_model",
     "evaluate_with_schema",
     # Logging

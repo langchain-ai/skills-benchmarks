@@ -114,9 +114,11 @@ class PythonFileValidator(Validator):
                     )
                 elif self.min_output_lines:
                     passed.append(f"{self.label}: {lines} lines output")
+                output_lower = output.lower()
                 for pattern, desc in self.output_patterns.items():
-                    (passed if pattern.lower() in output.lower() else failed).append(
-                        f"{self.label}: output {'has' if pattern.lower() in output.lower() else 'missing'} {desc}"
+                    match = pattern.lower() in output_lower
+                    (passed if match else failed).append(
+                        f"{self.label}: output {'has' if match else 'missing'} {desc}"
                     )
             else:
                 failed.append(f"{self.label}: {output[:150]}")

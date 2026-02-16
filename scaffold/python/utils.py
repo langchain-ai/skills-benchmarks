@@ -3,6 +3,7 @@
 Shell scripts (scaffold/shell/) are the source of truth.
 """
 
+import json
 import os
 import random
 import subprocess
@@ -129,8 +130,6 @@ def retry_with_backoff(func, max_retries=3, base_delay=1.0, max_delay=10.0, retr
 
 def read_json_file(path: Path) -> tuple:
     """Read JSON file. Returns (data, None) or (None, error)."""
-    import json
-
     if not path.exists():
         return None, f"{path.name} not found"
     try:
@@ -160,16 +159,6 @@ def normalize_score(score) -> float:
     if isinstance(score, (int, float)) and score > 1:
         return score / 100.0
     return float(score) if score is not None else 0.0
-
-
-def extract_score(result: dict):
-    """Extract score from result dict."""
-    if not isinstance(result, dict) or not result:
-        return None
-    for key in ["score", "key", "result", "value", "match", "similarity"]:
-        if key in result:
-            return result[key]
-    return list(result.values())[0]
 
 
 # =============================================================================

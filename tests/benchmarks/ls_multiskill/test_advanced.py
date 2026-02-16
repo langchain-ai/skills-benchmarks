@@ -1,9 +1,9 @@
-"""Basic LangSmith Synergy treatments (2 skills: trace + dataset).
+"""Advanced LangSmith Synergy treatments (3 skills: trace + dataset + evaluator).
 
 Each treatment defines its own section selections inline.
 
-Run with: pytest tests/bench_ls_multiskill/test_basic.py -v
-Parallel:  pytest tests/bench_ls_multiskill/test_basic.py -n 3
+Run with: pytest tests/benchmarks/ls_multiskill/test_advanced.py -v
+Parallel:  pytest tests/benchmarks/ls_multiskill/test_advanced.py -n 3
 """
 
 import uuid
@@ -15,8 +15,9 @@ from scaffold import MetricsCollector, SkillInvokedValidator, Treatment
 from scaffold.python import extract_events, parse_output
 from skills import CLAUDE_FULL
 from skills.parser import load_skill, skill_config
-from tests.bench_ls_multiskill.validation.validators import (
+from tests.benchmarks.ls_multiskill.validation.validators import (
     DatasetStructureValidator,
+    EvaluatorValidator,
     SkillScriptValidator,
     TrajectoryAccuracyValidator,
 )
@@ -25,14 +26,15 @@ from tests.bench_ls_multiskill.validation.validators import (
 # SKILL LOADING
 # =============================================================================
 
-SKILL_BASE = Path(__file__).parent.parent.parent / "skills" / "benchmarks"
+SKILL_BASE = Path(__file__).parent.parent.parent.parent / "skills" / "benchmarks"
 
 
 def _load_skills():
     """Load all skills from skill.md files."""
     return {
-        "trace": load_skill(SKILL_BASE / "langsmith_trace"),
-        "dataset": load_skill(SKILL_BASE / "langsmith_dataset"),
+        "trace": load_skill(SKILL_BASE / "langsmith_trace-py"),
+        "dataset": load_skill(SKILL_BASE / "langsmith_dataset-py"),
+        "evaluator": load_skill(SKILL_BASE / "langsmith_evaluator-py"),
     }
 
 
@@ -61,25 +63,29 @@ def without_related_skills(sections):
 # CONSTANTS
 # =============================================================================
 
-WORKFLOW_RULE_BASIC = """## LangSmith Skills
+WORKFLOW_RULE_ADVANCED = """## LangSmith Skills
 
-This project has LangSmith skills for working with traces and datasets:
+This project has LangSmith skills for working with traces, datasets, and evaluators:
 
 - **langsmith-trace**: Query and analyze traces from LangSmith projects
 - **langsmith-dataset**: Generate datasets from trace data
+- **langsmith-evaluator**: Create evaluators for validating agent outputs
 
-Note: The dataset skill requires trace data to work with. Use the trace skill first to understand available data before generating datasets."""
+Workflow:
+- Datasets require trace data (use trace skill to get data first)
+- Evaluators validate datasets (create dataset before evaluator)
+- Evaluators should use the same field structure as your dataset (e.g., if dataset has `expected_trajectory`, evaluator should read that field)"""
 
 CLAUDE_MD_SKILLS_ONLY = """# Project Guidelines
 
 Before starting any coding task, check available project skills to find the best approach.
 """
 
-CLAUDE_MD_WORKFLOW_BASIC = CLAUDE_MD_SKILLS_ONLY + "\n" + WORKFLOW_RULE_BASIC
+CLAUDE_MD_WORKFLOW_ADVANCED = CLAUDE_MD_SKILLS_ONLY + "\n" + WORKFLOW_RULE_ADVANCED
 
-BASIC_PROMPT_TEMPLATE = """Create a trajectory dataset with 5 examples from the 5 most recent traces in our LangSmith project.
+ADVANCED_PROMPT_TEMPLATE = """Create a trajectory dataset with 5 examples from the 5 most recent traces in our LangSmith project, plus an evaluator measuring tool call match percentage.
 
-Output: trajectory_dataset.json (upload as "{run_id}" to LangSmith)
+Output: trajectory_dataset.json and trajectory_evaluator.py (upload both as "{run_id}" to LangSmith)
 
 Run any code you write directly."""
 
@@ -89,11 +95,12 @@ Run any code you write directly."""
 # =============================================================================
 
 
-def basic_validators():
-    """Validators for basic test (trace + dataset)."""
+def advanced_validators():
+    """Validators for advanced test (trace + dataset + evaluator)."""
     return [
         SkillInvokedValidator("langsmith-trace", required=False),
         SkillInvokedValidator("langsmith-dataset", required=False),
+        SkillInvokedValidator("langsmith-evaluator", required=False),
         SkillScriptValidator(
             {
                 "query_traces.py": "query_traces.py",
@@ -111,12 +118,17 @@ def basic_validators():
             verify_upload=True,
             upload_prefix="test-",
         ),
+        EvaluatorValidator(
+            filename="trajectory_evaluator.py",
+            verify_upload=True,
+            upload_prefix="test-",
+        ),
         MetricsCollector(),
     ]
 
 
 # =============================================================================
-# SECTION SELECTIONS FOR BASIC TREATMENTS
+# SECTION SELECTIONS FOR ADVANCED TREATMENTS
 # =============================================================================
 
 # Trace: curated subset (matches old DEFAULT_SECTIONS - excludes detailed examples)
@@ -135,7 +147,7 @@ trace_no_hints = without_related_skills(trace_curated)
 # Trace: all sections (for ALL_SECTIONS treatment only)
 trace_all = skills["trace"]["all"]
 
-# Dataset: curated subset (exclude detailed examples to stress test Claude)
+# Dataset: curated subset (exclude detailed examples)
 dataset_curated = [
     skills["dataset"]["sections"]["frontmatter"],
     skills["dataset"]["sections"]["oneliner"],
@@ -149,6 +161,18 @@ dataset_curated = [
 ]
 dataset_no_hints = without_related_skills(dataset_curated)
 
+# Evaluator: curated subset (exclude detailed examples)
+evaluator_curated = [
+    skills["evaluator"]["sections"]["frontmatter"],
+    skills["evaluator"]["sections"]["oneliner"],
+    skills["evaluator"]["sections"]["setup"],
+    skills["evaluator"]["sections"]["evaluator_format"],
+    skills["evaluator"]["sections"]["evaluator_types"],
+    skills["evaluator"]["sections"]["best_practices"],
+    skills["evaluator"]["sections"]["related_skills"],
+]
+evaluator_no_hints = without_related_skills(evaluator_curated)
+
 
 # =============================================================================
 # TREATMENTS
@@ -156,52 +180,64 @@ dataset_no_hints = without_related_skills(dataset_curated)
 
 TREATMENTS = {
     # Control: No skills, no CLAUDE.md (pure baseline - Claude's native ability)
-    "BASIC_CONTROL": Treatment(
+    "ADV_CONTROL": Treatment(
         description="No skills, no CLAUDE.md (pure baseline)",
         skills={},
-        validators=basic_validators(),
+        validators=advanced_validators(),
     ),
     # Baseline: Skills WITHOUT workflow hints, no CLAUDE.md (hardest - no cross-references)
-    "BASIC_BASELINE": Treatment(
+    "ADV_BASELINE": Treatment(
         description="Skills without workflow hints, no CLAUDE.md (no cross-references)",
         skills={
             "langsmith-trace": skill_config(trace_no_hints, skills["trace"]["scripts_dir"]),
             "langsmith-dataset": skill_config(dataset_no_hints, skills["dataset"]["scripts_dir"]),
+            "langsmith-evaluator": skill_config(
+                evaluator_no_hints, skills["evaluator"]["scripts_dir"]
+            ),
         },
-        validators=basic_validators(),
+        validators=advanced_validators(),
     ),
     # CLAUDE.md only: Workflow rules in CLAUDE.md, skills without hints
-    "BASIC_CLAUDEMD": Treatment(
+    "ADV_CLAUDEMD": Treatment(
         description="Workflow rules in CLAUDE.md, skills without hints",
         skills={
             "langsmith-trace": skill_config(trace_no_hints, skills["trace"]["scripts_dir"]),
             "langsmith-dataset": skill_config(dataset_no_hints, skills["dataset"]["scripts_dir"]),
+            "langsmith-evaluator": skill_config(
+                evaluator_no_hints, skills["evaluator"]["scripts_dir"]
+            ),
         },
-        claude_md=CLAUDE_MD_WORKFLOW_BASIC,
-        validators=basic_validators(),
+        claude_md=CLAUDE_MD_WORKFLOW_ADVANCED,
+        validators=advanced_validators(),
     ),
     # Skills only: Workflow hints in skills (related_skills section), minimal CLAUDE.md
-    "BASIC_SKILLS": Treatment(
+    "ADV_SKILLS": Treatment(
         description="Workflow hints in skills, minimal CLAUDE.md",
         skills={
             "langsmith-trace": skill_config(trace_curated, skills["trace"]["scripts_dir"]),
             "langsmith-dataset": skill_config(dataset_curated, skills["dataset"]["scripts_dir"]),
+            "langsmith-evaluator": skill_config(
+                evaluator_curated, skills["evaluator"]["scripts_dir"]
+            ),
         },
         claude_md=CLAUDE_MD_SKILLS_ONLY,
-        validators=basic_validators(),
+        validators=advanced_validators(),
     ),
     # Both: Workflow rules in CLAUDE.md AND skill hints (reinforcement)
-    "BASIC_BOTH": Treatment(
+    "ADV_BOTH": Treatment(
         description="Workflow rules in CLAUDE.md AND skill hints",
         skills={
             "langsmith-trace": skill_config(trace_curated, skills["trace"]["scripts_dir"]),
             "langsmith-dataset": skill_config(dataset_curated, skills["dataset"]["scripts_dir"]),
+            "langsmith-evaluator": skill_config(
+                evaluator_curated, skills["evaluator"]["scripts_dir"]
+            ),
         },
-        claude_md=CLAUDE_MD_WORKFLOW_BASIC,
-        validators=basic_validators(),
+        claude_md=CLAUDE_MD_WORKFLOW_ADVANCED,
+        validators=advanced_validators(),
     ),
     # All sections: Complete skill content (without cross-skill hints) + full CLAUDE.md sample
-    "BASIC_ALL_SECTIONS": Treatment(
+    "ADV_ALL_SECTIONS": Treatment(
         description="All skill sections + full CLAUDE.md",
         skills={
             "langsmith-trace": skill_config(
@@ -210,9 +246,13 @@ TREATMENTS = {
             "langsmith-dataset": skill_config(
                 without_related_skills(skills["dataset"]["all"]), skills["dataset"]["scripts_dir"]
             ),
+            "langsmith-evaluator": skill_config(
+                without_related_skills(skills["evaluator"]["all"]),
+                skills["evaluator"]["scripts_dir"],
+            ),
         },
         claude_md=CLAUDE_FULL,
-        validators=basic_validators(),
+        validators=advanced_validators(),
     ),
 }
 
@@ -248,7 +288,7 @@ def test_treatment(
     run_id = str(uuid.uuid4())
     dataset_name = f"test-{run_id}"
     cleanup_dataset(dataset_name)  # Register for cleanup after test
-    prompt = BASIC_PROMPT_TEMPLATE.format(run_id=dataset_name)
+    prompt = ADVANCED_PROMPT_TEMPLATE.format(run_id=dataset_name)
     prompt = treatment.build_prompt(prompt)
 
     # Run Claude (automatically saves raw output)

@@ -1,6 +1,6 @@
 ---
-name: langsmith-trace
-description: "Use this skill for ANY LangSmith/LangChain observability question. Covers two topics: (1) Adding tracing to your application (LangChain/LangGraph or vanilla Python with @traceable), and (2) Querying traces for debugging, analyzing execution flow, and exporting trace data."
+name: langsmith-trace-js
+description: "Use this skill for ANY LangSmith/LangChain observability question (TypeScript/JavaScript). Covers two topics: (1) Adding tracing to your application (LangChain/LangGraph or vanilla JS with traceable), and (2) Querying traces for debugging, analyzing execution flow, and exporting trace data."
 ---
 
 <oneliner>
@@ -19,7 +19,12 @@ LANGSMITH_WORKSPACE_ID=your-workspace-id              # Optional: for org-scoped
 Dependencies
 
 ```bash
-pip install langsmith click rich python-dotenv
+npm install langsmith commander chalk cli-table3 ora dotenv
+```
+
+For TypeScript:
+```bash
+npm install -D tsx typescript @types/node
 ```
 </setup>
 
@@ -34,47 +39,46 @@ export OPENAI_API_KEY=<your-openai-api-key>  # or your LLM provider's key
 
 Optional variables:
 - `LANGSMITH_PROJECT` - specify project name (defaults to "default")
-- `LANGCHAIN_CALLBACKS_BACKGROUND=false` - use for serverless to ensure traces complete before function exit
 </trace_langchain_oss>
 
 <trace_other_frameworks>
-For non-LangChain apps, use the `@traceable` decorator and wrap your LLM client:
+For non-LangChain apps, use the `traceable` wrapper:
 
-```python
-from langsmith import traceable
-from langsmith.wrappers import wrap_openai
-from openai import OpenAI
+```typescript
+import { traceable } from "langsmith/traceable";
+import { wrapOpenAI } from "langsmith/wrappers";
+import OpenAI from "openai";
 
-client = wrap_openai(OpenAI())
+const client = wrapOpenAI(new OpenAI());
 
-@traceable
-def my_llm_pipeline(question: str) -> str:
-    resp = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[{"role": "user", "content": question}],
-    )
-    return resp.choices[0].message.content
+const myLlmPipeline = traceable(async (question: string): Promise<string> => {
+  const resp = await client.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [{ role: "user", content: question }],
+  });
+  return resp.choices[0].message.content || "";
+}, { name: "my_llm_pipeline" });
 
-# Nested tracing example
-@traceable
-def rag_pipeline(question: str) -> str:
-    docs = retrieve_docs(question)
-    return generate_answer(question, docs)
+// Nested tracing example
+const retrieveDocs = traceable(async (query: string): Promise<string[]> => {
+  return docs;
+}, { name: "retrieve_docs" });
 
-@traceable(name="retrieve_docs")
-def retrieve_docs(query: str) -> list[str]:
-    return docs
+const generateAnswer = traceable(async (question: string, docs: string[]): Promise<string> => {
+  return await client.chat.completions.create(...);
+}, { name: "generate_answer" });
 
-@traceable(name="generate_answer")
-def generate_answer(question: str, docs: list[str]) -> str:
-    return client.chat.completions.create(...)
+const ragPipeline = traceable(async (question: string): Promise<string> => {
+  const docs = await retrieveDocs(question);
+  return await generateAnswer(question, docs);
+}, { name: "rag_pipeline" });
 ```
 
 Best Practices:
-- **Apply `@traceable` to all nested functions** you want visible in LangSmith
-- **Wrapped clients auto-trace all calls** — `wrap_openai()` records every LLM call
-- **Name your traces** for easier filtering: `@traceable(name="retrieve_docs")`
-- **Add metadata** for searchability: `@traceable(metadata={"user_id": "123"})`
+- **Wrap functions with `traceable`** for visibility in LangSmith
+- **Wrapped clients auto-trace all calls** — `wrapOpenAI()` records every LLM call
+- **Name your traces** for easier filtering: `{ name: "retrieve_docs" }`
+- **Add metadata** for searchability: `{ metadata: { user_id: "123" } }`
 </trace_other_frameworks>
 
 <traces_vs_runs>
@@ -92,7 +96,7 @@ Use the included scripts to query trace data.
 Two command groups with consistent behavior:
 
 ```
-query_traces.py
+query_traces.ts
 ├── traces (operations on trace trees - USE THIS FIRST)
 │   ├── list    - List traces (filters apply to root run)
 │   ├── get     - Get single trace with full hierarchy
@@ -117,31 +121,31 @@ query_traces.py
 <querying_traces>
 ```bash
 # List recent traces (most common operation)
-python query_traces.py traces list --limit 10 --project my-project
+npx tsx query_traces.ts traces list --limit 10 --project my-project
 
 # List traces with metadata (timing, tokens, costs)
-python query_traces.py traces list --limit 10 --include-metadata
+npx tsx query_traces.ts traces list --limit 10 --include-metadata
 
 # Filter traces by time
-python query_traces.py traces list --last-n-minutes 60
-python query_traces.py traces list --since 2025-01-20T10:00:00Z
+npx tsx query_traces.ts traces list --last-n-minutes 60
+npx tsx query_traces.ts traces list --since 2025-01-20T10:00:00Z
 
 # Get specific trace with full hierarchy
-python query_traces.py traces get <trace-id>
+npx tsx query_traces.ts traces get <trace-id>
 
 # List traces and show hierarchy inline
-python query_traces.py traces list --limit 5 --show-hierarchy
+npx tsx query_traces.ts traces list --limit 5 --show-hierarchy
 
 # Export traces to JSONL (one file per trace, includes all runs)
-python query_traces.py traces export ./traces --limit 20 --full
-python query_traces.py traces export ./traces --limit 10 --include-io
+npx tsx query_traces.ts traces export ./traces --limit 20 --full
+npx tsx query_traces.ts traces export ./traces --limit 10 --include-io
 
 # Filter traces by performance
-python query_traces.py traces list --min-latency 5.0 --limit 10    # Slow traces (>= 5s)
-python query_traces.py traces list --error --last-n-minutes 60     # Failed traces
+npx tsx query_traces.ts traces list --min-latency 5.0 --limit 10    # Slow traces (>= 5s)
+npx tsx query_traces.ts traces list --error --last-n-minutes 60     # Failed traces
 
 # Export specific traces by ID
-python query_traces.py traces export ./traces --trace-ids abc123,def456 --full
+npx tsx query_traces.ts traces export ./traces --trace-ids abc123,def456 --full
 
 # Stitch multiple JSONL files together
 cat ./traces/*.jsonl > all_traces.jsonl
@@ -149,14 +153,14 @@ cat ./traces/*.jsonl > all_traces.jsonl
 # --- RUNS (for specific analysis) ---
 
 # List specific run types (flat list)
-python query_traces.py runs list --run-type llm --limit 20         # LLM calls only
-python query_traces.py runs list --name "ChatOpenAI" --limit 10    # By name pattern
+npx tsx query_traces.ts runs list --run-type llm --limit 20         # LLM calls only
+npx tsx query_traces.ts runs list --name "ChatOpenAI" --limit 10    # By name pattern
 
 # Get a specific run by ID
-python query_traces.py runs get <run-id> --full
+npx tsx query_traces.ts runs get <run-id> --full
 
 # Export LLM runs for analysis
-python query_traces.py runs export ./llm_runs.jsonl --run-type llm --limit 100 --full
+npx tsx query_traces.ts runs export ./llm_runs.jsonl --run-type llm --limit 100 --full
 ```
 </querying_traces>
 
@@ -183,7 +187,7 @@ All commands support these filters (all AND together):
 
 ```bash
 # Example: Filter by feedback score
-python query_traces.py traces list --filter 'and(eq(feedback_key, "correctness"), gte(feedback_score, 0.8))'
+npx tsx query_traces.ts traces list --filter 'and(eq(feedback_key, "correctness"), gte(feedback_score, 0.8))'
 ```
 </filters>
 
@@ -206,6 +210,6 @@ Use `--include-io` or `--full` to include inputs/outputs (required for dataset g
 </tips>
 
 <related_skills>
-- **langsmith-dataset**: Generates evaluation datasets from trace data. Traces provide the raw execution data that datasets structure for testing.
-- **langsmith-evaluator**: Creates evaluators that validate agent outputs. Evaluators can check trajectories captured in traces.
+- **langsmith-dataset-js**: Generates evaluation datasets from trace data. Traces provide the raw execution data that datasets structure for testing.
+- **langsmith-evaluator-js**: Creates evaluators that validate agent outputs. Evaluators can check trajectories captured in traces.
 </related_skills>

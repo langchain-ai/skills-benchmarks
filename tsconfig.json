@@ -25,6 +25,7 @@
   },
   "include": [
     "scaffold/typescript/**/*.ts",
+    "skills/benchmarks/**/*.ts",
     "tests/**/*.ts"
   ],
   "exclude": [

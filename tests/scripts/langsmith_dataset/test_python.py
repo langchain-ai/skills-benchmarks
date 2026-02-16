@@ -195,10 +195,13 @@ class TestQueryDatasetsLocalFiles:
 @pytest.fixture
 def mock_env():
     """Set up mock environment variables."""
-    with patch.dict(os.environ, {
-        "LANGSMITH_API_KEY": "test-api-key-12345",
-        "LANGSMITH_PROJECT": "test-project",
-    }):
+    with patch.dict(
+        os.environ,
+        {
+            "LANGSMITH_API_KEY": "test-api-key-12345",
+            "LANGSMITH_PROJECT": "test-project",
+        },
+    ):
         yield
 
 
@@ -215,6 +218,7 @@ def query_module(mock_env):
 
     try:
         import query_datasets
+
         yield query_datasets
     finally:
         sys.path.remove(str(script_dir))
@@ -302,13 +306,17 @@ class TestMockedAPIWithFixtures:
 
         # First example should have empty trajectory
         first_example = examples[0]
-        assert first_example.inputs["email_input"]["author"] == "Marketing Team <marketing@openai.com>"
+        assert (
+            first_example.inputs["email_input"]["author"] == "Marketing Team <marketing@openai.com>"
+        )
         assert first_example.inputs["email_input"]["subject"] == "Newsletter: New Model from OpenAI"
         assert first_example.outputs["trajectory"] == []
 
         # Second example should have specific trajectory
         second_example = examples[1]
-        assert second_example.inputs["email_input"]["author"] == "Project Team <project@company.com>"
+        assert (
+            second_example.inputs["email_input"]["author"] == "Project Team <project@company.com>"
+        )
         assert second_example.inputs["email_input"]["subject"] == "Joint presentation next month"
         assert second_example.outputs["trajectory"] == [
             "check_calendar_availability",

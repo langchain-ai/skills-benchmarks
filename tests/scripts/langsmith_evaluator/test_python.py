@@ -57,10 +57,13 @@ class TestCLIHelp:
 @pytest.fixture
 def mock_env():
     """Set up mock environment variables."""
-    with patch.dict(os.environ, {
-        "LANGSMITH_API_KEY": "test-api-key-12345",
-        "LANGSMITH_API_URL": "https://api.smith.langchain.com",
-    }):
+    with patch.dict(
+        os.environ,
+        {
+            "LANGSMITH_API_KEY": "test-api-key-12345",
+            "LANGSMITH_API_URL": "https://api.smith.langchain.com",
+        },
+    ):
         yield
 
 
@@ -77,6 +80,7 @@ def upload_module(mock_env):
 
     try:
         import upload_evaluators
+
         yield upload_evaluators
     finally:
         sys.path.remove(str(script_dir))
@@ -181,10 +185,12 @@ class TestMockedAPIFunctions:
 
         payload = upload_module.EvaluatorPayload(
             display_name="test_evaluator",
-            evaluators=[upload_module.CodeEvaluator(
-                code="def perform_eval(inputs, outputs, reference_outputs):\n    return {'score': 1.0}",
-                language="python",
-            )],
+            evaluators=[
+                upload_module.CodeEvaluator(
+                    code="def perform_eval(inputs, outputs, reference_outputs):\n    return {'score': 1.0}",
+                    language="python",
+                )
+            ],
             sampling_rate=1.0,
         )
 
@@ -203,14 +209,14 @@ class TestMockedAPIFunctions:
 
         payload = upload_module.EvaluatorPayload(
             display_name="test_evaluator",
-            evaluators=[upload_module.CodeEvaluator(
-                code="invalid code",
-                language="python",
-            )],
+            evaluators=[
+                upload_module.CodeEvaluator(
+                    code="invalid code",
+                    language="python",
+                )
+            ],
             sampling_rate=1.0,
         )
 
         result = upload_module.create_evaluator(payload)
         assert result is False
-
-

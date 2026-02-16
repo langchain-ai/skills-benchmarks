@@ -62,10 +62,13 @@ class TestCLIHelp:
 @pytest.fixture
 def mock_env():
     """Set up mock environment variables."""
-    with patch.dict(os.environ, {
-        "LANGSMITH_API_KEY": "test-api-key-12345",
-        "LANGSMITH_PROJECT": "test-project",
-    }):
+    with patch.dict(
+        os.environ,
+        {
+            "LANGSMITH_API_KEY": "test-api-key-12345",
+            "LANGSMITH_PROJECT": "test-project",
+        },
+    ):
         yield
 
 
@@ -82,6 +85,7 @@ def query_module(mock_env):
 
     try:
         import query_traces
+
         yield query_traces
     finally:
         sys.path.remove(str(script_dir))

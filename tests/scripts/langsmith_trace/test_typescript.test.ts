@@ -170,6 +170,7 @@ describe("mocked API functions", () => {
       );
 
       // Create a mock Run object that matches LangSmith SDK structure
+      // Use 'as any' since we're only testing the fields extractRun uses
       const mockRun = {
         id: SAMPLE_TRACES_LIST[0].run_id,
         trace_id: SAMPLE_TRACES_LIST[0].trace_id,
@@ -178,7 +179,7 @@ describe("mocked API functions", () => {
         parent_run_id: SAMPLE_TRACES_LIST[0].parent_run_id,
         start_time: new Date(SAMPLE_TRACES_LIST[0].start_time),
         end_time: new Date(SAMPLE_TRACES_LIST[0].end_time),
-      };
+      } as any;
 
       const extracted = extractRun(mockRun, false, false);
 
@@ -208,7 +209,7 @@ describe("mocked API functions", () => {
         prompt_tokens: runWithMetadata.token_usage?.prompt_tokens,
         completion_tokens: runWithMetadata.token_usage?.completion_tokens,
         total_tokens: runWithMetadata.token_usage?.total_tokens,
-      };
+      } as any;
 
       const extracted = extractRun(mockRun, true, false);
 
@@ -236,7 +237,7 @@ describe("mocked API functions", () => {
         end_time: new Date(),
         inputs: { query: "What is 2+2?" },
         outputs: { answer: "4" },
-      };
+      } as any;
 
       const extracted = extractRun(mockRun, false, true);
 
@@ -267,17 +268,21 @@ describe("mocked API with fixtures", () => {
     );
 
     // Simulate processing runs from API response
-    const mockRuns = SAMPLE_TRACES_LIST.map((t) => ({
-      id: t.run_id,
-      trace_id: t.trace_id,
-      name: t.name,
-      run_type: t.run_type,
-      parent_run_id: t.parent_run_id,
-      start_time: new Date(t.start_time),
-      end_time: new Date(t.end_time),
-    }));
+    // Use 'as any' since we're only testing the fields extractRun uses
+    const mockRuns = SAMPLE_TRACES_LIST.map(
+      (t) =>
+        ({
+          id: t.run_id,
+          trace_id: t.trace_id,
+          name: t.name,
+          run_type: t.run_type,
+          parent_run_id: t.parent_run_id,
+          start_time: new Date(t.start_time),
+          end_time: new Date(t.end_time),
+        }) as any
+    );
 
-    const extracted = mockRuns.map((r) => extractRun(r, false, false));
+    const extracted = mockRuns.map((r: any) => extractRun(r, false, false));
 
     // Should return 3 traces
     expect(extracted.length).toBe(3);
@@ -302,17 +307,21 @@ describe("mocked API with fixtures", () => {
     );
 
     // Simulate processing runs from trace get response
-    const mockRuns = SAMPLE_TRACE_GET.runs.map((r) => ({
-      id: r.run_id,
-      trace_id: r.trace_id,
-      name: r.name,
-      run_type: r.run_type,
-      parent_run_id: r.parent_run_id,
-      start_time: new Date(r.start_time),
-      end_time: new Date(r.end_time),
-    }));
+    // Use 'as any' since we're only testing the fields extractRun uses
+    const mockRuns = SAMPLE_TRACE_GET.runs.map(
+      (r) =>
+        ({
+          id: r.run_id,
+          trace_id: r.trace_id,
+          name: r.name,
+          run_type: r.run_type,
+          parent_run_id: r.parent_run_id,
+          start_time: new Date(r.start_time),
+          end_time: new Date(r.end_time),
+        }) as any
+    );
 
-    const extracted = mockRuns.map((r) => extractRun(r, false, false));
+    const extracted = mockRuns.map((r: any) => extractRun(r, false, false));
 
     // Should return 7 runs in the trace
     expect(extracted.length).toBe(7);
@@ -338,22 +347,26 @@ describe("mocked API with fixtures", () => {
     );
 
     // Simulate processing runs with metadata
-    const mockRuns = SAMPLE_RUNS_WITH_METADATA.map((r) => ({
-      id: r.run_id,
-      trace_id: r.trace_id,
-      name: r.name,
-      run_type: r.run_type,
-      parent_run_id: r.parent_run_id,
-      start_time: new Date(r.start_time),
-      end_time: new Date(r.end_time),
-      status: r.status,
-      extra: { metadata: r.custom_metadata },
-      prompt_tokens: r.token_usage?.prompt_tokens,
-      completion_tokens: r.token_usage?.completion_tokens,
-      total_tokens: r.token_usage?.total_tokens,
-    }));
+    // Use 'as any' since we're only testing the fields extractRun uses
+    const mockRuns = SAMPLE_RUNS_WITH_METADATA.map(
+      (r) =>
+        ({
+          id: r.run_id,
+          trace_id: r.trace_id,
+          name: r.name,
+          run_type: r.run_type,
+          parent_run_id: r.parent_run_id,
+          start_time: new Date(r.start_time),
+          end_time: new Date(r.end_time),
+          status: r.status,
+          extra: { metadata: r.custom_metadata },
+          prompt_tokens: r.token_usage?.prompt_tokens,
+          completion_tokens: r.token_usage?.completion_tokens,
+          total_tokens: r.token_usage?.total_tokens,
+        }) as any
+    );
 
-    const extracted = mockRuns.map((r) => extractRun(r, true, false));
+    const extracted = mockRuns.map((r: any) => extractRun(r, true, false));
 
     // Should return 3 runs
     expect(extracted.length).toBe(3);

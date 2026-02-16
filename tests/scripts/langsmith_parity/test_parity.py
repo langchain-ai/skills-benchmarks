@@ -48,7 +48,9 @@ def assert_json_equal(py_data, ts_data, msg=""):
     """Assert two JSON structures are equal after normalization."""
     py_normalized = normalize_json(py_data)
     ts_normalized = normalize_json(ts_data)
-    assert py_normalized == ts_normalized, f"{msg}\nPython: {py_normalized}\nTypeScript: {ts_normalized}"
+    assert py_normalized == ts_normalized, (
+        f"{msg}\nPython: {py_normalized}\nTypeScript: {ts_normalized}"
+    )
 
 
 class TestCLIHelpParity:

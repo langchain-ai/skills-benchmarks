@@ -48,6 +48,35 @@ function getClient(): Client {
   return new Client({ apiKey });
 }
 
+/**
+ * Create a spinner that only shows for non-JSON output formats.
+ * This prevents spinner text from polluting JSON output.
+ */
+function createSpinner(
+  text: string,
+  format?: string
+): { start: () => void; stop: () => void; text: string } {
+  if (format === "json" || format === "jsonl") {
+    // Return a no-op spinner for JSON output
+    return {
+      start: () => {},
+      stop: () => {},
+      text: "",
+    };
+  }
+  const spinner = ora(text);
+  return {
+    start: () => spinner.start(),
+    stop: () => spinner.stop(),
+    get text() {
+      return spinner.text;
+    },
+    set text(value: string) {
+      spinner.text = value;
+    },
+  };
+}
+
 interface QueryParams {
   projectName?: string;
   traceId?: string;
@@ -477,7 +506,8 @@ const tracesListCmd = traces
       tags: opts.tags,
     });
 
-    const spinner = ora("Fetching traces...").start();
+    const spinner = createSpinner("Fetching traces...", opts.format);
+    spinner.start();
     const rootRuns: Run[] = [];
 
     try {
@@ -567,7 +597,8 @@ traces
       params.projectName = opts.project || process.env.LANGSMITH_PROJECT;
     }
 
-    const spinner = ora("Fetching trace...").start();
+    const spinner = createSpinner("Fetching trace...", opts.format);
+    spinner.start();
     const runs: Run[] = [];
 
     try {
@@ -655,7 +686,8 @@ const tracesExportCmd = traces
         tags: opts.tags,
       });
 
-      const spinner = ora("Querying traces...").start();
+      const spinner = createSpinner("Querying traces...", opts.format);
+      spinner.start();
       const rootRuns: Run[] = [];
 
       try {
@@ -686,11 +718,12 @@ const tracesExportCmd = traces
 
     // Fetch and export each trace
     const results: Array<[string, Run[]]> = [];
-    const spinner = ora(`Fetching 0/${traceIdList.length}...`).start();
+    const exportSpinner = createSpinner(`Fetching 0/${traceIdList.length}...`, opts.format);
+    exportSpinner.start();
 
     for (let i = 0; i < traceIdList.length; i++) {
       const tid = traceIdList[i];
-      spinner.text = `Fetching ${i + 1}/${traceIdList.length}...`;
+      exportSpinner.text = `Fetching ${i + 1}/${traceIdList.length}...`;
 
       try {
         const fetchParams: QueryParams = { traceId: tid };
@@ -712,7 +745,7 @@ const tracesExportCmd = traces
       }
     }
 
-    spinner.stop();
+    exportSpinner.stop();
 
     if (results.length === 0) {
       console.log(chalk.yellow("No traces exported"));
@@ -791,7 +824,8 @@ const runsListCmd = runs
       tags: opts.tags,
     });
 
-    const spinner = ora("Fetching runs...").start();
+    const spinner = createSpinner("Fetching runs...", opts.format);
+    spinner.start();
     const allRuns: Run[] = [];
 
     try {
@@ -915,7 +949,9 @@ const runsExportCmd = runs
       tags: opts.tags,
     });
 
-    const spinner = ora("Fetching runs...").start();
+    // Export always uses "pretty" format with a spinner since output goes to file
+    const spinner = createSpinner("Fetching runs...", "pretty");
+    spinner.start();
     const allRuns: Run[] = [];
 
     try {

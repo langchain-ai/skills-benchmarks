@@ -3,7 +3,51 @@
 Includes noise task definitions for distractor experiments.
 """
 
+from pathlib import Path
+
 from scaffold import NoiseTask
+from skills.parser import load_skill
+
+# =============================================================================
+# NOISE SKILLS
+# =============================================================================
+
+NOISE_SKILLS_DIR = Path(__file__).parent.parent.parent / "skills" / "noise"
+
+# Map noise task names to their skill directory names (underscores in filesystem)
+_SKILL_DIR_MAP = {
+    "docker-patterns": "docker_patterns",
+    "react-components": "react_components",
+    "api-docs": "api_docs",
+}
+
+
+def load_noise_skill(name: str) -> list[str]:
+    """Load skill sections for a noise task.
+
+    Args:
+        name: Noise task name (e.g., "docker-patterns")
+
+    Returns:
+        List of skill section content strings
+    """
+    dir_name = _SKILL_DIR_MAP.get(name, name.replace("-", "_"))
+    skill_dir = NOISE_SKILLS_DIR / dir_name
+    skill = load_skill(skill_dir)
+    return skill["all"]
+
+
+def get_noise_skills(names: list[str]) -> dict[str, list[str]]:
+    """Get skills dict for multiple noise tasks.
+
+    Args:
+        names: List of noise task names
+
+    Returns:
+        Dict mapping skill names to their section lists
+    """
+    return {name: load_noise_skill(name) for name in names}
+
 
 # =============================================================================
 # NOISE TASKS

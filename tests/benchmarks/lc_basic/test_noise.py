@@ -20,7 +20,7 @@ from scaffold import (
 from scaffold.python import extract_events, parse_output
 from skills.parser import load_skill
 
-from ..conftest import get_noise_tasks
+from ..conftest import get_noise_skills, get_noise_tasks
 
 # =============================================================================
 # SKILL LOADING
@@ -153,27 +153,40 @@ def noise_validators():
 # TREATMENTS
 # =============================================================================
 
+
+def build_skills(noise_task_names: list[str] = None) -> dict[str, list[str]]:
+    """Build skills dict with langchain-agents plus any noise skills.
+
+    Always includes langchain-agents as the primary skill.
+    Noise skills are added for distractor task treatments.
+    """
+    skills = {"langchain-agents": SKILL_SECTIONS}  # Always include main skill
+    if noise_task_names:
+        skills.update(get_noise_skills(noise_task_names))
+    return skills
+
+
 TREATMENTS = {
     "NOISE_BASELINE": Treatment(
         description="Baseline for noise comparison (no noise)",
-        skills={"langchain-agents": SKILL_SECTIONS},
+        skills=build_skills(),  # langchain-agents only
         validators=noise_validators(),
     ),
     "NOISE_1": Treatment(
         description="1 noise task (Docker)",
-        skills={"langchain-agents": SKILL_SECTIONS},
+        skills=build_skills(["docker-patterns"]),  # langchain-agents + docker
         noise_tasks=get_noise_tasks(["docker-patterns"]),
         validators=noise_validators(),
     ),
     "NOISE_2": Treatment(
         description="2 noise tasks (Docker + React)",
-        skills={"langchain-agents": SKILL_SECTIONS},
+        skills=build_skills(["docker-patterns", "react-components"]),  # langchain-agents + docker + react
         noise_tasks=get_noise_tasks(["docker-patterns", "react-components"]),
         validators=noise_validators(),
     ),
     "NOISE_3": Treatment(
         description="3 noise tasks (Docker + React + API)",
-        skills={"langchain-agents": SKILL_SECTIONS},
+        skills=build_skills(["docker-patterns", "react-components", "api-docs"]),  # langchain-agents + all noise
         noise_tasks=get_noise_tasks(["docker-patterns", "react-components", "api-docs"]),
         validators=noise_validators(),
     ),

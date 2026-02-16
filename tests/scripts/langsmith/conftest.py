@@ -1,12 +1,14 @@
 """Shared fixtures for LangSmith script tests."""
 
-import subprocess
 from pathlib import Path
 
 import pytest
 
-# Script paths
-SCRIPTS_BASE = Path(__file__).parent.parent.parent / "skills" / "benchmarks"
+# Re-export shared utilities
+from tests.scripts.conftest import run_python_script, run_ts_script
+
+# Script paths - relative to skills/benchmarks
+SCRIPTS_BASE = Path(__file__).parent.parent.parent.parent / "skills" / "benchmarks"
 
 PY_QUERY_TRACES = SCRIPTS_BASE / "langsmith_trace-py" / "scripts" / "query_traces.py"
 TS_QUERY_TRACES = SCRIPTS_BASE / "langsmith_trace-js" / "scripts" / "query_traces.ts"
@@ -27,18 +29,6 @@ PY_UPLOAD_EVALUATORS = (
 TS_UPLOAD_EVALUATORS = (
     SCRIPTS_BASE / "langsmith_evaluator-js" / "scripts" / "upload_evaluators.ts"
 )
-
-
-def run_python_script(script_path: Path, args: list[str], timeout: int = 30) -> subprocess.CompletedProcess:
-    """Run a Python script and return the result."""
-    cmd = ["python", str(script_path)] + args
-    return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
-
-
-def run_ts_script(script_path: Path, args: list[str], timeout: int = 30) -> subprocess.CompletedProcess:
-    """Run a TypeScript script using npx tsx and return the result."""
-    cmd = ["npx", "tsx", str(script_path)] + args
-    return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
 
 
 @pytest.fixture

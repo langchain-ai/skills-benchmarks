@@ -2,8 +2,8 @@
 
 Each treatment defines its own section selections inline.
 
-Run with: pytest tests/bench_ls_multiskill/test_advanced.py -v
-Parallel:  pytest tests/bench_ls_multiskill/test_advanced.py -n 3
+Run with: pytest tests/benchmarks/ls_multiskill/test_advanced.py -v
+Parallel:  pytest tests/benchmarks/ls_multiskill/test_advanced.py -n 3
 """
 
 import uuid
@@ -15,7 +15,7 @@ from scaffold import MetricsCollector, SkillInvokedValidator, Treatment
 from scaffold.python import extract_events, parse_output
 from skills import CLAUDE_FULL
 from skills.parser import load_skill, skill_config
-from tests.bench_ls_multiskill.validation.validators import (
+from tests.benchmarks.ls_multiskill.validation.validators import (
     DatasetStructureValidator,
     EvaluatorValidator,
     SkillScriptValidator,
@@ -26,7 +26,7 @@ from tests.bench_ls_multiskill.validation.validators import (
 # SKILL LOADING
 # =============================================================================
 
-SKILL_BASE = Path(__file__).parent.parent.parent / "skills" / "benchmarks"
+SKILL_BASE = Path(__file__).parent.parent.parent.parent / "skills" / "benchmarks"
 
 
 def _load_skills():

@@ -2,8 +2,8 @@
 
 Tests whether CLAUDE.md is needed and what instructions work best.
 
-Run with: pytest tests/bench_lc_basic/test_claudemd.py -v
-Parallel:  pytest tests/bench_lc_basic/test_claudemd.py -n 3
+Run with: pytest tests/benchmarks/lc_basic/test_claudemd.py -v
+Parallel:  pytest tests/benchmarks/lc_basic/test_claudemd.py -n 3
 """
 
 from pathlib import Path
@@ -25,7 +25,7 @@ from skills.parser import load_skill
 # SKILL LOADING
 # =============================================================================
 
-SKILL_BASE = Path(__file__).parent.parent.parent / "skills" / "benchmarks"
+SKILL_BASE = Path(__file__).parent.parent.parent.parent / "skills" / "benchmarks"
 agents_skill = load_skill(SKILL_BASE / "langchain_basic")
 
 # Full sections from skill.md

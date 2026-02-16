@@ -1,9 +1,9 @@
-"""Noise treatments (effects of distractor tasks on skill retention).
+"""Guidance treatments (positive vs negative framing in skills).
 
-Tests skill retention when distracted by unrelated tasks.
+Tests whether framing matters: "DO use modern patterns" vs "DON'T use deprecated".
 
-Run with: pytest tests/bench_lc_basic/test_noise.py -v
-Parallel:  pytest tests/bench_lc_basic/test_noise.py -n 3
+Run with: pytest tests/benchmarks/lc_basic/test_guidance.py -v
+Parallel:  pytest tests/benchmarks/lc_basic/test_guidance.py -n 3
 """
 
 from pathlib import Path
@@ -19,30 +19,39 @@ from scaffold import (
 )
 from scaffold.python import extract_events, parse_output
 from skills.parser import load_skill
-from tests.noise import get_tasks
 
 # =============================================================================
 # SKILL LOADING
 # =============================================================================
 
-SKILL_BASE = Path(__file__).parent.parent.parent / "skills" / "benchmarks"
+SKILL_BASE = Path(__file__).parent.parent.parent.parent / "skills" / "benchmarks"
 agents_skill = load_skill(SKILL_BASE / "langchain_basic")
 
-# Build skill sections with positive guidance
-_sections = agents_skill["sections"]
-SKILL_SECTIONS = [
-    _sections["frontmatter"],
-    _sections["oneliner"],
-    """<quick_start>
-**IMPORTANT:** Use modern LangChain patterns.
+# =============================================================================
+# CONSTANTS
+# =============================================================================
 
-- `create_agent()` from `langchain.agents` for simple agents
-- LangGraph `create_react_agent` for complex flows
-- `@tool` decorator for tool definitions
+ENVIRONMENT_DIR = Path(__file__).parent / "environment"
 
-See the examples below for working code.
+CLAUDE_MD_SKILLS_REQUIRED = """# Project Guidelines
 
-**Simple tool-calling agent?** → [`create_agent`](https://docs.langchain.com/oss/python/langchain/agents)
+Before starting any coding task, check available project skills to find the best approach.
+**Always use skills when they are available for your task.**
+"""
+
+TASK1_PROMPT = """Build a SQL analytics agent for the chinook.db music store database.
+
+Requirements:
+1. Handle queries with JOINs and GROUP BY
+2. Use gpt-4o-mini, only SELECT queries, include error handling
+3. Test: "What are the top 5 best-selling genres by total tracks sold?"
+
+Save to sql_agent_1.py and run the test query.
+
+IMPORTANT: Run files directly (not in background). If code fails after 2 attempts to fix, save the file and report the error - do not enter debug loops."""
+
+# Tool overviews (from skill.py CREATE_AGENT_OVERVIEW + DEEP_AGENT_OVERVIEW + LANGGRAPH_OVERVIEW)
+_TOOL_OVERVIEWS = """**Simple tool-calling agent?** → [`create_agent`](https://docs.langchain.com/oss/python/langchain/agents)
 ```python
 from langchain.agents import create_agent
 graph = create_agent(model="anthropic:claude-sonnet-4-5", tools=[search], system_prompt="...")
@@ -59,38 +68,52 @@ agent = create_deep_agent(model=model, tools=tools, backend=FilesystemBackend())
 **Custom control flow / multi-agent / advanced context?** → **LangGraph** (this guide)
 **Use this for:** Custom routing logic, supervisor patterns, specialized state management, non-standard workflows.
 
-**Start simple:** Build with basic ReAct loops first. Only add complexity (multi-agent, advanced context management) when your use case requires it.
-</quick_start>""",
-    _sections["create_agent"],
-]
+**Start simple:** Build with basic ReAct loops first. Only add complexity (multi-agent, advanced context management) when your use case requires it."""
 
-# =============================================================================
-# CONSTANTS
-# =============================================================================
+# POSITIVE: Only mentions what TO use (no deprecated pattern names)
+GUIDANCE_POSITIVE = """**IMPORTANT:** Use modern LangChain patterns.
 
-ENVIRONMENT_DIR = Path(__file__).parent / "environment"
+- `create_agent()` from `langchain.agents` for simple agents
+- LangGraph `create_react_agent` for complex flows
+- `@tool` decorator for tool definitions
 
-TASK1_PROMPT = """Build a SQL analytics agent for the chinook.db music store database.
+See the examples below for working code."""
 
-Requirements:
-1. Handle queries with JOINs and GROUP BY
-2. Use gpt-4o-mini, only SELECT queries, include error handling
-3. Test: "What are the top 5 best-selling genres by total tracks sold?"
+# NEGATIVE: Mentions deprecated patterns (puts them in context)
+GUIDANCE_NEGATIVE = """**IMPORTANT:** Use modern LangChain patterns.
 
-Save to sql_agent_1.py and run the test query.
+Older helpers like `create_sql_agent`, `create_tool_calling_agent`, and the legacy `create_react_agent` are deprecated and should not be used.
 
-IMPORTANT: Run files directly (not in background). If code fails after 2 attempts to fix, save the file and report the error - do not enter debug loops."""
+- `create_agent()` from `langchain.agents` for simple agents
+- LangGraph `create_react_agent` for complex flows
+- `@tool` decorator for tool definitions"""
 
-TASK2_SEARCH_PROMPT = """Build a web search agent using the same modern LangChain patterns.
 
-Requirements:
-1. Create a mock search tool that returns predefined results for queries
-2. Agent should interpret user questions and call the search tool
-3. Test with query: "What is the capital of France?"
+def _build_quickstart(guidance):
+    """Build quick_start section: guidance + tool overviews."""
+    if guidance:
+        return f"{guidance}\n\n{_TOOL_OVERVIEWS}"
+    else:
+        return _TOOL_OVERVIEWS
 
-Save to search_agent.py and run the test.
 
-IMPORTANT: Run files directly (not in background). If code fails after 2 attempts to fix, save the file and report the error - do not enter debug loops."""
+QUICK_START_POSITIVE = _build_quickstart(GUIDANCE_POSITIVE)
+QUICK_START_NEGATIVE = _build_quickstart(GUIDANCE_NEGATIVE)
+
+
+def with_quickstart(content):
+    """Return curated skill sections (matches old DEFAULT_SECTIONS).
+
+    Excludes langgraph and resources for minimal content.
+    """
+    sections = agents_skill["sections"]
+    quickstart_content = content if content else _build_quickstart(None)
+    return [
+        sections["frontmatter"],
+        sections["oneliner"],
+        f"<quick_start>\n{quickstart_content}\n</quick_start>",
+        sections["create_agent"],
+    ]
 
 
 # =============================================================================
@@ -114,8 +137,8 @@ AGENT_FORBIDDEN = {
 }
 
 
-def noise_validators():
-    """Validators for noise treatments (SQL agent + search agent)."""
+def sql_agent_validators():
+    """Validators for single SQL agent task."""
     return [
         SkillInvokedValidator("langchain-agents", required=False),
         PythonFileValidator(
@@ -129,22 +152,9 @@ def noise_validators():
             "sql_agent_1.py",
             "SQL Agent Output",
             task_description="SQL analytics agent querying chinook.db for top 5 best-selling genres by tracks sold",
-            expected_behavior="Should show genre names with track counts or sales numbers",
+            expected_behavior="Should show genre names (Rock, Latin, Metal, etc.) with track counts or sales numbers",
         ),
-        PythonFileValidator(
-            "search_agent.py",
-            "Search Agent Code",
-            required=AGENT_MODERN_PATTERNS,
-            forbidden=AGENT_FORBIDDEN,
-            require_all=True,
-        ),
-        OutputQualityValidator(
-            "search_agent.py",
-            "Search Agent Output",
-            task_description="Web search agent with mock search tool answering 'What is the capital of France?'",
-            expected_behavior="Should return 'Paris' as the answer with proper agent reasoning",
-        ),
-        MetricsCollector(["sql_agent_1.py", "search_agent.py"]),
+        MetricsCollector(["sql_agent_1.py"]),
     ]
 
 
@@ -153,28 +163,17 @@ def noise_validators():
 # =============================================================================
 
 TREATMENTS = {
-    "NOISE_BASELINE": Treatment(
-        description="Baseline for noise comparison (no noise)",
-        skills={"langchain-agents": SKILL_SECTIONS},
-        validators=noise_validators(),
+    "GUIDANCE_POS": Treatment(
+        description="Skill with positive guidance (DO use modern patterns)",
+        skills={"langchain-agents": with_quickstart(QUICK_START_POSITIVE)},
+        claude_md=CLAUDE_MD_SKILLS_REQUIRED,
+        validators=sql_agent_validators(),
     ),
-    "NOISE_1": Treatment(
-        description="1 noise task (Docker)",
-        skills={"langchain-agents": SKILL_SECTIONS},
-        noise_tasks=get_tasks(["docker-patterns"]),
-        validators=noise_validators(),
-    ),
-    "NOISE_2": Treatment(
-        description="2 noise tasks (Docker + React)",
-        skills={"langchain-agents": SKILL_SECTIONS},
-        noise_tasks=get_tasks(["docker-patterns", "react-components"]),
-        validators=noise_validators(),
-    ),
-    "NOISE_3": Treatment(
-        description="3 noise tasks (Docker + React + API)",
-        skills={"langchain-agents": SKILL_SECTIONS},
-        noise_tasks=get_tasks(["docker-patterns", "react-components", "api-docs"]),
-        validators=noise_validators(),
+    "GUIDANCE_NEG": Treatment(
+        description="Skill with negative guidance (DON'T use deprecated)",
+        skills={"langchain-agents": with_quickstart(QUICK_START_NEGATIVE)},
+        claude_md=CLAUDE_MD_SKILLS_REQUIRED,
+        validators=sql_agent_validators(),
     ),
 }
 
@@ -215,8 +214,8 @@ def test_treatment(
         environment_dir=environment_dir,
     )
 
-    # Build prompt (noise treatments use two task prompts)
-    prompt = treatment.build_prompt(TASK1_PROMPT, TASK2_SEARCH_PROMPT)
+    # Build prompt
+    prompt = treatment.build_prompt(TASK1_PROMPT)
 
     # Run Claude (automatically saves raw output)
     result = run_claude(prompt, timeout=600)

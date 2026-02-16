@@ -116,7 +116,8 @@ const TREATMENTS: Record<string, Treatment> = {
 const ENVIRONMENT_DIR = resolve(
   __dirname,
   "..",
-  "bench_lc_basic",
+  "benchmarks",
+  "lc_basic",
   "environment"
 );
 

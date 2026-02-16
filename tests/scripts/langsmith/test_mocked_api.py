@@ -15,7 +15,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 # Import fixtures based on real API data
-from tests.script_langsmith.fixtures import (
+from tests.scripts.langsmith.fixtures import (
     SAMPLE_TRACE_GET,
     SAMPLE_TRACES_LIST,
     SAMPLE_RUNS_WITH_METADATA,
@@ -62,7 +62,7 @@ class TestQueryTracesMockedAPI:
     def test_python_traces_list_json_output(self, mock_runs):
         """Python traces list produces valid JSON with mock data."""
         import importlib.util
-        from tests.script_langsmith.conftest import PY_QUERY_TRACES
+        from tests.scripts.langsmith.conftest import PY_QUERY_TRACES
 
         # Load the module
         spec = importlib.util.spec_from_file_location("query_traces", PY_QUERY_TRACES)
@@ -85,7 +85,7 @@ class TestQueryTracesMockedAPI:
     def test_python_calc_duration(self, mock_runs):
         """Python calc_duration works correctly with real timestamps."""
         import importlib.util
-        from tests.script_langsmith.conftest import PY_QUERY_TRACES
+        from tests.scripts.langsmith.conftest import PY_QUERY_TRACES
 
         spec = importlib.util.spec_from_file_location("query_traces", PY_QUERY_TRACES)
         module = importlib.util.module_from_spec(spec)
@@ -100,7 +100,7 @@ class TestQueryTracesMockedAPI:
     def test_python_get_trace_id(self, mock_runs):
         """Python get_trace_id extracts real trace ID format correctly."""
         import importlib.util
-        from tests.script_langsmith.conftest import PY_QUERY_TRACES
+        from tests.scripts.langsmith.conftest import PY_QUERY_TRACES
 
         spec = importlib.util.spec_from_file_location("query_traces", PY_QUERY_TRACES)
         module = importlib.util.module_from_spec(spec)
@@ -115,7 +115,7 @@ class TestQueryTracesMockedAPI:
     def test_python_build_query_params(self):
         """Python build_query_params constructs correct filters."""
         import importlib.util
-        from tests.script_langsmith.conftest import PY_QUERY_TRACES
+        from tests.scripts.langsmith.conftest import PY_QUERY_TRACES
 
         spec = importlib.util.spec_from_file_location("query_traces", PY_QUERY_TRACES)
         module = importlib.util.module_from_spec(spec)
@@ -144,7 +144,7 @@ class TestQueryTracesMockedAPI:
     def test_python_build_query_params_with_filters(self):
         """Python build_query_params handles multiple filters."""
         import importlib.util
-        from tests.script_langsmith.conftest import PY_QUERY_TRACES
+        from tests.scripts.langsmith.conftest import PY_QUERY_TRACES
 
         spec = importlib.util.spec_from_file_location("query_traces", PY_QUERY_TRACES)
         module = importlib.util.module_from_spec(spec)
@@ -176,7 +176,7 @@ class TestQueryTracesMockedAPI:
     def test_extract_run_with_tool_run(self, mock_runs):
         """Python extract_run correctly handles tool runs."""
         import importlib.util
-        from tests.script_langsmith.conftest import PY_QUERY_TRACES
+        from tests.scripts.langsmith.conftest import PY_QUERY_TRACES
 
         spec = importlib.util.spec_from_file_location("query_traces", PY_QUERY_TRACES)
         module = importlib.util.module_from_spec(spec)
@@ -200,7 +200,7 @@ class TestGenerateDatasetsMockedAPI:
     def test_python_extract_tool_sequence(self, mock_runs):
         """Python extract_tool_sequence extracts tools correctly from real data."""
         import importlib.util
-        from tests.script_langsmith.conftest import PY_GENERATE_DATASETS
+        from tests.scripts.langsmith.conftest import PY_GENERATE_DATASETS
 
         spec = importlib.util.spec_from_file_location(
             "generate_datasets", PY_GENERATE_DATASETS
@@ -235,7 +235,7 @@ class TestGenerateDatasetsMockedAPI:
     def test_python_extract_value_common_fields(self):
         """Python extract_value finds common input fields."""
         import importlib.util
-        from tests.script_langsmith.conftest import PY_GENERATE_DATASETS
+        from tests.scripts.langsmith.conftest import PY_GENERATE_DATASETS
 
         spec = importlib.util.spec_from_file_location(
             "generate_datasets", PY_GENERATE_DATASETS
@@ -260,7 +260,7 @@ class TestGenerateDatasetsMockedAPI:
     def test_python_extract_from_messages(self):
         """Python extract_from_messages handles message arrays."""
         import importlib.util
-        from tests.script_langsmith.conftest import PY_GENERATE_DATASETS
+        from tests.scripts.langsmith.conftest import PY_GENERATE_DATASETS
 
         spec = importlib.util.spec_from_file_location(
             "generate_datasets", PY_GENERATE_DATASETS
@@ -284,7 +284,7 @@ class TestGenerateDatasetsMockedAPI:
     def test_python_extract_from_langgraph_messages(self):
         """Python handles LangGraph message format [role, content]."""
         import importlib.util
-        from tests.script_langsmith.conftest import PY_GENERATE_DATASETS
+        from tests.scripts.langsmith.conftest import PY_GENERATE_DATASETS
 
         spec = importlib.util.spec_from_file_location(
             "generate_datasets", PY_GENERATE_DATASETS
@@ -311,7 +311,7 @@ class TestQueryDatasetsMockedAPI:
     def test_python_display_examples_handles_langsmith_format(self, capsys):
         """Python display_examples handles LangSmith input/output format."""
         import importlib.util
-        from tests.script_langsmith.conftest import PY_QUERY_DATASETS
+        from tests.scripts.langsmith.conftest import PY_QUERY_DATASETS
 
         spec = importlib.util.spec_from_file_location(
             "query_datasets", PY_QUERY_DATASETS
@@ -353,7 +353,7 @@ class TestQueryDatasetsMockedAPI:
     def test_python_display_examples_handles_simple_format(self, capsys):
         """Python display_examples handles simple input/output format."""
         import importlib.util
-        from tests.script_langsmith.conftest import PY_QUERY_DATASETS
+        from tests.scripts.langsmith.conftest import PY_QUERY_DATASETS
 
         spec = importlib.util.spec_from_file_location(
             "query_datasets", PY_QUERY_DATASETS

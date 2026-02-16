@@ -180,13 +180,17 @@ TREATMENTS = {
     ),
     "NOISE_2": Treatment(
         description="2 noise tasks (Docker + React)",
-        skills=build_skills(["docker-patterns", "react-components"]),  # langchain-agents + docker + react
+        skills=build_skills(
+            ["docker-patterns", "react-components"]
+        ),  # langchain-agents + docker + react
         noise_tasks=get_noise_tasks(["docker-patterns", "react-components"]),
         validators=noise_validators(),
     ),
     "NOISE_3": Treatment(
         description="3 noise tasks (Docker + React + API)",
-        skills=build_skills(["docker-patterns", "react-components", "api-docs"]),  # langchain-agents + all noise
+        skills=build_skills(
+            ["docker-patterns", "react-components", "api-docs"]
+        ),  # langchain-agents + all noise
         noise_tasks=get_noise_tasks(["docker-patterns", "react-components", "api-docs"]),
         validators=noise_validators(),
     ),

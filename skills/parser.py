@@ -138,6 +138,14 @@ def format_section_with_tags(tag: str, content: str) -> str:
     return f"<{tag}>\n{content}\n</{tag}>"
 
 
+# Script extension mapping for variant-based filtering
+SCRIPT_EXTENSIONS = {
+    "py": [".py"],
+    "ts": [".ts", ".js", ".mjs", ".mts"],
+    "all": None,  # No filtering - copy all scripts
+}
+
+
 def load_skill(skill_dir: Path) -> dict:
     """Load skill from a skill directory containing skill.md.
 
@@ -177,6 +185,54 @@ def load_skill(skill_dir: Path) -> dict:
         "sections": sections,
         "all": all_sections,
         "scripts_dir": scripts_dir if scripts_dir.exists() else None,
+    }
+
+
+def load_skill_variant(skill_dir: Path, variant: str = None) -> dict:
+    """Load skill from a specific .md file variant.
+
+    Supports loading language-specific skill files (skill_py.md, skill_ts.md)
+    or combined files (skill_all.md). The variant also determines which scripts
+    get copied during test setup.
+
+    Args:
+        skill_dir: Path to skill directory
+        variant: Variant name ("py", "ts", "all") or None for default skill.md
+
+    Returns:
+        Dict with:
+        - sections: dict mapping tag names to content
+        - all: list of all section contents in document order
+        - scripts_dir: Path to scripts/ subdirectory (or None if doesn't exist)
+        - script_filter: variant name (used to filter scripts during setup)
+
+    Example:
+        # Load Python variant - will filter to .py scripts during setup
+        trace_py = load_skill_variant(Path("skills/benchmarks/langsmith_trace"), "py")
+
+        # Load TypeScript variant - will filter to .ts/.js scripts during setup
+        trace_ts = load_skill_variant(Path("skills/benchmarks/langsmith_trace"), "ts")
+
+        # Load combined variant - will copy all scripts during setup
+        trace_all = load_skill_variant(Path("skills/benchmarks/langsmith_trace"), "all")
+    """
+    if variant:
+        skill_md_path = skill_dir / f"skill_{variant}.md"
+    else:
+        skill_md_path = skill_dir / "skill.md"
+
+    if not skill_md_path.exists():
+        raise FileNotFoundError(f"Skill file not found: {skill_md_path}")
+
+    sections = parse_skill_md(skill_md_path)
+    all_sections = get_section_list(skill_md_path)
+    scripts_dir = skill_dir / "scripts"
+
+    return {
+        "sections": sections,
+        "all": all_sections,
+        "scripts_dir": scripts_dir if scripts_dir.exists() else None,
+        "script_filter": variant,
     }
 
 
@@ -228,7 +284,7 @@ def split_skill(
     return result
 
 
-def skill_config(sections: list[str], scripts_dir: Path = None) -> dict:
+def skill_config(sections: list[str], scripts_dir: Path = None, script_filter: str = None) -> dict:
     """Create a skill config dict for use in treatments.
 
     Convenience function for creating skill configs inline.
@@ -236,16 +292,17 @@ def skill_config(sections: list[str], scripts_dir: Path = None) -> dict:
     Args:
         sections: List of section content strings
         scripts_dir: Optional path to scripts directory
+        script_filter: Optional filter for scripts ("py", "ts", "all")
 
     Returns:
-        Dict with "sections" and "scripts_dir" keys
+        Dict with "sections", "scripts_dir", and "script_filter" keys
 
     Example:
         treatment = Treatment(
             skills={
-                "my-skill": skill_config([HEADER, SETUP, EXAMPLES], scripts_dir),
+                "my-skill": skill_config([HEADER, SETUP, EXAMPLES], scripts_dir, "py"),
             },
             ...
         )
     """
-    return {"sections": sections, "scripts_dir": scripts_dir}
+    return {"sections": sections, "scripts_dir": scripts_dir, "script_filter": script_filter}

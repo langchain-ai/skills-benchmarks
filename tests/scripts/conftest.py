@@ -32,17 +32,17 @@ def run_ts_script(
 
 SCRIPTS_BASE = Path(__file__).parent.parent.parent / "skills" / "benchmarks"
 
-PY_QUERY_TRACES = SCRIPTS_BASE / "langsmith_trace-py" / "scripts" / "query_traces.py"
-TS_QUERY_TRACES = SCRIPTS_BASE / "langsmith_trace-js" / "scripts" / "query_traces.ts"
+PY_QUERY_TRACES = SCRIPTS_BASE / "langsmith_trace" / "scripts" / "query_traces.py"
+TS_QUERY_TRACES = SCRIPTS_BASE / "langsmith_trace" / "scripts" / "query_traces.ts"
 
-PY_GENERATE_DATASETS = SCRIPTS_BASE / "langsmith_dataset-py" / "scripts" / "generate_datasets.py"
-TS_GENERATE_DATASETS = SCRIPTS_BASE / "langsmith_dataset-js" / "scripts" / "generate_datasets.ts"
+PY_GENERATE_DATASETS = SCRIPTS_BASE / "langsmith_dataset" / "scripts" / "generate_datasets.py"
+TS_GENERATE_DATASETS = SCRIPTS_BASE / "langsmith_dataset" / "scripts" / "generate_datasets.ts"
 
-PY_QUERY_DATASETS = SCRIPTS_BASE / "langsmith_dataset-py" / "scripts" / "query_datasets.py"
-TS_QUERY_DATASETS = SCRIPTS_BASE / "langsmith_dataset-js" / "scripts" / "query_datasets.ts"
+PY_QUERY_DATASETS = SCRIPTS_BASE / "langsmith_dataset" / "scripts" / "query_datasets.py"
+TS_QUERY_DATASETS = SCRIPTS_BASE / "langsmith_dataset" / "scripts" / "query_datasets.ts"
 
-PY_UPLOAD_EVALUATORS = SCRIPTS_BASE / "langsmith_evaluator-py" / "scripts" / "upload_evaluators.py"
-TS_UPLOAD_EVALUATORS = SCRIPTS_BASE / "langsmith_evaluator-js" / "scripts" / "upload_evaluators.ts"
+PY_UPLOAD_EVALUATORS = SCRIPTS_BASE / "langsmith_evaluator" / "scripts" / "upload_evaluators.py"
+TS_UPLOAD_EVALUATORS = SCRIPTS_BASE / "langsmith_evaluator" / "scripts" / "upload_evaluators.ts"
 
 
 # =============================================================================

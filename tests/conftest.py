@@ -139,7 +139,14 @@ class ExperimentPlugin:
         )
 
     def pytest_sessionstart(self, session):
-        """Create or join experiment logger at session start."""
+        """Create or join experiment logger at session start.
+
+        Skips logging for script-only test runs (unit tests that don't need experiment logs).
+        """
+        # Skip experiment logging for script-only runs
+        if _is_scripts_only(self.config):
+            return
+
         name = _get_experiment_name(session)
 
         # Get or create shared experiment ID (master also participates when xdist is active)
@@ -253,9 +260,22 @@ class ExperimentPlugin:
 _plugin: ExperimentPlugin | None = None
 
 
+def _is_scripts_only(config) -> bool:
+    """Check if running ONLY script tests (unit tests that don't need experiment logs).
+
+    Returns True only if ALL test paths contain 'scripts/'.
+    """
+    args = [a for a in (config.args or []) if not a.startswith("-")]
+    if not args:
+        return False
+    return all("scripts" in arg for arg in args)
+
+
 def pytest_configure(config):
-    """Register experiment plugin."""
+    """Register experiment plugin (decision deferred to sessionstart)."""
     global _plugin
+    # Always create the plugin, but it will decide whether to initialize logging
+    # in pytest_sessionstart after collection when we know the actual test paths
     _plugin = ExperimentPlugin(config)
     config.pluginmanager.register(_plugin, "experiment_plugin")
 
@@ -280,8 +300,15 @@ def worker_id(request):
 
 
 @pytest.fixture(scope="session")
-def verify_environment(project_root):
-    """Verify Docker, Claude CLI, and API keys are available."""
+def verify_environment(project_root, request):
+    """Verify Docker, Claude CLI, and API keys are available.
+
+    Skipped for script tests (unit tests that mock external services).
+    """
+    # Skip for script-only runs - they use mocked APIs
+    if _is_scripts_only(request.config):
+        return
+
     load_dotenv(project_root / ".env")
 
     # Check Docker
@@ -334,7 +361,14 @@ def prebuild_docker_image(request):
     Other workers wait for the build to complete.
 
     Tests should depend on this fixture via environment_dir fixture.
+
+    Skipped for script tests (unit tests that don't need Docker).
     """
+    # Skip for script-only runs - they don't need Docker
+    if _is_scripts_only(request.config):
+        yield
+        return
+
     # Find environment_dir from test module if available
     # This is a session fixture, so we build for common environments
     for marker in ["benchmarks/lc_basic", "benchmarks/ls_multiskill"]:

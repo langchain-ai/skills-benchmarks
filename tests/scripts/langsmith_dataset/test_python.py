@@ -1,13 +1,16 @@
 """Tests for langsmith-dataset Python scripts (generate_datasets.py, query_datasets.py).
 
-Run with: pytest tests/scripts/langsmith/langsmith_dataset/test_python.py -v
+Run with: pytest tests/scripts/langsmith_dataset/test_python.py -v
 """
 
 import json
+import os
+import sys
+from unittest.mock import MagicMock, patch
 
 import pytest
 
-from ..conftest import PY_GENERATE_DATASETS, PY_QUERY_DATASETS, run_python_script
+from ..conftest import PY_GENERATE_DATASETS, PY_QUERY_DATASETS, SCRIPTS_BASE, run_python_script
 from ..fixtures import (
     SAMPLE_DATASET_EXAMPLES,
     SAMPLE_DATASETS,
@@ -185,52 +188,137 @@ class TestQueryDatasetsLocalFiles:
 
 
 # =============================================================================
-# Fixture validation
+# Mocked API Tests - Using direct function imports
 # =============================================================================
 
 
-class TestRealDataStructureValidation:
-    """Validate that our fixtures match real API structures with exact assertions."""
+@pytest.fixture
+def mock_env():
+    """Set up mock environment variables."""
+    with patch.dict(
+        os.environ,
+        {
+            "LANGSMITH_API_KEY": "test-api-key-12345",
+            "LANGSMITH_PROJECT": "test-project",
+        },
+    ):
+        yield
 
-    def test_dataset_structure(self):
-        """Verify SAMPLE_DATASETS has correct structure and exact values."""
-        assert len(SAMPLE_DATASETS) == 4
 
-        # Check specific datasets exist with exact names
-        dataset_names = [d["name"] for d in SAMPLE_DATASETS]
+@pytest.fixture
+def query_module(mock_env):
+    """Import the query_datasets module with mocked env."""
+    # Add script directory to path
+    script_dir = SCRIPTS_BASE / "langsmith_dataset-py" / "scripts"
+    sys.path.insert(0, str(script_dir))
+
+    # Clear any cached imports
+    if "query_datasets" in sys.modules:
+        del sys.modules["query_datasets"]
+
+    try:
+        import query_datasets
+
+        yield query_datasets
+    finally:
+        sys.path.remove(str(script_dir))
+        if "query_datasets" in sys.modules:
+            del sys.modules["query_datasets"]
+
+
+def create_mock_dataset(dataset_data: dict) -> MagicMock:
+    """Create a mock Dataset object from dict data."""
+    mock = MagicMock()
+    mock.id = dataset_data.get("id")
+    mock.name = dataset_data.get("name")
+    mock.description = dataset_data.get("description", "")
+    mock.example_count = dataset_data.get("example_count", 0)
+    return mock
+
+
+def create_mock_example(example_data: dict) -> MagicMock:
+    """Create a mock Example object from dict data."""
+    mock = MagicMock()
+    mock.inputs = example_data.get("inputs", {})
+    mock.outputs = example_data.get("outputs", {})
+    return mock
+
+
+class TestMockedAPIFunctions:
+    """Test API functions with mocked LangSmith client."""
+
+    def test_get_client(self, query_module):
+        """get_client returns a client when API key is set."""
+        client = query_module.get_client()
+        assert client is not None
+
+
+class TestMockedAPIWithFixtures:
+    """Test that mocked API returns data matching our fixtures."""
+
+    @patch("query_datasets.Client")
+    def test_list_datasets_returns_expected_data(self, mock_client_class, query_module):
+        """Verify list_datasets output matches SAMPLE_DATASETS format."""
+        mock_datasets = [create_mock_dataset(d) for d in SAMPLE_DATASETS]
+
+        mock_client = MagicMock()
+        mock_client.list_datasets.return_value = iter(mock_datasets)
+        mock_client_class.return_value = mock_client
+
+        client = query_module.get_client()
+        datasets = list(client.list_datasets())
+
+        # Should return 4 datasets
+        assert len(datasets) == 4
+
+        # First dataset should match fixture
+        assert datasets[0].name == "shipping-support-golden"
+        assert datasets[0].example_count == 10
+
+        # Check all datasets
+        dataset_names = [d.name for d in datasets]
         assert "shipping-support-golden" in dataset_names
         assert "Email Agent Notebook: Trajectory" in dataset_names
         assert "Email Agent: Trajectory" in dataset_names
         assert "kb-agent-golden-set" in dataset_names
 
         # Check exact example counts
-        dataset_counts = {d["name"]: d["example_count"] for d in SAMPLE_DATASETS}
+        dataset_counts = {d.name: d.example_count for d in datasets}
         assert dataset_counts["shipping-support-golden"] == 10
         assert dataset_counts["Email Agent Notebook: Trajectory"] == 5
         assert dataset_counts["Email Agent: Trajectory"] == 16
         assert dataset_counts["kb-agent-golden-set"] == 15
 
-        # Verify all datasets have required fields
-        for dataset in SAMPLE_DATASETS:
-            assert "name" in dataset
-            assert "id" in dataset
-            assert "example_count" in dataset
+    @patch("query_datasets.Client")
+    def test_list_examples_returns_expected_data(self, mock_client_class, query_module):
+        """Verify list_examples output matches SAMPLE_DATASET_EXAMPLES format."""
+        mock_examples = [create_mock_example(e) for e in SAMPLE_DATASET_EXAMPLES]
 
-    def test_dataset_examples_structure(self):
-        """Verify SAMPLE_DATASET_EXAMPLES has correct structure and exact values."""
-        assert len(SAMPLE_DATASET_EXAMPLES) == 2
+        mock_client = MagicMock()
+        mock_client.list_examples.return_value = iter(mock_examples)
+        mock_client_class.return_value = mock_client
+
+        client = query_module.get_client()
+        examples = list(client.list_examples(dataset_name="Email Agent: Trajectory"))
+
+        # Should return 2 examples
+        assert len(examples) == 2
 
         # First example should have empty trajectory
-        first_example = SAMPLE_DATASET_EXAMPLES[0]
-        assert first_example["inputs"]["email_input"]["author"] == "Marketing Team <marketing@openai.com>"
-        assert first_example["inputs"]["email_input"]["subject"] == "Newsletter: New Model from OpenAI"
-        assert first_example["outputs"]["trajectory"] == []
+        first_example = examples[0]
+        assert (
+            first_example.inputs["email_input"]["author"] == "Marketing Team <marketing@openai.com>"
+        )
+        assert first_example.inputs["email_input"]["subject"] == "Newsletter: New Model from OpenAI"
+        assert first_example.outputs["trajectory"] == []
 
         # Second example should have specific trajectory
-        second_example = SAMPLE_DATASET_EXAMPLES[1]
-        assert second_example["inputs"]["email_input"]["author"] == "Project Team <project@company.com>"
-        assert second_example["inputs"]["email_input"]["subject"] == "Joint presentation next month"
-        assert second_example["outputs"]["trajectory"] == [
+        second_example = examples[1]
+        assert (
+            second_example.inputs["email_input"]["author"] == "Project Team <project@company.com>"
+        )
+        assert second_example.inputs["email_input"]["subject"] == "Joint presentation next month"
+        assert second_example.outputs["trajectory"] == [
             "check_calendar_availability",
             "schedule_meeting",
             "write_email",

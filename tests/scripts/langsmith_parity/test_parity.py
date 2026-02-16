@@ -8,20 +8,18 @@ import json
 import pytest
 
 from ..conftest import (
+    PY_GENERATE_DATASETS,
+    PY_QUERY_DATASETS,
+    PY_QUERY_TRACES,
+    PY_UPLOAD_EVALUATORS,
+    TS_GENERATE_DATASETS,
+    TS_QUERY_DATASETS,
+    TS_QUERY_TRACES,
+    TS_UPLOAD_EVALUATORS,
     run_python_script,
     run_ts_script,
-    PY_QUERY_TRACES,
-    TS_QUERY_TRACES,
-    PY_GENERATE_DATASETS,
-    TS_GENERATE_DATASETS,
-    PY_QUERY_DATASETS,
-    TS_QUERY_DATASETS,
-    PY_UPLOAD_EVALUATORS,
-    TS_UPLOAD_EVALUATORS,
 )
-
-
-from ..fixtures import create_sample_trace_jsonl, create_sample_dataset_json
+from ..fixtures import create_sample_dataset_json, create_sample_trace_jsonl
 
 
 @pytest.fixture
@@ -161,7 +159,7 @@ class TestGenerateDatasetsOutputParity:
         )
 
         # Exact comparison after normalization
-        for i, (py_ex, ts_ex) in enumerate(zip(py_data, ts_data)):
+        for i, (py_ex, ts_ex) in enumerate(zip(py_data, ts_data, strict=True)):
             assert_json_equal(py_ex, ts_ex, f"Example {i} differs")
 
     def test_final_response_parity(self, sample_trace_jsonl, tmp_path):
@@ -207,7 +205,7 @@ class TestGenerateDatasetsOutputParity:
             f"Different number of examples: Python={len(py_data)}, TypeScript={len(ts_data)}"
         )
 
-        for i, (py_ex, ts_ex) in enumerate(zip(py_data, ts_data)):
+        for i, (py_ex, ts_ex) in enumerate(zip(py_data, ts_data, strict=True)):
             assert_json_equal(py_ex, ts_ex, f"Example {i} differs")
 
 

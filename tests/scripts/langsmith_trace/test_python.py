@@ -5,8 +5,8 @@ Run with: pytest tests/scripts/langsmith/langsmith-trace/test_python.py -v
 
 import pytest
 
-from ..conftest import run_python_script, PY_QUERY_TRACES
-from ..fixtures import SAMPLE_TRACES_LIST, SAMPLE_TRACE_GET
+from ..conftest import PY_QUERY_TRACES, run_python_script
+from ..fixtures import SAMPLE_TRACE_GET, SAMPLE_TRACES_LIST
 
 
 @pytest.fixture

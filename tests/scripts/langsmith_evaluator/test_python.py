@@ -5,7 +5,7 @@ Run with: pytest tests/scripts/langsmith/langsmith-evaluator/test_python.py -v
 
 import pytest
 
-from ..conftest import run_python_script, PY_UPLOAD_EVALUATORS
+from ..conftest import PY_UPLOAD_EVALUATORS, run_python_script
 
 
 @pytest.fixture

@@ -21,11 +21,11 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const SCRIPTS_BASE = resolve(__dirname, "../../../skills/benchmarks");
 const GENERATE_DATASETS_PATH = resolve(
   SCRIPTS_BASE,
-  "langsmith_dataset-js/scripts/generate_datasets.ts"
+  "langsmith_dataset/scripts/generate_datasets.ts"
 );
 const QUERY_DATASETS_PATH = resolve(
   SCRIPTS_BASE,
-  "langsmith_dataset-js/scripts/query_datasets.ts"
+  "langsmith_dataset/scripts/query_datasets.ts"
 );
 
 /**
@@ -242,7 +242,7 @@ describe("mocked API functions", () => {
   describe("query_datasets", () => {
     it("displayExamples formats data correctly", async () => {
       const { displayExamples } = await import(
-        "../../../skills/benchmarks/langsmith_dataset-js/scripts/query_datasets.js"
+        "../../../skills/benchmarks/langsmith_dataset/scripts/query_datasets.js"
       );
 
       // Create mock examples matching SAMPLE_DATASET_EXAMPLES format
@@ -277,7 +277,7 @@ describe("mocked API functions", () => {
 
     it("getClient returns a client when API key is set", async () => {
       const { getClient } = await import(
-        "../../../skills/benchmarks/langsmith_dataset-js/scripts/query_datasets.js"
+        "../../../skills/benchmarks/langsmith_dataset/scripts/query_datasets.js"
       );
 
       const client = getClient();
@@ -288,7 +288,7 @@ describe("mocked API functions", () => {
   describe("generate_datasets", () => {
     it("loadTracesFromFile loads JSONL data correctly", async () => {
       const { loadTracesFromFile } = await import(
-        "../../../skills/benchmarks/langsmith_dataset-js/scripts/generate_datasets.js"
+        "../../../skills/benchmarks/langsmith_dataset/scripts/generate_datasets.js"
       );
 
       // Create a temp file with sample trace data

@@ -107,6 +107,17 @@ export interface LoadedSkill {
   scriptsDir: string | null;
 }
 
+export interface LoadedSkillVariant extends LoadedSkill {
+  scriptFilter: string | null;
+}
+
+/** Script extension mapping for variant-based filtering */
+export const SCRIPT_EXTENSIONS: Record<string, string[] | null> = {
+  py: [".py"],
+  ts: [".ts", ".js", ".mjs", ".mts"],
+  all: null, // No filtering - copy all scripts
+};
+
 /**
  * Load skill from a skill directory containing skill.md.
  *
@@ -136,9 +147,51 @@ export function loadSkill(skillDir: string): LoadedSkill {
   };
 }
 
+/**
+ * Load skill from a specific .md file variant.
+ *
+ * Supports loading language-specific skill files (skill_py.md, skill_ts.md)
+ * or combined files (skill_all.md). The variant also determines which scripts
+ * get copied during test setup.
+ *
+ * @example
+ * // Load Python variant - will filter to .py scripts during setup
+ * const tracePy = loadSkillVariant("skills/benchmarks/langsmith_trace", "py");
+ *
+ * // Load TypeScript variant - will filter to .ts/.js scripts during setup
+ * const traceTs = loadSkillVariant("skills/benchmarks/langsmith_trace", "ts");
+ *
+ * // Load combined variant - will copy all scripts during setup
+ * const traceAll = loadSkillVariant("skills/benchmarks/langsmith_trace", "all");
+ */
+export function loadSkillVariant(
+  skillDir: string,
+  variant?: string
+): LoadedSkillVariant {
+  const skillMdPath = variant
+    ? join(skillDir, `skill_${variant}.md`)
+    : join(skillDir, "skill.md");
+
+  if (!existsSync(skillMdPath)) {
+    throw new Error(`Skill file not found: ${skillMdPath}`);
+  }
+
+  const sections = parseSkillMd(skillMdPath);
+  const all = getSectionList(skillMdPath);
+  const scriptsDir = join(skillDir, "scripts");
+
+  return {
+    sections,
+    all,
+    scriptsDir: existsSync(scriptsDir) ? scriptsDir : null,
+    scriptFilter: variant ?? null,
+  };
+}
+
 export interface SkillConfig {
   sections: string[];
   scriptsDir: string | null;
+  scriptFilter: string | null;
 }
 
 /**
@@ -166,6 +219,7 @@ export function splitSkill(
     result[skillName] = {
       sections,
       scriptsDir: skill.scriptsDir,
+      scriptFilter: null,
     };
   }
 
@@ -173,11 +227,21 @@ export function splitSkill(
 }
 
 /**
+ * Format content with XML tags for output.
+ *
+ * Useful when you need to reconstruct skill.md format.
+ */
+export function formatSectionWithTags(tag: string, content: string): string {
+  return `<${tag}>\n${content}\n</${tag}>`;
+}
+
+/**
  * Create a skill config dict for use in treatments.
  */
 export function skillConfig(
   sections: string[],
-  scriptsDir: string | null = null
+  scriptsDir: string | null = null,
+  scriptFilter: string | null = null
 ): SkillConfig {
-  return { sections, scriptsDir };
+  return { sections, scriptsDir, scriptFilter };
 }

@@ -23,35 +23,35 @@ const SCRIPTS_BASE = resolve(__dirname, "../../../skills/benchmarks");
 // Script paths
 const PY_QUERY_TRACES = resolve(
   SCRIPTS_BASE,
-  "langsmith_trace-py/scripts/query_traces.py"
+  "langsmith_trace/scripts/query_traces.py"
 );
 const TS_QUERY_TRACES = resolve(
   SCRIPTS_BASE,
-  "langsmith_trace-js/scripts/query_traces.ts"
+  "langsmith_trace/scripts/query_traces.ts"
 );
 const PY_GENERATE_DATASETS = resolve(
   SCRIPTS_BASE,
-  "langsmith_dataset-py/scripts/generate_datasets.py"
+  "langsmith_dataset/scripts/generate_datasets.py"
 );
 const TS_GENERATE_DATASETS = resolve(
   SCRIPTS_BASE,
-  "langsmith_dataset-js/scripts/generate_datasets.ts"
+  "langsmith_dataset/scripts/generate_datasets.ts"
 );
 const PY_QUERY_DATASETS = resolve(
   SCRIPTS_BASE,
-  "langsmith_dataset-py/scripts/query_datasets.py"
+  "langsmith_dataset/scripts/query_datasets.py"
 );
 const TS_QUERY_DATASETS = resolve(
   SCRIPTS_BASE,
-  "langsmith_dataset-js/scripts/query_datasets.ts"
+  "langsmith_dataset/scripts/query_datasets.ts"
 );
 const PY_UPLOAD_EVALUATORS = resolve(
   SCRIPTS_BASE,
-  "langsmith_evaluator-py/scripts/upload_evaluators.py"
+  "langsmith_evaluator/scripts/upload_evaluators.py"
 );
 const TS_UPLOAD_EVALUATORS = resolve(
   SCRIPTS_BASE,
-  "langsmith_evaluator-js/scripts/upload_evaluators.ts"
+  "langsmith_evaluator/scripts/upload_evaluators.ts"
 );
 
 /**

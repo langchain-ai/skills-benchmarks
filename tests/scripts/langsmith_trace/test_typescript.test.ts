@@ -18,7 +18,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const SCRIPTS_BASE = resolve(__dirname, "../../../skills/benchmarks");
 const SCRIPT_PATH = resolve(
   SCRIPTS_BASE,
-  "langsmith_trace-js/scripts/query_traces.ts"
+  "langsmith_trace/scripts/query_traces.ts"
 );
 
 /**
@@ -101,7 +101,7 @@ describe("mocked API functions", () => {
   describe("buildQueryParams", () => {
     it("creates correct params with basic options", async () => {
       const { buildQueryParams } = await import(
-        "../../../skills/benchmarks/langsmith_trace-js/scripts/query_traces.js"
+        "../../../skills/benchmarks/langsmith_trace/scripts/query_traces.js"
       );
 
       const params = buildQueryParams({
@@ -117,7 +117,7 @@ describe("mocked API functions", () => {
 
     it("handles run type filter", async () => {
       const { buildQueryParams } = await import(
-        "../../../skills/benchmarks/langsmith_trace-js/scripts/query_traces.js"
+        "../../../skills/benchmarks/langsmith_trace/scripts/query_traces.js"
       );
 
       const params = buildQueryParams({
@@ -136,7 +136,7 @@ describe("mocked API functions", () => {
 
     it("handles error filter", async () => {
       const { buildQueryParams } = await import(
-        "../../../skills/benchmarks/langsmith_trace-js/scripts/query_traces.js"
+        "../../../skills/benchmarks/langsmith_trace/scripts/query_traces.js"
       );
 
       const params = buildQueryParams({
@@ -151,7 +151,7 @@ describe("mocked API functions", () => {
 
     it("uses env var when project not specified", async () => {
       const { buildQueryParams } = await import(
-        "../../../skills/benchmarks/langsmith_trace-js/scripts/query_traces.js"
+        "../../../skills/benchmarks/langsmith_trace/scripts/query_traces.js"
       );
 
       const params = buildQueryParams({
@@ -166,7 +166,7 @@ describe("mocked API functions", () => {
   describe("extractRun", () => {
     it("extracts basic run data matching fixture format", async () => {
       const { extractRun } = await import(
-        "../../../skills/benchmarks/langsmith_trace-js/scripts/query_traces.js"
+        "../../../skills/benchmarks/langsmith_trace/scripts/query_traces.js"
       );
 
       // Create a mock Run object that matches LangSmith SDK structure
@@ -192,7 +192,7 @@ describe("mocked API functions", () => {
 
     it("extracts metadata when requested", async () => {
       const { extractRun } = await import(
-        "../../../skills/benchmarks/langsmith_trace-js/scripts/query_traces.js"
+        "../../../skills/benchmarks/langsmith_trace/scripts/query_traces.js"
       );
 
       const runWithMetadata = SAMPLE_RUNS_WITH_METADATA[0];
@@ -224,7 +224,7 @@ describe("mocked API functions", () => {
 
     it("extracts inputs/outputs when requested", async () => {
       const { extractRun } = await import(
-        "../../../skills/benchmarks/langsmith_trace-js/scripts/query_traces.js"
+        "../../../skills/benchmarks/langsmith_trace/scripts/query_traces.js"
       );
 
       const mockRun = {
@@ -264,7 +264,7 @@ describe("mocked API with fixtures", () => {
 
   it("processes trace list data matching SAMPLE_TRACES_LIST format", async () => {
     const { extractRun } = await import(
-      "../../../skills/benchmarks/langsmith_trace-js/scripts/query_traces.js"
+      "../../../skills/benchmarks/langsmith_trace/scripts/query_traces.js"
     );
 
     // Simulate processing runs from API response
@@ -303,7 +303,7 @@ describe("mocked API with fixtures", () => {
 
   it("processes trace get data matching SAMPLE_TRACE_GET format", async () => {
     const { extractRun } = await import(
-      "../../../skills/benchmarks/langsmith_trace-js/scripts/query_traces.js"
+      "../../../skills/benchmarks/langsmith_trace/scripts/query_traces.js"
     );
 
     // Simulate processing runs from trace get response
@@ -343,7 +343,7 @@ describe("mocked API with fixtures", () => {
 
   it("processes runs with metadata matching SAMPLE_RUNS_WITH_METADATA format", async () => {
     const { extractRun } = await import(
-      "../../../skills/benchmarks/langsmith_trace-js/scripts/query_traces.js"
+      "../../../skills/benchmarks/langsmith_trace/scripts/query_traces.js"
     );
 
     // Simulate processing runs with metadata

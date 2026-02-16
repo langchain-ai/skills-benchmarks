@@ -14,7 +14,7 @@ import pytest
 from scaffold import MetricsCollector, SkillInvokedValidator, Treatment
 from scaffold.python import extract_events, parse_output
 from skills import CLAUDE_FULL
-from skills.parser import load_skill, skill_config
+from skills.parser import load_skill_variant, skill_config
 from tests.benchmarks.ls_multiskill.validation.validators import (
     DatasetStructureValidator,
     SkillScriptValidator,
@@ -29,10 +29,10 @@ SKILL_BASE = Path(__file__).parent.parent.parent.parent / "skills" / "benchmarks
 
 
 def _load_skills():
-    """Load all skills from skill.md files."""
+    """Load all skills from skill_py.md files."""
     return {
-        "trace": load_skill(SKILL_BASE / "langsmith_trace-py"),
-        "dataset": load_skill(SKILL_BASE / "langsmith_dataset-py"),
+        "trace": load_skill_variant(SKILL_BASE / "langsmith_trace", "py"),
+        "dataset": load_skill_variant(SKILL_BASE / "langsmith_dataset", "py"),
     }
 
 
@@ -165,8 +165,14 @@ TREATMENTS = {
     "BASIC_BASELINE": Treatment(
         description="Skills without workflow hints, no CLAUDE.md (no cross-references)",
         skills={
-            "langsmith-trace": skill_config(trace_no_hints, skills["trace"]["scripts_dir"]),
-            "langsmith-dataset": skill_config(dataset_no_hints, skills["dataset"]["scripts_dir"]),
+            "langsmith-trace": skill_config(
+                trace_no_hints, skills["trace"]["scripts_dir"], skills["trace"]["script_filter"]
+            ),
+            "langsmith-dataset": skill_config(
+                dataset_no_hints,
+                skills["dataset"]["scripts_dir"],
+                skills["dataset"]["script_filter"],
+            ),
         },
         validators=basic_validators(),
     ),
@@ -174,8 +180,14 @@ TREATMENTS = {
     "BASIC_CLAUDEMD": Treatment(
         description="Workflow rules in CLAUDE.md, skills without hints",
         skills={
-            "langsmith-trace": skill_config(trace_no_hints, skills["trace"]["scripts_dir"]),
-            "langsmith-dataset": skill_config(dataset_no_hints, skills["dataset"]["scripts_dir"]),
+            "langsmith-trace": skill_config(
+                trace_no_hints, skills["trace"]["scripts_dir"], skills["trace"]["script_filter"]
+            ),
+            "langsmith-dataset": skill_config(
+                dataset_no_hints,
+                skills["dataset"]["scripts_dir"],
+                skills["dataset"]["script_filter"],
+            ),
         },
         claude_md=CLAUDE_MD_WORKFLOW_BASIC,
         validators=basic_validators(),
@@ -184,8 +196,14 @@ TREATMENTS = {
     "BASIC_SKILLS": Treatment(
         description="Workflow hints in skills, minimal CLAUDE.md",
         skills={
-            "langsmith-trace": skill_config(trace_curated, skills["trace"]["scripts_dir"]),
-            "langsmith-dataset": skill_config(dataset_curated, skills["dataset"]["scripts_dir"]),
+            "langsmith-trace": skill_config(
+                trace_curated, skills["trace"]["scripts_dir"], skills["trace"]["script_filter"]
+            ),
+            "langsmith-dataset": skill_config(
+                dataset_curated,
+                skills["dataset"]["scripts_dir"],
+                skills["dataset"]["script_filter"],
+            ),
         },
         claude_md=CLAUDE_MD_SKILLS_ONLY,
         validators=basic_validators(),
@@ -194,8 +212,14 @@ TREATMENTS = {
     "BASIC_BOTH": Treatment(
         description="Workflow rules in CLAUDE.md AND skill hints",
         skills={
-            "langsmith-trace": skill_config(trace_curated, skills["trace"]["scripts_dir"]),
-            "langsmith-dataset": skill_config(dataset_curated, skills["dataset"]["scripts_dir"]),
+            "langsmith-trace": skill_config(
+                trace_curated, skills["trace"]["scripts_dir"], skills["trace"]["script_filter"]
+            ),
+            "langsmith-dataset": skill_config(
+                dataset_curated,
+                skills["dataset"]["scripts_dir"],
+                skills["dataset"]["script_filter"],
+            ),
         },
         claude_md=CLAUDE_MD_WORKFLOW_BASIC,
         validators=basic_validators(),
@@ -205,10 +229,14 @@ TREATMENTS = {
         description="All skill sections + full CLAUDE.md",
         skills={
             "langsmith-trace": skill_config(
-                without_related_skills(skills["trace"]["all"]), skills["trace"]["scripts_dir"]
+                without_related_skills(skills["trace"]["all"]),
+                skills["trace"]["scripts_dir"],
+                skills["trace"]["script_filter"],
             ),
             "langsmith-dataset": skill_config(
-                without_related_skills(skills["dataset"]["all"]), skills["dataset"]["scripts_dir"]
+                without_related_skills(skills["dataset"]["all"]),
+                skills["dataset"]["scripts_dir"],
+                skills["dataset"]["script_filter"],
             ),
         },
         claude_md=CLAUDE_FULL,

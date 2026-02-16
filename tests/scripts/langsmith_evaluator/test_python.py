@@ -71,7 +71,7 @@ def mock_env():
 def upload_module(mock_env):
     """Import the upload_evaluators module with mocked env."""
     # Add script directory to path
-    script_dir = SCRIPTS_BASE / "langsmith_evaluator-py" / "scripts"
+    script_dir = SCRIPTS_BASE / "langsmith_evaluator" / "scripts"
     sys.path.insert(0, str(script_dir))
 
     # Clear any cached imports

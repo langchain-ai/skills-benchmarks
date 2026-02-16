@@ -76,7 +76,7 @@ def mock_env():
 def query_module(mock_env):
     """Import the query_traces module with mocked env."""
     # Add script directory to path
-    script_dir = SCRIPTS_BASE / "langsmith_trace-py" / "scripts"
+    script_dir = SCRIPTS_BASE / "langsmith_trace" / "scripts"
     sys.path.insert(0, str(script_dir))
 
     # Clear any cached imports

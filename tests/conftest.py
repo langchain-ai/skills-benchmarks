@@ -399,6 +399,45 @@ def experiment_logger():
     return _plugin.logger if _plugin else None
 
 
+def _filter_scripts(scripts_dir: Path, script_filter: str) -> Path | None:
+    """Filter scripts by extension and return a temp dir with filtered scripts.
+
+    Args:
+        scripts_dir: Original scripts directory
+        script_filter: Filter type ("py", "ts", "all") or None
+
+    Returns:
+        Path to temp dir with filtered scripts, or original dir if no filtering needed
+    """
+    from skills.parser import SCRIPT_EXTENSIONS
+
+    if not scripts_dir or not scripts_dir.exists():
+        return None
+
+    # No filtering needed
+    if script_filter is None or script_filter == "all":
+        return scripts_dir
+
+    extensions = SCRIPT_EXTENSIONS.get(script_filter)
+    if extensions is None:
+        return scripts_dir
+
+    # Create temp dir with filtered scripts
+    temp_dir = Path(tempfile.mkdtemp(prefix="scripts_"))
+    copied_any = False
+
+    for script in scripts_dir.iterdir():
+        if script.is_file() and script.suffix in extensions:
+            shutil.copy2(script, temp_dir / script.name)
+            copied_any = True
+
+    if not copied_any:
+        shutil.rmtree(temp_dir)
+        return None
+
+    return temp_dir
+
+
 @pytest.fixture
 def setup_test_context(test_dir):
     """Factory fixture to set up test context with skills and CLAUDE.md.
@@ -418,31 +457,40 @@ def setup_test_context(test_dir):
                 os.unlink(temp_file)
 
         # Write each skill using shell
-        if skills:
-            for skill_name, skill_config in skills.items():
-                if skill_config:
-                    # Support both formats:
-                    # 1. List of sections: {"skill-name": [section1, section2]}
-                    # 2. Dict with sections and scripts: {"sections": [...], "scripts_dir": Path}
-                    if isinstance(skill_config, dict):
-                        sections = skill_config.get("sections", [])
-                        scripts_dir = skill_config.get("scripts_dir")
-                    else:
-                        sections = skill_config
-                        scripts_dir = None
+        for skill_name, cfg in (skills or {}).items():
+            if not cfg:
+                continue
 
-                    if sections:
-                        content = "\n\n".join(s for s in sections if s and s.strip())
-                        with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
-                            f.write(content)
-                            temp_file = f.name
-                        try:
-                            args = ["write-skill", str(test_dir), skill_name, temp_file]
-                            if scripts_dir:
-                                args.append(str(scripts_dir))
-                            run_shell("setup.sh", *args)
-                        finally:
-                            os.unlink(temp_file)
+            # Normalize config: list of sections or dict with sections/scripts_dir/script_filter
+            if isinstance(cfg, dict):
+                sections = cfg.get("sections") or cfg.get("all", [])
+                scripts_dir = cfg.get("scripts_dir")
+                script_filter = cfg.get("script_filter")
+            else:
+                sections, scripts_dir, script_filter = cfg, None, None
+
+            if not sections:
+                continue
+
+            # Write skill markdown
+            content = "\n\n".join(s for s in sections if s and s.strip())
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
+                f.write(content)
+                skill_file = f.name
+
+            # Filter scripts by extension if needed
+            filtered_dir = _filter_scripts(scripts_dir, script_filter)
+            is_temp_dir = filtered_dir and filtered_dir != scripts_dir
+
+            try:
+                args = ["write-skill", str(test_dir), skill_name, skill_file]
+                if filtered_dir:
+                    args.append(str(filtered_dir))
+                run_shell("setup.sh", *args)
+            finally:
+                os.unlink(skill_file)
+                if is_temp_dir and filtered_dir.exists():
+                    shutil.rmtree(filtered_dir)
 
         # Copy environment files using shell
         if environment_dir and environment_dir.exists():

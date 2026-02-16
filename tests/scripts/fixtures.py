@@ -538,3 +538,63 @@ def create_sample_dataset_json(tmp_path: Path) -> Path:
     with open(json_file, "w") as f:
         json.dump(SAMPLE_LOCAL_DATASET, f, indent=2)
     return json_file
+
+
+# ============================================================================
+# EVALUATOR DATA - For upload_evaluators testing
+# ============================================================================
+
+# Sample evaluators list (from GET /runs/rules)
+SAMPLE_EVALUATORS = [
+    {
+        "id": "eval-001-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+        "display_name": "response_quality",
+        "sampling_rate": 1.0,
+        "code_evaluators": [
+            {
+                "code": "def perform_eval(inputs, outputs, reference_outputs):\n    return {'score': 1.0}",
+                "language": "python",
+            }
+        ],
+        "target_dataset_ids": None,
+        "target_project_ids": None,
+    },
+    {
+        "id": "eval-002-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+        "display_name": "trajectory_match",
+        "sampling_rate": 0.5,
+        "code_evaluators": [
+            {
+                "code": "def perform_eval(inputs, outputs, reference_outputs):\n    expected = reference_outputs.get('trajectory', [])\n    actual = outputs.get('trajectory', [])\n    return {'score': 1.0 if expected == actual else 0.0}",
+                "language": "python",
+            }
+        ],
+        "target_dataset_ids": ["dataset-001"],
+        "target_project_ids": None,
+    },
+]
+
+# Sample evaluator function code for testing upload
+SAMPLE_EVALUATOR_CODE = '''
+def check_response_length(inputs, outputs, reference_outputs):
+    """Check if response is not empty."""
+    response = outputs.get("response", "")
+    if len(response) > 0:
+        return {"score": 1.0, "comment": "Response is not empty"}
+    return {"score": 0.0, "comment": "Response is empty"}
+'''
+
+
+def create_sample_evaluator_file(tmp_path: Path) -> Path:
+    """Create a sample evaluator Python file for testing.
+
+    Args:
+        tmp_path: pytest tmp_path fixture
+
+    Returns:
+        Path to the created Python file
+    """
+    eval_file = tmp_path / "evaluator.py"
+    with open(eval_file, "w") as f:
+        f.write(SAMPLE_EVALUATOR_CODE)
+    return eval_file

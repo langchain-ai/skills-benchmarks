@@ -118,6 +118,63 @@ export const SAMPLE_TRACE_GET = {
   ],
 };
 
+/** Sample runs with full metadata (for testing metadata extraction) */
+export const SAMPLE_RUNS_WITH_METADATA = [
+  {
+    run_id: "019c62bb-de6a-7f61-a2a4-97366b55cc8d",
+    trace_id: "019c62bb-d608-74c3-88bd-54d51db3d4a7",
+    name: "ChatAnthropic",
+    run_type: "llm",
+    parent_run_id: "019c62bb-de69-7120-9c06-4e570c78062f",
+    start_time: "2026-02-15T19:16:45.290780",
+    end_time: "2026-02-15T19:16:46.683732",
+    status: "success",
+    duration_ms: 1392,
+    custom_metadata: {
+      ls_model_name: "claude-3-5-haiku-20241022",
+      ls_model_type: "chat",
+      ls_provider: "anthropic",
+      ls_temperature: 0.0,
+    },
+    token_usage: {
+      prompt_tokens: 150,
+      completion_tokens: 75,
+      total_tokens: 225,
+    },
+  },
+  {
+    run_id: "019c62bb-de69-7120-9c06-4e570c78062f",
+    trace_id: "019c62bb-d608-74c3-88bd-54d51db3d4a7",
+    name: "model",
+    run_type: "chain",
+    parent_run_id: "019c62bb-d608-74c3-88bd-54d51db3d4a7",
+    start_time: "2026-02-15T19:16:45.289146",
+    end_time: "2026-02-15T19:16:46.685606",
+    status: "success",
+    duration_ms: 1396,
+    custom_metadata: {
+      langgraph_node: "model",
+      langgraph_step: 3,
+    },
+    token_usage: null,
+  },
+  {
+    run_id: "019c62bb-de67-76a1-aabf-136119aa18a6",
+    trace_id: "019c62bb-d608-74c3-88bd-54d51db3d4a7",
+    name: "calculator",
+    run_type: "tool",
+    parent_run_id: "019c62bb-de66-7fe1-92e0-d45d12b5bf69",
+    start_time: "2026-02-15T19:16:45.287767",
+    end_time: "2026-02-15T19:16:45.288323",
+    status: "success",
+    duration_ms: 1,
+    custom_metadata: {
+      langgraph_node: "tools",
+    },
+    token_usage: null,
+  },
+];
+
 // ============================================================================
 // DATASET DATA - Captured from real API responses
 // ============================================================================
@@ -265,4 +322,60 @@ export function createSampleDatasetJson(tmpPath: string): string {
   const jsonFile = join(tmpPath, "dataset.json");
   writeFileSync(jsonFile, JSON.stringify(SAMPLE_LOCAL_DATASET, null, 2));
   return jsonFile;
+}
+
+// ============================================================================
+// EVALUATOR DATA - For upload_evaluators testing
+// ============================================================================
+
+/** Sample evaluators list (from GET /runs/rules) */
+export const SAMPLE_EVALUATORS = [
+  {
+    id: "eval-001-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    display_name: "response_quality",
+    sampling_rate: 1.0,
+    code_evaluators: [
+      {
+        code: "def perform_eval(inputs, outputs, reference_outputs):\n    return {'score': 1.0}",
+        language: "python",
+      },
+    ],
+    target_dataset_ids: null,
+    target_project_ids: null,
+  },
+  {
+    id: "eval-002-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+    display_name: "trajectory_match",
+    sampling_rate: 0.5,
+    code_evaluators: [
+      {
+        code: "def perform_eval(inputs, outputs, reference_outputs):\n    expected = reference_outputs.get('trajectory', [])\n    actual = outputs.get('trajectory', [])\n    return {'score': 1.0 if expected == actual else 0.0}",
+        language: "python",
+      },
+    ],
+    target_dataset_ids: ["dataset-001"],
+    target_project_ids: null,
+  },
+];
+
+/** Sample evaluator function code for testing upload */
+export const SAMPLE_EVALUATOR_CODE = `
+def check_response_length(inputs, outputs, reference_outputs):
+    """Check if response is not empty."""
+    response = outputs.get("response", "")
+    if len(response) > 0:
+        return {"score": 1.0, "comment": "Response is not empty"}
+    return {"score": 0.0, "comment": "Response is empty"}
+`;
+
+/**
+ * Create a sample evaluator Python file for testing.
+ *
+ * @param tmpPath - Directory to create the file in
+ * @returns Path to the created Python file
+ */
+export function createSampleEvaluatorFile(tmpPath: string): string {
+  const evalFile = join(tmpPath, "evaluator.py");
+  writeFileSync(evalFile, SAMPLE_EVALUATOR_CODE);
+  return evalFile;
 }

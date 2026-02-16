@@ -62,7 +62,7 @@ function runPythonScript(
   args: string[]
 ): { stdout: string; stderr: string; returncode: number } {
   try {
-    const stdout = execSync(`python ${scriptPath} ${args.join(" ")}`, {
+    const stdout = execSync(`uv run python ${scriptPath} ${args.join(" ")}`, {
       encoding: "utf8",
       timeout: 30000,
       stdio: ["pipe", "pipe", "pipe"],

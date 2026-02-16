@@ -19,7 +19,8 @@ from scaffold import (
 )
 from scaffold.python import extract_events, parse_output
 from skills.parser import load_skill
-from tests.noise import get_tasks
+
+from ..conftest import get_noise_tasks
 
 # =============================================================================
 # SKILL LOADING
@@ -161,19 +162,19 @@ TREATMENTS = {
     "NOISE_1": Treatment(
         description="1 noise task (Docker)",
         skills={"langchain-agents": SKILL_SECTIONS},
-        noise_tasks=get_tasks(["docker-patterns"]),
+        noise_tasks=get_noise_tasks(["docker-patterns"]),
         validators=noise_validators(),
     ),
     "NOISE_2": Treatment(
         description="2 noise tasks (Docker + React)",
         skills={"langchain-agents": SKILL_SECTIONS},
-        noise_tasks=get_tasks(["docker-patterns", "react-components"]),
+        noise_tasks=get_noise_tasks(["docker-patterns", "react-components"]),
         validators=noise_validators(),
     ),
     "NOISE_3": Treatment(
         description="3 noise tasks (Docker + React + API)",
         skills={"langchain-agents": SKILL_SECTIONS},
-        noise_tasks=get_tasks(["docker-patterns", "react-components", "api-docs"]),
+        noise_tasks=get_noise_tasks(["docker-patterns", "react-components", "api-docs"]),
         validators=noise_validators(),
     ),
 }

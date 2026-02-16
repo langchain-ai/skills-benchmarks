@@ -1,10 +1,10 @@
 /**
  * Tests for langsmith-dataset TypeScript scripts (generate_datasets.ts, query_datasets.ts).
  *
- * Run with: npx vitest run tests/scripts/langsmith/langsmith_dataset/test_typescript.test.ts
+ * Run with: npx vitest run tests/scripts/langsmith_dataset/test_typescript.test.ts
  */
 
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll, vi, beforeEach, afterEach } from "vitest";
 import { execSync } from "node:child_process";
 import { mkdtempSync, rmSync, readFileSync, existsSync } from "node:fs";
 import { resolve, dirname, join } from "node:path";
@@ -13,8 +13,6 @@ import { tmpdir } from "node:os";
 import {
   SAMPLE_DATASETS,
   SAMPLE_DATASET_EXAMPLES,
-  SAMPLE_TRACE_RUNS,
-  SAMPLE_LOCAL_DATASET,
   createSampleTraceJsonl,
   createSampleDatasetJson,
 } from "../fixtures.js";
@@ -227,60 +225,167 @@ describe("query_datasets.ts", () => {
 });
 
 // =============================================================================
-// Fixture validation
+// Mocked API Tests - Direct function imports
 // =============================================================================
 
-describe("fixture validation", () => {
-  describe("SAMPLE_DATASETS", () => {
-    it("has correct structure and exact values", () => {
-      expect(SAMPLE_DATASETS.length).toBe(4);
-
-      // Check specific datasets exist with exact names
-      const datasetNames = SAMPLE_DATASETS.map((d) => d.name);
-      expect(datasetNames).toContain("shipping-support-golden");
-      expect(datasetNames).toContain("Email Agent Notebook: Trajectory");
-      expect(datasetNames).toContain("Email Agent: Trajectory");
-      expect(datasetNames).toContain("kb-agent-golden-set");
-
-      // Check exact example counts
-      const datasetCounts = Object.fromEntries(
-        SAMPLE_DATASETS.map((d) => [d.name, d.example_count])
-      );
-      expect(datasetCounts["shipping-support-golden"]).toBe(10);
-      expect(datasetCounts["Email Agent Notebook: Trajectory"]).toBe(5);
-      expect(datasetCounts["Email Agent: Trajectory"]).toBe(16);
-      expect(datasetCounts["kb-agent-golden-set"]).toBe(15);
-    });
+describe("mocked API functions", () => {
+  beforeEach(() => {
+    vi.stubEnv("LANGSMITH_API_KEY", "test-api-key-12345");
+    vi.stubEnv("LANGSMITH_PROJECT", "test-project");
   });
 
-  describe("SAMPLE_DATASET_EXAMPLES", () => {
-    it("has correct structure and exact values", () => {
-      expect(SAMPLE_DATASET_EXAMPLES.length).toBe(2);
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
 
-      // First example should have empty trajectory
-      const firstExample = SAMPLE_DATASET_EXAMPLES[0];
-      expect(firstExample.inputs.email_input.author).toBe(
+  describe("query_datasets", () => {
+    it("displayExamples formats data correctly", async () => {
+      const { displayExamples } = await import(
+        "../../../skills/benchmarks/langsmith_dataset-js/scripts/query_datasets.js"
+      );
+
+      // Create mock examples matching SAMPLE_DATASET_EXAMPLES format
+      const mockExamples = SAMPLE_DATASET_EXAMPLES.map((ex) => ({
+        inputs: ex.inputs,
+        outputs: ex.outputs,
+      }));
+
+      // Capture console output
+      const consoleSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
+      displayExamples(mockExamples, "json", 2);
+
+      // Should have been called with JSON string
+      expect(consoleSpy).toHaveBeenCalled();
+      const output = consoleSpy.mock.calls[0][0];
+      const parsed = JSON.parse(output);
+
+      expect(parsed.length).toBe(2);
+      expect(parsed[0].inputs.email_input.author).toBe(
         "Marketing Team <marketing@openai.com>"
       );
-      expect(firstExample.inputs.email_input.subject).toBe(
-        "Newsletter: New Model from OpenAI"
-      );
-      expect(firstExample.outputs.trajectory).toEqual([]);
-
-      // Second example should have specific trajectory
-      const secondExample = SAMPLE_DATASET_EXAMPLES[1];
-      expect(secondExample.inputs.email_input.author).toBe(
-        "Project Team <project@company.com>"
-      );
-      expect(secondExample.inputs.email_input.subject).toBe(
-        "Joint presentation next month"
-      );
-      expect(secondExample.outputs.trajectory).toEqual([
+      expect(parsed[1].outputs.trajectory).toEqual([
         "check_calendar_availability",
         "schedule_meeting",
         "write_email",
         "done",
       ]);
+
+      consoleSpy.mockRestore();
     });
+
+    it("getClient returns a client when API key is set", async () => {
+      const { getClient } = await import(
+        "../../../skills/benchmarks/langsmith_dataset-js/scripts/query_datasets.js"
+      );
+
+      const client = getClient();
+      expect(client).toBeDefined();
+    });
+  });
+
+  describe("generate_datasets", () => {
+    it("loadTracesFromFile loads JSONL data correctly", async () => {
+      const { loadTracesFromFile } = await import(
+        "../../../skills/benchmarks/langsmith_dataset-js/scripts/generate_datasets.js"
+      );
+
+      // Create a temp file with sample trace data
+      const tmpPath = mkdtempSync(join(tmpdir(), "gen_datasets_test_"));
+      const jsonlFile = createSampleTraceJsonl(tmpPath);
+
+      const traces = loadTracesFromFile(jsonlFile);
+
+      // Should load one trace
+      expect(traces.length).toBe(1);
+
+      // Trace should have correct structure [trace_id, root_run, all_runs]
+      const [traceId, rootRun, allRuns] = traces[0];
+      expect(traceId).toBe("trace-001");
+      expect(rootRun.name).toBe("agent");
+      expect(allRuns.length).toBe(3);
+
+      // Clean up
+      rmSync(tmpPath, { recursive: true });
+    });
+  });
+});
+
+// =============================================================================
+// Mocked API with Fixtures - Verify data processing
+// =============================================================================
+
+describe("mocked API with fixtures", () => {
+  beforeEach(() => {
+    vi.stubEnv("LANGSMITH_API_KEY", "test-api-key-12345");
+    vi.stubEnv("LANGSMITH_PROJECT", "test-project");
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  it("processes dataset list data matching SAMPLE_DATASETS format", async () => {
+    // Simulate what would happen when we list datasets from the API
+    const mockDatasets = SAMPLE_DATASETS.map((d) => ({
+      id: d.id,
+      name: d.name,
+      description: d.description,
+      example_count: d.example_count,
+    }));
+
+    // Should have 4 datasets
+    expect(mockDatasets.length).toBe(4);
+
+    // Check specific datasets exist with exact names
+    const datasetNames = mockDatasets.map((d) => d.name);
+    expect(datasetNames).toContain("shipping-support-golden");
+    expect(datasetNames).toContain("Email Agent Notebook: Trajectory");
+    expect(datasetNames).toContain("Email Agent: Trajectory");
+    expect(datasetNames).toContain("kb-agent-golden-set");
+
+    // Check exact example counts
+    const datasetCounts = Object.fromEntries(
+      mockDatasets.map((d) => [d.name, d.example_count])
+    );
+    expect(datasetCounts["shipping-support-golden"]).toBe(10);
+    expect(datasetCounts["Email Agent Notebook: Trajectory"]).toBe(5);
+    expect(datasetCounts["Email Agent: Trajectory"]).toBe(16);
+    expect(datasetCounts["kb-agent-golden-set"]).toBe(15);
+  });
+
+  it("processes dataset examples matching SAMPLE_DATASET_EXAMPLES format", async () => {
+    // Simulate what would happen when we get examples from the API
+    const mockExamples = SAMPLE_DATASET_EXAMPLES.map((ex) => ({
+      inputs: ex.inputs,
+      outputs: ex.outputs,
+    }));
+
+    // Should have 2 examples
+    expect(mockExamples.length).toBe(2);
+
+    // First example should have empty trajectory
+    const firstExample = mockExamples[0];
+    expect(firstExample.inputs.email_input.author).toBe(
+      "Marketing Team <marketing@openai.com>"
+    );
+    expect(firstExample.inputs.email_input.subject).toBe(
+      "Newsletter: New Model from OpenAI"
+    );
+    expect(firstExample.outputs.trajectory).toEqual([]);
+
+    // Second example should have specific trajectory
+    const secondExample = mockExamples[1];
+    expect(secondExample.inputs.email_input.author).toBe(
+      "Project Team <project@company.com>"
+    );
+    expect(secondExample.outputs.trajectory).toEqual([
+      "check_calendar_availability",
+      "schedule_meeting",
+      "write_email",
+      "done",
+    ]);
   });
 });

@@ -17,7 +17,7 @@ dotenv.config();
 // Helpers
 // ============================================================================
 
-function getClient(): Client {
+export function getClient(): Client {
   const apiKey = process.env.LANGSMITH_API_KEY;
   if (!apiKey) {
     console.error(chalk.red("Error: LANGSMITH_API_KEY not set"));
@@ -26,13 +26,13 @@ function getClient(): Client {
   return new Client({ apiKey });
 }
 
-interface Example {
+export interface Example {
   inputs?: Record<string, unknown>;
   outputs?: Record<string, unknown>;
   [key: string]: unknown;
 }
 
-function displayExamples(examples: Example[], fmt: string, limit: number): void {
+export function displayExamples(examples: Example[], fmt: string, limit: number): void {
   const sliced = examples.slice(0, limit);
 
   if (fmt === "json") {
@@ -347,4 +347,12 @@ program
     );
   });
 
-program.parse();
+// Only run CLI when executed directly (not when imported)
+const isMainModule =
+  process.argv[1] &&
+  (process.argv[1].endsWith("query_datasets.ts") ||
+    process.argv[1].endsWith("query_datasets.js"));
+
+if (isMainModule) {
+  program.parse();
+}

@@ -39,7 +39,7 @@ dotenv.config();
 // Helpers
 // ============================================================================
 
-function getClient(): Client {
+export function getClient(): Client {
   const apiKey = process.env.LANGSMITH_API_KEY;
   if (!apiKey) {
     console.error(chalk.red("Error: LANGSMITH_API_KEY not set"));
@@ -77,7 +77,7 @@ function createSpinner(
   };
 }
 
-interface QueryParams {
+export interface QueryParams {
   projectName?: string;
   traceId?: string;
   limit?: number;
@@ -88,7 +88,7 @@ interface QueryParams {
   filter?: string;
 }
 
-function buildQueryParams(options: {
+export function buildQueryParams(options: {
   project?: string;
   traceIds?: string;
   limit?: number;
@@ -216,7 +216,7 @@ function calcDuration(run: Run): number | null {
   return null;
 }
 
-interface ExtractedRun {
+export interface ExtractedRun {
   run_id: string;
   trace_id: string;
   name: string;
@@ -242,7 +242,7 @@ interface ExtractedRun {
   error?: string | null;
 }
 
-function extractRun(
+export function extractRun(
   run: Run,
   includeMetadata = false,
   includeIo = false
@@ -994,7 +994,15 @@ const runsExportCmd = runs
 addCommonFilterOptions(runsExportCmd, true);
 
 // ============================================================================
-// Parse and run
+// Parse and run (only when executed directly, not when imported)
 // ============================================================================
 
-program.parse();
+// Check if this file is being run directly (not imported)
+const isMainModule =
+  process.argv[1] &&
+  (process.argv[1].endsWith("query_traces.ts") ||
+    process.argv[1].endsWith("query_traces.js"));
+
+if (isMainModule) {
+  program.parse();
+}

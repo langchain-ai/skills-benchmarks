@@ -27,7 +27,7 @@ dotenv.config();
 // Types
 // ============================================================================
 
-interface RunData {
+export interface RunData {
   run_id?: string;
   id?: string;
   trace_id?: string;
@@ -39,7 +39,7 @@ interface RunData {
   outputs?: Record<string, unknown> | null;
 }
 
-type TraceData = [string, RunData, RunData[]]; // [trace_id, root_run, all_runs]
+export type TraceData = [string, RunData, RunData[]]; // [trace_id, root_run, all_runs]
 
 // ============================================================================
 // Trace Loading
@@ -58,7 +58,7 @@ function dictToObj(d: Record<string, unknown>): RunData {
   return obj;
 }
 
-function loadTracesFromDir(inputDir: string, sort = "newest"): TraceData[] {
+export function loadTracesFromDir(inputDir: string, sort = "newest"): TraceData[] {
   const traces: TraceData[] = [];
   const dirPath = path.resolve(inputDir);
 
@@ -129,7 +129,7 @@ function loadTracesFromDir(inputDir: string, sort = "newest"): TraceData[] {
   return sortTraces(traces, sort);
 }
 
-function loadTracesFromFile(inputFile: string, sort = "newest"): TraceData[] {
+export function loadTracesFromFile(inputFile: string, sort = "newest"): TraceData[] {
   const traces: TraceData[] = [];
   const filePath = path.resolve(inputFile);
 
@@ -849,4 +849,12 @@ Dataset types:
     }
   });
 
-program.parse();
+// Only run CLI when executed directly (not when imported)
+const isMainModule =
+  process.argv[1] &&
+  (process.argv[1].endsWith("generate_datasets.ts") ||
+    process.argv[1].endsWith("generate_datasets.js"));
+
+if (isMainModule) {
+  program.parse();
+}

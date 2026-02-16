@@ -20,11 +20,17 @@ dotenv.config();
 // Configuration
 // ============================================================================
 
-const LANGSMITH_API_KEY = process.env.LANGSMITH_API_KEY;
-const LANGSMITH_API_URL = process.env.LANGSMITH_API_URL || "https://api.smith.langchain.com";
-const LANGSMITH_WORKSPACE_ID = process.env.LANGSMITH_WORKSPACE_ID;
+export const LANGSMITH_API_KEY = process.env.LANGSMITH_API_KEY;
+export const LANGSMITH_API_URL = process.env.LANGSMITH_API_URL || "https://api.smith.langchain.com";
+export const LANGSMITH_WORKSPACE_ID = process.env.LANGSMITH_WORKSPACE_ID;
 
-if (!LANGSMITH_API_KEY) {
+// Only validate API key when running as CLI (not when imported for testing)
+const isMainModule =
+  process.argv[1] &&
+  (process.argv[1].endsWith("upload_evaluators.ts") ||
+    process.argv[1].endsWith("upload_evaluators.js"));
+
+if (isMainModule && !LANGSMITH_API_KEY) {
   console.error(chalk.red("Error: LANGSMITH_API_KEY environment variable is required"));
   process.exit(1);
 }
@@ -33,12 +39,12 @@ if (!LANGSMITH_API_KEY) {
 // Types
 // ============================================================================
 
-interface CodeEvaluator {
+export interface CodeEvaluator {
   code: string;
   language: string;
 }
 
-interface EvaluatorPayload {
+export interface EvaluatorPayload {
   display_name: string;
   evaluators: CodeEvaluator[];
   sampling_rate: number;
@@ -46,7 +52,7 @@ interface EvaluatorPayload {
   target_project_ids?: string[];
 }
 
-interface Rule {
+export interface Rule {
   id: string;
   display_name: string;
   sampling_rate: number;
@@ -58,7 +64,7 @@ interface Rule {
 // API Helpers
 // ============================================================================
 
-function getHeaders(): Record<string, string> {
+export function getHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
     "x-api-key": LANGSMITH_API_KEY!,
     "Content-Type": "application/json",
@@ -69,7 +75,7 @@ function getHeaders(): Record<string, string> {
   return headers;
 }
 
-async function getRules(): Promise<Rule[]> {
+export async function getRules(): Promise<Rule[]> {
   const url = `${LANGSMITH_API_URL}/runs/rules`;
   const response = await fetch(url, { headers: getHeaders() });
   if (!response.ok) {
@@ -78,7 +84,7 @@ async function getRules(): Promise<Rule[]> {
   return response.json() as Promise<Rule[]>;
 }
 
-async function evaluatorExists(name: string): Promise<boolean> {
+export async function evaluatorExists(name: string): Promise<boolean> {
   const rules = await getRules();
   return rules.some((rule) => rule.display_name === name);
 }
@@ -128,7 +134,7 @@ async function promptConfirm(message: string): Promise<boolean> {
   });
 }
 
-async function deleteEvaluator(name: string, confirm = true): Promise<boolean> {
+export async function deleteEvaluator(name: string, confirm = true): Promise<boolean> {
   const rules = await getRules();
   const rule = rules.find((r) => r.display_name === name);
 
@@ -245,7 +251,7 @@ async function createCodePayload(options: {
   };
 }
 
-async function createEvaluator(payload: EvaluatorPayload): Promise<boolean> {
+export async function createEvaluator(payload: EvaluatorPayload): Promise<boolean> {
   const url = `${LANGSMITH_API_URL}/runs/rules`;
 
   const data: Record<string, unknown> = {
@@ -383,4 +389,6 @@ program
     }
   });
 
-program.parse();
+if (isMainModule) {
+  program.parse();
+}

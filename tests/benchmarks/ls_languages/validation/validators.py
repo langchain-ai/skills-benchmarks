@@ -55,7 +55,7 @@ class TracingPatternValidator(Validator):
 
     def __init__(
         self,
-        python_file: str = "backend/support_bot.py",
+        python_file: str = "backend/sql_agent.py",
         typescript_file: str = "frontend/support_bot.ts",
     ):
         self.python_file = python_file
@@ -231,7 +231,7 @@ class LanguageSyntaxValidator(Validator):
 
     def __init__(
         self,
-        python_file: str = "backend/support_bot.py",
+        python_file: str = "backend/sql_agent.py",
         typescript_file: str = "frontend/support_bot.ts",
     ):
         self.python_file = python_file
@@ -270,7 +270,7 @@ class CodeExecutionValidator(Validator):
 
     def __init__(
         self,
-        python_file: str = "backend/support_bot.py",
+        python_file: str = "backend/sql_agent.py",
         typescript_file: str = "frontend/support_bot.ts",
     ):
         self.python_file = python_file

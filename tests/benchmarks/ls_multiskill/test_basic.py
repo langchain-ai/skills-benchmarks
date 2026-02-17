@@ -83,6 +83,17 @@ Output: trajectory_dataset.json (upload as "{run_id}" to LangSmith)
 
 Run any code you write directly."""
 
+# Related skills sections - only for treatments testing cross-skill coordination
+TRACE_RELATED_SKILLS = """<related_skills>
+- **langsmith-dataset**: Generates evaluation datasets from trace data. Traces provide the raw execution data that datasets structure for testing.
+- **langsmith-evaluator**: Creates evaluators that validate agent outputs. Evaluators can check trajectories captured in traces.
+</related_skills>"""
+
+DATASET_RELATED_SKILLS = """<related_skills>
+- **langsmith-trace**: Queries and exports trace data. Datasets are built from trace data - traces contain the inputs, outputs, and tool calls that become dataset examples.
+- **langsmith-evaluator**: Creates evaluators that validate outputs. Evaluators run against datasets to measure performance.
+</related_skills>"""
+
 
 # =============================================================================
 # VALIDATORS
@@ -128,7 +139,7 @@ trace_curated = [
     skills["trace"]["sections"]["traces_vs_runs"],
     skills["trace"]["sections"]["command_structure"],
     skills["trace"]["sections"]["filters"],
-    skills["trace"]["sections"]["related_skills"],
+    TRACE_RELATED_SKILLS,
 ]
 trace_no_hints = without_related_skills(trace_curated)
 
@@ -145,7 +156,7 @@ dataset_curated = [
     skills["dataset"]["sections"]["extraction_priority"],
     skills["dataset"]["sections"]["trace_hierarchy"],
     skills["dataset"]["sections"]["dataset_types_overview"],
-    skills["dataset"]["sections"]["related_skills"],
+    DATASET_RELATED_SKILLS,
 ]
 dataset_no_hints = without_related_skills(dataset_curated)
 

@@ -20,8 +20,9 @@
     "chalk": "^5.3.0",
     "cli-table3": "^0.6.5",
     "commander": "^12.0.0",
-    "dotenv": "^16.4.5",
-    "langsmith": "^0.3.0",
+    "dotenv": "^16.6.1",
+    "langsmith": "^0.3.87",
+    "openai": "^6.22.0",
     "ora": "^8.0.0",
     "zod": "^3.24.0"
   },

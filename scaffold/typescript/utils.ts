@@ -28,7 +28,7 @@ export interface ShellResult {
 export function runShell(
   script: string,
   args: string[] = [],
-  options: { timeout?: number; check?: boolean; cwd?: string } = {}
+  options: { timeout?: number; check?: boolean; cwd?: string } = {},
 ): ShellResult {
   const { timeout, check = true, cwd } = options;
   const scriptPath = join(SHELL_DIR, script);
@@ -59,7 +59,10 @@ export function runShell(
 
 export function checkDockerAvailable(): boolean {
   try {
-    return runShell("docker.sh", ["check"], { check: false, timeout: 10 }).returncode === 0;
+    return (
+      runShell("docker.sh", ["check"], { check: false, timeout: 10 })
+        .returncode === 0
+    );
   } catch {
     return false;
   }
@@ -67,13 +70,19 @@ export function checkDockerAvailable(): boolean {
 
 export function checkClaudeAvailable(): boolean {
   try {
-    return spawnSync("claude", ["--version"], { stdio: "pipe", timeout: 10000 }).status === 0;
+    return (
+      spawnSync("claude", ["--version"], { stdio: "pipe", timeout: 10000 })
+        .status === 0
+    );
   } catch {
     return false;
   }
 }
 
-export function buildDockerImage(testDir: string, options: { force?: boolean } = {}): string | null {
+export function buildDockerImage(
+  testDir: string,
+  options: { force?: boolean } = {},
+): string | null {
   try {
     const args = ["build", resolve(testDir)];
     if (options.force) args.push("--force");
@@ -88,7 +97,7 @@ export function buildDockerImage(testDir: string, options: { force?: boolean } =
 export function runInDocker(
   testDir: string,
   command: string[],
-  options: { timeout?: number; envVars?: Record<string, string> } = {}
+  options: { timeout?: number; envVars?: Record<string, string> } = {},
 ): ShellResult {
   const { timeout = 120, envVars } = options;
   const savedEnv: Record<string, string | undefined> = {};
@@ -101,7 +110,10 @@ export function runInDocker(
   }
 
   try {
-    return runShell("docker.sh", ["run", resolve(testDir), ...command], { timeout, check: false });
+    return runShell("docker.sh", ["run", resolve(testDir), ...command], {
+      timeout,
+      check: false,
+    });
   } finally {
     for (const [k, v] of Object.entries(savedEnv)) {
       if (v === undefined) delete process.env[k];
@@ -114,15 +126,24 @@ export function runInDocker(
 export function runPythonInDocker(
   testDir: string,
   scriptName: string,
-  options: { timeout?: number; args?: string[] } = {}
+  options: { timeout?: number; args?: string[] } = {},
 ): [boolean, string] {
   if (!checkDockerAvailable()) return [false, "Docker not available"];
   const { timeout = 120, args = [] } = options;
   try {
-    const result = runShell("docker.sh", ["run-python", resolve(testDir), scriptName, ...args], { timeout, check: false });
+    const result = runShell(
+      "docker.sh",
+      ["run-python", resolve(testDir), scriptName, ...args],
+      { timeout, check: false },
+    );
     return [result.returncode === 0, result.stdout + result.stderr];
   } catch (error) {
-    return [false, (error as Error).message?.includes("ETIMEDOUT") ? `Timeout (${timeout}s)` : String(error)];
+    return [
+      false,
+      (error as Error).message?.includes("ETIMEDOUT")
+        ? `Timeout (${timeout}s)`
+        : String(error),
+    ];
   }
 }
 
@@ -130,15 +151,24 @@ export function runPythonInDocker(
 export function runNodeInDocker(
   testDir: string,
   scriptName: string,
-  options: { timeout?: number; args?: string[] } = {}
+  options: { timeout?: number; args?: string[] } = {},
 ): [boolean, string] {
   if (!checkDockerAvailable()) return [false, "Docker not available"];
   const { timeout = 120, args = [] } = options;
   try {
-    const result = runShell("docker.sh", ["run-node", resolve(testDir), scriptName, ...args], { timeout, check: false });
+    const result = runShell(
+      "docker.sh",
+      ["run-node", resolve(testDir), scriptName, ...args],
+      { timeout, check: false },
+    );
     return [result.returncode === 0, result.stdout + result.stderr];
   } catch (error) {
-    return [false, (error as Error).message?.includes("ETIMEDOUT") ? `Timeout (${timeout}s)` : String(error)];
+    return [
+      false,
+      (error as Error).message?.includes("ETIMEDOUT")
+        ? `Timeout (${timeout}s)`
+        : String(error),
+    ];
   }
 }
 
@@ -146,10 +176,12 @@ export function runNodeInDocker(
 export function runScriptInDocker(
   testDir: string,
   scriptName: string,
-  options: { timeout?: number; args?: string[] } = {}
+  options: { timeout?: number; args?: string[] } = {},
 ): [boolean, string] {
-  if (scriptName.endsWith(".py")) return runPythonInDocker(testDir, scriptName, options);
-  if (scriptName.endsWith(".ts") || scriptName.endsWith(".js")) return runNodeInDocker(testDir, scriptName, options);
+  if (scriptName.endsWith(".py"))
+    return runPythonInDocker(testDir, scriptName, options);
+  if (scriptName.endsWith(".ts") || scriptName.endsWith(".js"))
+    return runNodeInDocker(testDir, scriptName, options);
   return [false, `Unsupported file type: ${scriptName}`];
 }
 
@@ -157,19 +189,29 @@ export function runScriptInDocker(
 export function runClaudeInDocker(
   testDir: string,
   prompt: string,
-  options: { timeout?: number; model?: string } = {}
+  options: { timeout?: number; model?: string } = {},
 ): ShellResult {
   if (!checkDockerAvailable()) throw new Error("Docker not available");
 
   const { timeout = 300, model } = options;
-  const args = ["run-claude", resolve(testDir), prompt, "--timeout", String(timeout)];
+  const args = [
+    "run-claude",
+    resolve(testDir),
+    prompt,
+    "--timeout",
+    String(timeout),
+  ];
   if (model) args.push("--model", model);
 
   try {
     return runShell("docker.sh", args, { timeout: timeout + 30, check: false });
   } catch (error) {
     if ((error as Error).message?.includes("ETIMEDOUT")) {
-      return { stdout: "", stderr: `Timeout after ${timeout}s`, returncode: 124 };
+      return {
+        stdout: "",
+        stderr: `Timeout after ${timeout}s`,
+        returncode: 124,
+      };
     }
     throw error;
   }
@@ -179,8 +221,14 @@ export function runClaudeInDocker(
 // SETUP (via setup.sh)
 // =============================================================================
 
-export function verifyEnvironment(envDir: string, requiredFiles = ["Dockerfile", "requirements.txt"]): boolean {
-  return runShell("setup.sh", ["verify", envDir, ...requiredFiles], { check: false }).returncode === 0;
+export function verifyEnvironment(
+  envDir: string,
+  requiredFiles = ["Dockerfile", "requirements.txt"],
+): boolean {
+  return (
+    runShell("setup.sh", ["verify", envDir, ...requiredFiles], { check: false })
+      .returncode === 0
+  );
 }
 
 export function createTempDir(prefix = "claude_test_"): string {
@@ -191,7 +239,12 @@ export function cleanupTempDir(dir: string): void {
   runShell("setup.sh", ["cleanup", dir], { check: false });
 }
 
-export function writeSkill(testDir: string, skillName: string, contentFile: string, scriptsDir?: string): string {
+export function writeSkill(
+  testDir: string,
+  skillName: string,
+  contentFile: string,
+  scriptsDir?: string,
+): string {
   const args = ["write-skill", testDir, skillName, contentFile];
   if (scriptsDir) args.push(scriptsDir);
   return runShell("setup.sh", args).stdout.trim();
@@ -212,13 +265,20 @@ export function copyEnvironment(testDir: string, envDir: string): void {
 /** Retry with exponential backoff (for rate limits). */
 export async function retryWithBackoff<T>(
   fn: () => T | Promise<T>,
-  options: { maxRetries?: number; baseDelay?: number; maxDelay?: number; retryOn?: (e: Error) => boolean } = {}
+  options: {
+    maxRetries?: number;
+    baseDelay?: number;
+    maxDelay?: number;
+    retryOn?: (e: Error) => boolean;
+  } = {},
 ): Promise<T> {
   const {
     maxRetries = 3,
     baseDelay = 1000,
     maxDelay = 10000,
-    retryOn = (e) => e.message.includes("429") || e.message.toLowerCase().includes("rate limit"),
+    retryOn = (e) =>
+      e.message.includes("429") ||
+      e.message.toLowerCase().includes("rate limit"),
   } = options;
 
   let lastError: Error | undefined;
@@ -228,7 +288,10 @@ export async function retryWithBackoff<T>(
     } catch (error) {
       lastError = error as Error;
       if (!retryOn(lastError) || attempt === maxRetries) throw lastError;
-      const delay = Math.min(baseDelay * 2 ** attempt + Math.random() * 1000, maxDelay);
+      const delay = Math.min(
+        baseDelay * 2 ** attempt + Math.random() * 1000,
+        maxDelay,
+      );
       await new Promise((r) => setTimeout(r, delay));
     }
   }
@@ -236,7 +299,9 @@ export async function retryWithBackoff<T>(
 }
 
 /** Read JSON file. Returns [data, error]. */
-export function readJsonFile<T = unknown>(path: string): [T | null, string | null] {
+export function readJsonFile<T = unknown>(
+  path: string,
+): [T | null, string | null] {
   if (!existsSync(path)) return [null, `${path} not found`];
   try {
     return [JSON.parse(readFileSync(path, "utf8")) as T, null];
@@ -246,7 +311,11 @@ export function readJsonFile<T = unknown>(path: string): [T | null, string | nul
 }
 
 /** Get first matching field from object. */
-export function getField<T>(obj: Record<string, unknown>, keys: string[], defaultValue?: T): T | undefined {
+export function getField<T>(
+  obj: Record<string, unknown>,
+  keys: string[],
+  defaultValue?: T,
+): T | undefined {
   for (const key of keys) if (key in obj) return obj[key] as T;
   return defaultValue;
 }
@@ -271,8 +340,12 @@ const EVAL_SYSTEM = `You are an output evaluator. Analyze whether the given outp
 Respond with JSON: {"passed": boolean, "reason": "brief explanation"}`;
 
 /** Evaluate output quality using LLM. */
-export async function evaluateWithSchema(prompt: string, options: { model?: string } = {}): Promise<EvalResult> {
-  const model = options.model || process.env.EVAL_MODEL || "claude-sonnet-4-20250514";
+export async function evaluateWithSchema(
+  prompt: string,
+  options: { model?: string } = {},
+): Promise<EvalResult> {
+  const model =
+    options.model || process.env.EVAL_MODEL || "claude-sonnet-4-20250514";
 
   try {
     const Anthropic = (await import("@anthropic-ai/sdk")).default;
@@ -284,12 +357,16 @@ export async function evaluateWithSchema(prompt: string, options: { model?: stri
     });
 
     const content = response.content[0];
-    if (content.type !== "text") return { pass: false, reason: "unexpected response format" };
+    if (content.type !== "text")
+      return { pass: false, reason: "unexpected response format" };
 
     const jsonMatch = content.text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) return { pass: false, reason: "no JSON in response" };
 
-    const result = JSON.parse(jsonMatch[0]) as { passed: boolean; reason: string };
+    const result = JSON.parse(jsonMatch[0]) as {
+      passed: boolean;
+      reason: string;
+    };
     return { pass: result.passed, reason: result.reason };
   } catch (error) {
     return { pass: false, reason: `eval error: ${String(error).slice(0, 30)}` };

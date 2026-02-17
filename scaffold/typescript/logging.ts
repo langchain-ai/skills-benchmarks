@@ -2,7 +2,13 @@
  * Output parsing, event extraction, and experiment logging.
  */
 
-import { existsSync, mkdirSync, writeFileSync, readdirSync, readFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  writeFileSync,
+  readdirSync,
+  readFileSync,
+} from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -41,7 +47,11 @@ export function parseOutput(stdout: string): ParsedOutput {
   if (!stdout) return { messages: [] };
   const messages: Record<string, unknown>[] = [];
   for (const line of stdout.trim().split("\n")) {
-    try { messages.push(JSON.parse(line)); } catch { /* skip non-JSON */ }
+    try {
+      messages.push(JSON.parse(line));
+    } catch {
+      /* skip non-JSON */
+    }
   }
   return { messages };
 }
@@ -185,7 +195,7 @@ export function createTreatmentResult(
   checksPassed: string[],
   checksFailed: string[],
   events: Events,
-  runId = ""
+  runId = "",
 ): TreatmentResult {
   return {
     name,
@@ -205,7 +215,10 @@ export function hasCheck(result: TreatmentResult, pattern: string): boolean {
   return result.checks_passed.some((c) => c.includes(pattern));
 }
 
-export function hasFailedCheck(result: TreatmentResult, pattern: string): boolean {
+export function hasFailedCheck(
+  result: TreatmentResult,
+  pattern: string,
+): boolean {
   return result.checks_failed.some((c) => c.includes(pattern));
 }
 
@@ -220,19 +233,26 @@ export interface ReportColumn {
   aggregate?: (runs: TreatmentResult[]) => string;
 }
 
-export function boolColumn(name: string, pattern: string, description?: string): ReportColumn {
+export function boolColumn(
+  name: string,
+  pattern: string,
+  description?: string,
+): ReportColumn {
   return {
     name,
-    description: description || `Checks if any passed check contains: \`${pattern}\``,
-    extract: (r) => hasCheck(r, pattern) ? "Yes" : "No",
-    aggregate: (runs) => `${runs.filter((r) => hasCheck(r, pattern)).length}/${runs.length}`,
+    description:
+      description || `Checks if any passed check contains: \`${pattern}\``,
+    extract: (r) => (hasCheck(r, pattern) ? "Yes" : "No"),
+    aggregate: (runs) =>
+      `${runs.filter((r) => hasCheck(r, pattern)).length}/${runs.length}`,
   };
 }
 
 export function qualityColumn(name = "Quality"): ReportColumn {
   return {
     name,
-    description: "Checks for [GOOD] or [LOW] quality rating from LLM evaluation",
+    description:
+      "Checks for [GOOD] or [LOW] quality rating from LLM evaluation",
     extract: (r) => {
       for (const c of r.checks_passed) {
         if (c.includes("[GOOD]")) return "Good";
@@ -240,7 +260,8 @@ export function qualityColumn(name = "Quality"): ReportColumn {
       }
       return "N/A";
     },
-    aggregate: (runs) => `${runs.filter((r) => r.checks_passed.some((c) => c.includes("[GOOD]"))).length}/${runs.length}`,
+    aggregate: (runs) =>
+      `${runs.filter((r) => r.checks_passed.some((c) => c.includes("[GOOD]"))).length}/${runs.length}`,
   };
 }
 
@@ -255,13 +276,16 @@ function aggregateChecks(runs: TreatmentResult[]): string {
   const totalPassed = runs.reduce((sum, r) => sum + r.checks_passed.length, 0);
   const totalChecks = runs.reduce(
     (sum, r) => sum + r.checks_passed.length + r.checks_failed.length,
-    0
+    0,
   );
   const pct = totalChecks > 0 ? (totalPassed / totalChecks) * 100 : 0;
   return `${totalPassed}/${totalChecks} (${pct.toFixed(0)}%)`;
 }
 
-function avg(values: (number | null | undefined)[], format: (n: number) => string): string {
+function avg(
+  values: (number | null | undefined)[],
+  format: (n: number) => string,
+): string {
   const filtered = values.filter((v): v is number => v != null);
   if (filtered.length === 0) return "N/A";
   return format(filtered.reduce((a, b) => a + b, 0) / filtered.length);
@@ -279,11 +303,11 @@ export function defaultColumns(): ReportColumn[] {
     },
     {
       name: "Turns",
-      extract: (r) => (r.events_summary.num_turns?.toString() ?? "N/A"),
+      extract: (r) => r.events_summary.num_turns?.toString() ?? "N/A",
       aggregate: (runs) =>
         avg(
           runs.map((r) => r.events_summary.num_turns),
-          (n) => n.toFixed(0)
+          (n) => n.toFixed(0),
         ),
     },
     {
@@ -295,7 +319,7 @@ export function defaultColumns(): ReportColumn[] {
       aggregate: (runs) =>
         avg(
           runs.map((r) => r.events_summary.duration_seconds),
-          (n) => `${n.toFixed(0)}s`
+          (n) => `${n.toFixed(0)}s`,
         ),
     },
     {
@@ -304,7 +328,7 @@ export function defaultColumns(): ReportColumn[] {
       aggregate: (runs) =>
         avg(
           runs.map((r) => r.events_summary.tool_calls),
-          (n) => n.toFixed(0)
+          (n) => n.toFixed(0),
         ),
     },
   ];
@@ -333,11 +357,13 @@ export class ExperimentLogger {
     total_passed?: number;
   };
 
-  constructor(options: {
-    experimentName?: string;
-    columns?: ReportColumn[];
-    experimentId?: string;
-  } = {}) {
+  constructor(
+    options: {
+      experimentName?: string;
+      columns?: ReportColumn[];
+      experimentId?: string;
+    } = {},
+  ) {
     const { experimentName, columns = [], experimentId } = options;
 
     if (experimentId) {
@@ -351,7 +377,11 @@ export class ExperimentLogger {
         : "";
     } else {
       // Create new experiment
-      this.timestamp = new Date().toISOString().replace(/[-:]/g, "").slice(0, 15).replace("T", "_");
+      this.timestamp = new Date()
+        .toISOString()
+        .replace(/[-:]/g, "")
+        .slice(0, 15)
+        .replace("T", "_");
       this.name = experimentName || `experiment_${this.timestamp}`;
       this.experimentId = `${this.name}_${this.timestamp}`;
     }
@@ -413,7 +443,8 @@ export class ExperimentLogger {
 
     const colNames = ["Treatment", ...columns.map((c) => c.name)];
     const header = "| " + colNames.join(" | ") + " |";
-    const separator = "|" + colNames.map((n) => "-".repeat(n.length + 2)).join("|") + "|";
+    const separator =
+      "|" + colNames.map((n) => "-".repeat(n.length + 2)).join("|") + "|";
 
     lines.push(hasReps ? "## Results (with Repetitions)\n" : "## Results\n");
     lines.push(header);
@@ -421,41 +452,55 @@ export class ExperimentLogger {
 
     for (const [name, runs] of Object.entries(this.results)) {
       const values = columns.map((c) =>
-        hasReps && c.aggregate ? c.aggregate(runs) : c.extract(runs[0])
+        hasReps && c.aggregate ? c.aggregate(runs) : c.extract(runs[0]),
       );
       lines.push(`| ${name} | ${values.join(" | ")} |`);
     }
 
     lines.push("");
 
-    const totalRuns = Object.values(this.results).reduce((sum, runs) => sum + runs.length, 0);
+    const totalRuns = Object.values(this.results).reduce(
+      (sum, runs) => sum + runs.length,
+      0,
+    );
     const totalChecksPassed = Object.values(this.results).reduce(
       (sum, runs) => sum + runs.reduce((s, r) => s + r.checks_passed.length, 0),
-      0
+      0,
     );
     const totalChecks = Object.values(this.results).reduce(
       (sum, runs) =>
-        sum + runs.reduce((s, r) => s + r.checks_passed.length + r.checks_failed.length, 0),
-      0
+        sum +
+        runs.reduce(
+          (s, r) => s + r.checks_passed.length + r.checks_failed.length,
+          0,
+        ),
+      0,
     );
-    const checkPct = totalChecks > 0 ? (totalChecksPassed / totalChecks) * 100 : 0;
+    const checkPct =
+      totalChecks > 0 ? (totalChecksPassed / totalChecks) * 100 : 0;
 
     lines.push("## Summary\n");
     lines.push(`- **Total Runs:** ${totalRuns}`);
-    lines.push(`- **Checks Passed:** ${totalChecksPassed}/${totalChecks} (${checkPct.toFixed(1)}%)`);
+    lines.push(
+      `- **Checks Passed:** ${totalChecksPassed}/${totalChecks} (${checkPct.toFixed(1)}%)`,
+    );
     lines.push("");
 
     // Detailed per-treatment breakdown
     lines.push("## Treatment Details\n");
     for (const [name, runs] of Object.entries(this.results)) {
-      const treatmentPassed = runs.reduce((sum, r) => sum + r.checks_passed.length, 0);
+      const treatmentPassed = runs.reduce(
+        (sum, r) => sum + r.checks_passed.length,
+        0,
+      );
       const treatmentTotal = runs.reduce(
         (sum, r) => sum + r.checks_passed.length + r.checks_failed.length,
-        0
+        0,
       );
-      const treatmentPct = treatmentTotal > 0 ? (treatmentPassed / treatmentTotal) * 100 : 0;
+      const treatmentPct =
+        treatmentTotal > 0 ? (treatmentPassed / treatmentTotal) * 100 : 0;
       lines.push(
-        `### ${name} (${treatmentPassed}/${treatmentTotal} checks, ${treatmentPct.toFixed(0)}%)\n`
+        `### ${name} (${treatmentPassed}/${treatmentTotal} checks, ${treatmentPct.toFixed(0)}%)\n`,
       );
 
       for (let i = 0; i < runs.length; i++) {
@@ -465,7 +510,9 @@ export class ExperimentLogger {
         const runTotal = runPassed + r.checks_failed.length;
         const runPct = runTotal > 0 ? (runPassed / runTotal) * 100 : 0;
         const runIdStr = r.run_id ? ` (run_id: ${r.run_id})` : "";
-        lines.push(`**${runLabel}:** ${runPassed}/${runTotal} checks (${runPct.toFixed(0)}%)${runIdStr}`);
+        lines.push(
+          `**${runLabel}:** ${runPassed}/${runTotal} checks (${runPct.toFixed(0)}%)${runIdStr}`,
+        );
 
         // Show metrics
         const metrics: string[] = [];
@@ -473,7 +520,9 @@ export class ExperimentLogger {
           metrics.push(`Turns: ${r.events_summary.num_turns}`);
         }
         if (r.events_summary.duration_seconds != null) {
-          metrics.push(`Duration: ${r.events_summary.duration_seconds.toFixed(0)}s`);
+          metrics.push(
+            `Duration: ${r.events_summary.duration_seconds.toFixed(0)}s`,
+          );
         }
         if (r.events_summary.tool_calls != null) {
           metrics.push(`Tool calls: ${r.events_summary.tool_calls}`);
@@ -513,11 +562,11 @@ export class ExperimentLogger {
     this.metadata.completed_at = new Date().toISOString();
     this.metadata.total_runs = Object.values(this.results).reduce(
       (sum, runs) => sum + runs.length,
-      0
+      0,
     );
     this.metadata.total_passed = Object.values(this.results).reduce(
       (sum, runs) => sum + runs.filter((r) => r.passed).length,
-      0
+      0,
     );
 
     const metadataPath = join(this.baseDir, "metadata.json");
@@ -534,7 +583,12 @@ export class ExperimentLogger {
 // PARALLEL SAVE HELPERS
 // =============================================================================
 
-export function saveEvents(baseDir: string, treatmentName: string, rep: number, events: Events): string {
+export function saveEvents(
+  baseDir: string,
+  treatmentName: string,
+  rep: number,
+  events: Events,
+): string {
   const dir = join(baseDir, "events");
   mkdirSync(dir, { recursive: true });
   const path = join(dir, `${treatmentName.toLowerCase()}_rep${rep}.json`);
@@ -542,17 +596,38 @@ export function saveEvents(baseDir: string, treatmentName: string, rep: number, 
   return path;
 }
 
-export function saveRaw(baseDir: string, treatmentName: string, rep: number, stdout: string, stderr?: string): void {
+export function saveRaw(
+  baseDir: string,
+  treatmentName: string,
+  rep: number,
+  stdout: string,
+  stderr?: string,
+): void {
   const dir = join(baseDir, "raw");
   mkdirSync(dir, { recursive: true });
-  writeFileSync(join(dir, `${treatmentName.toLowerCase()}_rep${rep}_stdout.json`), stdout);
-  if (stderr) writeFileSync(join(dir, `${treatmentName.toLowerCase()}_rep${rep}_stderr.txt`), stderr);
+  writeFileSync(
+    join(dir, `${treatmentName.toLowerCase()}_rep${rep}_stdout.json`),
+    stdout,
+  );
+  if (stderr)
+    writeFileSync(
+      join(dir, `${treatmentName.toLowerCase()}_rep${rep}_stderr.txt`),
+      stderr,
+    );
 }
 
-export function saveReport(baseDir: string, treatmentName: string, rep: number, report: Record<string, unknown>): string {
+export function saveReport(
+  baseDir: string,
+  treatmentName: string,
+  rep: number,
+  report: Record<string, unknown>,
+): string {
   const dir = join(baseDir, "reports");
   mkdirSync(dir, { recursive: true });
-  const path = join(dir, `${treatmentName.toLowerCase()}_rep${rep}_report.json`);
+  const path = join(
+    dir,
+    `${treatmentName.toLowerCase()}_rep${rep}_report.json`,
+  );
   writeFileSync(path, JSON.stringify(report, null, 2));
   return path;
 }
@@ -561,9 +636,13 @@ export function loadResultsFromReports(reportsDir: string): TreatmentResult[] {
   if (!existsSync(reportsDir)) return [];
   const results: TreatmentResult[] = [];
 
-  for (const file of readdirSync(reportsDir).filter((f) => f.endsWith(".json")).sort()) {
+  for (const file of readdirSync(reportsDir)
+    .filter((f) => f.endsWith(".json"))
+    .sort()) {
     try {
-      const report = JSON.parse(readFileSync(join(reportsDir, file), "utf8")) as Record<string, unknown>;
+      const report = JSON.parse(
+        readFileSync(join(reportsDir, file), "utf8"),
+      ) as Record<string, unknown>;
       results.push({
         name: (report.name as string) || "unknown",
         passed: (report.passed as boolean) ?? false,
@@ -572,7 +651,9 @@ export function loadResultsFromReports(reportsDir: string): TreatmentResult[] {
         events_summary: (report.events_summary as EventsSummary) || {},
         run_id: (report.run_id as string) || "",
       });
-    } catch { /* skip invalid */ }
+    } catch {
+      /* skip invalid */
+    }
   }
   return results;
 }

@@ -14,15 +14,17 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const SCRIPTS_BASE = resolve(__dirname, "../../../skills/benchmarks");
 const SCRIPT_PATH = resolve(
   SCRIPTS_BASE,
-  "langsmith_evaluator/scripts/upload_evaluators.ts"
+  "langsmith_evaluator/scripts/upload_evaluators.ts",
 );
 
 /**
  * Run the TypeScript script and return the result.
  */
-function runScript(
-  args: string[]
-): { stdout: string; stderr: string; returncode: number } {
+function runScript(args: string[]): {
+  stdout: string;
+  stderr: string;
+  returncode: number;
+} {
   try {
     const stdout = execSync(`npx tsx ${SCRIPT_PATH} ${args.join(" ")}`, {
       encoding: "utf8",
@@ -86,9 +88,8 @@ describe("mocked API functions", () => {
 
   describe("getHeaders", () => {
     it("returns correct authentication headers", async () => {
-      const { getHeaders, LANGSMITH_API_KEY } = await import(
-        "../../../skills/benchmarks/langsmith_evaluator/scripts/upload_evaluators.js"
-      );
+      const { getHeaders, LANGSMITH_API_KEY } =
+        await import("../../../skills/benchmarks/langsmith_evaluator/scripts/upload_evaluators.js");
 
       const headers = getHeaders();
 
@@ -106,9 +107,8 @@ describe("mocked API functions", () => {
       });
       vi.stubGlobal("fetch", mockFetch);
 
-      const { evaluatorExists } = await import(
-        "../../../skills/benchmarks/langsmith_evaluator/scripts/upload_evaluators.js"
-      );
+      const { evaluatorExists } =
+        await import("../../../skills/benchmarks/langsmith_evaluator/scripts/upload_evaluators.js");
 
       const result = await evaluatorExists("response_quality");
       expect(result).toBe(true);
@@ -123,9 +123,8 @@ describe("mocked API functions", () => {
       });
       vi.stubGlobal("fetch", mockFetch);
 
-      const { evaluatorExists } = await import(
-        "../../../skills/benchmarks/langsmith_evaluator/scripts/upload_evaluators.js"
-      );
+      const { evaluatorExists } =
+        await import("../../../skills/benchmarks/langsmith_evaluator/scripts/upload_evaluators.js");
 
       const result = await evaluatorExists("nonexistent_evaluator");
       expect(result).toBe(false);
@@ -140,9 +139,8 @@ describe("mocked API functions", () => {
       });
       vi.stubGlobal("fetch", mockFetch);
 
-      const { evaluatorExists } = await import(
-        "../../../skills/benchmarks/langsmith_evaluator/scripts/upload_evaluators.js"
-      );
+      const { evaluatorExists } =
+        await import("../../../skills/benchmarks/langsmith_evaluator/scripts/upload_evaluators.js");
 
       const result = await evaluatorExists("any_name");
       expect(result).toBe(false);
@@ -159,9 +157,8 @@ describe("mocked API functions", () => {
       });
       vi.stubGlobal("fetch", mockFetch);
 
-      const { createEvaluator } = await import(
-        "../../../skills/benchmarks/langsmith_evaluator/scripts/upload_evaluators.js"
-      );
+      const { createEvaluator } =
+        await import("../../../skills/benchmarks/langsmith_evaluator/scripts/upload_evaluators.js");
 
       const payload = {
         display_name: "test_evaluator",
@@ -194,9 +191,8 @@ describe("mocked API functions", () => {
       });
       vi.stubGlobal("fetch", mockFetch);
 
-      const { createEvaluator } = await import(
-        "../../../skills/benchmarks/langsmith_evaluator/scripts/upload_evaluators.js"
-      );
+      const { createEvaluator } =
+        await import("../../../skills/benchmarks/langsmith_evaluator/scripts/upload_evaluators.js");
 
       const payload = {
         display_name: "test_evaluator",
@@ -219,9 +215,8 @@ describe("mocked API functions", () => {
       });
       vi.stubGlobal("fetch", mockFetch);
 
-      const { deleteEvaluator } = await import(
-        "../../../skills/benchmarks/langsmith_evaluator/scripts/upload_evaluators.js"
-      );
+      const { deleteEvaluator } =
+        await import("../../../skills/benchmarks/langsmith_evaluator/scripts/upload_evaluators.js");
 
       const result = await deleteEvaluator("nonexistent", false);
       expect(result).toBe(false);
@@ -243,9 +238,8 @@ describe("mocked API functions", () => {
         });
       vi.stubGlobal("fetch", mockFetch);
 
-      const { deleteEvaluator } = await import(
-        "../../../skills/benchmarks/langsmith_evaluator/scripts/upload_evaluators.js"
-      );
+      const { deleteEvaluator } =
+        await import("../../../skills/benchmarks/langsmith_evaluator/scripts/upload_evaluators.js");
 
       const result = await deleteEvaluator("response_quality", false);
       expect(result).toBe(true);
@@ -284,9 +278,8 @@ describe("mocked API with fixtures", () => {
     });
     vi.stubGlobal("fetch", mockFetch);
 
-    const { getRules } = await import(
-      "../../../skills/benchmarks/langsmith_evaluator/scripts/upload_evaluators.js"
-    );
+    const { getRules } =
+      await import("../../../skills/benchmarks/langsmith_evaluator/scripts/upload_evaluators.js");
 
     const rules = await getRules();
 
@@ -311,9 +304,8 @@ describe("mocked API with fixtures", () => {
     });
     vi.stubGlobal("fetch", mockFetch);
 
-    const { evaluatorExists } = await import(
-      "../../../skills/benchmarks/langsmith_evaluator/scripts/upload_evaluators.js"
-    );
+    const { evaluatorExists } =
+      await import("../../../skills/benchmarks/langsmith_evaluator/scripts/upload_evaluators.js");
 
     // response_quality should exist
     expect(await evaluatorExists("response_quality")).toBe(true);

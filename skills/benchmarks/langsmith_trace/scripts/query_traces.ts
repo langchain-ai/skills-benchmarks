@@ -54,7 +54,7 @@ export function getClient(): Client {
  */
 function createSpinner(
   text: string,
-  format?: string
+  format?: string,
 ): { start: () => void; stop: () => void; text: string } {
   if (format === "json" || format === "jsonl") {
     // Return a no-op spinner for JSON output
@@ -245,7 +245,7 @@ export interface ExtractedRun {
 export function extractRun(
   run: Run,
   includeMetadata = false,
-  includeIo = false
+  includeIo = false,
 ): ExtractedRun {
   const data: ExtractedRun = {
     run_id: run.id.toString(),
@@ -263,7 +263,10 @@ export function extractRun(
     data.status = run.status || null;
     data.duration_ms = calcDuration(run);
     data.custom_metadata =
-      (run.extra as Record<string, unknown>)?.metadata as Record<string, unknown> || {};
+      ((run.extra as Record<string, unknown>)?.metadata as Record<
+        string,
+        unknown
+      >) || {};
     data.token_usage = {
       prompt_tokens: runAny.prompt_tokens ?? null,
       completion_tokens: runAny.completion_tokens ?? null,
@@ -299,7 +302,7 @@ function printTree(
   runs: Run[],
   parentId: string | null = null,
   indent = 0,
-  visited = new Set<string>()
+  visited = new Set<string>(),
 ): void {
   const children = runs
     .filter((r) => {
@@ -322,7 +325,7 @@ function printTree(
     const durationStr = duration !== null ? ` (${Math.round(duration)}ms)` : "";
 
     console.log(
-      `${prefix}└── ${chalk.cyan(run.name)} (${run.run_type})${durationStr}`
+      `${prefix}└── ${chalk.cyan(run.name)} (${run.run_type})${durationStr}`,
     );
     console.log(`${prefix}    run_id: ${chalk.dim(run.id)}`);
     if (run.parent_run_id) {
@@ -336,7 +339,7 @@ function printTree(
 function printRunsTable(
   runs: Run[],
   includeMetadata = false,
-  showTraceId = true
+  showTraceId = true,
 ): void {
   const headers = ["Time", "Name", "Type"];
   if (showTraceId) headers.push("Trace ID");
@@ -390,7 +393,7 @@ function addCommonFilterOptions(cmd: Command, includeRunType = true): Command {
     .option("-n, --limit <n>", "Max results to return", parseInt)
     .option(
       "--project <name>",
-      "Project name (overrides LANGSMITH_PROJECT env)"
+      "Project name (overrides LANGSMITH_PROJECT env)",
     )
     .option("--last-n-minutes <n>", "Only from last N minutes", parseInt)
     .option("--since <timestamp>", "Only since ISO timestamp");
@@ -404,7 +407,7 @@ function addCommonFilterOptions(cmd: Command, includeRunType = true): Command {
         "retriever",
         "prompt",
         "parser",
-      ])
+      ]),
     );
   }
 
@@ -415,22 +418,22 @@ function addCommonFilterOptions(cmd: Command, includeRunType = true): Command {
     .option(
       "--min-latency <seconds>",
       "Min latency in seconds (e.g., 5 for >= 5s)",
-      parseFloat
+      parseFloat,
     )
     .option(
       "--max-latency <seconds>",
       "Max latency in seconds (e.g., 10 for <= 10s)",
-      parseFloat
+      parseFloat,
     )
     .option(
       "--min-tokens <n>",
       "Min total tokens (e.g., 1000 for >= 1000)",
-      parseInt
+      parseInt,
     )
     .option("--tags <tags>", "Filter by tags (comma-separated, matches any)")
     .option(
       "--filter <query>",
-      "Raw LangSmith filter query (for feedback, metadata, etc.)"
+      "Raw LangSmith filter query (for feedback, metadata, etc.)",
     );
 
   return cmd;
@@ -461,7 +464,7 @@ RUNS - Operations on individual runs (flat)
 
 Key difference:
   - traces: Filters apply to ROOT RUN, returns full hierarchy
-  - runs: Filters apply to ANY RUN, returns flat list`
+  - runs: Filters apply to ANY RUN, returns flat list`,
   )
   .version("1.0.0");
 
@@ -472,7 +475,7 @@ Key difference:
 const traces = program
   .command("traces")
   .description(
-    "Operations on trace trees (root run + all children). Filters apply to ROOT RUN."
+    "Operations on trace trees (root run + all children). Filters apply to ROOT RUN.",
   );
 
 // traces list
@@ -482,7 +485,7 @@ const tracesListCmd = traces
   .addOption(
     new Option("--format <format>", "Output format")
       .choices(["json", "pretty"])
-      .default("pretty")
+      .default("pretty"),
   )
   .option("--include-metadata", "Include timing/tokens/costs")
   .option("--show-hierarchy", "Expand each trace to show run tree")
@@ -497,7 +500,8 @@ const tracesListCmd = traces
       since: opts.since,
       runType: undefined, // Not applicable for traces
       isRoot: true, // Always filter root runs for traces
-      error: opts.error === false ? false : opts.error === true ? true : undefined,
+      error:
+        opts.error === false ? false : opts.error === true ? true : undefined,
       name: opts.name,
       rawFilter: opts.filter,
       minLatency: opts.minLatency,
@@ -532,7 +536,7 @@ const tracesListCmd = traces
     if (opts.showHierarchy) {
       console.log(
         chalk.green("✓") +
-          ` Found ${rootRuns.length} trace(s). Fetching hierarchy...\n`
+          ` Found ${rootRuns.length} trace(s). Fetching hierarchy...\n`,
       );
 
       for (const root of rootRuns) {
@@ -550,7 +554,7 @@ const tracesListCmd = traces
 
         console.log(chalk.bold("TRACE:") + ` ${tid}`);
         console.log(
-          `  Root: ${chalk.cyan(root.name)} (${allRuns.length} runs)`
+          `  Root: ${chalk.cyan(root.name)} (${allRuns.length} runs)`,
         );
         if (opts.includeMetadata) {
           console.log(`  Duration: ${formatDuration(calcDuration(root))}`);
@@ -560,13 +564,15 @@ const tracesListCmd = traces
       }
     } else if (opts.format === "json") {
       const data = rootRuns.map((r) =>
-        extractRun(r, opts.includeMetadata, false)
+        extractRun(r, opts.includeMetadata, false),
       );
       outputJson(data);
     } else {
       console.log(chalk.green("✓") + ` Found ${rootRuns.length} trace(s)\n`);
       printRunsTable(rootRuns, opts.includeMetadata, true);
-      console.log(chalk.dim("\nTip: Use --show-hierarchy to expand each trace"));
+      console.log(
+        chalk.dim("\nTip: Use --show-hierarchy to expand each trace"),
+      );
     }
   });
 
@@ -578,9 +584,12 @@ traces
   .description("Get a specific trace by ID with full hierarchy")
   .option("--project <name>", "Project name")
   .addOption(
-    new Option("--format <format>", "Output format (jsonl for dataset-compatible)")
+    new Option(
+      "--format <format>",
+      "Output format (jsonl for dataset-compatible)",
+    )
       .choices(["json", "jsonl", "pretty"])
-      .default("pretty")
+      .default("pretty"),
   )
   .option("-o, --output <path>", "Output file")
   .option("--include-metadata", "Include timing/tokens/costs")
@@ -625,12 +634,14 @@ traces
       }
     } else if (opts.format === "jsonl") {
       const lines = runs.map((r) =>
-        JSON.stringify(extractRun(r, includeMetadata, includeIo))
+        JSON.stringify(extractRun(r, includeMetadata, includeIo)),
       );
       const content = lines.join("\n");
       if (opts.output) {
         fs.writeFileSync(opts.output, content + "\n");
-        console.log(chalk.green("✓") + ` Saved ${runs.length} runs to ${opts.output}`);
+        console.log(
+          chalk.green("✓") + ` Saved ${runs.length} runs to ${opts.output}`,
+        );
       } else {
         console.log(content);
       }
@@ -651,7 +662,11 @@ const tracesExportCmd = traces
   .option("--include-metadata", "Include timing/tokens/costs")
   .option("--include-io", "Include inputs/outputs")
   .option("--full", "Include everything (metadata + inputs/outputs)")
-  .option("--filename-pattern <pattern>", "Filename pattern", "{trace_id}.jsonl")
+  .option(
+    "--filename-pattern <pattern>",
+    "Filename pattern",
+    "{trace_id}.jsonl",
+  )
   .action(async (outputDir, opts) => {
     const includeMetadata = opts.full || opts.includeMetadata;
     const includeIo = opts.full || opts.includeIo;
@@ -665,7 +680,7 @@ const tracesExportCmd = traces
     if (opts.traceIds) {
       traceIdList = opts.traceIds.split(",").map((t: string) => t.trim());
       console.log(
-        chalk.cyan(`Exporting ${traceIdList.length} specified trace(s)...`)
+        chalk.cyan(`Exporting ${traceIdList.length} specified trace(s)...`),
       );
     } else {
       // Query for root traces first
@@ -677,7 +692,8 @@ const tracesExportCmd = traces
         since: opts.since,
         runType: undefined,
         isRoot: true,
-        error: opts.error === false ? false : opts.error === true ? true : undefined,
+        error:
+          opts.error === false ? false : opts.error === true ? true : undefined,
         name: opts.name,
         rawFilter: opts.filter,
         minLatency: opts.minLatency,
@@ -712,13 +728,16 @@ const tracesExportCmd = traces
       traceIdList = rootRuns.map((r) => getTraceId(r));
       console.log(
         chalk.green("✓") +
-          ` Found ${traceIdList.length} trace(s). Fetching full hierarchy...`
+          ` Found ${traceIdList.length} trace(s). Fetching full hierarchy...`,
       );
     }
 
     // Fetch and export each trace
     const results: Array<[string, Run[]]> = [];
-    const exportSpinner = createSpinner(`Fetching 0/${traceIdList.length}...`, opts.format);
+    const exportSpinner = createSpinner(
+      `Fetching 0/${traceIdList.length}...`,
+      opts.format,
+    );
     exportSpinner.start();
 
     for (let i = 0; i < traceIdList.length; i++) {
@@ -752,7 +771,9 @@ const tracesExportCmd = traces
       return;
     }
 
-    console.log(chalk.cyan(`Saving ${results.length} trace(s) to ${outputPath}/`));
+    console.log(
+      chalk.cyan(`Saving ${results.length} trace(s) to ${outputPath}/`),
+    );
 
     for (let idx = 0; idx < results.length; idx++) {
       const [tid, traceRuns] = results[idx];
@@ -768,17 +789,17 @@ const tracesExportCmd = traces
 
       const filePath = path.join(outputPath, filename);
       const lines = traceRuns.map((run) =>
-        JSON.stringify(extractRun(run, includeMetadata, includeIo))
+        JSON.stringify(extractRun(run, includeMetadata, includeIo)),
       );
       fs.writeFileSync(filePath, lines.join("\n") + "\n");
 
       console.log(
-        `  ${chalk.green("✓")} ${tid.substring(0, 16)}... → ${filename} (${traceRuns.length} runs)`
+        `  ${chalk.green("✓")} ${tid.substring(0, 16)}... → ${filename} (${traceRuns.length} runs)`,
       );
     }
 
     console.log(
-      `\n${chalk.green("✓")} Exported ${results.length} trace(s) to ${outputPath}/`
+      `\n${chalk.green("✓")} Exported ${results.length} trace(s) to ${outputPath}/`,
     );
   });
 
@@ -791,7 +812,7 @@ addCommonFilterOptions(tracesExportCmd, false);
 const runs = program
   .command("runs")
   .description(
-    "Operations on individual runs (flat list). Filters apply to ANY RUN."
+    "Operations on individual runs (flat list). Filters apply to ANY RUN.",
   );
 
 // runs list
@@ -801,7 +822,7 @@ const runsListCmd = runs
   .addOption(
     new Option("--format <format>", "Output format")
       .choices(["json", "pretty"])
-      .default("pretty")
+      .default("pretty"),
   )
   .option("--include-metadata", "Include timing/tokens/costs")
   .action(async (opts) => {
@@ -815,7 +836,8 @@ const runsListCmd = runs
       since: opts.since,
       runType: opts.runType,
       isRoot: false,
-      error: opts.error === false ? false : opts.error === true ? true : undefined,
+      error:
+        opts.error === false ? false : opts.error === true ? true : undefined,
       name: opts.name,
       rawFilter: opts.filter,
       minLatency: opts.minLatency,
@@ -849,7 +871,7 @@ const runsListCmd = runs
 
     if (opts.format === "json") {
       const data = allRuns.map((r) =>
-        extractRun(r, opts.includeMetadata, false)
+        extractRun(r, opts.includeMetadata, false),
       );
       outputJson(data);
     } else {
@@ -868,7 +890,7 @@ runs
   .addOption(
     new Option("--format <format>", "Output format")
       .choices(["json", "pretty"])
-      .default("pretty")
+      .default("pretty"),
   )
   .option("-o, --output <path>", "Output file")
   .option("--include-metadata", "Include timing/tokens/costs")
@@ -940,7 +962,8 @@ const runsExportCmd = runs
       since: opts.since,
       runType: opts.runType,
       isRoot: false,
-      error: opts.error === false ? false : opts.error === true ? true : undefined,
+      error:
+        opts.error === false ? false : opts.error === true ? true : undefined,
       name: opts.name,
       rawFilter: opts.filter,
       minLatency: opts.minLatency,
@@ -982,12 +1005,12 @@ const runsExportCmd = runs
     }
 
     const lines = allRuns.map((run) =>
-      JSON.stringify(extractRun(run, includeMetadata, includeIo))
+      JSON.stringify(extractRun(run, includeMetadata, includeIo)),
     );
     fs.writeFileSync(outputPath, lines.join("\n") + "\n");
 
     console.log(
-      chalk.green("✓") + ` Exported ${allRuns.length} run(s) to ${outputPath}`
+      chalk.green("✓") + ` Exported ${allRuns.length} run(s) to ${outputPath}`,
     );
   });
 

@@ -4,7 +4,16 @@
  * Run with: npx vitest run tests/scripts/langsmith_dataset/test_typescript.test.ts
  */
 
-import { describe, it, expect, beforeAll, afterAll, vi, beforeEach, afterEach } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  vi,
+  beforeEach,
+  afterEach,
+} from "vitest";
 import { execSync } from "node:child_process";
 import { mkdtempSync, rmSync, readFileSync, existsSync } from "node:fs";
 import { resolve, dirname, join } from "node:path";
@@ -21,11 +30,11 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const SCRIPTS_BASE = resolve(__dirname, "../../../skills/benchmarks");
 const GENERATE_DATASETS_PATH = resolve(
   SCRIPTS_BASE,
-  "langsmith_dataset/scripts/generate_datasets.ts"
+  "langsmith_dataset/scripts/generate_datasets.ts",
 );
 const QUERY_DATASETS_PATH = resolve(
   SCRIPTS_BASE,
-  "langsmith_dataset/scripts/query_datasets.ts"
+  "langsmith_dataset/scripts/query_datasets.ts",
 );
 
 /**
@@ -33,7 +42,7 @@ const QUERY_DATASETS_PATH = resolve(
  */
 function runScript(
   scriptPath: string,
-  args: string[]
+  args: string[],
 ): { stdout: string; stderr: string; returncode: number } {
   try {
     const stdout = execSync(`npx tsx ${scriptPath} ${args.join(" ")}`, {
@@ -241,9 +250,8 @@ describe("mocked API functions", () => {
 
   describe("query_datasets", () => {
     it("displayExamples formats data correctly", async () => {
-      const { displayExamples } = await import(
-        "../../../skills/benchmarks/langsmith_dataset/scripts/query_datasets.js"
-      );
+      const { displayExamples } =
+        await import("../../../skills/benchmarks/langsmith_dataset/scripts/query_datasets.js");
 
       // Create mock examples matching SAMPLE_DATASET_EXAMPLES format
       const mockExamples = SAMPLE_DATASET_EXAMPLES.map((ex) => ({
@@ -263,7 +271,7 @@ describe("mocked API functions", () => {
 
       expect(parsed.length).toBe(2);
       expect(parsed[0].inputs.email_input.author).toBe(
-        "Marketing Team <marketing@openai.com>"
+        "Marketing Team <marketing@openai.com>",
       );
       expect(parsed[1].outputs.trajectory).toEqual([
         "check_calendar_availability",
@@ -276,9 +284,8 @@ describe("mocked API functions", () => {
     });
 
     it("getClient returns a client when API key is set", async () => {
-      const { getClient } = await import(
-        "../../../skills/benchmarks/langsmith_dataset/scripts/query_datasets.js"
-      );
+      const { getClient } =
+        await import("../../../skills/benchmarks/langsmith_dataset/scripts/query_datasets.js");
 
       const client = getClient();
       expect(client).toBeDefined();
@@ -287,9 +294,8 @@ describe("mocked API functions", () => {
 
   describe("generate_datasets", () => {
     it("loadTracesFromFile loads JSONL data correctly", async () => {
-      const { loadTracesFromFile } = await import(
-        "../../../skills/benchmarks/langsmith_dataset/scripts/generate_datasets.js"
-      );
+      const { loadTracesFromFile } =
+        await import("../../../skills/benchmarks/langsmith_dataset/scripts/generate_datasets.js");
 
       // Create a temp file with sample trace data
       const tmpPath = mkdtempSync(join(tmpdir(), "gen_datasets_test_"));
@@ -348,7 +354,7 @@ describe("mocked API with fixtures", () => {
 
     // Check exact example counts
     const datasetCounts = Object.fromEntries(
-      mockDatasets.map((d) => [d.name, d.example_count])
+      mockDatasets.map((d) => [d.name, d.example_count]),
     );
     expect(datasetCounts["shipping-support-golden"]).toBe(10);
     expect(datasetCounts["Email Agent Notebook: Trajectory"]).toBe(5);
@@ -369,17 +375,17 @@ describe("mocked API with fixtures", () => {
     // First example should have empty trajectory
     const firstExample = mockExamples[0];
     expect(firstExample.inputs.email_input.author).toBe(
-      "Marketing Team <marketing@openai.com>"
+      "Marketing Team <marketing@openai.com>",
     );
     expect(firstExample.inputs.email_input.subject).toBe(
-      "Newsletter: New Model from OpenAI"
+      "Newsletter: New Model from OpenAI",
     );
     expect(firstExample.outputs.trajectory).toEqual([]);
 
     // Second example should have specific trajectory
     const secondExample = mockExamples[1];
     expect(secondExample.inputs.email_input.author).toBe(
-      "Project Team <project@company.com>"
+      "Project Team <project@company.com>",
     );
     expect(secondExample.outputs.trajectory).toEqual([
       "check_calendar_availability",

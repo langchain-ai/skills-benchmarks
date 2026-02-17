@@ -21,7 +21,8 @@ interface TestCase {
 
 function normalizeScore(score: unknown): number {
   if (typeof score === "boolean") return score ? 1 : 0;
-  if (typeof score === "number") return score >= 0 && score <= 1 ? score : score > 1 ? score / 100 : 0;
+  if (typeof score === "number")
+    return score >= 0 && score <= 1 ? score : score > 1 ? score / 100 : 0;
   return 0;
 }
 
@@ -56,7 +57,7 @@ function functionExistsInFile(content: string, name: string): boolean {
 
 async function runTestCase(
   evalFunc: (run: unknown, example: unknown) => unknown,
-  tc: TestCase
+  tc: TestCase,
 ): Promise<{ name: string; passed: boolean; score?: number; error?: string }> {
   const { name = "unknown", expected_result: expected = {} } = tc;
   try {
@@ -67,7 +68,9 @@ async function runTestCase(
     if (score === null) return { name, passed: false, error: "no score" };
 
     const normalized = normalizeScore(score);
-    const passed = normalized >= (expected.min_score ?? 0) && normalized <= (expected.max_score ?? 1);
+    const passed =
+      normalized >= (expected.min_score ?? 0) &&
+      normalized <= (expected.max_score ?? 1);
     return { name, passed, score: normalized };
   } catch (e) {
     return { name, passed: false, error: String(e).slice(0, 50) };
@@ -111,7 +114,9 @@ async function loadEvaluator(filePath: string, funcName: string) {
 async function main() {
   const [, , modulePath, funcName, testCasesFile] = process.argv;
   if (!modulePath || !funcName || !testCasesFile) {
-    console.error("Usage: npx tsx eval_runner.ts <module_path> <func_name> <test_cases.json>");
+    console.error(
+      "Usage: npx tsx eval_runner.ts <module_path> <func_name> <test_cases.json>",
+    );
     process.exit(1);
   }
 
@@ -123,8 +128,12 @@ async function main() {
     process.exit(1);
   }
 
-  const testCases: TestCase[] = JSON.parse(fs.readFileSync(testCasesFile, "utf8"));
-  const results = await Promise.all(testCases.map((tc) => runTestCase(evalFunc, tc)));
+  const testCases: TestCase[] = JSON.parse(
+    fs.readFileSync(testCasesFile, "utf8"),
+  );
+  const results = await Promise.all(
+    testCases.map((tc) => runTestCase(evalFunc, tc)),
+  );
   console.log("EVALUATOR_RESULTS:" + JSON.stringify(results));
 }
 

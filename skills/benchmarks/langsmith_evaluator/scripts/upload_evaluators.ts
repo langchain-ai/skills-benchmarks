@@ -21,7 +21,8 @@ dotenv.config();
 // ============================================================================
 
 export const LANGSMITH_API_KEY = process.env.LANGSMITH_API_KEY;
-export const LANGSMITH_API_URL = process.env.LANGSMITH_API_URL || "https://api.smith.langchain.com";
+export const LANGSMITH_API_URL =
+  process.env.LANGSMITH_API_URL || "https://api.smith.langchain.com";
 export const LANGSMITH_WORKSPACE_ID = process.env.LANGSMITH_WORKSPACE_ID;
 
 // Only validate API key when running as CLI (not when imported for testing)
@@ -31,7 +32,9 @@ const isMainModule =
     process.argv[1].endsWith("upload_evaluators.js"));
 
 if (isMainModule && !LANGSMITH_API_KEY) {
-  console.error(chalk.red("Error: LANGSMITH_API_KEY environment variable is required"));
+  console.error(
+    chalk.red("Error: LANGSMITH_API_KEY environment variable is required"),
+  );
   process.exit(1);
 }
 
@@ -95,7 +98,9 @@ async function resolveDatasetId(datasetName: string): Promise<string | null> {
     const dataset = await client.readDataset({ datasetName });
     return dataset.id;
   } catch (e) {
-    console.log(chalk.yellow(`Warning: Could not find dataset '${datasetName}': ${e}`));
+    console.log(
+      chalk.yellow(`Warning: Could not find dataset '${datasetName}': ${e}`),
+    );
     return null;
   }
 }
@@ -108,10 +113,14 @@ async function resolveProjectId(projectName: string): Promise<string | null> {
         return project.id;
       }
     }
-    console.log(chalk.yellow(`Warning: Could not find project '${projectName}'`));
+    console.log(
+      chalk.yellow(`Warning: Could not find project '${projectName}'`),
+    );
     return null;
   } catch (e) {
-    console.log(chalk.yellow(`Warning: Error finding project '${projectName}': ${e}`));
+    console.log(
+      chalk.yellow(`Warning: Error finding project '${projectName}': ${e}`),
+    );
     return null;
   }
 }
@@ -134,7 +143,10 @@ async function promptConfirm(message: string): Promise<boolean> {
   });
 }
 
-export async function deleteEvaluator(name: string, confirm = true): Promise<boolean> {
+export async function deleteEvaluator(
+  name: string,
+  confirm = true,
+): Promise<boolean> {
   const rules = await getRules();
   const rule = rules.find((r) => r.display_name === name);
 
@@ -168,19 +180,31 @@ export async function deleteEvaluator(name: string, confirm = true): Promise<boo
 
 function extractJavaScriptFunction(
   fileContent: string,
-  functionName: string
+  functionName: string,
 ): string | null {
   // Match JavaScript/TypeScript function definitions
   // Handles: function name(), async function name(), const name = () =>, const name = async () =>
   const patterns = [
     // async function functionName(...)  { ... }
-    new RegExp(`(async\\s+function\\s+${functionName}\\s*\\([^)]*\\)\\s*\\{[\\s\\S]*?\\n\\})`, "m"),
+    new RegExp(
+      `(async\\s+function\\s+${functionName}\\s*\\([^)]*\\)\\s*\\{[\\s\\S]*?\\n\\})`,
+      "m",
+    ),
     // function functionName(...) { ... }
-    new RegExp(`(function\\s+${functionName}\\s*\\([^)]*\\)\\s*\\{[\\s\\S]*?\\n\\})`, "m"),
+    new RegExp(
+      `(function\\s+${functionName}\\s*\\([^)]*\\)\\s*\\{[\\s\\S]*?\\n\\})`,
+      "m",
+    ),
     // const functionName = async (...) => { ... }
-    new RegExp(`(const\\s+${functionName}\\s*=\\s*async\\s*\\([^)]*\\)\\s*=>\\s*\\{[\\s\\S]*?\\n\\})`, "m"),
+    new RegExp(
+      `(const\\s+${functionName}\\s*=\\s*async\\s*\\([^)]*\\)\\s*=>\\s*\\{[\\s\\S]*?\\n\\})`,
+      "m",
+    ),
     // const functionName = (...) => { ... }
-    new RegExp(`(const\\s+${functionName}\\s*=\\s*\\([^)]*\\)\\s*=>\\s*\\{[\\s\\S]*?\\n\\})`, "m"),
+    new RegExp(
+      `(const\\s+${functionName}\\s*=\\s*\\([^)]*\\)\\s*=>\\s*\\{[\\s\\S]*?\\n\\})`,
+      "m",
+    ),
   ];
 
   for (const pattern of patterns) {
@@ -190,20 +214,20 @@ function extractJavaScriptFunction(
       // Rename function to performEval as required by LangSmith for JS
       source = source.replace(
         new RegExp(`(async\\s+)?function\\s+${functionName}\\s*\\(`),
-        "$1function performEval("
+        "$1function performEval(",
       );
       source = source.replace(
         new RegExp(`const\\s+${functionName}\\s*=`),
-        "function performEval"
+        "function performEval",
       );
       // Handle arrow function conversion to regular function
       source = source.replace(
         /function performEval\s*async\s*\(([^)]*)\)\s*=>\s*\{/,
-        "async function performEval($1) {"
+        "async function performEval($1) {",
       );
       source = source.replace(
         /function performEval\s*\(([^)]*)\)\s*=>\s*\{/,
-        "function performEval($1) {"
+        "function performEval($1) {",
       );
       return source;
     }
@@ -225,12 +249,16 @@ async function createCodePayload(options: {
   if (await evaluatorExists(options.name)) {
     if (!options.replace) {
       console.log(
-        chalk.yellow(`Evaluator '${options.name}' already exists. Use --replace to overwrite.`)
+        chalk.yellow(
+          `Evaluator '${options.name}' already exists. Use --replace to overwrite.`,
+        ),
       );
       return null;
     } else {
       if (!options.skipConfirm) {
-        console.log(chalk.yellow(`Evaluator '${options.name}' already exists.`));
+        console.log(
+          chalk.yellow(`Evaluator '${options.name}' already exists.`),
+        );
         const confirmed = await promptConfirm("Replace existing evaluator?");
         if (!confirmed) {
           console.log(chalk.yellow("Upload cancelled"));
@@ -268,7 +296,9 @@ async function createCodePayload(options: {
   };
 }
 
-export async function createEvaluator(payload: EvaluatorPayload): Promise<boolean> {
+export async function createEvaluator(
+  payload: EvaluatorPayload,
+): Promise<boolean> {
   const url = `${LANGSMITH_API_URL}/runs/rules`;
 
   const data: Record<string, unknown> = {
@@ -298,7 +328,9 @@ export async function createEvaluator(payload: EvaluatorPayload): Promise<boolea
     return true;
   } else {
     const text = await response.text();
-    console.log(chalk.red(`✗ Failed to upload '${payload.display_name}': ${text}`));
+    console.log(
+      chalk.red(`✗ Failed to upload '${payload.display_name}': ${text}`),
+    );
     return false;
   }
 }
@@ -327,7 +359,11 @@ program
     }
 
     const table = new Table({
-      head: [chalk.bold("Name"), chalk.bold("Sampling Rate"), chalk.bold("Targets")],
+      head: [
+        chalk.bold("Name"),
+        chalk.bold("Sampling Rate"),
+        chalk.bold("Targets"),
+      ],
       style: { head: [], border: [] },
     });
 
@@ -386,7 +422,9 @@ program
     // Extract the function source
     const source = extractJavaScriptFunction(fileContent, opts.function);
     if (!source) {
-      console.log(chalk.red(`Function '${opts.function}' not found in ${evaluatorFile}`));
+      console.log(
+        chalk.red(`Function '${opts.function}' not found in ${evaluatorFile}`),
+      );
       return;
     }
 

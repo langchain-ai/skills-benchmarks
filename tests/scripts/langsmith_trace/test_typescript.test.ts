@@ -18,15 +18,17 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const SCRIPTS_BASE = resolve(__dirname, "../../../skills/benchmarks");
 const SCRIPT_PATH = resolve(
   SCRIPTS_BASE,
-  "langsmith_trace/scripts/query_traces.ts"
+  "langsmith_trace/scripts/query_traces.ts",
 );
 
 /**
  * Run the TypeScript script and return the result.
  */
-function runScript(
-  args: string[]
-): { stdout: string; stderr: string; returncode: number } {
+function runScript(args: string[]): {
+  stdout: string;
+  stderr: string;
+  returncode: number;
+} {
   try {
     const stdout = execSync(`npx tsx ${SCRIPT_PATH} ${args.join(" ")}`, {
       encoding: "utf8",
@@ -100,9 +102,8 @@ describe("mocked API functions", () => {
 
   describe("buildQueryParams", () => {
     it("creates correct params with basic options", async () => {
-      const { buildQueryParams } = await import(
-        "../../../skills/benchmarks/langsmith_trace/scripts/query_traces.js"
-      );
+      const { buildQueryParams } =
+        await import("../../../skills/benchmarks/langsmith_trace/scripts/query_traces.js");
 
       const params = buildQueryParams({
         project: "my-project",
@@ -116,9 +117,8 @@ describe("mocked API functions", () => {
     });
 
     it("handles run type filter", async () => {
-      const { buildQueryParams } = await import(
-        "../../../skills/benchmarks/langsmith_trace/scripts/query_traces.js"
-      );
+      const { buildQueryParams } =
+        await import("../../../skills/benchmarks/langsmith_trace/scripts/query_traces.js");
 
       const params = buildQueryParams({
         project: "my-project",
@@ -135,9 +135,8 @@ describe("mocked API functions", () => {
     });
 
     it("handles error filter", async () => {
-      const { buildQueryParams } = await import(
-        "../../../skills/benchmarks/langsmith_trace/scripts/query_traces.js"
-      );
+      const { buildQueryParams } =
+        await import("../../../skills/benchmarks/langsmith_trace/scripts/query_traces.js");
 
       const params = buildQueryParams({
         project: "my-project",
@@ -150,9 +149,8 @@ describe("mocked API functions", () => {
     });
 
     it("uses env var when project not specified", async () => {
-      const { buildQueryParams } = await import(
-        "../../../skills/benchmarks/langsmith_trace/scripts/query_traces.js"
-      );
+      const { buildQueryParams } =
+        await import("../../../skills/benchmarks/langsmith_trace/scripts/query_traces.js");
 
       const params = buildQueryParams({
         limit: 10,
@@ -165,9 +163,8 @@ describe("mocked API functions", () => {
 
   describe("extractRun", () => {
     it("extracts basic run data matching fixture format", async () => {
-      const { extractRun } = await import(
-        "../../../skills/benchmarks/langsmith_trace/scripts/query_traces.js"
-      );
+      const { extractRun } =
+        await import("../../../skills/benchmarks/langsmith_trace/scripts/query_traces.js");
 
       // Create a mock Run object that matches LangSmith SDK structure
       // Use 'as any' since we're only testing the fields extractRun uses
@@ -191,9 +188,8 @@ describe("mocked API functions", () => {
     });
 
     it("extracts metadata when requested", async () => {
-      const { extractRun } = await import(
-        "../../../skills/benchmarks/langsmith_trace/scripts/query_traces.js"
-      );
+      const { extractRun } =
+        await import("../../../skills/benchmarks/langsmith_trace/scripts/query_traces.js");
 
       const runWithMetadata = SAMPLE_RUNS_WITH_METADATA[0];
       const mockRun = {
@@ -216,16 +212,17 @@ describe("mocked API functions", () => {
       expect(extracted.name).toBe("ChatAnthropic");
       expect(extracted.run_type).toBe("llm");
       expect(extracted.status).toBe("success");
-      expect(extracted.custom_metadata).toEqual(runWithMetadata.custom_metadata);
+      expect(extracted.custom_metadata).toEqual(
+        runWithMetadata.custom_metadata,
+      );
       expect(extracted.token_usage?.prompt_tokens).toBe(150);
       expect(extracted.token_usage?.completion_tokens).toBe(75);
       expect(extracted.token_usage?.total_tokens).toBe(225);
     });
 
     it("extracts inputs/outputs when requested", async () => {
-      const { extractRun } = await import(
-        "../../../skills/benchmarks/langsmith_trace/scripts/query_traces.js"
-      );
+      const { extractRun } =
+        await import("../../../skills/benchmarks/langsmith_trace/scripts/query_traces.js");
 
       const mockRun = {
         id: "test-run-id",
@@ -263,9 +260,8 @@ describe("mocked API with fixtures", () => {
   });
 
   it("processes trace list data matching SAMPLE_TRACES_LIST format", async () => {
-    const { extractRun } = await import(
-      "../../../skills/benchmarks/langsmith_trace/scripts/query_traces.js"
-    );
+    const { extractRun } =
+      await import("../../../skills/benchmarks/langsmith_trace/scripts/query_traces.js");
 
     // Simulate processing runs from API response
     // Use 'as any' since we're only testing the fields extractRun uses
@@ -279,7 +275,7 @@ describe("mocked API with fixtures", () => {
           parent_run_id: t.parent_run_id,
           start_time: new Date(t.start_time),
           end_time: new Date(t.end_time),
-        }) as any
+        }) as any,
     );
 
     const extracted = mockRuns.map((r: any) => extractRun(r, false, false));
@@ -302,9 +298,8 @@ describe("mocked API with fixtures", () => {
   });
 
   it("processes trace get data matching SAMPLE_TRACE_GET format", async () => {
-    const { extractRun } = await import(
-      "../../../skills/benchmarks/langsmith_trace/scripts/query_traces.js"
-    );
+    const { extractRun } =
+      await import("../../../skills/benchmarks/langsmith_trace/scripts/query_traces.js");
 
     // Simulate processing runs from trace get response
     // Use 'as any' since we're only testing the fields extractRun uses
@@ -318,7 +313,7 @@ describe("mocked API with fixtures", () => {
           parent_run_id: r.parent_run_id,
           start_time: new Date(r.start_time),
           end_time: new Date(r.end_time),
-        }) as any
+        }) as any,
     );
 
     const extracted = mockRuns.map((r: any) => extractRun(r, false, false));
@@ -335,16 +330,17 @@ describe("mocked API with fixtures", () => {
     expect(runNames).toContain("model");
 
     // Check run types match fixture
-    const runTypes = Object.fromEntries(extracted.map((r) => [r.name, r.run_type]));
+    const runTypes = Object.fromEntries(
+      extracted.map((r) => [r.name, r.run_type]),
+    );
     expect(runTypes["LangGraph"]).toBe("chain");
     expect(runTypes["ChatAnthropic"]).toBe("llm");
     expect(runTypes["calculator"]).toBe("tool");
   });
 
   it("processes runs with metadata matching SAMPLE_RUNS_WITH_METADATA format", async () => {
-    const { extractRun } = await import(
-      "../../../skills/benchmarks/langsmith_trace/scripts/query_traces.js"
-    );
+    const { extractRun } =
+      await import("../../../skills/benchmarks/langsmith_trace/scripts/query_traces.js");
 
     // Simulate processing runs with metadata
     // Use 'as any' since we're only testing the fields extractRun uses
@@ -363,7 +359,7 @@ describe("mocked API with fixtures", () => {
           prompt_tokens: r.token_usage?.prompt_tokens,
           completion_tokens: r.token_usage?.completion_tokens,
           total_tokens: r.token_usage?.total_tokens,
-        }) as any
+        }) as any,
     );
 
     const extracted = mockRuns.map((r: any) => extractRun(r, true, false));
@@ -377,6 +373,8 @@ describe("mocked API with fixtures", () => {
 
     // Check metadata is present
     expect(extracted[0].custom_metadata).toBeDefined();
-    expect(extracted[0].custom_metadata?.ls_model_name).toBe("claude-3-5-haiku-20241022");
+    expect(extracted[0].custom_metadata?.ls_model_name).toBe(
+      "claude-3-5-haiku-20241022",
+    );
   });
 });

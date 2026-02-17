@@ -24,10 +24,13 @@ function prebuildDockerImage(environmentDir: string): string | null {
   }
 
   try {
-    const result = execSync(`bash ${SHELL_DIR}/docker.sh build ${environmentDir}`, {
-      stdio: "pipe",
-      timeout: 300000, // 5 minutes
-    });
+    const result = execSync(
+      `bash ${SHELL_DIR}/docker.sh build ${environmentDir}`,
+      {
+        stdio: "pipe",
+        timeout: 300000, // 5 minutes
+      },
+    );
     return result.toString().trim();
   } catch {
     return null;
@@ -51,7 +54,9 @@ export default async function globalSetup(): Promise<void> {
   try {
     execSync("claude --version", { stdio: "pipe" });
   } catch {
-    errors.push("Claude CLI not available. Install from: https://claude.ai/code");
+    errors.push(
+      "Claude CLI not available. Install from: https://claude.ai/code",
+    );
   }
 
   // Check API keys

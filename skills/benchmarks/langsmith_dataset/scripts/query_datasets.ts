@@ -32,7 +32,11 @@ export interface Example {
   [key: string]: unknown;
 }
 
-export function displayExamples(examples: Example[], fmt: string, limit: number): void {
+export function displayExamples(
+  examples: Example[],
+  fmt: string,
+  limit: number,
+): void {
   const sliced = examples.slice(0, limit);
 
   if (fmt === "json") {
@@ -129,7 +133,7 @@ program
   .addOption(
     new Option("--format <format>", "Output format")
       .choices(["pretty", "json"])
-      .default("pretty")
+      .default("pretty"),
   )
   .action(async (datasetName, opts) => {
     const client = getClient();
@@ -144,7 +148,10 @@ program
     }
 
     const examples: Example[] = [];
-    for await (const ex of client.listExamples({ datasetId: dataset.id, limit })) {
+    for await (const ex of client.listExamples({
+      datasetId: dataset.id,
+      limit,
+    })) {
       examples.push({
         inputs: ex.inputs,
         outputs: ex.outputs,
@@ -169,7 +176,7 @@ program
   .addOption(
     new Option("--format <format>", "Output format")
       .choices(["pretty", "json"])
-      .default("pretty")
+      .default("pretty"),
   )
   .action((filePath, opts) => {
     const resolvedPath = path.resolve(filePath);
@@ -223,7 +230,7 @@ program
 
         for (const row of rows.slice(0, limit)) {
           table.push(
-            Object.values(row).map((v) => String(v).substring(0, 100))
+            Object.values(row).map((v) => String(v).substring(0, 100)),
           );
         }
         console.log(table.toString());
@@ -274,7 +281,7 @@ program
         for (const key of Array.from(allKeys).sort()) {
           const count = data.filter(
             (ex: unknown) =>
-              typeof ex === "object" && ex !== null && key in (ex as object)
+              typeof ex === "object" && ex !== null && key in (ex as object),
           ).length;
           const pct = ((count / data.length) * 100).toFixed(0);
           console.log(`  ${key}: ${count}/${data.length} (${pct}%)`);
@@ -302,7 +309,8 @@ program
           const idx = headers.indexOf(col);
           return values[idx] && values[idx].trim();
         }).length;
-        const pct = rows.length > 0 ? ((nonEmpty / rows.length) * 100).toFixed(0) : 0;
+        const pct =
+          rows.length > 0 ? ((nonEmpty / rows.length) * 100).toFixed(0) : 0;
         console.log(`  ${col}: ${nonEmpty}/${rows.length} (${pct}%)`);
       }
     } else {
@@ -328,7 +336,10 @@ program
     }
 
     const examples: Example[] = [];
-    for await (const ex of client.listExamples({ datasetId: dataset.id, limit })) {
+    for await (const ex of client.listExamples({
+      datasetId: dataset.id,
+      limit,
+    })) {
       examples.push({
         inputs: ex.inputs,
         outputs: ex.outputs,
@@ -343,7 +354,8 @@ program
     const outputPath = path.resolve(outputFile);
     fs.writeFileSync(outputPath, JSON.stringify(examples, null, 2));
     console.log(
-      chalk.green("✓") + ` Exported ${examples.length} examples to ${outputFile}`
+      chalk.green("✓") +
+        ` Exported ${examples.length} examples to ${outputFile}`,
     );
   });
 

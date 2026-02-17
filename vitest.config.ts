@@ -36,7 +36,10 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      "@skills-benchmark/scaffold": resolve(__dirname, "scaffold/typescript/index.ts"),
+      "@skills-benchmark/scaffold": resolve(
+        __dirname,
+        "scaffold/typescript/index.ts",
+      ),
     },
   },
 });

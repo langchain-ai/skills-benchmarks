@@ -20,7 +20,7 @@ export interface Validator {
   validate(
     events: Record<string, unknown>,
     testDir: string,
-    outputs?: Record<string, unknown>
+    outputs?: Record<string, unknown>,
   ): Promise<ValidationResult> | ValidationResult;
 }
 
@@ -31,7 +31,7 @@ export interface Validator {
 export class SkillInvokedValidator implements Validator {
   constructor(
     public skillName: string,
-    public options: { required?: boolean } = {}
+    public options: { required?: boolean } = {},
   ) {}
 
   validate(events: Record<string, unknown>): ValidationResult {
@@ -39,8 +39,10 @@ export class SkillInvokedValidator implements Validator {
     const invoked = skillsInvoked.includes(this.skillName);
     const required = this.options.required ?? true;
 
-    if (invoked) return { passed: [`Invoked ${this.skillName} skill`], failed: [] };
-    if (required) return { passed: [], failed: [`Did NOT invoke ${this.skillName} skill`] };
+    if (invoked)
+      return { passed: [`Invoked ${this.skillName} skill`], failed: [] };
+    if (required)
+      return { passed: [], failed: [`Did NOT invoke ${this.skillName} skill`] };
     return { passed: [`Note: did not invoke ${this.skillName}`], failed: [] };
   }
 }
@@ -65,13 +67,13 @@ export interface FileValidatorOptions {
 export class TypeScriptFileValidator implements Validator {
   constructor(
     public filename: string,
-    public opts: FileValidatorOptions = {}
+    public opts: FileValidatorOptions = {},
   ) {}
 
   async validate(
     _events: Record<string, unknown>,
     testDir: string,
-    outputs?: Record<string, unknown>
+    outputs?: Record<string, unknown>,
   ): Promise<ValidationResult> {
     const passed: string[] = [];
     const failed: string[] = [];
@@ -88,14 +90,29 @@ export class TypeScriptFileValidator implements Validator {
     // Check required patterns
     const required = this.opts.required || {};
     if (Object.keys(required).length > 0) {
-      const found = Object.entries(required).filter(([p]) => content.includes(p));
-      const missing = Object.entries(required).filter(([p]) => !content.includes(p));
+      const found = Object.entries(required).filter(([p]) =>
+        content.includes(p),
+      );
+      const missing = Object.entries(required).filter(
+        ([p]) => !content.includes(p),
+      );
 
       if (this.opts.requireAll) {
         missing.forEach(([, d]) => failed.push(`${label}: missing ${d}`));
-        if (found.length) passed.push(`${label}: ${found.slice(0, 3).map(([, d]) => d).join(", ")}`);
+        if (found.length)
+          passed.push(
+            `${label}: ${found
+              .slice(0, 3)
+              .map(([, d]) => d)
+              .join(", ")}`,
+          );
       } else if (found.length) {
-        passed.push(`${label}: ${found.slice(0, 3).map(([, d]) => d).join(", ")}`);
+        passed.push(
+          `${label}: ${found
+            .slice(0, 3)
+            .map(([, d]) => d)
+            .join(", ")}`,
+        );
       } else {
         failed.push(`${label}: missing required patterns`);
       }
@@ -108,7 +125,9 @@ export class TypeScriptFileValidator implements Validator {
       if (found) {
         passed.push(`${label}: ${found[1]}`);
       } else {
-        failed.push(`${label}: missing (need one of: ${Object.values(anyOf).join(", ")})`);
+        failed.push(
+          `${label}: missing (need one of: ${Object.values(anyOf).join(", ")})`,
+        );
       }
     }
 
@@ -123,20 +142,29 @@ export class TypeScriptFileValidator implements Validator {
       if (outputs && this.filename in outputs) {
         [success, output] = outputs[this.filename] as [boolean, string];
       } else {
-        [success, output] = runNodeInDocker(testDir, this.filename, { args: this.opts.runArgs || [] });
+        [success, output] = runNodeInDocker(testDir, this.filename, {
+          args: this.opts.runArgs || [],
+        });
       }
 
       if (success) {
         passed.push(`${label}: runs successfully`);
-        const lines = output.trim().split("\n").filter((l) => l.trim()).length;
+        const lines = output
+          .trim()
+          .split("\n")
+          .filter((l) => l.trim()).length;
 
         if (this.opts.minOutputLines && lines < this.opts.minOutputLines) {
-          failed.push(`${label}: only ${lines} lines (need ${this.opts.minOutputLines})`);
+          failed.push(
+            `${label}: only ${lines} lines (need ${this.opts.minOutputLines})`,
+          );
         } else if (this.opts.minOutputLines) {
           passed.push(`${label}: ${lines} lines output`);
         }
 
-        for (const [pattern, desc] of Object.entries(this.opts.outputPatterns || {})) {
+        for (const [pattern, desc] of Object.entries(
+          this.opts.outputPatterns || {},
+        )) {
           if (output.toLowerCase().includes(pattern.toLowerCase())) {
             passed.push(`${label}: output has ${desc}`);
           } else {
@@ -162,7 +190,10 @@ export { TypeScriptFileValidator as FileValidator };
 export class NoiseTaskValidator implements Validator {
   constructor(public outputFiles: string[]) {}
 
-  validate(_events: Record<string, unknown>, testDir: string): ValidationResult {
+  validate(
+    _events: Record<string, unknown>,
+    testDir: string,
+  ): ValidationResult {
     const passed: string[] = [];
     const failed: string[] = [];
     for (const f of this.outputFiles) {
@@ -190,10 +221,19 @@ export class MetricsCollector implements Validator {
     ];
 
     // Check for deprecated API usage attempts
-    const deprecated = ["create_sql_agent", "AgentExecutor", "initialize_agent"];
-    const toolCalls = (evts.tool_calls || []) as Array<{ tool: string; input: Record<string, unknown> }>;
+    const deprecated = [
+      "create_sql_agent",
+      "AgentExecutor",
+      "initialize_agent",
+    ];
+    const toolCalls = (evts.tool_calls || []) as Array<{
+      tool: string;
+      input: Record<string, unknown>;
+    }>;
     const depCount = toolCalls.filter(
-      (tc) => (tc.tool === "Write" || tc.tool === "Edit") && deprecated.some((d) => JSON.stringify(tc.input).includes(d))
+      (tc) =>
+        (tc.tool === "Write" || tc.tool === "Edit") &&
+        deprecated.some((d) => JSON.stringify(tc.input).includes(d)),
     ).length;
     if (depCount) passed.push(`Deprecated attempts: ${depCount}`);
 
@@ -214,13 +254,17 @@ export class OutputQualityValidator implements Validator {
   constructor(
     public filename: string,
     public label: string,
-    public opts: { taskDescription: string; expectedBehavior: string; runArgs?: string[] }
+    public opts: {
+      taskDescription: string;
+      expectedBehavior: string;
+      runArgs?: string[];
+    },
   ) {}
 
   async validate(
     _events: Record<string, unknown>,
     testDir: string,
-    outputs?: Record<string, unknown>
+    outputs?: Record<string, unknown>,
   ): Promise<ValidationResult> {
     const passed: string[] = [];
     const filePath = join(testDir, this.filename);
@@ -230,20 +274,29 @@ export class OutputQualityValidator implements Validator {
     }
 
     // Get output (from cache or by running)
-    let success: boolean, output: string, duration: number | null = null;
+    let success: boolean,
+      output: string,
+      duration: number | null = null;
     if (outputs && this.filename in outputs) {
       const cached = outputs[this.filename] as [boolean, string, number?];
       [success, output, duration] = [cached[0], cached[1], cached[2] ?? null];
     } else {
-      [success, output] = runNodeInDocker(testDir, this.filename, { args: this.opts.runArgs || [] });
+      [success, output] = runNodeInDocker(testDir, this.filename, {
+        args: this.opts.runArgs || [],
+      });
     }
 
     if (!success) {
-      return { passed: [], failed: [`${this.label}: runtime error - ${output.slice(0, 100)}`] };
+      return {
+        passed: [],
+        failed: [`${this.label}: runtime error - ${output.slice(0, 100)}`],
+      };
     }
 
     const durStr = duration ? ` in ${duration.toFixed(1)}s` : "";
-    passed.push(`${this.label}: produced output (${output.length} chars${durStr})`);
+    passed.push(
+      `${this.label}: produced output (${output.length} chars${durStr})`,
+    );
 
     // Evaluate with LLM
     const prompt = `Evaluate this program output.
@@ -256,7 +309,9 @@ ${output.slice(0, 3000)}
 Does this demonstrate the expected behavior?`;
 
     const result = await evaluateWithSchema(prompt);
-    passed.push(`${this.label} quality [${result.pass ? "GOOD" : "LOW"}]: ${result.reason}`);
+    passed.push(
+      `${this.label} quality [${result.pass ? "GOOD" : "LOW"}]: ${result.reason}`,
+    );
 
     return { passed, failed: [] };
   }

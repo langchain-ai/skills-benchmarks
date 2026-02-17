@@ -58,7 +58,10 @@ function dictToObj(d: Record<string, unknown>): RunData {
   return obj;
 }
 
-export function loadTracesFromDir(inputDir: string, sort = "newest"): TraceData[] {
+export function loadTracesFromDir(
+  inputDir: string,
+  sort = "newest",
+): TraceData[] {
   const traces: TraceData[] = [];
   const dirPath = path.resolve(inputDir);
 
@@ -86,7 +89,8 @@ export function loadTracesFromDir(inputDir: string, sort = "newest"): TraceData[
       for (const line of content.split("\n")) {
         if (line.trim()) {
           const runData = JSON.parse(line) as Record<string, unknown>;
-          const traceId = (runData.trace_id as string) || path.basename(fileName, ".jsonl");
+          const traceId =
+            (runData.trace_id as string) || path.basename(fileName, ".jsonl");
           if (!runsByTrace.has(traceId)) {
             runsByTrace.set(traceId, []);
           }
@@ -129,7 +133,10 @@ export function loadTracesFromDir(inputDir: string, sort = "newest"): TraceData[
   return sortTraces(traces, sort);
 }
 
-export function loadTracesFromFile(inputFile: string, sort = "newest"): TraceData[] {
+export function loadTracesFromFile(
+  inputFile: string,
+  sort = "newest",
+): TraceData[] {
   const traces: TraceData[] = [];
   const filePath = path.resolve(inputFile);
 
@@ -183,14 +190,18 @@ export function loadTracesFromFile(inputFile: string, sort = "newest"): TraceDat
 function sortTraces(traces: TraceData[], sort: string): TraceData[] {
   if (sort === "newest") {
     return traces.sort((a, b) => {
-      const aTime = a[1].start_time instanceof Date ? a[1].start_time.getTime() : 0;
-      const bTime = b[1].start_time instanceof Date ? b[1].start_time.getTime() : 0;
+      const aTime =
+        a[1].start_time instanceof Date ? a[1].start_time.getTime() : 0;
+      const bTime =
+        b[1].start_time instanceof Date ? b[1].start_time.getTime() : 0;
       return bTime - aTime;
     });
   } else if (sort === "oldest") {
     return traces.sort((a, b) => {
-      const aTime = a[1].start_time instanceof Date ? a[1].start_time.getTime() : 0;
-      const bTime = b[1].start_time instanceof Date ? b[1].start_time.getTime() : 0;
+      const aTime =
+        a[1].start_time instanceof Date ? a[1].start_time.getTime() : 0;
+      const bTime =
+        b[1].start_time instanceof Date ? b[1].start_time.getTime() : 0;
       return aTime - bTime;
     });
   } else if (sort === "alphabetical") {
@@ -205,7 +216,14 @@ function sortTraces(traces: TraceData[], sort: string): TraceData[] {
 // Extraction Helpers
 // ============================================================================
 
-const COMMON_INPUT_FIELDS = ["query", "input", "question", "message", "prompt", "text"];
+const COMMON_INPUT_FIELDS = [
+  "query",
+  "input",
+  "question",
+  "message",
+  "prompt",
+  "text",
+];
 const COMMON_OUTPUT_FIELDS = ["answer", "output", "response", "result"];
 
 interface Message {
@@ -214,7 +232,10 @@ interface Message {
   content?: string;
 }
 
-function extractFromMessages(messages: unknown[], role?: string): string | null {
+function extractFromMessages(
+  messages: unknown[],
+  role?: string,
+): string | null {
   if (!messages || !Array.isArray(messages)) return null;
 
   if (role === "human" || role === "user") {
@@ -259,7 +280,7 @@ function extractValue(
   fields?: string[],
   commonFields?: string[],
   messageRole?: string,
-  fallbackToRaw = true
+  fallbackToRaw = true,
 ): unknown {
   if (!data) return null;
 
@@ -303,7 +324,7 @@ function extractValue(
 function extractTraceInputs(
   root: RunData,
   inputFields?: string[],
-  asDict = true
+  asDict = true,
 ): unknown {
   const inputs = root.inputs || {};
 
@@ -312,7 +333,13 @@ function extractTraceInputs(
   }
 
   if (inputFields) {
-    return extractValue(inputs, inputFields, COMMON_INPUT_FIELDS, "human", true);
+    return extractValue(
+      inputs,
+      inputFields,
+      COMMON_INPUT_FIELDS,
+      "human",
+      true,
+    );
   }
 
   if (asDict) {
@@ -325,7 +352,7 @@ function extractTraceInputs(
 function extractTraceOutput(
   root: RunData,
   outputFields?: string[],
-  messagesOnly = false
+  messagesOnly = false,
 ): unknown {
   const outputs = root.outputs || {};
 
@@ -338,7 +365,7 @@ function extractTraceOutput(
     outputFields,
     messagesOnly ? undefined : COMMON_OUTPUT_FIELDS,
     "ai",
-    !messagesOnly
+    !messagesOnly,
   );
 
   if (typeof result === "object" && result !== null) {
@@ -364,7 +391,7 @@ function extractFinalOutput(runs: RunData[], outputFields?: string[]): string {
       outputFields,
       COMMON_OUTPUT_FIELDS,
       "ai",
-      true
+      true,
     );
 
     if (result) {
@@ -405,7 +432,10 @@ function extractToolSequence(runs: RunData[], depth?: number): string[] {
   for (const r of sortedRuns) {
     const runType = r.run_type;
     const runId = r.run_id || r.id || "";
-    if (runType === "tool" && (depth === undefined || getDepth(runId) <= depth)) {
+    if (
+      runType === "tool" &&
+      (depth === undefined || getDepth(runId) <= depth)
+    ) {
       result.push((r.name || "unknown").toLowerCase());
     }
   }
@@ -413,7 +443,10 @@ function extractToolSequence(runs: RunData[], depth?: number): string[] {
   return result;
 }
 
-function getNodeIo(runs: RunData[], runName?: string): Array<{
+function getNodeIo(
+  runs: RunData[],
+  runName?: string,
+): Array<{
   node_name: string;
   inputs: Record<string, unknown>;
   outputs: Record<string, unknown>;
@@ -453,7 +486,11 @@ function extractDocuments(outputs: unknown): string[] {
 
   let docs: unknown[];
 
-  if (typeof outputs === "object" && outputs !== null && !Array.isArray(outputs)) {
+  if (
+    typeof outputs === "object" &&
+    outputs !== null &&
+    !Array.isArray(outputs)
+  ) {
     const o = outputs as Record<string, unknown>;
     const docsData = o.documents || o.output || outputs;
     docs = Array.isArray(docsData) ? docsData : [docsData];
@@ -500,7 +537,13 @@ function findRetrievalData(runs: RunData[]): {
   for (const run of sortedRetRuns) {
     const inputs = run.inputs;
     if (inputs && typeof inputs === "object" && !data.query) {
-      const query = extractValue(inputs, undefined, COMMON_INPUT_FIELDS, "human", false);
+      const query = extractValue(
+        inputs,
+        undefined,
+        COMMON_INPUT_FIELDS,
+        "human",
+        false,
+      );
       data.query = query ? String(query) : "";
     }
 
@@ -542,7 +585,7 @@ function generateDataset(
     outputFields?: string[];
     messagesOnly?: boolean;
     samplePerTrace?: number;
-  }
+  },
 ): DatasetExample[] {
   const dataset: DatasetExample[] = [];
 
@@ -558,9 +601,17 @@ function generateDataset(
         cited_chunks: JSON.stringify(ragData.retrieved_chunks.slice(0, 3)),
       });
     } else {
-      const rootInputs = extractTraceInputs(root, options.inputFields, !options.inputFields);
+      const rootInputs = extractTraceInputs(
+        root,
+        options.inputFields,
+        !options.inputFields,
+      );
 
-      if (!rootInputs || (typeof rootInputs === "object" && Object.keys(rootInputs as object).length === 0)) {
+      if (
+        !rootInputs ||
+        (typeof rootInputs === "object" &&
+          Object.keys(rootInputs as object).length === 0)
+      ) {
         continue;
       }
 
@@ -572,7 +623,11 @@ function generateDataset(
       }
 
       if (datasetType === "final_response") {
-        const output = extractTraceOutput(root, options.outputFields, options.messagesOnly);
+        const output = extractTraceOutput(
+          root,
+          options.outputFields,
+          options.messagesOnly,
+        );
         if (!output) continue;
         const outputs = { expected_response: output };
         dataset.push({ trace_id: traceId, inputs, outputs });
@@ -581,7 +636,10 @@ function generateDataset(
         if (nodeIoList.length === 0) continue;
 
         let sampled = nodeIoList;
-        if (options.samplePerTrace && nodeIoList.length > options.samplePerTrace) {
+        if (
+          options.samplePerTrace &&
+          nodeIoList.length > options.samplePerTrace
+        ) {
           // Random sample
           const shuffled = [...nodeIoList].sort(() => Math.random() - 0.5);
           sampled = shuffled.slice(0, options.samplePerTrace);
@@ -657,14 +715,16 @@ function exportToFile(dataset: DatasetExample[], outputPath: string): void {
     fs.writeFileSync(outputPath, JSON.stringify(dataset, null, 2));
   }
 
-  console.log(chalk.green("✓") + ` Exported ${dataset.length} examples to ${outputPath}`);
+  console.log(
+    chalk.green("✓") + ` Exported ${dataset.length} examples to ${outputPath}`,
+  );
 }
 
 async function exportToLangsmith(
   client: Client,
   dataset: DatasetExample[],
   datasetName: string,
-  datasetType: string
+  datasetType: string,
 ): Promise<void> {
   let ds;
   try {
@@ -731,17 +791,17 @@ Dataset types:
   final_response - Full conversation with expected output
   single_step    - Single node inputs/outputs (use --run-name)
   trajectory     - Tool call sequence (use --depth)
-  rag            - Question/chunks/answer/citations`
+  rag            - Question/chunks/answer/citations`,
   )
   .version("1.0.0")
   .requiredOption(
     "-i, --input <path>",
-    "Input traces: directory of JSONL files or single JSONL file"
+    "Input traces: directory of JSONL files or single JSONL file",
   )
   .addOption(
     new Option("-t, --type <type>", "Dataset type to generate")
       .choices(["final_response", "single_step", "trajectory", "rag"])
-      .makeOptionMandatory()
+      .makeOptionMandatory(),
   )
   .requiredOption("-o, --output <path>", "Output file (JSON or CSV)")
   .option("--upload <name>", "Upload to LangSmith dataset with this name")
@@ -749,25 +809,22 @@ Dataset types:
   .option("--depth <n>", "For trajectory: max hierarchy depth", parseInt)
   .option(
     "--input-fields <fields>",
-    "Comma-separated input keys to extract (e.g., 'query,question')"
+    "Comma-separated input keys to extract (e.g., 'query,question')",
   )
   .option(
     "--output-fields <fields>",
-    "Comma-separated output keys to extract (e.g., 'answer,response')"
+    "Comma-separated output keys to extract (e.g., 'answer,response')",
   )
-  .option(
-    "--messages-only",
-    "For final_response: only extract from messages"
-  )
+  .option("--messages-only", "For final_response: only extract from messages")
   .option(
     "--sample-per-trace <n>",
     "For single_step: max examples per trace",
-    parseInt
+    parseInt,
   )
   .addOption(
     new Option("--sort <order>", "Sort order for traces")
       .choices(["newest", "oldest", "alphabetical", "reverse-alphabetical"])
-      .default("newest")
+      .default("newest"),
   )
   .option("--replace", "Replace existing file/dataset")
   .option("--yes", "Skip confirmation prompts")
@@ -778,7 +835,7 @@ Dataset types:
     // Check output exists
     if (fs.existsSync(outputPath) && !opts.replace) {
       console.log(
-        chalk.yellow(`File ${outputPath} exists. Use --replace to overwrite.`)
+        chalk.yellow(`File ${outputPath} exists. Use --replace to overwrite.`),
       );
       return;
     }
@@ -802,7 +859,7 @@ Dataset types:
 
     console.log(
       chalk.green("✓") +
-        ` Loaded ${traces.length} traces from ${inputPath} (sorted: ${opts.sort})`
+        ` Loaded ${traces.length} traces from ${inputPath} (sorted: ${opts.sort})`,
     );
 
     // Generate dataset
@@ -830,9 +887,13 @@ Dataset types:
       const client = getClient();
       if (opts.replace) {
         try {
-          const existing = await client.readDataset({ datasetName: opts.upload });
+          const existing = await client.readDataset({
+            datasetName: opts.upload,
+          });
           if (!opts.yes) {
-            console.log(chalk.yellow(`About to delete dataset: '${opts.upload}'`));
+            console.log(
+              chalk.yellow(`About to delete dataset: '${opts.upload}'`),
+            );
             const confirmed = await promptConfirm("Are you sure?");
             if (!confirmed) {
               console.log(chalk.yellow("Upload cancelled"));

@@ -58,7 +58,7 @@ Save to agent.py and run it.`;
 
 const REQUIRED_PATTERNS = {
   "@tool": "uses @tool decorator",
-  "create_agent": "uses create_agent",
+  create_agent: "uses create_agent",
 };
 
 function createValidators() {
@@ -118,7 +118,7 @@ const ENVIRONMENT_DIR = resolve(
   "..",
   "benchmarks",
   "lc_basic",
-  "environment"
+  "environment",
 );
 
 // =============================================================================
@@ -129,7 +129,7 @@ describe("Example Guidance Experiment", () => {
   beforeAll(() => {
     if (!existsSync(ENVIRONMENT_DIR)) {
       console.warn(
-        `Skipping tests: environment directory not found at ${ENVIRONMENT_DIR}`
+        `Skipping tests: environment directory not found at ${ENVIRONMENT_DIR}`,
       );
     }
   });
@@ -170,7 +170,7 @@ describe("Example Guidance Experiment", () => {
         treatment,
         events as unknown as Record<string, unknown>,
         testDir,
-        {}
+        {},
       );
 
       // 5. Record results
@@ -178,6 +178,6 @@ describe("Example Guidance Experiment", () => {
 
       // 6. Assert
       expect(failed).toEqual([]);
-    }
+    },
   );
 });

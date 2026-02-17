@@ -23,35 +23,35 @@ const SCRIPTS_BASE = resolve(__dirname, "../../../skills/benchmarks");
 // Script paths
 const PY_QUERY_TRACES = resolve(
   SCRIPTS_BASE,
-  "langsmith_trace/scripts/query_traces.py"
+  "langsmith_trace/scripts/query_traces.py",
 );
 const TS_QUERY_TRACES = resolve(
   SCRIPTS_BASE,
-  "langsmith_trace/scripts/query_traces.ts"
+  "langsmith_trace/scripts/query_traces.ts",
 );
 const PY_GENERATE_DATASETS = resolve(
   SCRIPTS_BASE,
-  "langsmith_dataset/scripts/generate_datasets.py"
+  "langsmith_dataset/scripts/generate_datasets.py",
 );
 const TS_GENERATE_DATASETS = resolve(
   SCRIPTS_BASE,
-  "langsmith_dataset/scripts/generate_datasets.ts"
+  "langsmith_dataset/scripts/generate_datasets.ts",
 );
 const PY_QUERY_DATASETS = resolve(
   SCRIPTS_BASE,
-  "langsmith_dataset/scripts/query_datasets.py"
+  "langsmith_dataset/scripts/query_datasets.py",
 );
 const TS_QUERY_DATASETS = resolve(
   SCRIPTS_BASE,
-  "langsmith_dataset/scripts/query_datasets.ts"
+  "langsmith_dataset/scripts/query_datasets.ts",
 );
 const PY_UPLOAD_EVALUATORS = resolve(
   SCRIPTS_BASE,
-  "langsmith_evaluator/scripts/upload_evaluators.py"
+  "langsmith_evaluator/scripts/upload_evaluators.py",
 );
 const TS_UPLOAD_EVALUATORS = resolve(
   SCRIPTS_BASE,
-  "langsmith_evaluator/scripts/upload_evaluators.ts"
+  "langsmith_evaluator/scripts/upload_evaluators.ts",
 );
 
 /**
@@ -59,7 +59,7 @@ const TS_UPLOAD_EVALUATORS = resolve(
  */
 function runPythonScript(
   scriptPath: string,
-  args: string[]
+  args: string[],
 ): { stdout: string; stderr: string; returncode: number } {
   try {
     const stdout = execSync(`uv run python ${scriptPath} ${args.join(" ")}`, {
@@ -83,7 +83,7 @@ function runPythonScript(
  */
 function runTsScript(
   scriptPath: string,
-  args: string[]
+  args: string[],
 ): { stdout: string; stderr: string; returncode: number } {
   try {
     const stdout = execSync(`npx tsx ${scriptPath} ${args.join(" ")}`, {
@@ -117,7 +117,7 @@ function normalizeJson(data: unknown): unknown {
           acc[key] = normalizeJson((data as Record<string, unknown>)[key]);
           return acc;
         },
-        {} as Record<string, unknown>
+        {} as Record<string, unknown>,
       );
     return sorted;
   }
@@ -255,7 +255,7 @@ describe("generate_datasets output parity", () => {
       assertJsonEqual(
         pyData[i],
         tsData[i],
-        `Trajectory example ${i} differs between Python and TypeScript`
+        `Trajectory example ${i} differs between Python and TypeScript`,
       );
     }
   });
@@ -299,7 +299,7 @@ describe("generate_datasets output parity", () => {
       assertJsonEqual(
         pyData[i],
         tsData[i],
-        `Final response example ${i} differs between Python and TypeScript`
+        `Final response example ${i} differs between Python and TypeScript`,
       );
     }
   });
@@ -357,7 +357,7 @@ describe("query_datasets output parity", () => {
     assertJsonEqual(
       pyData,
       tsData,
-      "view-file JSON output differs between Python and TypeScript"
+      "view-file JSON output differs between Python and TypeScript",
     );
   });
 

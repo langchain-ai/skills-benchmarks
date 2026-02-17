@@ -75,7 +75,7 @@ function lookupOrder(orderId: string): OrderInfo | null {
 async function generateResponse(
   intent: string,
   entities: Entities,
-  orderInfo: OrderInfo | null
+  orderInfo: OrderInfo | null,
 ): Promise<string> {
   /**
    * Generate a helpful response based on analysis.

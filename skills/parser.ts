@@ -16,7 +16,7 @@ import { join } from "node:path";
  */
 export function parseSkillMd(
   skillMdPath: string,
-  keepTags: boolean = true
+  keepTags: boolean = true,
 ): Record<string, string> {
   const content = readFileSync(skillMdPath, "utf-8");
   const sections: Record<string, string> = {};
@@ -51,7 +51,7 @@ export function parseSkillMd(
  */
 export function parseSkillMdOrdered(
   skillMdPath: string,
-  keepTags: boolean = true
+  keepTags: boolean = true,
 ): Array<[string, string]> {
   const content = readFileSync(skillMdPath, "utf-8");
   const sections: Array<[string, string]> = [];
@@ -93,7 +93,7 @@ export function loadSkillContent(skillMdPath: string): string {
 export function getSectionList(
   skillMdPath: string,
   excludeTags: string[] = [],
-  keepTags: boolean = true
+  keepTags: boolean = true,
 ): string[] {
   const sections = parseSkillMdOrdered(skillMdPath, keepTags);
   return sections
@@ -166,7 +166,7 @@ export function loadSkill(skillDir: string): LoadedSkill {
  */
 export function loadSkillVariant(
   skillDir: string,
-  variant?: string
+  variant?: string,
 ): LoadedSkillVariant {
   const skillMdPath = variant
     ? join(skillDir, `skill_${variant}.md`)
@@ -200,7 +200,7 @@ export interface SkillConfig {
 export function splitSkill(
   skill: LoadedSkill,
   splits: Record<string, string[]>,
-  baseName?: string
+  baseName?: string,
 ): Record<string, SkillConfig> {
   const result: Record<string, SkillConfig> = {};
 
@@ -241,7 +241,7 @@ export function formatSectionWithTags(tag: string, content: string): string {
 export function skillConfig(
   sections: string[],
   scriptsDir: string | null = null,
-  scriptFilter: string | null = null
+  scriptFilter: string | null = null,
 ): SkillConfig {
   return { sections, scriptsDir, scriptFilter };
 }

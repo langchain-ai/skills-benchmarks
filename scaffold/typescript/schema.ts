@@ -17,7 +17,9 @@ export interface NoiseTask {
 }
 
 /** Skill configuration - list of sections or object with sections and scriptsDir. */
-export type SkillConfig = string[] | { sections: string[]; scriptsDir?: string };
+export type SkillConfig =
+  | string[]
+  | { sections: string[]; scriptsDir?: string };
 
 /** Configuration for a single experiment treatment. */
 export interface Treatment {
@@ -36,7 +38,10 @@ export interface Treatment {
 export function getFilesToRun(treatment: Treatment): string[] {
   const files: string[] = [];
   for (const v of treatment.validators || []) {
-    if ("filename" in v && ("taskDescription" in v || (v as { runFile?: boolean }).runFile)) {
+    if (
+      "filename" in v &&
+      ("taskDescription" in v || (v as { runFile?: boolean }).runFile)
+    ) {
       files.push((v as { filename: string }).filename);
     }
   }
@@ -44,7 +49,11 @@ export function getFilesToRun(treatment: Treatment): string[] {
 }
 
 /** Build experiment prompt, inserting noise tasks if present. */
-export function buildPrompt(treatment: Treatment, basePrompt: string, task2Prompt?: string): string {
+export function buildPrompt(
+  treatment: Treatment,
+  basePrompt: string,
+  task2Prompt?: string,
+): string {
   const noiseTasks = treatment.noiseTasks || [];
 
   if (noiseTasks.length === 0) {
@@ -65,14 +74,18 @@ export async function validate(
   treatment: Treatment,
   events: Record<string, unknown>,
   testDir: string,
-  outputs?: Record<string, unknown>
+  outputs?: Record<string, unknown>,
 ): Promise<ValidationResult> {
   const allPassed: string[] = [];
   const allFailed: string[] = [];
 
   // Run treatment validators
   for (const validator of treatment.validators || []) {
-    const { passed, failed } = await validator.validate(events, testDir, outputs);
+    const { passed, failed } = await validator.validate(
+      events,
+      testDir,
+      outputs,
+    );
     allPassed.push(...passed);
     allFailed.push(...failed);
   }
@@ -81,7 +94,10 @@ export async function validate(
   if (treatment.noiseTasks?.length) {
     const { NoiseTaskValidator } = await import("./validation.js");
     const expectedFiles = treatment.noiseTasks.flatMap((t) => t.deliverables);
-    const { passed, failed } = new NoiseTaskValidator(expectedFiles).validate(events, testDir);
+    const { passed, failed } = new NoiseTaskValidator(expectedFiles).validate(
+      events,
+      testDir,
+    );
     allPassed.push(...passed);
     allFailed.push(...failed);
   }

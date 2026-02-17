@@ -69,7 +69,7 @@ function getOrCreateExperimentId(name: string): string {
   if (existsSync(EXPERIMENT_FILE)) {
     try {
       const data: ExperimentCoordination = JSON.parse(
-        readFileSync(EXPERIMENT_FILE, "utf8")
+        readFileSync(EXPERIMENT_FILE, "utf8"),
       );
       return data.experimentId;
     } catch {
@@ -90,7 +90,7 @@ function getOrCreateExperimentId(name: string): string {
     JSON.stringify({
       experimentId,
       createdAt: new Date().toISOString(),
-    } as ExperimentCoordination)
+    } as ExperimentCoordination),
   );
 
   return experimentId;
@@ -231,7 +231,7 @@ export function runClaude(
     model?: string;
     logger?: ExperimentLogger;
     treatmentName?: string;
-  } = {}
+  } = {},
 ): RunClaudeResult {
   const { timeout = 600, model, logger, treatmentName } = options;
 
@@ -260,7 +260,7 @@ export function recordResult(
   passed: string[],
   failed: string[],
   testDir: string,
-  runId = ""
+  runId = "",
 ): void {
   const rep = runCounters[treatmentName] || 1;
 
@@ -290,7 +290,13 @@ export function recordResult(
   saveReport(logger.baseDir, treatmentName, rep, report);
 
   // Add to logger
-  const result = createTreatmentResult(treatmentName, passed, failed, events, runId);
+  const result = createTreatmentResult(
+    treatmentName,
+    passed,
+    failed,
+    events,
+    runId,
+  );
   logger.addResult(treatmentName, result);
 }
 
@@ -301,12 +307,12 @@ function saveArtifacts(
   baseDir: string,
   treatmentName: string,
   rep: number,
-  testDir: string
+  testDir: string,
 ): void {
   const artifactsDir = join(
     baseDir,
     "artifacts",
-    `${treatmentName.toLowerCase()}_rep${rep}`
+    `${treatmentName.toLowerCase()}_rep${rep}`,
   );
   const claudeDir = join(artifactsDir, "claude");
   const executionDir = join(artifactsDir, "execution");
@@ -343,8 +349,7 @@ function saveArtifacts(
   try {
     const scriptFiles = readdirSync(testDir).filter(
       (f: string) =>
-        (f.endsWith(".ts") || f.endsWith(".js")) &&
-        !envFiles.has(f)
+        (f.endsWith(".ts") || f.endsWith(".js")) && !envFiles.has(f),
     );
 
     for (const scriptFile of scriptFiles) {
@@ -399,7 +404,7 @@ function printSummary(logger: ExperimentLogger): void {
   console.log(`${"=".repeat(80)}\n`);
 
   console.log(
-    `${"Treatment".padEnd(30)} ${"Checks".padEnd(15)} ${"Turns".padEnd(8)} ${"Duration".padEnd(10)}`
+    `${"Treatment".padEnd(30)} ${"Checks".padEnd(15)} ${"Turns".padEnd(8)} ${"Duration".padEnd(10)}`,
   );
   console.log("-".repeat(80));
 
@@ -415,7 +420,7 @@ function printSummary(logger: ExperimentLogger): void {
         ? `${r.events_summary.duration_seconds.toFixed(0)}s`
         : "?";
       console.log(
-        `${treatment.padEnd(30)} ${checksStr.padEnd(15)} ${turns.padEnd(8)} ${dur.padEnd(10)}`
+        `${treatment.padEnd(30)} ${checksStr.padEnd(15)} ${turns.padEnd(8)} ${dur.padEnd(10)}`,
       );
     }
   }
@@ -424,17 +429,20 @@ function printSummary(logger: ExperimentLogger): void {
 
   const totalPassed = Object.values(logger.results).reduce(
     (sum, runs) => sum + runs.reduce((s, r) => s + r.checks_passed.length, 0),
-    0
+    0,
   );
   const totalChecks = Object.values(logger.results).reduce(
     (sum, runs) =>
       sum +
-      runs.reduce((s, r) => s + r.checks_passed.length + r.checks_failed.length, 0),
-    0
+      runs.reduce(
+        (s, r) => s + r.checks_passed.length + r.checks_failed.length,
+        0,
+      ),
+    0,
   );
   if (totalChecks > 0) {
     console.log(
-      `Total: ${totalPassed}/${totalChecks} checks passed (${((totalPassed / totalChecks) * 100).toFixed(1)}%)`
+      `Total: ${totalPassed}/${totalChecks} checks passed (${((totalPassed / totalChecks) * 100).toFixed(1)}%)`,
     );
   }
   console.log("=".repeat(80));

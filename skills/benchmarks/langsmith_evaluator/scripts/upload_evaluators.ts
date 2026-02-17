@@ -1,9 +1,9 @@
 #!/usr/bin/env npx tsx
 /**
- * Upload evaluators to LangSmith.
+ * Upload JavaScript evaluators to LangSmith.
  *
- * Note: This script handles Python evaluators (LangSmith evaluators must be Python).
- * It reads a Python file, extracts the specified function, and uploads it.
+ * This TypeScript CLI uploads JavaScript code evaluators.
+ * For Python evaluators, use upload_evaluators.py instead.
  */
 
 import { Client } from "langsmith";
@@ -166,27 +166,44 @@ export async function deleteEvaluator(name: string, confirm = true): Promise<boo
   return true;
 }
 
-function extractFunctionSource(
+function extractJavaScriptFunction(
   fileContent: string,
   functionName: string
 ): string | null {
-  // Match Python function definitions
-  // Handles both sync and async functions
+  // Match JavaScript/TypeScript function definitions
+  // Handles: function name(), async function name(), const name = () =>, const name = async () =>
   const patterns = [
-    // async def function_name(
-    new RegExp(`(async\\s+def\\s+${functionName}\\s*\\([\\s\\S]*?)(?=\\n(?:async\\s+)?def\\s|\\nclass\\s|\\n[a-zA-Z_][a-zA-Z0-9_]*\\s*=|$)`, "m"),
-    // def function_name(
-    new RegExp(`(def\\s+${functionName}\\s*\\([\\s\\S]*?)(?=\\n(?:async\\s+)?def\\s|\\nclass\\s|\\n[a-zA-Z_][a-zA-Z0-9_]*\\s*=|$)`, "m"),
+    // async function functionName(...)  { ... }
+    new RegExp(`(async\\s+function\\s+${functionName}\\s*\\([^)]*\\)\\s*\\{[\\s\\S]*?\\n\\})`, "m"),
+    // function functionName(...) { ... }
+    new RegExp(`(function\\s+${functionName}\\s*\\([^)]*\\)\\s*\\{[\\s\\S]*?\\n\\})`, "m"),
+    // const functionName = async (...) => { ... }
+    new RegExp(`(const\\s+${functionName}\\s*=\\s*async\\s*\\([^)]*\\)\\s*=>\\s*\\{[\\s\\S]*?\\n\\})`, "m"),
+    // const functionName = (...) => { ... }
+    new RegExp(`(const\\s+${functionName}\\s*=\\s*\\([^)]*\\)\\s*=>\\s*\\{[\\s\\S]*?\\n\\})`, "m"),
   ];
 
   for (const pattern of patterns) {
     const match = fileContent.match(pattern);
     if (match) {
       let source = match[1].trim();
-      // Rename function to perform_eval as required by LangSmith
+      // Rename function to performEval as required by LangSmith for JS
       source = source.replace(
-        new RegExp(`(async\\s+)?def\\s+${functionName}\\s*\\(`),
-        "$1def perform_eval("
+        new RegExp(`(async\\s+)?function\\s+${functionName}\\s*\\(`),
+        "$1function performEval("
+      );
+      source = source.replace(
+        new RegExp(`const\\s+${functionName}\\s*=`),
+        "function performEval"
+      );
+      // Handle arrow function conversion to regular function
+      source = source.replace(
+        /function performEval\s*async\s*\(([^)]*)\)\s*=>\s*\{/,
+        "async function performEval($1) {"
+      );
+      source = source.replace(
+        /function performEval\s*\(([^)]*)\)\s*=>\s*\{/,
+        "function performEval($1) {"
       );
       return source;
     }
@@ -244,7 +261,7 @@ async function createCodePayload(options: {
 
   return {
     display_name: options.name,
-    evaluators: [{ code: options.source, language: "python" }],
+    evaluators: [{ code: options.source, language: "javascript" }],
     sampling_rate: options.sampleRate,
     target_dataset_ids: datasetIds.length > 0 ? datasetIds : undefined,
     target_project_ids: projectIds.length > 0 ? projectIds : undefined,
@@ -294,7 +311,7 @@ const program = new Command();
 
 program
   .name("upload_evaluators")
-  .description("Upload and manage LangSmith evaluators")
+  .description("Upload and manage JavaScript evaluators in LangSmith")
   .version("1.0.0");
 
 // list command
@@ -349,7 +366,7 @@ program
 // upload command
 program
   .command("upload <evaluatorFile>")
-  .description("Upload an evaluator from a Python file")
+  .description("Upload a JavaScript evaluator from a .js or .ts file")
   .requiredOption("--name <name>", "Display name for evaluator")
   .requiredOption("--function <name>", "Function name to extract from file")
   .option("--dataset <name>", "Target dataset name")
@@ -358,7 +375,7 @@ program
   .option("--replace", "Replace if exists")
   .option("--yes", "Skip confirmation prompts")
   .action(async (evaluatorFile, opts) => {
-    // Read the Python file
+    // Read the file
     if (!fs.existsSync(evaluatorFile)) {
       console.log(chalk.red(`File not found: ${evaluatorFile}`));
       return;
@@ -367,7 +384,7 @@ program
     const fileContent = fs.readFileSync(evaluatorFile, "utf-8");
 
     // Extract the function source
-    const source = extractFunctionSource(fileContent, opts.function);
+    const source = extractJavaScriptFunction(fileContent, opts.function);
     if (!source) {
       console.log(chalk.red(`Function '${opts.function}' not found in ${evaluatorFile}`));
       return;

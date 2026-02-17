@@ -25,7 +25,7 @@ from typing import Any
 import pytest
 from dotenv import load_dotenv
 
-from scaffold import run_claude_in_docker, run_python_in_docker, run_shell
+from scaffold import run_claude_in_docker, run_node_in_docker, run_python_in_docker, run_shell
 from scaffold.python import (
     ExperimentLogger,
     TreatmentResult,
@@ -204,6 +204,9 @@ class ExperimentPlugin:
         if not reports_dir.exists():
             return
 
+        # Clear existing results to avoid duplicates (results may have been added in-process)
+        self.logger.results.clear()
+
         for report_file in sorted(reports_dir.glob("*.json")):
             try:
                 report = json.loads(report_file.read_text())
@@ -224,12 +227,12 @@ class ExperimentPlugin:
 
     def _print_summary(self):
         """Print summary to console."""
-        print(f"\n{'=' * 80}")
+        print(f"\n{'=' * 140}")
         print("  RESULTS")
-        print(f"{'=' * 80}\n")
+        print(f"{'=' * 140}\n")
 
-        print(f"{'Treatment':<30} {'Checks':<15} {'Turns':<8} {'Duration':<10}")
-        print("-" * 80)
+        print(f"{'Treatment':<25} {'Checks':<15} {'Turns':<8} {'Dur':<8} {'Skills':<40} {'Scripts':<40}")
+        print("-" * 140)
 
         for treatment, runs in self.logger.results.items():
             for r in runs:
@@ -239,9 +242,17 @@ class ExperimentPlugin:
                 checks_str = f"{checks_passed}/{checks_total} ({check_pct:.0f}%)"
                 turns = str(r.turns) if r.turns else "?"
                 dur = f"{r.duration:.0f}s" if r.duration else "?"
-                print(f"{treatment:<30} {checks_str:<15} {turns:<8} {dur:<10}")
+                skills = r.events_summary.get("skills_invoked", [])
+                skills_str = ", ".join(skills) if skills else "none"
+                if len(skills_str) > 38:
+                    skills_str = skills_str[:35] + "..."
+                scripts = r.events_summary.get("scripts_used", [])
+                scripts_str = ", ".join(scripts) if scripts else "none"
+                if len(scripts_str) > 38:
+                    scripts_str = scripts_str[:35] + "..."
+                print(f"{treatment:<25} {checks_str:<15} {turns:<8} {dur:<8} {skills_str:<40} {scripts_str:<40}")
 
-        print("-" * 80)
+        print("-" * 140)
         total_passed = sum(
             sum(len(r.checks_passed) for r in runs) for runs in self.logger.results.values()
         )
@@ -253,7 +264,7 @@ class ExperimentPlugin:
             print(
                 f"Total: {total_passed}/{total_checks} checks passed ({total_passed / total_checks * 100:.1f}%)"
             )
-        print(f"{'=' * 80}")
+        print(f"{'=' * 140}")
 
 
 # Global plugin instance (set during pytest_configure)
@@ -573,6 +584,9 @@ def record_result(test_dir, experiment_logger, request):
         # Save artifacts (files Claude generated)
         _save_artifacts(base_dir, treatment_name, rep, test_dir)
 
+        # Extract scripts used
+        scripts_used = _extract_scripts_used(events)
+
         # Save report
         report = {
             "name": treatment_name,
@@ -587,6 +601,7 @@ def record_result(test_dir, experiment_logger, request):
                 "tool_calls": len(events.get("tool_calls", [])),
                 "files_created": events.get("files_created", []),
                 "skills_invoked": events.get("skills_invoked", []),
+                "scripts_used": scripts_used,
             },
             "timestamp": datetime.now().isoformat(),
         }
@@ -604,6 +619,8 @@ def record_result(test_dir, experiment_logger, request):
                     "num_turns": events.get("num_turns"),
                     "duration_seconds": events.get("duration_seconds"),
                     "tool_calls": len(events.get("tool_calls", [])),
+                    "skills_invoked": events.get("skills_invoked", []),
+                    "scripts_used": scripts_used,
                 },
                 run_id=run_id,
             ),
@@ -626,6 +643,28 @@ def _get_treatment_name(node) -> str:
     return nodeid.split("::")[-1]
 
 
+# Known skill scripts for tracking
+_KNOWN_SCRIPTS = [
+    "query_traces.py",
+    "query_traces.ts",
+    "generate_datasets.py",
+    "generate_datasets.ts",
+    "query_datasets.py",
+    "query_datasets.ts",
+    "upload_evaluators.py",
+    "upload_evaluators.ts",
+]
+
+
+def _extract_scripts_used(events: dict) -> list[str]:
+    """Extract which skill scripts were used from events."""
+    commands = " ".join(events.get("commands_run", [])).lower()
+    files_read = " ".join(events.get("files_read", [])).lower()
+    all_activity = commands + " " + files_read
+
+    return [s for s in _KNOWN_SCRIPTS if s.lower() in all_activity]
+
+
 def _save_artifacts(base_dir: Path, treatment_name: str, rep: int, test_dir: Path):
     """Save Claude's generated files as artifacts."""
     artifacts_dir = base_dir / "artifacts" / f"{treatment_name.lower()}_rep{rep}"
@@ -634,19 +673,30 @@ def _save_artifacts(base_dir: Path, treatment_name: str, rep: int, test_dir: Pat
     claude_dir.mkdir(parents=True, exist_ok=True)
     execution_dir.mkdir(parents=True, exist_ok=True)
 
-    # Files to exclude (environment files)
-    env_files = {"sql_agent.py", "chinook.db", "requirements.txt", "Dockerfile"}
+    # Files/dirs to exclude
+    exclude_files = {"chinook.db", "requirements.txt", "Dockerfile", "package.json", "tsconfig.json"}
+    exclude_dirs = {".claude", "node_modules", "__pycache__"}
 
-    # Copy files Claude generated
-    for f in test_dir.iterdir():
-        if f.is_file() and f.name not in env_files and not f.name.startswith("."):
+    # Recursively copy all files Claude generated/modified
+    for item in test_dir.rglob("*"):
+        if item.is_file():
+            # Skip excluded files and hidden files
+            if item.name in exclude_files or item.name.startswith("."):
+                continue
+            # Skip files in excluded directories
+            if any(excl in item.parts for excl in exclude_dirs):
+                continue
             try:
-                shutil.copy(f, claude_dir / f.name)
+                # Preserve directory structure
+                rel_path = item.relative_to(test_dir)
+                dest = claude_dir / rel_path
+                dest.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy(item, dest)
             except Exception:
                 pass
 
-    # Run Python files and save execution output
-    py_files = [f for f in test_dir.glob("*.py") if f.name not in env_files]
+    # Run Python files at root level and save execution output
+    py_files = [f for f in test_dir.glob("*.py") if f.name not in exclude_files]
     for py_file in py_files:
         try:
             success, output = run_python_in_docker(test_dir, py_file.name, timeout=300)
@@ -655,4 +705,16 @@ def _save_artifacts(base_dir: Path, treatment_name: str, rep: int, test_dir: Pat
             output_file.write_text(strip_ansi(output))
         except Exception as e:
             error_file = execution_dir / f"{py_file.stem}_error.txt"
+            error_file.write_text(str(e))
+
+    # Run TypeScript files at root level and save execution output
+    ts_files = [f for f in test_dir.glob("*.ts") if f.name not in exclude_files]
+    for ts_file in ts_files:
+        try:
+            success, output = run_node_in_docker(test_dir, ts_file.name, timeout=300)
+            status = "success" if success else "error"
+            output_file = execution_dir / f"{ts_file.stem}_{status}.txt"
+            output_file.write_text(strip_ansi(output))
+        except Exception as e:
+            error_file = execution_dir / f"{ts_file.stem}_error.txt"
             error_file.write_text(str(e))

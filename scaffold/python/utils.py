@@ -93,6 +93,22 @@ def run_python_in_docker(
         return False, str(e)
 
 
+def run_node_in_docker(
+    test_dir: Path, script_name: str, timeout: int = 120, args: list = None
+) -> tuple[bool, str]:
+    """Run Node.js/TypeScript script in Docker. Returns (success, output)."""
+    if not check_docker_available():
+        return False, "Docker not available"
+    try:
+        cmd = ["run-node", str(test_dir), script_name] + (args or [])
+        result = run_shell("docker.sh", *cmd, timeout=timeout, check=False)
+        return result.returncode == 0, result.stdout + result.stderr
+    except subprocess.TimeoutExpired:
+        return False, f"Timeout ({timeout}s)"
+    except Exception as e:
+        return False, str(e)
+
+
 def run_claude_in_docker(
     test_dir: Path, prompt: str, timeout: int = 300, model: str = None
 ) -> subprocess.CompletedProcess:

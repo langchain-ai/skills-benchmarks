@@ -30,6 +30,8 @@
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "tests/benchmarks/**/environment/**",
+    "tests/benchmarks/**/data/**"
   ]
 }

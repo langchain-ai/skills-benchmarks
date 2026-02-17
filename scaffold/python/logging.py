@@ -71,6 +71,10 @@ def extract_events(parsed: dict[str, Any]) -> dict[str, Any]:
                     path = inp.get("file_path", "")
                     if tool == "Read" and path:
                         events["files_read"].append(path)
+                        # Detect skill reads (e.g., .claude/skills/skill-name/SKILL.md)
+                        if ".claude/skills/" in path and (m := re.search(r"\.claude/skills/([^/]+)", path)):
+                            if m.group(1) not in events["skills_invoked"]:
+                                events["skills_invoked"].append(m.group(1))
                     elif tool == "Write" and path:
                         events["files_created"].append(path)
                     elif tool == "Edit" and path:
@@ -78,7 +82,8 @@ def extract_events(parsed: dict[str, Any]) -> dict[str, Any]:
                     elif tool == "Bash" and inp.get("command"):
                         events["commands_run"].append(inp["command"])
                     elif tool == "Skill" and inp.get("skill"):
-                        events["skills_invoked"].append(inp["skill"])
+                        if inp["skill"] not in events["skills_invoked"]:
+                            events["skills_invoked"].append(inp["skill"])
 
         # Capture tool results and match to their tool_use calls
         if msg.get("type") == "user":
@@ -135,6 +140,14 @@ class TreatmentResult:
     @property
     def tool_calls(self) -> int | None:
         return self.events_summary.get("tool_calls")
+
+    @property
+    def skills_invoked(self) -> list[str]:
+        return self.events_summary.get("skills_invoked", [])
+
+    @property
+    def scripts_used(self) -> list[str]:
+        return self.events_summary.get("scripts_used", [])
 
 
 # =============================================================================
@@ -386,8 +399,8 @@ class ExperimentLogger:
         base_treatments = self._aggregate_by_base_treatment()
         if base_treatments and len(base_treatments) < len(self.results):
             lines.append("## Aggregated by Treatment\n")
-            lines.append("| Treatment | Reps Passed | Checks | Avg Turns | Avg Duration |")
-            lines.append("|-----------|-------------|--------|-----------|--------------|")
+            lines.append("| Treatment | Reps Passed | Checks | Avg Turns | Avg Duration | Skills | Scripts |")
+            lines.append("|-----------|-------------|--------|-----------|--------------|--------|---------|")
             for base_name, all_runs in base_treatments.items():
                 # A rep passes if all checks pass (no failures)
                 reps_passed = sum(1 for r in all_runs if not r.checks_failed)
@@ -397,8 +410,11 @@ class ExperimentLogger:
                 pct = (total_passed / total_all * 100) if total_all > 0 else 0
                 avg_turns = _avg([r.turns for r in all_runs if r.turns], "{:.0f}")
                 avg_dur = _avg([r.duration for r in all_runs if r.duration], "{:.0f}s")
+                # Get skills/scripts from first run (should be same for all reps)
+                skills = ", ".join(all_runs[0].skills_invoked) if all_runs[0].skills_invoked else "none"
+                scripts = ", ".join(all_runs[0].scripts_used) if all_runs[0].scripts_used else "none"
                 lines.append(
-                    f"| {base_name} | {reps_passed}/{total_reps} | {total_passed}/{total_all} ({pct:.0f}%) | {avg_turns} | {avg_dur} |"
+                    f"| {base_name} | {reps_passed}/{total_reps} | {total_passed}/{total_all} ({pct:.0f}%) | {avg_turns} | {avg_dur} | {skills} | {scripts} |"
                 )
             lines.append("")
 
@@ -432,6 +448,12 @@ class ExperimentLogger:
                     metrics.append(f"Tool calls: {r.tool_calls}")
                 if metrics:
                     lines.append(f"- Metrics: {', '.join(metrics)}")
+
+                # Show skills and scripts
+                if r.skills_invoked:
+                    lines.append(f"- Skills invoked: {', '.join(r.skills_invoked)}")
+                if r.scripts_used:
+                    lines.append(f"- Scripts used: {', '.join(r.scripts_used)}")
 
                 # Show all passed checks
                 if r.checks_passed:

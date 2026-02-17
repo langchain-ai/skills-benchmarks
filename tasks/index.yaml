@@ -1,0 +1,63 @@
+# Task Index
+#
+# Central registry of all benchmark tasks. Each task is a self-contained
+# directory with instruction.md, task.toml, environment/, and validation/.
+#
+# Tasks can be combined with any compatible treatment from tests/treatments.yaml.
+
+tasks:
+  ls-evaluator:
+    description: "Create LangSmith evaluators for Python and TypeScript agents"
+    difficulty: medium
+    category: langsmith
+    tags: [evaluator, polyglot, python, typescript]
+    compatible_treatments:
+      - SEPARATE_NAMES
+      - UNIFIED_BOTH
+      - UNIFIED_WITH_NOISE
+      - UNIFIED_PY_ONLY
+      - UNIFIED_TS_ONLY
+      - CONTROL
+
+  ls-tracing:
+    description: "Add LangSmith tracing to Python and TypeScript agents"
+    difficulty: easy
+    category: langsmith
+    tags: [tracing, polyglot, python, typescript]
+    compatible_treatments:
+      - SEPARATE_NAMES
+      - UNIFIED_BOTH
+      - UNIFIED_WITH_NOISE
+      - UNIFIED_PY_ONLY
+      - UNIFIED_TS_ONLY
+      - CONTROL
+
+  ls-multiskill-basic:
+    description: "Create trajectory dataset from LangSmith traces"
+    difficulty: medium
+    category: langsmith
+    tags: [multiskill, trace, dataset]
+    compatible_treatments:
+      - MULTISKILL_ALL_SKILLS
+      - MULTISKILL_SKILLS_ONLY
+      - MULTISKILL_CLAUDEMD_ONLY
+      - CONTROL
+
+  ls-multiskill-advanced:
+    description: "Create trajectory dataset and evaluator from LangSmith traces"
+    difficulty: hard
+    category: langsmith
+    tags: [multiskill, trace, dataset, evaluator]
+    compatible_treatments:
+      - MULTISKILL_ALL_SKILLS
+      - MULTISKILL_SKILLS_ONLY
+      - MULTISKILL_CLAUDEMD_ONLY
+      - CONTROL
+
+# Difficulty levels:
+#   easy   - Single-skill tasks with clear requirements
+#   medium - Multi-step tasks or polyglot requirements
+#   hard   - Multi-skill coordination with complex validation
+
+# Categories:
+#   langsmith - LangSmith tracing, datasets, evaluators

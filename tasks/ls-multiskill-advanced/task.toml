@@ -13,4 +13,4 @@ dockerfile = "Dockerfile"
 timeout_sec = 900
 
 [validation]
-validators = ["SkillInvokedValidator", "DatasetUploadValidator", "DatasetStructureValidator", "EvaluatorUploadValidator", "EvaluatorStructureValidator"]
+validators = ["DatasetStructureValidator", "EvaluatorValidator", "SkillScriptValidator", "TrajectoryAccuracyValidator"]

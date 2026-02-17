@@ -1,6 +1,6 @@
 """Generic test runner for task + treatment combinations.
 
-This test file demonstrates the new task-based structure where:
+This test file uses the new task-based structure where:
 - Tasks are self-contained directories with instruction.md, task.toml, environment/, validation/
 - Treatments are defined in treatments.yaml and specify skill configurations
 - Any treatment can be combined with any compatible task
@@ -20,14 +20,18 @@ Usage:
 """
 
 import uuid
+from pathlib import Path
 
 import pytest
 
-from scaffold import MetricsCollector, Treatment
+from scaffold import Treatment
 from scaffold.python import extract_events, parse_output
 from scaffold.tasks import load_task
 from scaffold.treatments import build_treatment_skills, load_treatments_yaml
-from tests.benchmarks.helpers import CLAUDE_TIMEOUT, PYTEST_TIMEOUT
+
+# Timeouts
+CLAUDE_TIMEOUT = 600  # 10 minutes for Claude to complete task
+PYTEST_TIMEOUT = 900  # 15 minutes total including setup/teardown
 
 # Task -> compatible treatments mapping
 TASK_TREATMENTS = {
@@ -71,79 +75,14 @@ def generate_test_params():
     return params
 
 
-def get_validators_for_task(task_name: str):
-    """Get validators for a task.
-
-    TODO: Load validators dynamically from task.toml and validation/ directory.
-    For now, import from existing validator modules.
-    """
-    if task_name in ("ls-evaluator", "ls-tracing"):
-        # Import validators from ls_languages
-        from tests.benchmarks.ls_languages.validation.validators import (
-            DatasetValidator,
-            LanguageValidator,
-            SyntaxValidator,
-            UploadValidator,
-        )
-
-        if task_name == "ls-evaluator":
-            return [
-                LanguageValidator(),
-                SyntaxValidator(),
-                DatasetValidator(),
-                UploadValidator(),
-                MetricsCollector(),
-            ]
-        else:  # ls-tracing
-            from tests.benchmarks.ls_languages.validation.validators import (
-                CodeExecutionValidator,
-                LangSmithTraceValidator,
-                LanguageSyntaxValidator,
-                SkillScriptUsageValidator,
-                TracingPatternValidator,
-            )
-
-            return [
-                TracingPatternValidator(),
-                LanguageSyntaxValidator(),
-                SkillScriptUsageValidator(),
-                CodeExecutionValidator(),
-                LangSmithTraceValidator(),
-                MetricsCollector(),
-            ]
-
-    elif task_name in ("ls-multiskill-basic", "ls-multiskill-advanced"):
-        from tests.benchmarks.ls_multiskill.validation.validators import (
-            DatasetStructureValidator,
-            DatasetUploadValidator,
-            SkillInvokedValidator,
-        )
-
-        validators = [
-            SkillInvokedValidator("langsmith-trace", required=False),
-            SkillInvokedValidator("langsmith-dataset", required=False),
-            DatasetUploadValidator(),
-            DatasetStructureValidator(),
-        ]
-
-        if task_name == "ls-multiskill-advanced":
-            from tests.benchmarks.ls_multiskill.validation.validators import (
-                EvaluatorStructureValidator,
-                EvaluatorUploadValidator,
-            )
-
-            validators.extend(
-                [
-                    SkillInvokedValidator("langsmith-evaluator", required=False),
-                    EvaluatorUploadValidator(),
-                    EvaluatorStructureValidator(),
-                ]
-            )
-
-        validators.append(MetricsCollector())
-        return validators
-
-    return [MetricsCollector()]
+def run_validators(validators: list, test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:
+    """Run function-based validators and return combined results."""
+    all_passed, all_failed = [], []
+    for validator in validators:
+        passed, failed = validator(test_dir, outputs)
+        all_passed.extend(passed)
+        all_failed.extend(failed)
+    return all_passed, all_failed
 
 
 @pytest.mark.timeout(PYTEST_TIMEOUT)
@@ -165,15 +104,17 @@ def test_task_treatment(
     treatment_configs = load_treatments_yaml()
     treatment_cfg = treatment_configs[treatment_name]
 
-    # Build treatment with validators from task
-    validators = get_validators_for_task(task_name)
+    # Load validators from task
+    validators = task.load_validators()
+
+    # Build treatment
     skills = build_treatment_skills(treatment_cfg.skills) if treatment_cfg.skills else {}
 
     treatment = Treatment(
         description=treatment_cfg.description,
         skills=skills,
         claude_md=treatment_cfg.claude_md if treatment_cfg.claude_md else None,
-        validators=validators,
+        validators=[],  # We use function-based validators directly
     )
 
     # Setup test context with task's environment
@@ -201,10 +142,12 @@ def test_task_treatment(
     # Run Claude
     result = run_claude(prompt, timeout=CLAUDE_TIMEOUT)
 
-    # Parse and validate
+    # Parse output
     events = extract_events(parse_output(result.stdout))
+
+    # Run validators
     outputs = {"run_id": run_id, "langsmith_project": langsmith_project}
-    passed, failed = treatment.validate(events, test_dir, outputs)
+    passed, failed = run_validators(validators, test_dir, outputs)
 
     # Record results
     record_result(events, passed, failed, run_id=run_id)

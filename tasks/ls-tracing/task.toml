@@ -1,0 +1,16 @@
+[metadata]
+name = "ls-tracing"
+description = "Add LangSmith tracing to Python and TypeScript agents"
+difficulty = "easy"
+category = "langsmith"
+tags = ["tracing", "polyglot", "python", "typescript"]
+
+[template]
+required = ["run_id"]
+
+[environment]
+dockerfile = "Dockerfile"
+timeout_sec = 900
+
+[validation]
+validators = ["TracingPatternValidator", "LanguageSyntaxValidator", "SkillScriptUsageValidator", "CodeExecutionValidator", "LangSmithTraceValidator"]

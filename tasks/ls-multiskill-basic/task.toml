@@ -1,0 +1,16 @@
+[metadata]
+name = "ls-multiskill-basic"
+description = "Create trajectory dataset from LangSmith traces"
+difficulty = "medium"
+category = "langsmith"
+tags = ["multiskill", "trace", "dataset"]
+
+[template]
+required = ["run_id"]
+
+[environment]
+dockerfile = "Dockerfile"
+timeout_sec = 900
+
+[validation]
+validators = ["SkillInvokedValidator", "DatasetUploadValidator", "DatasetStructureValidator"]

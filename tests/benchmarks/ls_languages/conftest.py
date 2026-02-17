@@ -91,15 +91,28 @@ def langsmith_dataset(langsmith_project):
         "Trajectory dataset for Python SQL agent - tracks tool call sequences",
         [
             {
-                "inputs": {"messages": [{"content": "Which albums have the most tracks?", "type": "human"}]},
+                "inputs": {
+                    "messages": [{"content": "Which albums have the most tracks?", "type": "human"}]
+                },
                 "outputs": {"expected_trajectory": ["get_database_schema", "execute_sql_query"]},
             },
             {
-                "inputs": {"messages": [{"content": "Which 3 genres generated the most revenue?", "type": "human"}]},
+                "inputs": {
+                    "messages": [
+                        {"content": "Which 3 genres generated the most revenue?", "type": "human"}
+                    ]
+                },
                 "outputs": {"expected_trajectory": ["get_database_schema", "execute_sql_query"]},
             },
             {
-                "inputs": {"messages": [{"content": "What are the most popular artists by number of tracks?", "type": "human"}]},
+                "inputs": {
+                    "messages": [
+                        {
+                            "content": "What are the most popular artists by number of tracks?",
+                            "type": "human",
+                        }
+                    ]
+                },
                 "outputs": {"expected_trajectory": ["get_database_schema", "execute_sql_query"]},
             },
         ],
@@ -113,17 +126,21 @@ def langsmith_dataset(langsmith_project):
         [
             {
                 "inputs": {"query": "Does the blue widget come in large?"},
-                "outputs": {"response": "Yes, the blue widget is available in small, medium, and large sizes."},
+                "outputs": {
+                    "response": "Yes, the blue widget is available in small, medium, and large sizes."
+                },
             },
             {
                 "inputs": {"query": "How do I contact support?"},
-                "outputs": {"response": "You can reach our support team at support@example.com or call 1-800-SUPPORT."},
+                "outputs": {
+                    "response": "You can reach our support team at support@example.com or call 1-800-SUPPORT."
+                },
             },
         ],
     )
 
     print(f"\n{'=' * 60}")
-    print(f"LANGSMITH DATASETS:")
+    print("LANGSMITH DATASETS:")
     print(f"  Backend (trajectory): {py_dataset}")
     print(f"  Frontend (final_response): {ts_dataset}")
     print(f"{'=' * 60}\n")

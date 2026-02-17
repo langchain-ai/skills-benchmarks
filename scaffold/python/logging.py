@@ -72,7 +72,9 @@ def extract_events(parsed: dict[str, Any]) -> dict[str, Any]:
                     if tool == "Read" and path:
                         events["files_read"].append(path)
                         # Detect skill reads (e.g., .claude/skills/skill-name/SKILL.md)
-                        if ".claude/skills/" in path and (m := re.search(r"\.claude/skills/([^/]+)", path)):
+                        if ".claude/skills/" in path and (
+                            m := re.search(r"\.claude/skills/([^/]+)", path)
+                        ):
                             if m.group(1) not in events["skills_invoked"]:
                                 events["skills_invoked"].append(m.group(1))
                     elif tool == "Write" and path:
@@ -399,8 +401,12 @@ class ExperimentLogger:
         base_treatments = self._aggregate_by_base_treatment()
         if base_treatments and len(base_treatments) < len(self.results):
             lines.append("## Aggregated by Treatment\n")
-            lines.append("| Treatment | Reps Passed | Checks | Avg Turns | Avg Duration | Skills | Scripts |")
-            lines.append("|-----------|-------------|--------|-----------|--------------|--------|---------|")
+            lines.append(
+                "| Treatment | Reps Passed | Checks | Avg Turns | Avg Duration | Skills | Scripts |"
+            )
+            lines.append(
+                "|-----------|-------------|--------|-----------|--------------|--------|---------|"
+            )
             for base_name, all_runs in base_treatments.items():
                 # A rep passes if all checks pass (no failures)
                 reps_passed = sum(1 for r in all_runs if not r.checks_failed)
@@ -411,8 +417,12 @@ class ExperimentLogger:
                 avg_turns = _avg([r.turns for r in all_runs if r.turns], "{:.0f}")
                 avg_dur = _avg([r.duration for r in all_runs if r.duration], "{:.0f}s")
                 # Get skills/scripts from first run (should be same for all reps)
-                skills = ", ".join(all_runs[0].skills_invoked) if all_runs[0].skills_invoked else "none"
-                scripts = ", ".join(all_runs[0].scripts_used) if all_runs[0].scripts_used else "none"
+                skills = (
+                    ", ".join(all_runs[0].skills_invoked) if all_runs[0].skills_invoked else "none"
+                )
+                scripts = (
+                    ", ".join(all_runs[0].scripts_used) if all_runs[0].scripts_used else "none"
+                )
                 lines.append(
                     f"| {base_name} | {reps_passed}/{total_reps} | {total_passed}/{total_all} ({pct:.0f}%) | {avg_turns} | {avg_dur} | {skills} | {scripts} |"
                 )

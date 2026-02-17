@@ -18,8 +18,8 @@ from scaffold.python import extract_events, parse_output
 from skills.parser import load_skill_variant, skill_config
 from tests.benchmarks.helpers import CLAUDE_TIMEOUT, PYTEST_TIMEOUT
 from tests.benchmarks.ls_languages.validation.validators import (
-    LanguageValidator,
     DatasetValidator,
+    LanguageValidator,
     SyntaxValidator,
     UploadValidator,
 )
@@ -42,9 +42,7 @@ def _add_language_suffix(content: str, lang: str) -> str:
     """Add language suffix to frontmatter description."""
     suffix = "(Python)" if lang == "py" else "(TypeScript)"
     return re.sub(
-        r'^(description: "?)(.+?)("?)$',
-        rf"\1\2 {suffix}\3",
-        content, count=1, flags=re.MULTILINE
+        r'^(description: "?)(.+?)("?)$', rf"\1\2 {suffix}\3", content, count=1, flags=re.MULTILINE
     )
 
 
@@ -79,7 +77,9 @@ def _build_separate_skills() -> dict:
     return skills
 
 
-def _build_unified_skills(variant: str, include_others: bool = True, add_noise: bool = False) -> dict:
+def _build_unified_skills(
+    variant: str, include_others: bool = True, add_noise: bool = False
+) -> dict:
     skills = {"langsmith-evaluator": _load_skill("langsmith_evaluator", variant)}
     if include_others:
         for skill_type in ["trace", "dataset"]:

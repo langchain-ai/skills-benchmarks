@@ -78,10 +78,14 @@ def execute_sql_query(query: str) -> str:
     try:
         cursor.execute(query)
         results = cursor.fetchall()
-        columns = [description[0] for description in cursor.description] if cursor.description else []
+        columns = (
+            [description[0] for description in cursor.description] if cursor.description else []
+        )
 
         # Format results as list of dicts
-        formatted = [dict(zip(columns, row)) for row in results[:20]]  # Limit to 20 rows
+        formatted = [
+            dict(zip(columns, row, strict=False)) for row in results[:20]
+        ]  # Limit to 20 rows
         return json.dumps(formatted, indent=2)
     except Exception as e:
         return f"SQL Error: {str(e)}"
@@ -140,11 +144,13 @@ Use the tools available to you. You may need to call multiple tools.""",
             result = handle_tool_call(tool_name, tool_args)
 
             # Add tool result to messages
-            messages.append({
-                "role": "tool",
-                "tool_call_id": tool_call.id,
-                "content": result,
-            })
+            messages.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "content": result,
+                }
+            )
 
     return "Max iterations reached without final answer."
 

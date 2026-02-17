@@ -439,8 +439,14 @@ class LangSmithTraceValidator(Validator):
 
         # Check for expected function names across all traces
         expected_funcs = {
-            "classify_intent", "extract_entities", "lookup_order", "generate_response",
-            "classifyIntent", "extractEntities", "lookupOrder", "generateResponse",
+            "classify_intent",
+            "extract_entities",
+            "lookup_order",
+            "generate_response",
+            "classifyIntent",
+            "extractEntities",
+            "lookupOrder",
+            "generateResponse",
         }
         found_funcs = [n for n in all_child_names if n in expected_funcs]
         if found_funcs:
@@ -468,7 +474,12 @@ class LanguageValidator(Validator):
         javascript_evaluators: list[str] = None,  # Accept .js or .ts
     ):
         self.python_evaluators = python_evaluators or ["evaluator.py", "evaluators.py"]
-        self.javascript_evaluators = javascript_evaluators or ["evaluator.js", "evaluator.ts", "evaluators.js", "evaluators.ts"]
+        self.javascript_evaluators = javascript_evaluators or [
+            "evaluator.js",
+            "evaluator.ts",
+            "evaluators.js",
+            "evaluators.ts",
+        ]
 
     def _find_py_evaluator(self, test_dir: Path) -> Path | None:
         """Find Python evaluator file."""
@@ -500,7 +511,9 @@ class LanguageValidator(Validator):
             else:
                 failed.append("Python evaluator: contains non-Python syntax")
         else:
-            failed.append(f"Python evaluator: not found (tried {', '.join(self.python_evaluators)})")
+            failed.append(
+                f"Python evaluator: not found (tried {', '.join(self.python_evaluators)})"
+            )
 
         # Check JavaScript/TypeScript evaluator exists and is JavaScript
         js_path = self._find_js_evaluator(test_dir)
@@ -511,7 +524,9 @@ class LanguageValidator(Validator):
             else:
                 failed.append("JavaScript evaluator: contains non-JavaScript syntax")
         else:
-            failed.append(f"JavaScript evaluator: not found (tried {', '.join(self.javascript_evaluators)})")
+            failed.append(
+                f"JavaScript evaluator: not found (tried {', '.join(self.javascript_evaluators)})"
+            )
 
         return passed, failed
 
@@ -541,13 +556,19 @@ class PatternValidator(Validator):
 
     # Python evaluator patterns - allow optional type annotations
     # Matches: def func(run, example) OR def func(run: Run, example: Example)
-    PY_FUNC_SIGNATURE = re.compile(r"def\s+\w+\s*\(\s*run\s*(:\s*\w+)?\s*,\s*example\s*(:\s*\w+)?\s*\)")
+    PY_FUNC_SIGNATURE = re.compile(
+        r"def\s+\w+\s*\(\s*run\s*(:\s*\w+)?\s*,\s*example\s*(:\s*\w+)?\s*\)"
+    )
     PY_RETURN_SCORE = re.compile(r"return\s*\{[^}]*['\"]?\w+['\"]?\s*:")
 
     # JavaScript evaluator patterns - allow optional type annotations
     # Matches: function func(run, example) OR function func(run: Run, example: Example)
-    JS_FUNC_SIGNATURE = re.compile(r"function\s+\w+\s*\(\s*run\s*(:\s*\w+)?\s*,\s*example\s*(:\s*\w+)?\s*\)")
-    JS_ARROW_SIGNATURE = re.compile(r"=\s*\(\s*run\s*(:\s*\w+)?\s*,\s*example\s*(:\s*\w+)?\s*\)\s*=>")
+    JS_FUNC_SIGNATURE = re.compile(
+        r"function\s+\w+\s*\(\s*run\s*(:\s*\w+)?\s*,\s*example\s*(:\s*\w+)?\s*\)"
+    )
+    JS_ARROW_SIGNATURE = re.compile(
+        r"=\s*\(\s*run\s*(:\s*\w+)?\s*,\s*example\s*(:\s*\w+)?\s*\)\s*=>"
+    )
     JS_RETURN_SCORE = re.compile(r"return\s*\{[^}]*\w+\s*:")
 
     def __init__(
@@ -556,7 +577,12 @@ class PatternValidator(Validator):
         javascript_evaluators: list[str] = None,
     ):
         self.python_evaluators = python_evaluators or ["evaluator.py", "evaluators.py"]
-        self.javascript_evaluators = javascript_evaluators or ["evaluator.js", "evaluator.ts", "evaluators.js", "evaluators.ts"]
+        self.javascript_evaluators = javascript_evaluators or [
+            "evaluator.js",
+            "evaluator.ts",
+            "evaluators.js",
+            "evaluators.ts",
+        ]
 
     def _find_py_evaluator(self, test_dir: Path) -> Path | None:
         """Find Python evaluator file."""
@@ -620,23 +646,23 @@ class PatternValidator(Validator):
             failed.append("Python: missing run outputs access")
 
         # Check for example outputs access (dict or attribute)
-        if 'example["outputs"]' in content or "example['outputs']" in content or "example.outputs" in content:
+        if (
+            'example["outputs"]' in content
+            or "example['outputs']" in content
+            or "example.outputs" in content
+        ):
             passed.append("Python: accesses example outputs")
         else:
             failed.append("Python: missing example outputs access")
 
         return passed, failed
 
-    def _validate_javascript_patterns(
-        self, content: str
-    ) -> tuple[list[str], list[str]]:
+    def _validate_javascript_patterns(self, content: str) -> tuple[list[str], list[str]]:
         """Validate JavaScript evaluator patterns."""
         passed, failed = [], []
 
         # Check function signature (regular or arrow)
-        if self.JS_FUNC_SIGNATURE.search(content) or self.JS_ARROW_SIGNATURE.search(
-            content
-        ):
+        if self.JS_FUNC_SIGNATURE.search(content) or self.JS_ARROW_SIGNATURE.search(content):
             passed.append("JavaScript: has (run, example) signature")
         else:
             failed.append("JavaScript: missing (run, example) function signature")
@@ -671,7 +697,12 @@ class SyntaxValidator(Validator):
         javascript_evaluators: list[str] = None,
     ):
         self.python_evaluators = python_evaluators or ["evaluator.py", "evaluators.py"]
-        self.javascript_evaluators = javascript_evaluators or ["evaluator.js", "evaluator.ts", "evaluators.js", "evaluators.ts"]
+        self.javascript_evaluators = javascript_evaluators or [
+            "evaluator.js",
+            "evaluator.ts",
+            "evaluators.js",
+            "evaluators.ts",
+        ]
 
     def _find_py_evaluator(self, test_dir: Path) -> Path | None:
         """Find Python evaluator file."""
@@ -700,6 +731,7 @@ class SyntaxValidator(Validator):
             content = py_path.read_text()
             try:
                 import ast
+
                 ast.parse(content)
                 passed.append("Python: valid syntax")
             except SyntaxError as e:
@@ -752,7 +784,12 @@ class DatasetValidator(Validator):
         ts_dataset: str = "support_bot_final_response_dataset.json",
     ):
         self.python_evaluators = python_evaluators or ["evaluator.py", "evaluators.py"]
-        self.javascript_evaluators = javascript_evaluators or ["evaluator.js", "evaluator.ts", "evaluators.js", "evaluators.ts"]
+        self.javascript_evaluators = javascript_evaluators or [
+            "evaluator.js",
+            "evaluator.ts",
+            "evaluators.js",
+            "evaluators.ts",
+        ]
         self.py_dataset = py_dataset
         self.ts_dataset = ts_dataset
 
@@ -833,20 +870,24 @@ class DatasetValidator(Validator):
         test_cases = []
         for i, example in enumerate(dataset):
             # Test 1: Exact match (run = example)
-            test_cases.append({
-                "name": f"exact_match_{i}",
-                "run": {"inputs": example["inputs"], "outputs": example["outputs"]},
-                "example": {"inputs": example["inputs"], "outputs": example["outputs"]},
-                "expected_result": {"should_pass": True, "min_score": 0.9}
-            })
+            test_cases.append(
+                {
+                    "name": f"exact_match_{i}",
+                    "run": {"inputs": example["inputs"], "outputs": example["outputs"]},
+                    "example": {"inputs": example["inputs"], "outputs": example["outputs"]},
+                    "expected_result": {"should_pass": True, "min_score": 0.9},
+                }
+            )
 
             # Test 2: Empty trajectory (should be low score)
-            test_cases.append({
-                "name": f"empty_trajectory_{i}",
-                "run": {"inputs": example["inputs"], "outputs": {"expected_trajectory": []}},
-                "example": {"inputs": example["inputs"], "outputs": example["outputs"]},
-                "expected_result": {"should_pass": True, "max_score": 0.5}
-            })
+            test_cases.append(
+                {
+                    "name": f"empty_trajectory_{i}",
+                    "run": {"inputs": example["inputs"], "outputs": {"expected_trajectory": []}},
+                    "example": {"inputs": example["inputs"], "outputs": example["outputs"]},
+                    "expected_result": {"should_pass": True, "max_score": 0.5},
+                }
+            )
 
         # Write test cases to root (test_dir)
         test_cases_path = test_dir / "_be_test_cases.json"
@@ -889,20 +930,24 @@ class DatasetValidator(Validator):
         test_cases = []
         for i, example in enumerate(dataset):
             # Test 1: Exact match
-            test_cases.append({
-                "name": f"exact_match_{i}",
-                "run": {"inputs": example["inputs"], "outputs": example["outputs"]},
-                "example": {"inputs": example["inputs"], "outputs": example["outputs"]},
-                "expected_result": {"should_pass": True, "min_score": 0.9}
-            })
+            test_cases.append(
+                {
+                    "name": f"exact_match_{i}",
+                    "run": {"inputs": example["inputs"], "outputs": example["outputs"]},
+                    "example": {"inputs": example["inputs"], "outputs": example["outputs"]},
+                    "expected_result": {"should_pass": True, "min_score": 0.9},
+                }
+            )
 
             # Test 2: Empty response (should be low score)
-            test_cases.append({
-                "name": f"empty_response_{i}",
-                "run": {"inputs": example["inputs"], "outputs": {"response": ""}},
-                "example": {"inputs": example["inputs"], "outputs": example["outputs"]},
-                "expected_result": {"should_pass": True, "max_score": 0.3}
-            })
+            test_cases.append(
+                {
+                    "name": f"empty_response_{i}",
+                    "run": {"inputs": example["inputs"], "outputs": {"response": ""}},
+                    "example": {"inputs": example["inputs"], "outputs": example["outputs"]},
+                    "expected_result": {"should_pass": True, "max_score": 0.3},
+                }
+            )
 
         # Write test cases to root
         test_cases_path = test_dir / "_fe_test_cases.json"
@@ -917,9 +962,7 @@ class DatasetValidator(Validator):
             # Module path relative to workspace root
             module_path = f"./frontend/{path.name}"
             args = [module_path, func_name, "_fe_test_cases.json"]
-            success, output = run_node_in_docker(
-                test_dir, "_eval_runner.ts", timeout=60, args=args
-            )
+            success, output = run_node_in_docker(test_dir, "_eval_runner.ts", timeout=60, args=args)
             return self._parse_results(output, success, "JavaScript (final_response)")
         except Exception as e:
             return [], [f"JavaScript (final_response): {str(e)[:50]}"]
@@ -948,7 +991,7 @@ class DatasetValidator(Validator):
         if success:
             return [f"{lang}: executed"], []
         else:
-            error_preview = output[:150].replace('\n', ' ') if output else "no output"
+            error_preview = output[:150].replace("\n", " ") if output else "no output"
             return [], [f"{lang}: execution failed - {error_preview}"]
 
 

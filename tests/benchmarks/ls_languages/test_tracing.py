@@ -37,9 +37,7 @@ def _add_language_suffix(content: str, lang: str) -> str:
     """Add language suffix to frontmatter description."""
     suffix = "(Python)" if lang == "py" else "(TypeScript)"
     return re.sub(
-        r'^(description: "?)(.+?)("?)$',
-        rf"\1\2 {suffix}\3",
-        content, count=1, flags=re.MULTILINE
+        r'^(description: "?)(.+?)("?)$', rf"\1\2 {suffix}\3", content, count=1, flags=re.MULTILINE
     )
 
 
@@ -74,7 +72,9 @@ def _build_separate_skills() -> dict:
     return skills
 
 
-def _build_unified_skills(variant: str, include_others: bool = True, add_noise: bool = False) -> dict:
+def _build_unified_skills(
+    variant: str, include_others: bool = True, add_noise: bool = False
+) -> dict:
     skills = {"langsmith-trace": _load_skill("langsmith_trace", variant)}
     if include_others:
         for skill_type in ["evaluator", "dataset"]:

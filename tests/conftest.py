@@ -231,7 +231,9 @@ class ExperimentPlugin:
         print("  RESULTS")
         print(f"{'=' * 140}\n")
 
-        print(f"{'Treatment':<25} {'Checks':<15} {'Turns':<8} {'Dur':<8} {'Skills':<40} {'Scripts':<40}")
+        print(
+            f"{'Treatment':<25} {'Checks':<15} {'Turns':<8} {'Dur':<8} {'Skills':<40} {'Scripts':<40}"
+        )
         print("-" * 140)
 
         for treatment, runs in self.logger.results.items():
@@ -250,7 +252,9 @@ class ExperimentPlugin:
                 scripts_str = ", ".join(scripts) if scripts else "none"
                 if len(scripts_str) > 38:
                     scripts_str = scripts_str[:35] + "..."
-                print(f"{treatment:<25} {checks_str:<15} {turns:<8} {dur:<8} {skills_str:<40} {scripts_str:<40}")
+                print(
+                    f"{treatment:<25} {checks_str:<15} {turns:<8} {dur:<8} {skills_str:<40} {scripts_str:<40}"
+                )
 
         print("-" * 140)
         total_passed = sum(
@@ -674,7 +678,13 @@ def _save_artifacts(base_dir: Path, treatment_name: str, rep: int, test_dir: Pat
     execution_dir.mkdir(parents=True, exist_ok=True)
 
     # Files/dirs to exclude
-    exclude_files = {"chinook.db", "requirements.txt", "Dockerfile", "package.json", "tsconfig.json"}
+    exclude_files = {
+        "chinook.db",
+        "requirements.txt",
+        "Dockerfile",
+        "package.json",
+        "tsconfig.json",
+    }
     exclude_dirs = {".claude", "node_modules", "__pycache__"}
 
     # Recursively copy all files Claude generated/modified

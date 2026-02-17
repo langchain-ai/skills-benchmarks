@@ -34,6 +34,7 @@ from .python import (
     retry_with_backoff,
     run_claude_in_docker,
     run_in_docker,
+    run_node_in_docker,
     run_python_in_docker,
     # Utils
     run_shell,
@@ -57,6 +58,7 @@ __all__ = [
     "build_docker_image",
     "run_in_docker",
     "run_python_in_docker",
+    "run_node_in_docker",
     "run_claude_in_docker",
     "retry_with_backoff",
     "read_json_file",

@@ -1,6 +1,6 @@
 ---
 name: langsmith-dataset-py
-description: Use this skill for ANY question about creating test or evaluation datasets for agents (Python). Covers generating datasets from exported trace files (final_response, single_step, trajectory, RAG types), uploading to LangSmith, and managing evaluation data.
+description: Use this skill for ANY question about creating test or evaluation datasets for agents. Covers generating datasets from exported trace files (final_response, single_step, trajectory, RAG types), uploading to LangSmith, and managing evaluation data.
 ---
 
 <oneliner>
@@ -360,7 +360,3 @@ python query_datasets.py show "Skills: Final Response" --limit 3
 - Verify LANGSMITH_API_KEY is set
 </troubleshooting>
 
-<related_skills>
-- **langsmith-trace**: Queries and exports trace data. Datasets are built from trace data - traces contain the inputs, outputs, and tool calls that become dataset examples.
-- **langsmith-evaluator**: Creates evaluators that validate outputs. Evaluators run against datasets to measure performance.
-</related_skills>

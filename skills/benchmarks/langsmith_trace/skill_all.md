@@ -1,10 +1,10 @@
 ---
-name: langsmith-trace-js
-description: "Use this skill for ANY LangSmith/LangChain observability question. Covers two topics: (1) Adding tracing to your application, and (2) Querying traces. Assist with debugging, analyzing execution flow, and exporting trace data."
+name: langsmith-trace
+description: Use this skill for ANY LangSmith/LangChain observability question. Covers two topics: (1) Adding tracing to your application, and (2) Querying traces. Assists with debugging, analyzing execution flow, and exporting trace data.
 ---
 
 <oneliner>
-Two main topics: **adding tracing** to your application, and **querying traces** for debugging and analysis.
+Two main topics: **adding tracing** to your application, and **querying traces** for debugging and analysis. Python and Javascript are supported, and should be used depending on what matches project context.
 </oneliner>
 
 <setup>
@@ -16,14 +16,14 @@ LANGSMITH_PROJECT=your-project-name                   # Optional: default projec
 LANGSMITH_WORKSPACE_ID=your-workspace-id              # Optional: for org-scoped keys
 ```
 
-Dependencies
-
+Python Dependencies
 ```bash
-npm install langsmith commander chalk cli-table3 ora dotenv
+pip install langsmith click rich python-dotenv
 ```
 
-For TypeScript:
+TypeScript Dependencies
 ```bash
+npm install langsmith commander chalk cli-table3 ora dotenv
 npm install -D tsx typescript @types/node
 ```
 </setup>
@@ -39,10 +39,45 @@ export OPENAI_API_KEY=<your-openai-api-key>  # or your LLM provider's key
 
 Optional variables:
 - `LANGSMITH_PROJECT` - specify project name (defaults to "default")
+- `LANGCHAIN_CALLBACKS_BACKGROUND=false` - use for serverless to ensure traces complete before function exit (Python)
 </trace_langchain_oss>
 
 <trace_other_frameworks>
-For non-LangChain apps, use the `traceable` wrapper:
+For non-LangChain apps, use the traceable decorator/wrapper and wrap your LLM client.
+
+### Python
+
+```python
+from langsmith import traceable
+from langsmith.wrappers import wrap_openai
+from openai import OpenAI
+
+client = wrap_openai(OpenAI())
+
+@traceable
+def my_llm_pipeline(question: str) -> str:
+    resp = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": question}],
+    )
+    return resp.choices[0].message.content
+
+# Nested tracing example
+@traceable
+def rag_pipeline(question: str) -> str:
+    docs = retrieve_docs(question)
+    return generate_answer(question, docs)
+
+@traceable(name="retrieve_docs")
+def retrieve_docs(query: str) -> list[str]:
+    return docs
+
+@traceable(name="generate_answer")
+def generate_answer(question: str, docs: list[str]) -> str:
+    return client.chat.completions.create(...)
+```
+
+### TypeScript
 
 ```typescript
 import { traceable } from "langsmith/traceable";
@@ -75,10 +110,10 @@ const ragPipeline = traceable(async (question: string): Promise<string> => {
 ```
 
 Best Practices:
-- **Wrap functions with `traceable`** for visibility in LangSmith
-- **Wrapped clients auto-trace all calls** — `wrapOpenAI()` records every LLM call
-- **Name your traces** for easier filtering: `{ name: "retrieve_docs" }`
-- **Add metadata** for searchability: `{ metadata: { user_id: "123" } }`
+- **Apply traceable to all nested functions** you want visible in LangSmith
+- **Wrapped clients auto-trace all calls** — `wrap_openai()`/`wrapOpenAI()` records every LLM call
+- **Name your traces** for easier filtering
+- **Add metadata** for searchability
 </trace_other_frameworks>
 
 <traces_vs_runs>
@@ -96,7 +131,7 @@ Use the included scripts to query trace data.
 Two command groups with consistent behavior:
 
 ```
-query_traces.ts
+query_traces.py / query_traces.ts
 ├── traces (operations on trace trees - USE THIS FIRST)
 │   ├── list    - List traces (filters apply to root run)
 │   ├── get     - Get single trace with full hierarchy
@@ -119,6 +154,38 @@ query_traces.ts
 </command_structure>
 
 <querying_traces>
+### Python
+
+```bash
+# List recent traces (most common operation)
+python query_traces.py traces list --limit 10 --project my-project
+
+# List traces with metadata (timing, tokens, costs)
+python query_traces.py traces list --limit 10 --include-metadata
+
+# Filter traces by time
+python query_traces.py traces list --last-n-minutes 60
+python query_traces.py traces list --since 2025-01-20T10:00:00Z
+
+# Get specific trace with full hierarchy
+python query_traces.py traces get <trace-id>
+
+# List traces and show hierarchy inline
+python query_traces.py traces list --limit 5 --show-hierarchy
+
+# Export traces to JSONL (one file per trace, includes all runs)
+python query_traces.py traces export ./traces --limit 20 --full
+
+# Filter traces by performance
+python query_traces.py traces list --min-latency 5.0 --limit 10    # Slow traces (>= 5s)
+python query_traces.py traces list --error --last-n-minutes 60     # Failed traces
+
+# List specific run types (flat list)
+python query_traces.py runs list --run-type llm --limit 20
+```
+
+### TypeScript
+
 ```bash
 # List recent traces (most common operation)
 npx tsx query_traces.ts traces list --limit 10 --project my-project
@@ -138,29 +205,13 @@ npx tsx query_traces.ts traces list --limit 5 --show-hierarchy
 
 # Export traces to JSONL (one file per trace, includes all runs)
 npx tsx query_traces.ts traces export ./traces --limit 20 --full
-npx tsx query_traces.ts traces export ./traces --limit 10 --include-io
 
 # Filter traces by performance
 npx tsx query_traces.ts traces list --min-latency 5.0 --limit 10    # Slow traces (>= 5s)
 npx tsx query_traces.ts traces list --error --last-n-minutes 60     # Failed traces
 
-# Export specific traces by ID
-npx tsx query_traces.ts traces export ./traces --trace-ids abc123,def456 --full
-
-# Stitch multiple JSONL files together
-cat ./traces/*.jsonl > all_traces.jsonl
-
-# --- RUNS (for specific analysis) ---
-
 # List specific run types (flat list)
-npx tsx query_traces.ts runs list --run-type llm --limit 20         # LLM calls only
-npx tsx query_traces.ts runs list --name "ChatOpenAI" --limit 10    # By name pattern
-
-# Get a specific run by ID
-npx tsx query_traces.ts runs get <run-id> --full
-
-# Export LLM runs for analysis
-npx tsx query_traces.ts runs export ./llm_runs.jsonl --run-type llm --limit 100 --full
+npx tsx query_traces.ts runs list --run-type llm --limit 20
 ```
 </querying_traces>
 
@@ -186,7 +237,10 @@ All commands support these filters (all AND together):
 - `--filter QUERY` - Raw LangSmith filter query for complex cases (feedback, metadata, etc.)
 
 ```bash
-# Example: Filter by feedback score
+# Example: Filter by feedback score (Python)
+python query_traces.py traces list --filter 'and(eq(feedback_key, "correctness"), gte(feedback_score, 0.8))'
+
+# Example: Filter by feedback score (TypeScript)
 npx tsx query_traces.ts traces list --filter 'and(eq(feedback_key, "correctness"), gte(feedback_score, 0.8))'
 ```
 </filters>

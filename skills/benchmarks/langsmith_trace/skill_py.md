@@ -1,6 +1,6 @@
 ---
 name: langsmith-trace-py
-description: "Use this skill for ANY LangSmith/LangChain observability question (Python). Covers two topics: (1) Adding tracing to your application (LangChain/LangGraph or vanilla Python with @traceable), and (2) Querying traces for debugging, analyzing execution flow, and exporting trace data."
+description: "Use this skill for ANY LangSmith/LangChain observability question. Covers two topics: (1) Adding tracing to your application, and (2) Querying traces. Assists with debugging, analyzing execution flow, and exporting trace data."
 ---
 
 <oneliner>
@@ -205,7 +205,3 @@ Use `--include-io` or `--full` to include inputs/outputs (required for dataset g
 - Stitch files: `cat ./traces/*.jsonl > all.jsonl`
 </tips>
 
-<related_skills>
-- **langsmith-dataset**: Generates evaluation datasets from trace data. Traces provide the raw execution data that datasets structure for testing.
-- **langsmith-evaluator**: Creates evaluators that validate agent outputs. Evaluators can check trajectories captured in traces.
-</related_skills>

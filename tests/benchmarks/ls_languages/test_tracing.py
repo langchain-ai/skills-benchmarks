@@ -100,37 +100,37 @@ VALIDATORS = [
 ]
 
 TREATMENTS = {
-    "SEPARATE_NAMES": Treatment(
+    "TRACE_SEPARATE_NAMES": Treatment(
         description="Language-specific skill names (trace-py/ts, evaluator-py/ts, dataset-py/ts + noise)",
         skills=_build_separate_skills(),
         claude_md=CLAUDE_MD_GENERIC,
         validators=VALIDATORS,
     ),
-    "UNIFIED_BOTH": Treatment(
+    "TRACE_UNIFIED_BOTH": Treatment(
         description="Unified skills (trace/evaluator/dataset with all variants)",
         skills=_build_unified_skills("all", include_others=True),
         claude_md=CLAUDE_MD_GENERIC,
         validators=VALIDATORS,
     ),
-    "UNIFIED_WITH_NOISE": Treatment(
+    "TRACE_UNIFIED_WITH_NOISE": Treatment(
         description="Unified skills + distractor noise skill",
         skills=_build_unified_skills("all", include_others=True, add_noise=True),
         claude_md=CLAUDE_MD_GENERIC,
         validators=VALIDATORS,
     ),
-    "UNIFIED_PY_ONLY": Treatment(
+    "TRACE_UNIFIED_PY_ONLY": Treatment(
         description="Single skill with only Python content",
         skills=_build_unified_skills("py", include_others=False),
         claude_md=CLAUDE_MD_GENERIC,
         validators=VALIDATORS,
     ),
-    "UNIFIED_TS_ONLY": Treatment(
+    "TRACE_UNIFIED_TS_ONLY": Treatment(
         description="Single skill with only TypeScript content",
         skills=_build_unified_skills("ts", include_others=False),
         claude_md=CLAUDE_MD_GENERIC,
         validators=VALIDATORS,
     ),
-    "CONTROL": Treatment(
+    "TRACE_CONTROL": Treatment(
         description="No skills (baseline - Claude's native knowledge)",
         skills={},
         validators=VALIDATORS,

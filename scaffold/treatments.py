@@ -157,7 +157,7 @@ def load_treatments_yaml(path: Path | None = None) -> dict[str, TreatmentConfig]
     return treatments
 
 
-def load_treatment(name: str, path: Path | None = None) -> "Treatment":
+def load_treatment(name: str, path: Path | None = None):
     """Load a single treatment by name and build it.
 
     Args:

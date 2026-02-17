@@ -20,7 +20,7 @@ from scaffold import (
 from scaffold.python import extract_events, parse_output
 from skills.parser import load_skill
 
-from ..conftest import get_noise_skills, get_noise_tasks
+from ..helpers import get_noise_skills, get_noise_tasks
 
 # =============================================================================
 # SKILL LOADING

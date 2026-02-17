@@ -167,8 +167,8 @@ describe("mocked API functions", () => {
         display_name: "test_evaluator",
         evaluators: [
           {
-            code: "def perform_eval(inputs, outputs, reference_outputs):\n    return {'score': 1.0}",
-            language: "python",
+            code: "function performEval(run, example) { return { score: 1.0 }; }",
+            language: "javascript",
           },
         ],
         sampling_rate: 1.0,
@@ -200,12 +200,61 @@ describe("mocked API functions", () => {
 
       const payload = {
         display_name: "test_evaluator",
-        evaluators: [{ code: "invalid code", language: "python" }],
+        evaluators: [{ code: "invalid code", language: "javascript" }],
         sampling_rate: 1.0,
       };
 
       const result = await createEvaluator(payload);
       expect(result).toBe(false);
+
+      vi.unstubAllGlobals();
+    });
+  });
+
+  describe("deleteEvaluator (mocked)", () => {
+    it("returns false when evaluator not found", async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve([]),
+      });
+      vi.stubGlobal("fetch", mockFetch);
+
+      const { deleteEvaluator } = await import(
+        "../../../skills/benchmarks/langsmith_evaluator/scripts/upload_evaluators.js"
+      );
+
+      const result = await deleteEvaluator("nonexistent", false);
+      expect(result).toBe(false);
+
+      vi.unstubAllGlobals();
+    });
+
+    it("successfully deletes evaluator", async () => {
+      // First call returns the list with the evaluator
+      // Second call is the DELETE request
+      const mockFetch = vi
+        .fn()
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve(SAMPLE_EVALUATORS),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+        });
+      vi.stubGlobal("fetch", mockFetch);
+
+      const { deleteEvaluator } = await import(
+        "../../../skills/benchmarks/langsmith_evaluator/scripts/upload_evaluators.js"
+      );
+
+      const result = await deleteEvaluator("response_quality", false);
+      expect(result).toBe(true);
+
+      // Verify DELETE was called with correct URL
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+      const [deleteUrl] = mockFetch.mock.calls[1];
+      expect(deleteUrl).toContain("/runs/rules/");
+      expect(deleteUrl).toContain(SAMPLE_EVALUATORS[0].id);
 
       vi.unstubAllGlobals();
     });

@@ -12,8 +12,6 @@ Usage:
 """
 
 # Re-export task utilities
-from .tasks import Task, TaskConfig, list_tasks, load_task
-
 # Re-export from scaffold.python for convenience
 from .python import (
     MetricsCollector,
@@ -43,6 +41,19 @@ from .python import (
     # Utils
     run_shell,
 )
+from .tasks import Task, TaskConfig, list_tasks, load_task
+
+# Re-export validation utilities
+from .validation import (
+    compose_validators,
+    run_validators,
+    validate_file_exists,
+    validate_function_decorated,
+    validate_no_pattern,
+    validate_pattern,
+    validate_python_tracing,
+    validate_typescript_tracing,
+)
 
 __all__ = [
     # Tasks
@@ -50,6 +61,15 @@ __all__ = [
     "TaskConfig",
     "load_task",
     "list_tasks",
+    # Validation functions
+    "validate_file_exists",
+    "validate_pattern",
+    "validate_no_pattern",
+    "validate_function_decorated",
+    "validate_python_tracing",
+    "validate_typescript_tracing",
+    "compose_validators",
+    "run_validators",
     # Schema
     "NoiseTask",
     "Treatment",

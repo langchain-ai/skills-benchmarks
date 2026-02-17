@@ -1,12 +1,20 @@
-"""Shared fixtures for benchmark tests.
+"""Shared helpers for benchmark tests.
 
-Includes noise task definitions for distractor experiments.
+Includes noise task definitions and common configuration.
 """
 
 from pathlib import Path
 
 from scaffold import NoiseTask
 from skills.parser import load_skill
+
+# =============================================================================
+# TIMEOUT CONFIGURATION
+# =============================================================================
+
+# Default timeouts for benchmark tests (seconds)
+CLAUDE_TIMEOUT = 600  # 10 minutes for Claude to complete task
+PYTEST_TIMEOUT = CLAUDE_TIMEOUT + 300  # 15 minutes total (includes validation)
 
 # =============================================================================
 # NOISE SKILLS

@@ -1,6 +1,6 @@
 ---
 name: langsmith-trace-js
-description: "Use this skill for ANY LangSmith/LangChain observability question (TypeScript/JavaScript). Covers two topics: (1) Adding tracing to your application (LangChain/LangGraph or vanilla JS with traceable), and (2) Querying traces for debugging, analyzing execution flow, and exporting trace data."
+description: "Use this skill for ANY LangSmith/LangChain observability question. Covers two topics: (1) Adding tracing to your application, and (2) Querying traces. Assist with debugging, analyzing execution flow, and exporting trace data."
 ---
 
 <oneliner>
@@ -209,7 +209,3 @@ Use `--include-io` or `--full` to include inputs/outputs (required for dataset g
 - Stitch files: `cat ./traces/*.jsonl > all.jsonl`
 </tips>
 
-<related_skills>
-- **langsmith-dataset-js**: Generates evaluation datasets from trace data. Traces provide the raw execution data that datasets structure for testing.
-- **langsmith-evaluator-js**: Creates evaluators that validate agent outputs. Evaluators can check trajectories captured in traces.
-</related_skills>

@@ -811,12 +811,18 @@ def _replay_trace_operations(client, project: str, operations: list[dict]) -> st
     from datetime import UTC, timedelta
 
     # Build ID mapping for all post operations
-    id_map = {op["id"]: str(uuid.uuid4()) for op in operations if op.get("operation") == "post" and op.get("id")}
+    id_map = {
+        op["id"]: str(uuid.uuid4())
+        for op in operations
+        if op.get("operation") == "post" and op.get("id")
+    }
     if not id_map:
         return None
 
     # Calculate time shift
-    timestamps = [_parse_ts(op.get("start_time")) for op in operations if op.get("operation") == "post"]
+    timestamps = [
+        _parse_ts(op.get("start_time")) for op in operations if op.get("operation") == "post"
+    ]
     timestamps = [t for t in timestamps if t]
     if not timestamps:
         return None
@@ -836,10 +842,15 @@ def _replay_trace_operations(client, project: str, operations: list[dict]) -> st
         if op.get("operation") == "post":
             try:
                 client.create_run(
-                    id=new_id, name=op.get("name"), run_type=op.get("run_type", "chain"),
-                    inputs=op.get("inputs", {}), start_time=shift_ts(op.get("start_time")),
-                    parent_run_id=new_parent, project_name=project,
-                    extra=op.get("extra", {}), tags=op.get("tags", []),
+                    id=new_id,
+                    name=op.get("name"),
+                    run_type=op.get("run_type", "chain"),
+                    inputs=op.get("inputs", {}),
+                    start_time=shift_ts(op.get("start_time")),
+                    parent_run_id=new_parent,
+                    project_name=project,
+                    extra=op.get("extra", {}),
+                    tags=op.get("tags", []),
                 )
                 if not op.get("parent_run_id"):
                     root_id = new_id
@@ -849,8 +860,10 @@ def _replay_trace_operations(client, project: str, operations: list[dict]) -> st
         elif op.get("operation") == "patch":
             try:
                 client.update_run(
-                    run_id=new_id, end_time=shift_ts(op.get("end_time")),
-                    outputs=op.get("outputs", {}), error=op.get("error"),
+                    run_id=new_id,
+                    end_time=shift_ts(op.get("end_time")),
+                    outputs=op.get("outputs", {}),
+                    error=op.get("error"),
                 )
             except Exception as e:
                 print(f"    Failed patch: {op.get('name')}: {e}")
@@ -871,14 +884,25 @@ def upload_fixture_traces(project: str, data_dir: Path) -> dict[str, str]:
 
     id_mapping = {}
     for jsonl_file in sorted(data_dir.glob("trace_*.jsonl")):
-        operations = [json.loads(line) for line in jsonl_file.read_text().splitlines() if line.strip()]
+        operations = [
+            json.loads(line) for line in jsonl_file.read_text().splitlines() if line.strip()
+        ]
         if not operations:
             continue
 
         # Find root trace and extract query for logging
-        root = next((op for op in operations if op.get("operation") == "post" and not op.get("parent_run_id")), None)
+        root = next(
+            (
+                op
+                for op in operations
+                if op.get("operation") == "post" and not op.get("parent_run_id")
+            ),
+            None,
+        )
         old_id = root.get("id") if root else None
-        query = root.get("inputs", {}).get("messages", [{}])[0].get("content", "")[:40] if root else ""
+        query = (
+            root.get("inputs", {}).get("messages", [{}])[0].get("content", "")[:40] if root else ""
+        )
 
         try:
             new_id = _replay_trace_operations(client, project, operations)

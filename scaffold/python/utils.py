@@ -178,6 +178,47 @@ def normalize_score(score) -> float:
 
 
 # =============================================================================
+# LANGSMITH CLIENT
+# =============================================================================
+
+
+def get_langsmith_client():
+    """Get LangSmith client. Returns (client, error_string).
+
+    Returns:
+        Tuple of (Client instance or None, error message or None)
+    """
+    try:
+        from langsmith import Client
+
+        api_key = os.environ.get("LANGSMITH_API_KEY")
+        if not api_key:
+            return None, "LANGSMITH_API_KEY not set"
+        return Client(api_key=api_key), None
+    except Exception as e:
+        return None, str(e)
+
+
+def safe_api_call(func, skip_msg: str = "skipped"):
+    """Run API call, return (result, error_msg) handling rate limits.
+
+    Args:
+        func: Function to call
+        skip_msg: Message prefix for skip/error cases
+
+    Returns:
+        Tuple of (result or None, error message or None)
+    """
+    try:
+        return func(), None
+    except Exception as e:
+        msg = str(e).lower()
+        if "429" in msg or "rate limit" in msg:
+            return None, f"{skip_msg} (rate limited)"
+        return None, f"{skip_msg} ({str(e)[:40]})"
+
+
+# =============================================================================
 # LLM EVALUATION
 # =============================================================================
 

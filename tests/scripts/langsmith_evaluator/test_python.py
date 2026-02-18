@@ -10,8 +10,12 @@ from unittest.mock import patch
 import pytest
 import responses
 
-from ..conftest import PY_UPLOAD_EVALUATORS, SCRIPTS_BASE, run_python_script
-from ..fixtures import SAMPLE_EVALUATORS
+from ..conftest import (
+    PY_UPLOAD_EVALUATORS,
+    SAMPLE_EVALUATORS,
+    SCRIPTS_BASE,
+    run_python_script,
+)
 
 
 @pytest.fixture

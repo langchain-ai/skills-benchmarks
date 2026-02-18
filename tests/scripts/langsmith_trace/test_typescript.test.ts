@@ -5,45 +5,21 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { execSync } from "node:child_process";
-import { resolve, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
 import {
   SAMPLE_TRACES_LIST,
   SAMPLE_TRACE_GET,
   SAMPLE_RUNS_WITH_METADATA,
+  TS_QUERY_TRACES,
+  runTsScript,
 } from "../fixtures.js";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const SCRIPTS_BASE = resolve(__dirname, "../../../skills/benchmarks");
-const SCRIPT_PATH = resolve(
-  SCRIPTS_BASE,
-  "langsmith_trace/scripts/query_traces.ts",
-);
+const SCRIPT_PATH = TS_QUERY_TRACES;
 
 /**
  * Run the TypeScript script and return the result.
  */
-function runScript(args: string[]): {
-  stdout: string;
-  stderr: string;
-  returncode: number;
-} {
-  try {
-    const stdout = execSync(`npx tsx ${SCRIPT_PATH} ${args.join(" ")}`, {
-      encoding: "utf8",
-      timeout: 30000,
-      stdio: ["pipe", "pipe", "pipe"],
-    });
-    return { stdout, stderr: "", returncode: 0 };
-  } catch (error) {
-    const err = error as { stdout?: string; stderr?: string; status?: number };
-    return {
-      stdout: err.stdout || "",
-      stderr: err.stderr || "",
-      returncode: err.status || 1,
-    };
-  }
+function runScript(args: string[]) {
+  return runTsScript(SCRIPT_PATH, args);
 }
 
 describe("langsmith-trace (query_traces.ts)", () => {

@@ -28,6 +28,25 @@ export interface Validator {
 // SKILL INVOKED VALIDATOR
 // =============================================================================
 
+/** Check if a skill was invoked during the task (function-based). */
+export function validateSkillInvoked(
+  outputs: Record<string, unknown>,
+  skillName: string,
+  options: { required?: boolean } = {},
+): ValidationResult {
+  const events = (outputs?.events as Record<string, unknown>) || {};
+  const skillsInvoked = (events.skills_invoked as string[]) || [];
+  const required = options.required ?? false;
+
+  if (skillsInvoked.includes(skillName)) {
+    return { passed: [`Invoked ${skillName} skill`], failed: [] };
+  } else if (required) {
+    return { passed: [], failed: [`Did NOT invoke ${skillName} skill`] };
+  }
+  return { passed: [`Note: did not invoke ${skillName}`], failed: [] };
+}
+
+/** Check if a skill was invoked (class-based). */
 export class SkillInvokedValidator implements Validator {
   constructor(
     public skillName: string,
@@ -183,10 +202,72 @@ export class TypeScriptFileValidator implements Validator {
 export { TypeScriptFileValidator as FileValidator };
 
 // =============================================================================
+// NOISE TASK CONSTANTS
+// =============================================================================
+
+/** Noise task prompts by task name. */
+export const NOISE_TASK_PROMPTS: Record<string, string> = {
+  docker_patterns:
+    "Create a Dockerfile for a Node.js application with multi-stage build, non-root user, and health check. Save to Dockerfile.nodejs.",
+  react_components:
+    "Create a React component that fetches and displays user data using hooks (useState, useEffect), with loading/error states in TypeScript. Save to UserProfile.tsx.",
+  api_docs:
+    "Create an OpenAPI spec for a simple user API with GET /users, POST /users, proper schemas, and error responses. Save to openapi.yaml.",
+};
+
+/** Noise task deliverable files by task name. */
+export const NOISE_TASK_DELIVERABLES: Record<string, string> = {
+  docker_patterns: "Dockerfile.nodejs",
+  react_components: "UserProfile.tsx",
+  api_docs: "openapi.yaml",
+};
+
+/** Get prompts for noise tasks by name. */
+export function getNoiseTaskPrompts(noiseTaskNames: string[]): string[] {
+  return noiseTaskNames
+    .filter((name) => name in NOISE_TASK_PROMPTS)
+    .map((name) => NOISE_TASK_PROMPTS[name]);
+}
+
+/** Build NoiseTask objects from task names. */
+export function buildNoiseTasks(
+  noiseTaskNames: string[],
+): Array<{ prompt: string; deliverables: string[] }> {
+  return noiseTaskNames
+    .filter((name) => name in NOISE_TASK_PROMPTS)
+    .map((name) => ({
+      prompt: NOISE_TASK_PROMPTS[name],
+      deliverables: [NOISE_TASK_DELIVERABLES[name] || ""],
+    }));
+}
+
+// =============================================================================
 // NOISE TASK VALIDATOR
 // =============================================================================
 
-/** Validate noise task output files were created. */
+/** Validate noise task output files were created (function-based). */
+export function validateNoiseOutputs(
+  testDir: string,
+  noiseTasks: string[],
+): ValidationResult {
+  const passed: string[] = [];
+  const failed: string[] = [];
+
+  for (const taskName of noiseTasks) {
+    const deliverable = NOISE_TASK_DELIVERABLES[taskName];
+    if (!deliverable) continue;
+
+    if (existsSync(join(testDir, deliverable))) {
+      passed.push(`Noise: ${deliverable} created`);
+    } else {
+      failed.push(`Noise: ${deliverable} NOT created`);
+    }
+  }
+
+  return { passed, failed };
+}
+
+/** Validate noise task output files were created (class-based). */
 export class NoiseTaskValidator implements Validator {
   constructor(public outputFiles: string[]) {}
 

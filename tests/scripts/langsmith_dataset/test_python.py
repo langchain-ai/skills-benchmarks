@@ -10,12 +10,15 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from ..conftest import PY_GENERATE_DATASETS, PY_QUERY_DATASETS, SCRIPTS_BASE, run_python_script
-from ..fixtures import (
+from ..conftest import (
+    PY_GENERATE_DATASETS,
+    PY_QUERY_DATASETS,
     SAMPLE_DATASET_EXAMPLES,
     SAMPLE_DATASETS,
+    SCRIPTS_BASE,
     create_sample_dataset_json,
     create_sample_trace_jsonl,
+    run_python_script,
 )
 
 

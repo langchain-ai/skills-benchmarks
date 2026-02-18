@@ -1,9 +1,11 @@
 """Python-specific scaffold components.
 
 - schema.py: NoiseTask, Treatment
-- validation.py: Validators
+- validation/: Function-based validators (preferred) and class-based (legacy)
 - utils.py: Docker wrappers, helpers
 - logging.py: Output parsing, experiment logging
+- tasks.py: Task loader for self-contained benchmark tasks
+- treatments.py: Treatment configuration loader
 """
 
 from .logging import (
@@ -38,7 +40,9 @@ from .utils import (
     run_python_in_docker,
     run_shell,
 )
-from .validation import (
+
+# Class-based validators (legacy)
+from .validation.classes import (
     MetricsCollector,
     NoiseTaskValidator,
     OutputQualityValidator,
@@ -47,17 +51,84 @@ from .validation import (
     Validator,
 )
 
+# Function-based validators (preferred) - from validation/ package
+from .validation import (
+    ValidatorFn,
+    compose_validators,
+    extract_examples,
+    find_evaluator_function,
+    get_langsmith_client,
+    get_noise_task_prompts,
+    run_validators,
+    safe_api_call,
+    validate_code_execution,
+    validate_dataset_structure,
+    validate_dataset_upload,
+    validate_evaluator_exists,
+    validate_evaluator_logic,
+    validate_evaluator_patterns,
+    validate_evaluator_syntax,
+    validate_evaluator_upload,
+    validate_file_exists,
+    validate_langsmith_trace,
+    validate_language_syntax,
+    validate_no_pattern,
+    validate_pattern,
+    validate_python_execution,
+    validate_python_tracing,
+    validate_noise_outputs,
+    validate_skill_invoked,
+    validate_skill_scripts,
+    validate_trajectory_accuracy,
+    NOISE_TASK_DELIVERABLES,
+    NOISE_TASK_PROMPTS,
+    validate_typescript_execution,
+    validate_typescript_tracing,
+)
+
 __all__ = [
     # Schema
     "NoiseTask",
     "Treatment",
-    # Validation
+    # Class-based validators (legacy)
     "Validator",
     "SkillInvokedValidator",
     "PythonFileValidator",
     "NoiseTaskValidator",
     "MetricsCollector",
     "OutputQualityValidator",
+    # Function-based validators (preferred)
+    "ValidatorFn",
+    "compose_validators",
+    "run_validators",
+    "validate_file_exists",
+    "validate_pattern",
+    "validate_no_pattern",
+    "validate_python_tracing",
+    "validate_typescript_tracing",
+    "validate_language_syntax",
+    "validate_langsmith_trace",
+    "validate_code_execution",
+    "validate_python_execution",
+    "validate_typescript_execution",
+    "get_langsmith_client",
+    "safe_api_call",
+    "extract_examples",
+    "validate_dataset_structure",
+    "validate_dataset_upload",
+    "validate_trajectory_accuracy",
+    "find_evaluator_function",
+    "validate_evaluator_exists",
+    "validate_evaluator_syntax",
+    "validate_evaluator_patterns",
+    "validate_evaluator_logic",
+    "validate_evaluator_upload",
+    "validate_skill_invoked",
+    "validate_noise_outputs",
+    "validate_skill_scripts",
+    "get_noise_task_prompts",
+    "NOISE_TASK_DELIVERABLES",
+    "NOISE_TASK_PROMPTS",
     # Utils
     "run_shell",
     "check_docker_available",

@@ -779,3 +779,127 @@ def _save_artifacts(base_dir: Path, treatment_name: str, rep: int, test_dir: Pat
         except Exception as e:
             error_file = execution_dir / f"{ts_file.stem}_error.txt"
             error_file.write_text(str(e))
+
+
+# =============================================================================
+# LANGSMITH TRACE FIXTURE UPLOAD
+# =============================================================================
+
+
+def _parse_ts(s: str):
+    """Parse ISO timestamp string, always returning UTC-aware datetime."""
+    from datetime import UTC
+
+    if not s:
+        return None
+    try:
+        dt = datetime.fromisoformat(s.replace("Z", "+00:00"))
+        # Ensure timezone-aware (some formats may not have tz info)
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=UTC)
+        return dt
+    except ValueError:
+        return None
+
+
+def _replay_trace_operations(client, project: str, operations: list[dict]) -> str:
+    """Replay trace operations with new IDs and date-shifted timestamps.
+
+    Uses two-step POST/PATCH approach to avoid dotted_order requirement.
+    """
+    import uuid
+    from datetime import UTC, timedelta
+
+    # Build ID mapping for all post operations
+    id_map = {op["id"]: str(uuid.uuid4()) for op in operations if op.get("operation") == "post" and op.get("id")}
+    if not id_map:
+        return None
+
+    # Calculate time shift
+    timestamps = [_parse_ts(op.get("start_time")) for op in operations if op.get("operation") == "post"]
+    timestamps = [t for t in timestamps if t]
+    if not timestamps:
+        return None
+
+    offset = datetime.now(UTC) - min(timestamps) - timedelta(minutes=5)
+
+    def shift_ts(ts_str):
+        ts = _parse_ts(ts_str)
+        return ts + offset if ts else None
+
+    root_id = None
+    for op in operations:
+        old_id = op.get("id")
+        new_id = id_map.get(old_id, old_id)
+        new_parent = id_map.get(op.get("parent_run_id")) if op.get("parent_run_id") else None
+
+        if op.get("operation") == "post":
+            try:
+                client.create_run(
+                    id=new_id, name=op.get("name"), run_type=op.get("run_type", "chain"),
+                    inputs=op.get("inputs", {}), start_time=shift_ts(op.get("start_time")),
+                    parent_run_id=new_parent, project_name=project,
+                    extra=op.get("extra", {}), tags=op.get("tags", []),
+                )
+                if not op.get("parent_run_id"):
+                    root_id = new_id
+            except Exception as e:
+                print(f"    Failed: {op.get('name')}: {e}")
+
+        elif op.get("operation") == "patch":
+            try:
+                client.update_run(
+                    run_id=new_id, end_time=shift_ts(op.get("end_time")),
+                    outputs=op.get("outputs", {}), error=op.get("error"),
+                )
+            except Exception as e:
+                print(f"    Failed patch: {op.get('name')}: {e}")
+
+    return root_id
+
+
+def upload_fixture_traces(project: str, data_dir: Path) -> dict[str, str]:
+    """Upload trace fixtures from jsonl files to LangSmith project.
+
+    Required for tasks like ls-multiskill-* that need pre-existing traces.
+    Returns mapping of original trace_id -> new trace_id.
+    """
+    client, error = _get_langsmith_client()
+    if error:
+        print(f"Could not upload traces: {error}")
+        return {}
+
+    id_mapping = {}
+    for jsonl_file in sorted(data_dir.glob("trace_*.jsonl")):
+        operations = [json.loads(line) for line in jsonl_file.read_text().splitlines() if line.strip()]
+        if not operations:
+            continue
+
+        # Find root trace and extract query for logging
+        root = next((op for op in operations if op.get("operation") == "post" and not op.get("parent_run_id")), None)
+        old_id = root.get("id") if root else None
+        query = root.get("inputs", {}).get("messages", [{}])[0].get("content", "")[:40] if root else ""
+
+        try:
+            new_id = _replay_trace_operations(client, project, operations)
+            if new_id and old_id:
+                id_mapping[old_id] = new_id
+                print(f"  Uploaded: {query}...")
+        except Exception as e:
+            print(f"  Failed ({query}): {e}")
+
+    client.flush()
+    return id_mapping
+
+
+@pytest.fixture
+def upload_traces(langsmith_project):
+    """Factory fixture to upload trace fixtures to LangSmith project."""
+
+    def _upload(data_dir: Path) -> dict[str, str]:
+        if not langsmith_project or not data_dir or not data_dir.exists():
+            return {}
+        print(f"\nUploading traces from {data_dir.name} to {langsmith_project}...")
+        return upload_fixture_traces(langsmith_project, data_dir)
+
+    return _upload

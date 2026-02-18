@@ -208,7 +208,7 @@ def validate_trajectory_accuracy(
 
     Args:
         test_dir: Test working directory
-        outputs: Outputs dict
+        outputs: Outputs dict (may contain trace_id_map for remapped IDs)
         filename: Actual dataset filename
         expected_filename: Ground truth filename
         data_dir: Directory containing expected file
@@ -237,8 +237,11 @@ def validate_trajectory_accuracy(
     if not expected_examples:
         return ["Accuracy: skipped (empty ground truth)"], []
 
+    # Get trace_id_map if available (maps old expected IDs to new actual IDs)
+    trace_id_map = outputs.get("trace_id_map", {}) if outputs else {}
+
     # Compare trajectories
-    matches, mismatches, missing = _compare_datasets(actual_examples, expected_examples)
+    matches, mismatches, missing = _compare_datasets(actual_examples, expected_examples, trace_id_map)
     total_expected = len(expected_examples)
 
     if matches == total_expected:
@@ -259,12 +262,20 @@ def validate_trajectory_accuracy(
 
 
 def _compare_datasets(
-    actual: list[dict], expected: list[dict]
+    actual: list[dict], expected: list[dict], trace_id_map: dict[str, str] = None
 ) -> tuple[int, list[str], list[str]]:
     """Compare actual dataset against expected ground truth.
 
+    Args:
+        actual: Actual dataset examples from Claude
+        expected: Expected ground truth examples
+        trace_id_map: Optional mapping from expected trace_id -> actual trace_id
+                      (used when traces are re-uploaded with new IDs)
+
     Returns: (match_count, mismatch_details, missing_ids)
     """
+    trace_id_map = trace_id_map or {}
+
     # Index actual by trace_id if available, otherwise by input
     def get_key(ex):
         trace_id = ex.get("trace_id") or ex.get("id")
@@ -288,7 +299,10 @@ def _compare_datasets(
         if not exp_traj:
             continue
 
-        actual_ex = actual_by_key.get(exp_key)
+        # Use remapped ID if available (traces re-uploaded with new IDs)
+        actual_key = trace_id_map.get(exp_key, exp_key)
+        actual_ex = actual_by_key.get(actual_key)
+
         if not actual_ex:
             missing.append(exp_key[:30] if exp_key else "unknown")
             continue

@@ -85,6 +85,7 @@ def test_task_treatment(
     setup_test_context,
     run_claude,
     record_result,
+    upload_traces,
 ):
     """Run a task with a treatment and validate results."""
     # Load task
@@ -121,6 +122,13 @@ def test_task_treatment(
     # Generate run_id for parallel execution
     run_id = str(uuid.uuid4())
 
+    # Upload fixture traces for tasks that need them (ls-multiskill-*)
+    trace_id_map = {}
+    if task_name.startswith("ls-multiskill"):
+        data_dir = task.path / "data"
+        if data_dir.exists():
+            trace_id_map = upload_traces(data_dir)
+
     # Render prompt with required variables
     template_vars = {"run_id": run_id}
 
@@ -145,6 +153,7 @@ def test_task_treatment(
         "langsmith_project": langsmith_project,
         "events": events,
         "noise_tasks": treatment_cfg.noise_tasks,
+        "trace_id_map": trace_id_map,
     }
     passed, failed = run_validators(validators, test_dir, outputs)
 

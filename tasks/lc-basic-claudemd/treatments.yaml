@@ -1,0 +1,224 @@
+# Treatment configurations for lc-basic-claudemd task
+#
+# Tests whether CLAUDE.md is needed and what instructions work best.
+# Uses section_overrides to replace quick_start with custom content.
+#
+# Original: tests/benchmarks/lc_basic/test_claudemd.py
+
+# =============================================================================
+# CUSTOM QUICK_START CONTENT
+# =============================================================================
+
+_tool_overviews: &tool_overviews |
+  **Simple tool-calling agent?** → [`create_agent`](https://docs.langchain.com/oss/python/langchain/agents)
+  ```python
+  from langchain.agents import create_agent
+  graph = create_agent(model="anthropic:claude-sonnet-4-5", tools=[search], system_prompt="...")
+  ```
+  **Use this for:** Basic ReAct loops, tool-calling agents, simple Q&A bots.
+
+  **Need planning + filesystem + subagents?** → [`create_deep_agent`](https://docs.langchain.com/oss/python/deepagents/overview)
+  ```python
+  from deepagents import create_deep_agent
+  agent = create_deep_agent(model=model, tools=tools, backend=FilesystemBackend())
+  ```
+  **Use this for:** Research agents, complex workflows, multi-step planning.
+
+  **Custom control flow / multi-agent / advanced context?** → **LangGraph** (this guide)
+  **Use this for:** Custom routing logic, supervisor patterns, specialized state management, non-standard workflows.
+
+  **Start simple:** Build with basic ReAct loops first. Only add complexity (multi-agent, advanced context management) when your use case requires it.
+
+_guidance_positive: &guidance_positive |
+  **IMPORTANT:** Use modern LangChain patterns.
+
+  - `create_agent()` from `langchain.agents` for simple agents
+  - LangGraph `create_react_agent` for complex flows
+  - `@tool` decorator for tool definitions
+
+  See the examples below for working code.
+
+# Quick start with positive guidance
+_quick_start_positive: &quick_start_positive |
+  <quick_start>
+  **IMPORTANT:** Use modern LangChain patterns.
+
+  - `create_agent()` from `langchain.agents` for simple agents
+  - LangGraph `create_react_agent` for complex flows
+  - `@tool` decorator for tool definitions
+
+  See the examples below for working code.
+
+  **Simple tool-calling agent?** → [`create_agent`](https://docs.langchain.com/oss/python/langchain/agents)
+  ```python
+  from langchain.agents import create_agent
+  graph = create_agent(model="anthropic:claude-sonnet-4-5", tools=[search], system_prompt="...")
+  ```
+  **Use this for:** Basic ReAct loops, tool-calling agents, simple Q&A bots.
+
+  **Need planning + filesystem + subagents?** → [`create_deep_agent`](https://docs.langchain.com/oss/python/deepagents/overview)
+  ```python
+  from deepagents import create_deep_agent
+  agent = create_deep_agent(model=model, tools=tools, backend=FilesystemBackend())
+  ```
+  **Use this for:** Research agents, complex workflows, multi-step planning.
+
+  **Custom control flow / multi-agent / advanced context?** → **LangGraph** (this guide)
+  **Use this for:** Custom routing logic, supervisor patterns, specialized state management, non-standard workflows.
+
+  **Start simple:** Build with basic ReAct loops first. Only add complexity (multi-agent, advanced context management) when your use case requires it.
+  </quick_start>
+
+# Quick start without guidance (neutral)
+_quick_start_neutral: &quick_start_neutral |
+  <quick_start>
+  **Simple tool-calling agent?** → [`create_agent`](https://docs.langchain.com/oss/python/langchain/agents)
+  ```python
+  from langchain.agents import create_agent
+  graph = create_agent(model="anthropic:claude-sonnet-4-5", tools=[search], system_prompt="...")
+  ```
+  **Use this for:** Basic ReAct loops, tool-calling agents, simple Q&A bots.
+
+  **Need planning + filesystem + subagents?** → [`create_deep_agent`](https://docs.langchain.com/oss/python/deepagents/overview)
+  ```python
+  from deepagents import create_deep_agent
+  agent = create_deep_agent(model=model, tools=tools, backend=FilesystemBackend())
+  ```
+  **Use this for:** Research agents, complex workflows, multi-step planning.
+
+  **Custom control flow / multi-agent / advanced context?** → **LangGraph** (this guide)
+  **Use this for:** Custom routing logic, supervisor patterns, specialized state management, non-standard workflows.
+
+  **Start simple:** Build with basic ReAct loops first. Only add complexity (multi-agent, advanced context management) when your use case requires it.
+  </quick_start>
+
+# =============================================================================
+# CLAUDE.MD CONTENT VARIANTS
+# =============================================================================
+
+_claude_md_skills_only: &claude_md_skills_only |
+  # Project Guidelines
+
+  Before starting any coding task, check available project skills to find the best approach.
+
+_claude_md_patterns: &claude_md_patterns |
+  # Project Guidelines
+
+  ## LangChain Best Practices
+  When building LangChain agents:
+  - Use `create_agent` from `langchain.agents` (modern approach)
+  - Use `@tool` decorator for tool definitions
+  - Use LangGraph for complex control flow
+
+_claude_md_both: &claude_md_both |
+  # Project Guidelines
+
+  Before starting any coding task, check available project skills to find the best approach.
+
+  ## LangChain Best Practices
+  When building LangChain agents:
+  - Use `create_agent` from `langchain.agents` (modern approach)
+  - Use `@tool` decorator for tool definitions
+  - Use LangGraph for complex control flow
+
+_claude_md_full: &claude_md_full |
+  # LangChain + LangSmith Development Guide
+
+  This project uses skills that contain up-to-date patterns and working reference scripts.
+
+  ## CRITICAL: Invoke Skills BEFORE Writing Code
+
+  **ALWAYS** invoke the relevant skill first - skills have the correct imports, patterns, and scripts that prevent common mistakes. The skills available to you are:
+
+  - **langchain-agents** - Invoke for ANY LangChain/LangGraph agent code
+  - **langsmith-trace** - Invoke for ANY trace querying or analysis
+  - **langsmith-dataset** - Invoke for ANY dataset creation from traces
+  - **langsmith-evaluator** - Invoke for ANY evaluator creation
+
+  Each skill includes reference scripts in `scripts/` - use these instead of writing from scratch.
+
+# =============================================================================
+# CURATED SECTIONS (excludes langgraph and resources for minimal content)
+# =============================================================================
+
+_curated_sections: &curated_sections
+  - frontmatter
+  - oneliner
+  - quick_start
+  - create_agent
+
+# =============================================================================
+# TREATMENTS
+# =============================================================================
+
+# Baselines
+CONTROL:
+  description: "No skill, no CLAUDE.md (pure control)"
+  skills: []
+
+ALL_SECTIONS:
+  description: "All skill sections + full CLAUDE.md"
+  claude_md: *claude_md_full
+  skills:
+    - skill: langchain_basic
+      name: langchain-agents
+
+BASELINE:
+  description: "Skill only, no CLAUDE.md (skill baseline)"
+  skills:
+    - skill: langchain_basic
+      name: langchain-agents
+      included_sections: *curated_sections
+      section_overrides:
+        quick_start: *quick_start_positive
+
+# CLAUDE.md variations
+CLAUDE_MD_SKILLS:
+  description: "CLAUDE.md says 'check skills' only"
+  claude_md: *claude_md_skills_only
+  skills:
+    - skill: langchain_basic
+      name: langchain-agents
+      included_sections: *curated_sections
+      section_overrides:
+        quick_start: *quick_start_positive
+
+CLAUDE_MD_PATTERNS:
+  description: "CLAUDE.md has pattern guidance (skill has guidance too)"
+  claude_md: *claude_md_patterns
+  skills:
+    - skill: langchain_basic
+      name: langchain-agents
+      included_sections: *curated_sections
+      section_overrides:
+        quick_start: *quick_start_positive
+
+CLAUDE_MD_PATTERNS_MOVED:
+  description: "CLAUDE.md has pattern guidance (skill has NO guidance)"
+  claude_md: *claude_md_patterns
+  skills:
+    - skill: langchain_basic
+      name: langchain-agents
+      included_sections: *curated_sections
+      section_overrides:
+        quick_start: *quick_start_neutral
+
+CLAUDE_MD_BOTH:
+  description: "CLAUDE.md: skills + patterns (skill has guidance too)"
+  claude_md: *claude_md_both
+  skills:
+    - skill: langchain_basic
+      name: langchain-agents
+      included_sections: *curated_sections
+      section_overrides:
+        quick_start: *quick_start_positive
+
+CLAUDE_MD_BOTH_MOVED:
+  description: "CLAUDE.md: skills + patterns (skill has NO guidance)"
+  claude_md: *claude_md_both
+  skills:
+    - skill: langchain_basic
+      name: langchain-agents
+      included_sections: *curated_sections
+      section_overrides:
+        quick_start: *quick_start_neutral

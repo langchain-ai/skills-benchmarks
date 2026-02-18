@@ -1,0 +1,16 @@
+[metadata]
+name = "lc-basic-guidance"
+description = "Tests whether framing matters: DO use modern patterns vs DON'T use deprecated"
+difficulty = "medium"
+category = "langchain"
+tags = ["langchain", "agents", "guidance"]
+
+[template]
+required = []
+
+[environment]
+dockerfile = "environment/Dockerfile"
+timeout_sec = 900
+
+[validation]
+validators = ["validators"]

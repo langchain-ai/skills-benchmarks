@@ -1,0 +1,55 @@
+# Treatment configurations for lc-basic-noise task
+#
+# Tests skill retention when distracted by unrelated noise tasks.
+# Compares baseline (no noise) vs increasing noise task counts.
+
+NOISE_BASELINE:
+  description: "Baseline for noise comparison (no noise)"
+  skills:
+    - skill: langchain_basic
+      name: langchain-agents
+
+NOISE_1:
+  description: "1 noise task (Docker)"
+  skills:
+    - skill: langchain_basic
+      name: langchain-agents
+    - skill: docker_patterns
+      name: docker-patterns
+      noise: true
+  noise_tasks:
+    - docker_patterns
+
+NOISE_2:
+  description: "2 noise tasks (Docker + React)"
+  skills:
+    - skill: langchain_basic
+      name: langchain-agents
+    - skill: docker_patterns
+      name: docker-patterns
+      noise: true
+    - skill: react_components
+      name: react-components
+      noise: true
+  noise_tasks:
+    - docker_patterns
+    - react_components
+
+NOISE_3:
+  description: "3 noise tasks (Docker + React + API)"
+  skills:
+    - skill: langchain_basic
+      name: langchain-agents
+    - skill: docker_patterns
+      name: docker-patterns
+      noise: true
+    - skill: react_components
+      name: react-components
+      noise: true
+    - skill: api_docs
+      name: api-docs
+      noise: true
+  noise_tasks:
+    - docker_patterns
+    - react_components
+    - api_docs

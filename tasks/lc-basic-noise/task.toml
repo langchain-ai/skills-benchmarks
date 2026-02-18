@@ -1,0 +1,16 @@
+[metadata]
+name = "lc-basic-noise"
+description = "Tests skill retention when distracted by unrelated noise tasks"
+difficulty = "medium"
+category = "langchain"
+tags = ["langchain", "agents", "noise", "skill-retention"]
+
+[template]
+required = []
+
+[environment]
+dockerfile = "Dockerfile"
+timeout_sec = 900
+
+[validation]
+validators = ["noise_validators"]

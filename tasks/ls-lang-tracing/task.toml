@@ -1,5 +1,5 @@
 [metadata]
-name = "ls-tracing"
+name = "ls-lang-tracing"
 description = "Add LangSmith tracing to Python and TypeScript agents"
 difficulty = "easy"
 category = "langsmith"

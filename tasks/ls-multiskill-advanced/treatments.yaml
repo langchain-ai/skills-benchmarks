@@ -1,0 +1,274 @@
+# Treatment configurations for ls-multiskill-advanced task
+#
+# Tests skill synergy with 3 skills (trace + dataset + evaluator).
+# Each treatment tests different combinations of skills, section selections,
+# and CLAUDE.md configurations.
+#
+# Original: tests/benchmarks/ls_multiskill/test_advanced.py
+
+# Custom related_skills content (for cross-skill coordination tests)
+
+_trace_related_skills: &trace_related_skills |
+  <related_skills>
+  - **langsmith-dataset**: Generates evaluation datasets from trace data. Traces provide the raw execution data that datasets structure for testing.
+  - **langsmith-evaluator**: Creates evaluators that validate agent outputs. Evaluators can check trajectories captured in traces.
+  </related_skills>
+
+_dataset_related_skills: &dataset_related_skills |
+  <related_skills>
+  - **langsmith-trace**: Queries and exports trace data. Datasets are built from trace data - traces contain the inputs, outputs, and tool calls that become dataset examples.
+  - **langsmith-evaluator**: Creates evaluators that validate outputs. Evaluators run against datasets to measure performance.
+  </related_skills>
+
+_evaluator_related_skills: &evaluator_related_skills |
+  <related_skills>
+  - **langsmith-trace**: Queries execution data. Traces show what tools were called, helping you understand what evaluators should check.
+  - **langsmith-dataset**: Generates evaluation datasets. Evaluators validate the expected outputs defined in datasets.
+  </related_skills>
+
+# Curated section lists (excludes detailed examples to stress test Claude)
+
+_trace_curated_sections: &trace_curated_sections
+  - frontmatter
+  - oneliner
+  - setup
+  - trace_langchain_oss
+  - traces_vs_runs
+  - command_structure
+  - filters
+
+_dataset_curated_sections: &dataset_curated_sections
+  - frontmatter
+  - oneliner
+  - setup
+  - input_format
+  - usage
+  - extraction_priority
+  - trace_hierarchy
+  - dataset_types_overview
+
+_evaluator_curated_sections: &evaluator_curated_sections
+  - frontmatter
+  - oneliner
+  - setup
+  - evaluator_format
+  - evaluator_types
+  - best_practices
+
+# =============================================================================
+# TREATMENTS
+# =============================================================================
+
+# Control: No skills, no CLAUDE.md (pure baseline - Claude's native ability)
+CONTROL:
+  description: "No skills, no CLAUDE.md (pure baseline)"
+  skills: []
+
+# Baseline: Skills WITHOUT workflow hints, no CLAUDE.md (hardest - no cross-references)
+BASELINE:
+  description: "Skills without workflow hints, no CLAUDE.md (no cross-references)"
+  skills:
+    - skill: langsmith_trace
+      variant: py
+      name: langsmith-trace
+      included_sections: *trace_curated_sections
+    - skill: langsmith_dataset
+      variant: py
+      name: langsmith-dataset
+      included_sections: *dataset_curated_sections
+    - skill: langsmith_evaluator
+      variant: py
+      name: langsmith-evaluator
+      included_sections: *evaluator_curated_sections
+
+# CLAUDE.md only: Workflow rules in CLAUDE.md, skills without hints
+CLAUDEMD:
+  description: "Workflow rules in CLAUDE.md, skills without hints"
+  claude_md: |
+    # Project Guidelines
+
+    Before starting any coding task, check available project skills to find the best approach.
+
+    ## LangSmith Skills
+
+    This project has LangSmith skills for working with traces, datasets, and evaluators:
+
+    - **langsmith-trace**: Query and analyze traces from LangSmith projects
+    - **langsmith-dataset**: Generate datasets from trace data
+    - **langsmith-evaluator**: Create evaluators for validating agent outputs
+
+    Workflow:
+    - Datasets require trace data (use trace skill to get data first)
+    - Evaluators validate datasets (create dataset before evaluator)
+    - Evaluators should use the same field structure as your dataset (e.g., if dataset has `expected_trajectory`, evaluator should read that field)
+  skills:
+    - skill: langsmith_trace
+      variant: py
+      name: langsmith-trace
+      included_sections: *trace_curated_sections
+    - skill: langsmith_dataset
+      variant: py
+      name: langsmith-dataset
+      included_sections: *dataset_curated_sections
+    - skill: langsmith_evaluator
+      variant: py
+      name: langsmith-evaluator
+      included_sections: *evaluator_curated_sections
+
+# Skills only: Workflow hints in skills (related_skills section), minimal CLAUDE.md
+SKILLS:
+  description: "Workflow hints in skills, minimal CLAUDE.md"
+  claude_md: |
+    # Project Guidelines
+
+    Before starting any coding task, check available project skills to find the best approach.
+  skills:
+    - skill: langsmith_trace
+      variant: py
+      name: langsmith-trace
+      included_sections: *trace_curated_sections
+      extra_included_sections:
+        - *trace_related_skills
+    - skill: langsmith_dataset
+      variant: py
+      name: langsmith-dataset
+      included_sections: *dataset_curated_sections
+      extra_included_sections:
+        - *dataset_related_skills
+    - skill: langsmith_evaluator
+      variant: py
+      name: langsmith-evaluator
+      included_sections: *evaluator_curated_sections
+      extra_included_sections:
+        - *evaluator_related_skills
+
+# Both: Workflow rules in CLAUDE.md AND skill hints (reinforcement)
+BOTH:
+  description: "Workflow rules in CLAUDE.md AND skill hints"
+  claude_md: |
+    # Project Guidelines
+
+    Before starting any coding task, check available project skills to find the best approach.
+
+    ## LangSmith Skills
+
+    This project has LangSmith skills for working with traces, datasets, and evaluators:
+
+    - **langsmith-trace**: Query and analyze traces from LangSmith projects
+    - **langsmith-dataset**: Generate datasets from trace data
+    - **langsmith-evaluator**: Create evaluators for validating agent outputs
+
+    Workflow:
+    - Datasets require trace data (use trace skill to get data first)
+    - Evaluators validate datasets (create dataset before evaluator)
+    - Evaluators should use the same field structure as your dataset (e.g., if dataset has `expected_trajectory`, evaluator should read that field)
+  skills:
+    - skill: langsmith_trace
+      variant: py
+      name: langsmith-trace
+      included_sections: *trace_curated_sections
+      extra_included_sections:
+        - *trace_related_skills
+    - skill: langsmith_dataset
+      variant: py
+      name: langsmith-dataset
+      included_sections: *dataset_curated_sections
+      extra_included_sections:
+        - *dataset_related_skills
+    - skill: langsmith_evaluator
+      variant: py
+      name: langsmith-evaluator
+      included_sections: *evaluator_curated_sections
+      extra_included_sections:
+        - *evaluator_related_skills
+
+# All included_sections: Complete skill content (without cross-skill hints) + full CLAUDE.md
+ALL_SECTIONS:
+  description: "All skill sections + full CLAUDE.md"
+  claude_md: |
+    # LangChain + LangSmith Development Guide
+
+    This project uses skills that contain up-to-date patterns and working reference scripts.
+
+    ## CRITICAL: Invoke Skills BEFORE Writing Code
+
+    **ALWAYS** invoke the relevant skill first - skills have the correct imports, patterns, and scripts that prevent common mistakes. The skills available to you are:
+
+    - **langchain-agents** - Invoke for ANY LangChain/LangGraph agent code
+    - **langsmith-trace** - Invoke for ANY trace querying or analysis
+    - **langsmith-dataset** - Invoke for ANY dataset creation from traces. Using langsmith-trace is strongly recommended to coordinate with this skill.
+    - **langsmith-evaluator** - Invoke for ANY evaluator creation. Using langsmith-dataset is strongly recommended to coordinate with this skill.
+
+    Each skill includes reference scripts in `scripts/` - use these instead of writing from scratch.
+
+    ## Modern LangChain Patterns
+
+    Use LangGraph for agent orchestration and `langchain_openai`/`langchain_anthropic` for models:
+
+    ```python
+    from langchain_openai import ChatOpenAI
+    from langchain_anthropic import ChatAnthropic
+    from langchain_core.tools import tool
+    from langgraph.prebuilt import create_react_agent
+
+    @tool
+    def my_tool(query: str) -> str:
+        """Tool description."""
+        return result
+
+    model = ChatOpenAI(model="gpt-4o-mini")
+    agent = create_react_agent(model, tools=[my_tool])
+    ```
+
+    ## Skill Synergies
+
+    ### Build → Trace → Dataset → Evaluate Pipeline
+
+    1. **Build agent** using `langchain-agents` patterns
+    2. **Run agent** to generate traces in LangSmith
+    3. **Query traces** using `langsmith-trace` to find interesting examples
+    4. **Create dataset** using `langsmith-dataset` from those traces
+    5. **Build evaluator** using `langsmith-evaluator` to measure quality
+
+    ### Common Workflows
+
+    **Debugging a failing agent:**
+    1. Use `langsmith-trace` to query recent error traces
+    2. Examine the trace hierarchy to find where it failed
+    3. Fix the agent code using `langchain-agents` patterns
+
+    **Setting up evaluation:**
+    1. Generate traces by running your agent on test cases
+    2. Use `langsmith-dataset` to create a dataset and upload it to LangSmith
+    3. Use `langsmith-evaluator` to create an evaluator, upload it to LangSmith, and link it to your dataset
+
+    **Iterating on agent quality:**
+    1. Run evaluation to get baseline scores
+    2. Analyze low-scoring traces with `langsmith-trace`
+    3. Improve agent using `langchain-agents` best practices
+    4. Re-run evaluation to measure improvement
+
+    ## Environment Setup
+
+    Required environment variables:
+    ```bash
+    LANGSMITH_API_KEY=<your-key>
+    LANGSMITH_PROJECT=<project-name>  # Optional, defaults to "default"
+    OPENAI_API_KEY=<your-key>  # For OpenAI models
+    ANTHROPIC_API_KEY=<your-key>  # For Anthropic models
+    ```
+
+    ## Reference Scripts
+
+    When you invoke a skill, check its `scripts/` directory for working implementations you can adapt. These scripts handle common edge cases and use tested patterns.
+  skills:
+    # All sections (no section filter = all sections), no related_skills hints
+    - skill: langsmith_trace
+      variant: py
+      name: langsmith-trace
+    - skill: langsmith_dataset
+      variant: py
+      name: langsmith-dataset
+    - skill: langsmith_evaluator
+      variant: py
+      name: langsmith-evaluator

@@ -1,0 +1,148 @@
+[
+  {
+    "name": "exact_match",
+    "description": "Identical response should score 1.0",
+    "run": {
+      "inputs": {
+        "query": "Where is my order #12345?"
+      },
+      "outputs": {
+        "response": "Your order #12345 is currently shipped and expected to arrive Feb 5."
+      }
+    },
+    "example": {
+      "inputs": {
+        "query": "Where is my order #12345?"
+      },
+      "outputs": {
+        "response": "Your order #12345 is currently shipped and expected to arrive Feb 5."
+      }
+    },
+    "expected_result": {
+      "should_pass": true,
+      "min_score": 1.0,
+      "reason": "Identical responses should score 1.0"
+    }
+  },
+  {
+    "name": "complete_mismatch",
+    "description": "Completely different response should score low",
+    "run": {
+      "inputs": {
+        "query": "Where is my order #12345?"
+      },
+      "outputs": {
+        "response": "I'm sorry, I don't understand your question. Could you please rephrase?"
+      }
+    },
+    "example": {
+      "inputs": {
+        "query": "Where is my order #12345?"
+      },
+      "outputs": {
+        "response": "Your order #12345 is currently shipped and expected to arrive Feb 5."
+      }
+    },
+    "expected_result": {
+      "should_pass": true,
+      "max_score": 0.5,
+      "reason": "Different responses should score low (0.0 for exact match)"
+    }
+  },
+  {
+    "name": "refund_request_match",
+    "description": "Matching refund response should score 1.0",
+    "run": {
+      "inputs": {
+        "query": "I want a refund for the broken headphones"
+      },
+      "outputs": {
+        "response": "I'm sorry to hear about the issue. I'll process your refund request right away."
+      }
+    },
+    "example": {
+      "inputs": {
+        "query": "I want a refund for the broken headphones"
+      },
+      "outputs": {
+        "response": "I'm sorry to hear about the issue. I'll process your refund request right away."
+      }
+    },
+    "expected_result": {
+      "should_pass": true,
+      "min_score": 1.0,
+      "reason": "Identical refund responses should score 1.0"
+    }
+  },
+  {
+    "name": "product_question_mismatch",
+    "description": "Wrong product info should score low",
+    "run": {
+      "inputs": {
+        "query": "Does the blue widget come in large?"
+      },
+      "outputs": {
+        "response": "The blue widget only comes in small size."
+      }
+    },
+    "example": {
+      "inputs": {
+        "query": "Does the blue widget come in large?"
+      },
+      "outputs": {
+        "response": "Yes, the blue widget is available in small, medium, and large sizes."
+      }
+    },
+    "expected_result": {
+      "should_pass": true,
+      "max_score": 0.5,
+      "reason": "Incorrect product information should score low"
+    }
+  },
+  {
+    "name": "empty_run_response",
+    "description": "Empty response should not crash and score low",
+    "run": {
+      "inputs": {
+        "query": "How do I contact support?"
+      },
+      "outputs": {
+        "response": ""
+      }
+    },
+    "example": {
+      "inputs": {
+        "query": "How do I contact support?"
+      },
+      "outputs": {
+        "response": "You can reach our support team at support@example.com or call 1-800-SUPPORT."
+      }
+    },
+    "expected_result": {
+      "should_not_crash": true,
+      "reason": "Should handle empty response without crashing"
+    }
+  },
+  {
+    "name": "null_outputs",
+    "description": "Missing outputs should not crash",
+    "run": {
+      "inputs": {
+        "query": "Where is my order #67890?"
+      },
+      "outputs": {}
+    },
+    "example": {
+      "inputs": {
+        "query": "Where is my order #67890?"
+      },
+      "outputs": {
+        "response": "Your order #67890 is being processed and expected to arrive Feb 8."
+      }
+    },
+    "expected_result": {
+      "should_not_crash": true,
+      "reason": "Should handle missing outputs gracefully"
+    }
+  }
+]

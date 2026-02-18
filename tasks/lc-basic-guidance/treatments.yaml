@@ -1,0 +1,142 @@
+# Treatment configurations for lc-basic-guidance task
+#
+# Tests whether framing matters: "DO use modern patterns" vs "DON'T use deprecated".
+# Uses section_overrides to replace quick_start with custom content.
+#
+# Original: tests/benchmarks/lc_basic/test_guidance.py
+
+# =============================================================================
+# TOOL OVERVIEWS (shared content)
+# =============================================================================
+
+_tool_overviews: &tool_overviews |
+  **Simple tool-calling agent?** → [`create_agent`](https://docs.langchain.com/oss/python/langchain/agents)
+  ```python
+  from langchain.agents import create_agent
+  graph = create_agent(model="anthropic:claude-sonnet-4-5", tools=[search], system_prompt="...")
+  ```
+  **Use this for:** Basic ReAct loops, tool-calling agents, simple Q&A bots.
+
+  **Need planning + filesystem + subagents?** → [`create_deep_agent`](https://docs.langchain.com/oss/python/deepagents/overview)
+  ```python
+  from deepagents import create_deep_agent
+  agent = create_deep_agent(model=model, tools=tools, backend=FilesystemBackend())
+  ```
+  **Use this for:** Research agents, complex workflows, multi-step planning.
+
+  **Custom control flow / multi-agent / advanced context?** → **LangGraph** (this guide)
+  **Use this for:** Custom routing logic, supervisor patterns, specialized state management, non-standard workflows.
+
+  **Start simple:** Build with basic ReAct loops first. Only add complexity (multi-agent, advanced context management) when your use case requires it.
+
+# =============================================================================
+# CUSTOM QUICK_START CONTENT (guidance + tool overviews)
+# =============================================================================
+
+# POSITIVE: Only mentions what TO use (no deprecated pattern names)
+_quick_start_positive: &quick_start_positive |
+  <quick_start>
+  **IMPORTANT:** Use modern LangChain patterns.
+
+  - `create_agent()` from `langchain.agents` for simple agents
+  - LangGraph `create_react_agent` for complex flows
+  - `@tool` decorator for tool definitions
+
+  See the examples below for working code.
+
+  **Simple tool-calling agent?** → [`create_agent`](https://docs.langchain.com/oss/python/langchain/agents)
+  ```python
+  from langchain.agents import create_agent
+  graph = create_agent(model="anthropic:claude-sonnet-4-5", tools=[search], system_prompt="...")
+  ```
+  **Use this for:** Basic ReAct loops, tool-calling agents, simple Q&A bots.
+
+  **Need planning + filesystem + subagents?** → [`create_deep_agent`](https://docs.langchain.com/oss/python/deepagents/overview)
+  ```python
+  from deepagents import create_deep_agent
+  agent = create_deep_agent(model=model, tools=tools, backend=FilesystemBackend())
+  ```
+  **Use this for:** Research agents, complex workflows, multi-step planning.
+
+  **Custom control flow / multi-agent / advanced context?** → **LangGraph** (this guide)
+  **Use this for:** Custom routing logic, supervisor patterns, specialized state management, non-standard workflows.
+
+  **Start simple:** Build with basic ReAct loops first. Only add complexity (multi-agent, advanced context management) when your use case requires it.
+  </quick_start>
+
+# NEGATIVE: Mentions deprecated patterns (puts them in context)
+_quick_start_negative: &quick_start_negative |
+  <quick_start>
+  **IMPORTANT:** Use modern LangChain patterns.
+
+  Older helpers like `create_sql_agent`, `create_tool_calling_agent`, and the legacy `create_react_agent` are deprecated and should not be used.
+
+  - `create_agent()` from `langchain.agents` for simple agents
+  - LangGraph `create_react_agent` for complex flows
+  - `@tool` decorator for tool definitions
+
+  **Simple tool-calling agent?** → [`create_agent`](https://docs.langchain.com/oss/python/langchain/agents)
+  ```python
+  from langchain.agents import create_agent
+  graph = create_agent(model="anthropic:claude-sonnet-4-5", tools=[search], system_prompt="...")
+  ```
+  **Use this for:** Basic ReAct loops, tool-calling agents, simple Q&A bots.
+
+  **Need planning + filesystem + subagents?** → [`create_deep_agent`](https://docs.langchain.com/oss/python/deepagents/overview)
+  ```python
+  from deepagents import create_deep_agent
+  agent = create_deep_agent(model=model, tools=tools, backend=FilesystemBackend())
+  ```
+  **Use this for:** Research agents, complex workflows, multi-step planning.
+
+  **Custom control flow / multi-agent / advanced context?** → **LangGraph** (this guide)
+  **Use this for:** Custom routing logic, supervisor patterns, specialized state management, non-standard workflows.
+
+  **Start simple:** Build with basic ReAct loops first. Only add complexity (multi-agent, advanced context management) when your use case requires it.
+  </quick_start>
+
+# =============================================================================
+# CLAUDE.MD CONTENT
+# =============================================================================
+
+_claude_md_skills_required: &claude_md_skills_required |
+  # Project Guidelines
+
+  Before starting any coding task, check available project skills to find the best approach.
+  **Always use skills when they are available for your task.**
+
+# =============================================================================
+# CURATED SECTIONS (excludes langgraph and resources for minimal content)
+# =============================================================================
+
+_curated_sections: &curated_sections
+  - frontmatter
+  - oneliner
+  - quick_start
+  - create_agent
+
+# =============================================================================
+# TREATMENTS
+# =============================================================================
+
+# Positive guidance: "DO use modern patterns" (no mention of deprecated)
+GUIDANCE_POS:
+  description: "Skill with positive guidance (DO use modern patterns)"
+  claude_md: *claude_md_skills_required
+  skills:
+    - skill: langchain_basic
+      name: langchain-agents
+      included_sections: *curated_sections
+      section_overrides:
+        quick_start: *quick_start_positive
+
+# Negative guidance: "DON'T use deprecated" (mentions deprecated patterns by name)
+GUIDANCE_NEG:
+  description: "Skill with negative guidance (DON'T use deprecated)"
+  claude_md: *claude_md_skills_required
+  skills:
+    - skill: langchain_basic
+      name: langchain-agents
+      included_sections: *curated_sections
+      section_overrides:
+        quick_start: *quick_start_negative

@@ -1,0 +1,16 @@
+[metadata]
+name = "lc-basic-claudemd"
+description = "Tests whether CLAUDE.md is needed and what instructions work best"
+difficulty = "medium"
+category = "langchain"
+tags = ["langchain", "agents", "claude-md"]
+
+[template]
+required = []
+
+[environment]
+dockerfile = "environment/Dockerfile"
+timeout_sec = 900
+
+[validation]
+validators = ["validators"]

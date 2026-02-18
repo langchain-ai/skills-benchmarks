@@ -32,6 +32,7 @@ export {
 export {
   type ValidationResult,
   type Validator,
+  // Class-based validators
   SkillInvokedValidator,
   TypeScriptFileValidator,
   FileValidator,
@@ -40,6 +41,14 @@ export {
   MetricsCollector,
   OutputQualityValidator,
   type OutputQualityOptions,
+  // Function-based validators
+  validateSkillInvoked,
+  validateNoiseOutputs,
+  // Noise task constants and helpers
+  NOISE_TASK_PROMPTS,
+  NOISE_TASK_DELIVERABLES,
+  getNoiseTaskPrompts,
+  buildNoiseTasks,
 } from "./validation.js";
 
 // Logging types and functions

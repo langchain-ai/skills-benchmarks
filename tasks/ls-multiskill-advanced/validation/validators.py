@@ -1,52 +1,33 @@
 """Function-based validators for ls-multiskill-advanced task.
 
 Each validator is a function that returns (passed: list[str], failed: list[str]).
+
+This task validates that Claude creates both a trajectory dataset and
+a Python evaluator from LangSmith traces.
 """
 
 import ast
-import json
 from pathlib import Path
 
+from scaffold.python.validation import (
+    find_evaluator_function,
+    validate_dataset_structure,
+    validate_dataset_upload,
+    validate_evaluator_logic,
+    validate_skill_scripts,
+    validate_trajectory_accuracy,
+)
 
-def validate_dataset_structure(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:
+
+def validate_dataset_structure_fn(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:
     """Validate that the trajectory dataset has the correct structure."""
-    passed, failed = [], []
-
-    dataset_path = test_dir / "trajectory_dataset.json"
-    if not dataset_path.exists():
-        return [], ["Dataset: trajectory_dataset.json not found"]
-
-    try:
-        with open(dataset_path) as f:
-            data = json.load(f)
-    except json.JSONDecodeError as e:
-        return [], [f"Dataset: invalid JSON - {e}"]
-
-    if not isinstance(data, list):
-        failed.append("Dataset: should be a list of examples")
-        return passed, failed
-
-    if len(data) == 0:
-        failed.append("Dataset: no examples found")
-        return passed, failed
-
-    passed.append(f"Dataset: found {len(data)} examples")
-
-    # Check each example has required fields
-    required_fields = ["inputs", "outputs"]
-    for i, example in enumerate(data):
-        if not isinstance(example, dict):
-            failed.append(f"Dataset: example {i} is not a dict")
-            continue
-
-        for field in required_fields:
-            if field not in example:
-                failed.append(f"Dataset: example {i} missing '{field}'")
-
-    if not failed:
-        passed.append("Dataset: all examples have required fields")
-
-    return passed, failed
+    return validate_dataset_structure(
+        test_dir,
+        outputs,
+        filename="trajectory_dataset.json",
+        min_examples=1,
+        dataset_type="trajectory",
+    )
 
 
 def validate_evaluator_exists(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:
@@ -103,11 +84,12 @@ def validate_evaluator_structure(test_dir: Path, outputs: dict) -> tuple[list[st
 
     content = evaluator_path.read_text()
 
-    # Check for evaluator function
-    if "def " in content:
-        passed.append("Evaluator: contains function definitions")
-    else:
-        failed.append("Evaluator: no function definitions found")
+    # Find evaluator function
+    func_name, error = find_evaluator_function(content, "python")
+    if func_name:
+        passed.append(f"Evaluator: has {func_name}(run, example) function")
+    elif error:
+        failed.append(f"Evaluator: {error}")
 
     # Check for return statement (should return a score)
     if "return" in content:
@@ -116,13 +98,21 @@ def validate_evaluator_structure(test_dir: Path, outputs: dict) -> tuple[list[st
     return passed, failed
 
 
-def validate_upload(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:
-    """Validate that files were uploaded to LangSmith.
+def validate_accuracy(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:
+    """Validate that the trajectory dataset matches expected format."""
+    data_dir = Path(__file__).parent.parent / "data"
+    return validate_trajectory_accuracy(
+        test_dir,
+        outputs,
+        filename="trajectory_dataset.json",
+        expected_filename="expected_dataset.json",
+        data_dir=data_dir,
+    )
 
-    Note: This requires LangSmith API access.
-    """
+
+def validate_upload(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:
+    """Validate that files were uploaded to LangSmith."""
     passed, failed = [], []
-    run_id = outputs.get("run_id", "")
 
     # Check local files exist
     dataset_path = test_dir / "trajectory_dataset.json"
@@ -133,19 +123,34 @@ def validate_upload(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]
     if evaluator_path.exists() or list(test_dir.glob("*evaluator*.py")):
         passed.append("Upload: local evaluator file exists")
 
-    if run_id:
-        passed.append(f"Upload: run_id={run_id[:8]}...")
+    # Check LangSmith upload
+    ds_passed, ds_failed = validate_dataset_upload(
+        test_dir,
+        outputs,
+        filename="trajectory_dataset.json",
+        upload_prefix="test-",
+    )
+    passed.extend(ds_passed)
+    failed.extend(ds_failed)
 
     return passed, failed
 
 
+def validate_scripts(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:
+    """Track which skill scripts Claude used (informational)."""
+    events = outputs.get("events", {}) if outputs else {}
+    return validate_skill_scripts(test_dir, outputs, events)
+
+
 # List of all validators for this task
 VALIDATORS = [
-    validate_dataset_structure,
+    validate_dataset_structure_fn,
     validate_evaluator_exists,
     validate_evaluator_syntax,
     validate_evaluator_structure,
+    validate_accuracy,
     validate_upload,
+    validate_scripts,
 ]
 
 

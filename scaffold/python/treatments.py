@@ -62,7 +62,7 @@ from typing import Any
 
 import yaml
 
-from skills.parser import load_skill, load_skill_variant, skill_config
+from scaffold.python.skill_parser import load_skill, load_skill_variant, skill_config
 
 TREATMENTS_FILE = Path(__file__).parent.parent.parent / "tests" / "treatments.yaml"
 SKILL_BASE = Path(__file__).parent.parent.parent / "skills" / "benchmarks"

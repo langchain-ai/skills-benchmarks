@@ -1,8 +1,61 @@
 /**
- * Parser for skill.md files.
+ * Skill Parser - Parse and manipulate skill.md files.
  *
- * Reads skill.md files with XML-tagged sections and extracts content.
- * TypeScript equivalent of parser.py.
+ * This module provides utilities for reading, parsing, and transforming skill
+ * markdown files used in the benchmarks. Skill files use XML-tagged sections
+ * to organize content, with optional language-specific blocks (<python>, <typescript>).
+ *
+ * ## Core Concepts
+ *
+ * ### Skill File Structure
+ * Skill files (skill.md, skill_py.md, skill_ts.md, skill_all.md) contain:
+ * - YAML frontmatter (between --- delimiters)
+ * - XML-tagged sections (<overview>, <ex-basic>, <fix-common-error>, etc.)
+ * - Language-specific code blocks (<python>...</python>, <typescript>...</typescript>)
+ *
+ * ### Variants
+ * Skills can have multiple variants:
+ * - skill.md: Default/combined skill
+ * - skill_py.md: Python-specific content
+ * - skill_ts.md: TypeScript-specific content
+ * - skill_all.md: All languages combined
+ *
+ * ## Usage Examples
+ *
+ * ### Load and parse a skill:
+ * ```typescript
+ * import { loadSkill, loadSkillVariant } from './scaffold/typescript/skill_parser';
+ *
+ * // Load default skill.md
+ * const skill = loadSkill("skills/benchmarks/langsmith_trace");
+ * console.log(skill.sections["overview"]);
+ *
+ * // Load Python-specific variant
+ * const skillPy = loadSkillVariant("skills/benchmarks/langsmith_trace", "py");
+ * ```
+ *
+ * ### Extract language-specific content:
+ * ```typescript
+ * import { loadSkillContent, stripLangTags } from './scaffold/typescript/skill_parser';
+ *
+ * const content = loadSkillContent("skills/benchmarks/oss_split/lc_agents/skill_all.md");
+ *
+ * // Get Python-only content (remove TypeScript blocks)
+ * const pyOnly = stripLangTags(content, ["typescript"]);
+ *
+ * // Get TypeScript-only content (remove Python blocks)
+ * const tsOnly = stripLangTags(content, ["python"]);
+ * ```
+ *
+ * ### Filter specific sections by tag:
+ * ```typescript
+ * import { stripByTags } from './scaffold/typescript/skill_parser';
+ *
+ * // Remove specific gotchas or examples by their tag attribute
+ * const filtered = stripByTags(content, ["gotcha-faiss", "example-advanced"]);
+ * ```
+ *
+ * @module skill_parser
  */
 
 import { readFileSync, existsSync } from "node:fs";
@@ -13,6 +66,15 @@ import { join } from "node:path";
  *
  * Frontmatter is extracted using --- delimiters (no XML tag needed).
  * All other sections preserve their XML tags for delineation.
+ *
+ * @param skillMdPath - Path to skill.md file
+ * @param keepTags - If true, preserve XML tags around content (except frontmatter)
+ * @returns Dict mapping tag names to their content
+ *
+ * @example
+ * const sections = parseSkillMd("skill.md");
+ * console.log(sections["overview"]);
+ * // '<overview>\nBuild RAG systems...\n</overview>'
  */
 export function parseSkillMd(
   skillMdPath: string,
@@ -48,6 +110,16 @@ export function parseSkillMd(
 /**
  * Parse skill.md and return sections as ordered list of [tag, content] tuples.
  * Preserves the order of sections as they appear in the file.
+ *
+ * @param skillMdPath - Path to skill.md file
+ * @param keepTags - If true, preserve XML tags around content (except frontmatter)
+ * @returns Array of [tag_name, content] tuples in document order
+ *
+ * @example
+ * const sections = parseSkillMdOrdered("skill.md");
+ * for (const [tag, content] of sections.slice(0, 3)) {
+ *   console.log(`${tag}: ${content.length} chars`);
+ * }
  */
 export function parseSkillMdOrdered(
   skillMdPath: string,
@@ -82,6 +154,16 @@ export function parseSkillMdOrdered(
 
 /**
  * Load full skill content from skill.md.
+ *
+ * Returns the raw file content. Useful for getting the complete skill
+ * as a single string for filtering or transformation.
+ *
+ * @param skillMdPath - Path to skill.md file
+ * @returns Full file content as string
+ *
+ * @example
+ * const content = loadSkillContent("skill_all.md");
+ * const pyOnly = stripLangTags(content, ["typescript"]);
  */
 export function loadSkillContent(skillMdPath: string): string {
   return readFileSync(skillMdPath, "utf-8");
@@ -89,6 +171,18 @@ export function loadSkillContent(skillMdPath: string): string {
 
 /**
  * Get ordered list of section contents.
+ *
+ * This is useful for building FULL_SECTIONS-style lists where you want
+ * all section contents joined together.
+ *
+ * @param skillMdPath - Path to skill.md file
+ * @param excludeTags - Optional list of tag names to exclude
+ * @param keepTags - If true, preserve XML tags around content
+ * @returns List of section content strings in document order
+ *
+ * @example
+ * const sections = getSectionList("skill.md", ["frontmatter"]);
+ * const fullContent = sections.join("\n\n");
  */
 export function getSectionList(
   skillMdPath: string,
@@ -101,13 +195,46 @@ export function getSectionList(
     .map(([, content]) => content);
 }
 
+/**
+ * Format content with XML tags for output.
+ *
+ * Useful when you need to reconstruct skill.md format.
+ *
+ * @param tag - XML tag name
+ * @param content - Section content
+ * @returns Formatted string with opening and closing tags
+ *
+ * @example
+ * const formatted = formatSectionWithTags("overview", "This is the overview.");
+ * // "<overview>\nThis is the overview.\n</overview>"
+ */
+export function formatSectionWithTags(tag: string, content: string): string {
+  return `<${tag}>\n${content}\n</${tag}>`;
+}
+
+/** Loaded skill with sections and metadata */
 export interface LoadedSkill {
+  /** Dict mapping tag names to section content */
   sections: Record<string, string>;
+  /** List of all section contents in document order */
   all: string[];
+  /** Path to scripts/ subdirectory, or null if doesn't exist */
   scriptsDir: string | null;
 }
 
+/** Loaded skill variant with script filtering info */
 export interface LoadedSkillVariant extends LoadedSkill {
+  /** Variant name for script filtering ("py", "ts", "all", or null) */
+  scriptFilter: string | null;
+}
+
+/** Skill configuration for use in treatments */
+export interface SkillConfig {
+  /** List of section content strings */
+  sections: string[];
+  /** Path to scripts directory, or null */
+  scriptsDir: string | null;
+  /** Script filter variant, or null */
   scriptFilter: string | null;
 }
 
@@ -120,6 +247,11 @@ export const SCRIPT_EXTENSIONS: Record<string, string[] | null> = {
 
 /**
  * Load skill from a skill directory containing skill.md.
+ *
+ * Provides a convenient interface for tests to load and select sections.
+ *
+ * @param skillDir - Path to skill directory (contains skill.md and optionally scripts/)
+ * @returns Loaded skill with sections, all content, and scripts directory
  *
  * @example
  * const trace = loadSkill("skills/benchmarks/langsmith_trace");
@@ -153,6 +285,10 @@ export function loadSkill(skillDir: string): LoadedSkill {
  * Supports loading language-specific skill files (skill_py.md, skill_ts.md)
  * or combined files (skill_all.md). The variant also determines which scripts
  * get copied during test setup.
+ *
+ * @param skillDir - Path to skill directory
+ * @param variant - Variant name ("py", "ts", "all") or undefined for default skill.md
+ * @returns Loaded skill variant with script filter info
  *
  * @example
  * // Load Python variant - will filter to .py scripts during setup
@@ -188,14 +324,25 @@ export function loadSkillVariant(
   };
 }
 
-export interface SkillConfig {
-  sections: string[];
-  scriptsDir: string | null;
-  scriptFilter: string | null;
-}
-
 /**
  * Split one skill into multiple skill configs by section groups.
+ *
+ * Useful for experiments testing whether smaller, focused skills improve
+ * Claude's performance vs one large skill.
+ *
+ * @param skill - Result from loadSkill()
+ * @param splits - Dict mapping new skill names to lists of section tags to include
+ * @param baseName - Optional base name for frontmatter rewrite
+ * @returns Dict mapping skill names to skill configs
+ *
+ * @example
+ * const trace = loadSkill("skills/benchmarks/langsmith_trace");
+ *
+ * // Split into setup + querying skills
+ * const splitSkills = splitSkill(trace, {
+ *   "langsmith-trace-setup": ["frontmatter", "oneliner", "setup"],
+ *   "langsmith-trace-query": ["frontmatter", "oneliner", "querying_traces"],
+ * }, "langsmith-trace");
  */
 export function splitSkill(
   skill: LoadedSkill,
@@ -227,16 +374,21 @@ export function splitSkill(
 }
 
 /**
- * Format content with XML tags for output.
- *
- * Useful when you need to reconstruct skill.md format.
- */
-export function formatSectionWithTags(tag: string, content: string): string {
-  return `<${tag}>\n${content}\n</${tag}>`;
-}
-
-/**
  * Create a skill config dict for use in treatments.
+ *
+ * Convenience function for creating skill configs inline.
+ *
+ * @param sections - List of section content strings
+ * @param scriptsDir - Optional path to scripts directory
+ * @param scriptFilter - Optional filter for scripts ("py", "ts", "all")
+ * @returns Skill config object
+ *
+ * @example
+ * const config = skillConfig(
+ *   [HEADER, SETUP, EXAMPLES],
+ *   "path/to/scripts",
+ *   "py"
+ * );
  */
 export function skillConfig(
   sections: string[],
@@ -252,17 +404,23 @@ export function skillConfig(
  * Removes <python> and/or <typescript> tagged sections from content.
  * Tags may have attributes like <python tag="section-name">.
  *
+ * This is useful for creating language-specific versions of skill_all.md
+ * files that contain both Python and TypeScript examples.
+ *
+ * @param content - Skill markdown content
+ * @param exclude - List of languages to exclude ("python", "typescript")
+ * @returns Content with specified language sections removed
+ *
  * @example
+ * const content = loadSkillContent("skill_all.md");
+ *
  * // Remove Python examples, keep TypeScript
  * const tsOnly = stripLangTags(content, ["python"]);
  *
  * // Remove TypeScript examples, keep Python
  * const pyOnly = stripLangTags(content, ["typescript"]);
  */
-export function stripLangTags(
-  content: string,
-  exclude?: string[],
-): string {
+export function stripLangTags(content: string, exclude?: string[]): string {
   if (!exclude || exclude.length === 0) {
     return content;
   }
@@ -270,7 +428,10 @@ export function stripLangTags(
   let result = content;
   for (const lang of exclude) {
     // Match tags with optional attributes: <python> or <python tag="...">
-    const pattern = new RegExp(`<${lang}(?:\\s+[^>]*)?>[\\s\\S]*?</${lang}>`, "g");
+    const pattern = new RegExp(
+      `<${lang}(?:\\s+[^>]*)?>[\\s\\S]*?</${lang}>`,
+      "g",
+    );
     result = result.replace(pattern, "");
   }
 
@@ -286,6 +447,13 @@ export function stripLangTags(
  * Removes <python tag="name"> or <typescript tag="name"> blocks where
  * the tag attribute matches one of the excluded names.
  *
+ * This is useful for filtering out specific examples, gotchas, or other
+ * tagged content without removing all content of that language.
+ *
+ * @param content - Skill markdown content
+ * @param exclude - List of tag attribute values to exclude
+ * @returns Content with specified tagged sections removed
+ *
  * @example
  * // Remove specific gotchas by tag name
  * const filtered = stripByTags(content, ["faiss-deserialize", "import-packages"]);
@@ -293,10 +461,7 @@ export function stripLangTags(
  * // Works with any tag attribute value
  * const filtered = stripByTags(content, ["basic-setup", "advanced-config"]);
  */
-export function stripByTags(
-  content: string,
-  exclude?: string[],
-): string {
+export function stripByTags(content: string, exclude?: string[]): string {
   if (!exclude || exclude.length === 0) {
     return content;
   }

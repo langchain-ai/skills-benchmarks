@@ -7,7 +7,6 @@
  * import {
  *   Treatment,
  *   NoiseTask,
- *   PythonFileValidator,
  *   SkillInvokedValidator,
  *   MetricsCollector,
  *   OutputQualityValidator,
@@ -15,6 +14,9 @@
  *   parseOutput,
  *   extractEvents,
  *   runClaudeInDocker,
+ *   loadTask,
+ *   listTasks,
+ *   loadTaskTreatments,
  * } from '@skills-benchmark/scaffold';
  */
 
@@ -28,7 +30,29 @@ export {
   validate,
 } from "./schema.js";
 
-// Validation types and classes
+// Task loading
+export {
+  TASKS_DIR,
+  type TaskConfig,
+  type Task,
+  listTasks,
+  loadTask,
+} from "./tasks.js";
+
+// Treatment loading
+export {
+  SKILL_BASE,
+  NOISE_SKILL_BASE,
+  type SkillConfigInput,
+  type TreatmentConfig,
+  type BuiltSkillConfig,
+  loadTaskTreatments,
+  getTaskTreatmentNames,
+  buildNoiseTasks,
+  buildTreatmentSkills,
+} from "./treatments.js";
+
+// Validation types and classes (from validation.ts - legacy class-based)
 export {
   type ValidationResult,
   type Validator,
@@ -41,15 +65,32 @@ export {
   MetricsCollector,
   OutputQualityValidator,
   type OutputQualityOptions,
-  // Function-based validators
-  validateSkillInvoked,
-  validateNoiseOutputs,
-  // Noise task constants and helpers
+} from "./validation.js";
+
+// Function-based validators (from validation/ package)
+export {
+  type ValidatorFn,
+  // Constants
   NOISE_TASK_PROMPTS,
   NOISE_TASK_DELIVERABLES,
+  // Core validators
+  validateFileExists,
+  validatePattern,
+  validateNoPattern,
+  composeValidators,
+  runValidators,
+  validateSkillInvoked,
   getNoiseTaskPrompts,
-  buildNoiseTasks,
-} from "./validation.js";
+  validateNoiseOutputs,
+  // Docker validators
+  validateCodeExecution,
+  validatePythonExecution,
+  validateTypescriptExecution,
+  // Tracing validators
+  validatePythonTracing,
+  validateTypescriptTracing,
+  validateLanguageSyntax,
+} from "./validation/index.js";
 
 // Logging types and functions
 export {

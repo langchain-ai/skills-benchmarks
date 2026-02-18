@@ -1,7 +1,77 @@
-"""Parser for skill.md files.
+"""
+Skill Parser - Parse and manipulate skill.md files.
 
-Reads skill.md files with XML-tagged sections and extracts content.
-Used by __init__.py files to provide backwards-compatible section exports.
+This module provides utilities for reading, parsing, and transforming skill
+markdown files used in the benchmarks. Skill files use XML-tagged sections
+to organize content, with optional language-specific blocks (<python>, <typescript>).
+
+## Core Concepts
+
+### Skill File Structure
+Skill files (skill.md, skill_py.md, skill_ts.md, skill_all.md) contain:
+- YAML frontmatter (between --- delimiters)
+- XML-tagged sections (<overview>, <ex-basic>, <fix-common-error>, etc.)
+- Language-specific code blocks (<python>...</python>, <typescript>...</typescript>)
+
+### Variants
+Skills can have multiple variants:
+- skill.md: Default/combined skill
+- skill_py.md: Python-specific content
+- skill_ts.md: TypeScript-specific content
+- skill_all.md: All languages combined
+
+## Usage Examples
+
+### Load and parse a skill:
+```python
+from scaffold.python.skill_parser import load_skill, load_skill_variant
+
+# Load default skill.md
+skill = load_skill(Path("skills/benchmarks/langsmith_trace"))
+print(skill["sections"]["overview"])
+
+# Load Python-specific variant
+skill_py = load_skill_variant(Path("skills/benchmarks/langsmith_trace"), "py")
+```
+
+### Extract language-specific content:
+```python
+from scaffold.python.skill_parser import load_skill_content, strip_lang_tags
+
+content = load_skill_content(Path("skills/benchmarks/oss_split/lc_agents/skill_all.md"))
+
+# Get Python-only content (remove TypeScript blocks)
+py_only = strip_lang_tags(content, exclude=["typescript"])
+
+# Get TypeScript-only content (remove Python blocks)
+ts_only = strip_lang_tags(content, exclude=["python"])
+```
+
+### Filter specific sections by tag:
+```python
+from scaffold.python.skill_parser import strip_by_tags
+
+# Remove specific gotchas or examples by their tag attribute
+filtered = strip_by_tags(content, exclude=["gotcha-faiss", "example-advanced"])
+```
+
+### Build custom skill configs for treatments:
+```python
+from scaffold.python.skill_parser import load_skill, skill_config
+
+skill = load_skill(Path("skills/benchmarks/langsmith_trace"))
+
+# Select specific sections
+my_config = skill_config(
+    sections=[
+        skill["sections"]["frontmatter"],
+        skill["sections"]["overview"],
+        skill["sections"]["ex-basic"],
+    ],
+    scripts_dir=skill["scripts_dir"],
+    script_filter="py",
+)
+```
 """
 
 import re
@@ -22,7 +92,9 @@ def parse_skill_md(skill_md_path: Path, keep_tags: bool = True) -> dict[str, str
         Dict mapping tag names to their content
 
     Example:
-        {"frontmatter": "---\\nname: ...\\n---", "oneliner": "<oneliner>\\nBuild...\\n</oneliner>"}
+        >>> sections = parse_skill_md(Path("skill.md"))
+        >>> print(sections["overview"])
+        '<overview>\\nBuild RAG systems...\\n</overview>'
     """
     content = skill_md_path.read_text()
     sections = {}
@@ -61,6 +133,14 @@ def parse_skill_md_ordered(skill_md_path: Path, keep_tags: bool = True) -> list[
 
     Returns:
         List of (tag_name, content) tuples in document order
+
+    Example:
+        >>> sections = parse_skill_md_ordered(Path("skill.md"))
+        >>> for tag, content in sections[:3]:
+        ...     print(f"{tag}: {len(content)} chars")
+        frontmatter: 150 chars
+        overview: 500 chars
+        ex-basic: 1200 chars
     """
     content = skill_md_path.read_text()
     sections = []
@@ -91,13 +171,17 @@ def load_skill_content(skill_md_path: Path) -> str:
     """Load full skill content from skill.md.
 
     Returns the raw file content. Useful for getting the complete skill
-    as a single string.
+    as a single string for filtering or transformation.
 
     Args:
         skill_md_path: Path to skill.md file
 
     Returns:
         Full file content as string
+
+    Example:
+        >>> content = load_skill_content(Path("skill_all.md"))
+        >>> py_only = strip_lang_tags(content, exclude=["typescript"])
     """
     return skill_md_path.read_text()
 
@@ -117,6 +201,10 @@ def get_section_list(
 
     Returns:
         List of section content strings in document order
+
+    Example:
+        >>> sections = get_section_list(Path("skill.md"), exclude_tags=["frontmatter"])
+        >>> full_content = "\\n\\n".join(sections)
     """
     exclude_tags = exclude_tags or []
     sections = parse_skill_md_ordered(skill_md_path, keep_tags=keep_tags)
@@ -134,6 +222,13 @@ def format_section_with_tags(tag: str, content: str) -> str:
 
     Returns:
         Formatted string with opening and closing tags
+
+    Example:
+        >>> formatted = format_section_with_tags("overview", "This is the overview.")
+        >>> print(formatted)
+        <overview>
+        This is the overview.
+        </overview>
     """
     return f"<{tag}>\n{content}\n</{tag}>"
 
@@ -161,20 +256,15 @@ def load_skill(skill_dir: Path) -> dict:
         - scripts_dir: Path to scripts/ subdirectory (or None if doesn't exist)
 
     Example:
-        trace = load_skill(Path("skills/benchmarks/langsmith_trace"))
-
-        # Get specific sections
-        my_sections = [
-            trace["sections"]["frontmatter"],
-            trace["sections"]["oneliner"],
-            trace["sections"]["setup"],
-        ]
-
-        # Or get all sections
-        full_sections = trace["all"]
-
-        # Build skill config for treatment
-        skill_config = {"sections": my_sections, "scripts_dir": trace["scripts_dir"]}
+        >>> trace = load_skill(Path("skills/benchmarks/langsmith_trace"))
+        >>> # Get specific sections
+        >>> my_sections = [
+        ...     trace["sections"]["frontmatter"],
+        ...     trace["sections"]["oneliner"],
+        ...     trace["sections"]["setup"],
+        ... ]
+        >>> # Or get all sections
+        >>> full_sections = trace["all"]
     """
     skill_md_path = skill_dir / "skill.md"
     sections = parse_skill_md(skill_md_path)
@@ -207,14 +297,14 @@ def load_skill_variant(skill_dir: Path, variant: str = None) -> dict:
         - script_filter: variant name (used to filter scripts during setup)
 
     Example:
-        # Load Python variant - will filter to .py scripts during setup
-        trace_py = load_skill_variant(Path("skills/benchmarks/langsmith_trace"), "py")
-
-        # Load TypeScript variant - will filter to .ts/.js scripts during setup
-        trace_ts = load_skill_variant(Path("skills/benchmarks/langsmith_trace"), "ts")
-
-        # Load combined variant - will copy all scripts during setup
-        trace_all = load_skill_variant(Path("skills/benchmarks/langsmith_trace"), "all")
+        >>> # Load Python variant - will filter to .py scripts during setup
+        >>> trace_py = load_skill_variant(Path("skills/benchmarks/langsmith_trace"), "py")
+        >>>
+        >>> # Load TypeScript variant - will filter to .ts/.js scripts during setup
+        >>> trace_ts = load_skill_variant(Path("skills/benchmarks/langsmith_trace"), "ts")
+        >>>
+        >>> # Load combined variant - will copy all scripts during setup
+        >>> trace_all = load_skill_variant(Path("skills/benchmarks/langsmith_trace"), "all")
     """
     if variant:
         skill_md_path = skill_dir / f"skill_{variant}.md"
@@ -253,19 +343,12 @@ def split_skill(
         Dict mapping skill names to skill configs (sections list + scripts_dir)
 
     Example:
-        trace = load_skill(Path("skills/benchmarks/langsmith_trace"))
-
-        # Split into setup + querying skills
-        split_skills = split_skill(trace, {
-            "langsmith-trace-setup": ["frontmatter", "oneliner", "setup", "trace_langchain_oss"],
-            "langsmith-trace-query": ["frontmatter", "oneliner", "command_structure", "querying_traces", "filters"],
-        }, base_name="langsmith-trace")
-
-        # Use in treatment
-        treatment = Treatment(
-            skills=split_skills,
-            ...
-        )
+        >>> trace = load_skill(Path("skills/benchmarks/langsmith_trace"))
+        >>> # Split into setup + querying skills
+        >>> split_skills = split_skill(trace, {
+        ...     "langsmith-trace-setup": ["frontmatter", "oneliner", "setup"],
+        ...     "langsmith-trace-query": ["frontmatter", "oneliner", "querying_traces"],
+        ... }, base_name="langsmith-trace")
     """
     result = {}
     for skill_name, tags in splits.items():
@@ -298,11 +381,89 @@ def skill_config(sections: list[str], scripts_dir: Path = None, script_filter: s
         Dict with "sections", "scripts_dir", and "script_filter" keys
 
     Example:
-        treatment = Treatment(
-            skills={
-                "my-skill": skill_config([HEADER, SETUP, EXAMPLES], scripts_dir, "py"),
-            },
-            ...
-        )
+        >>> treatment = Treatment(
+        ...     skills={
+        ...         "my-skill": skill_config([HEADER, SETUP, EXAMPLES], scripts_dir, "py"),
+        ...     },
+        ...     ...
+        ... )
     """
     return {"sections": sections, "scripts_dir": scripts_dir, "script_filter": script_filter}
+
+
+def strip_lang_tags(content: str, exclude: list[str] | None = None) -> str:
+    """Strip language-specific XML tags from skill content.
+
+    Removes <python> and/or <typescript> tagged sections from content.
+    Tags may have attributes like <python tag="section-name">.
+
+    This is useful for creating language-specific versions of skill_all.md
+    files that contain both Python and TypeScript examples.
+
+    Args:
+        content: Skill markdown content
+        exclude: List of languages to exclude ("python", "typescript").
+                 If None or empty, returns content unchanged.
+
+    Returns:
+        Content with specified language sections removed
+
+    Example:
+        >>> content = load_skill_content(Path("skill_all.md"))
+        >>> # Remove Python examples, keep TypeScript
+        >>> ts_only = strip_lang_tags(content, exclude=["python"])
+        >>> # Remove TypeScript examples, keep Python
+        >>> py_only = strip_lang_tags(content, exclude=["typescript"])
+    """
+    if not exclude:
+        return content
+
+    result = content
+    for lang in exclude:
+        # Match tags with optional attributes: <python> or <python tag="...">
+        pattern = rf"<{lang}(?:\s+[^>]*)?>.*?</{lang}>"
+        result = re.sub(pattern, "", result, flags=re.DOTALL)
+
+    # Clean up excessive blank lines left after removal
+    result = re.sub(r"\n{3,}", "\n\n", result)
+
+    return result
+
+
+def strip_by_tags(content: str, exclude: list[str] | None = None) -> str:
+    """Strip content blocks by their tag attribute value.
+
+    Removes <python tag="name"> or <typescript tag="name"> blocks where
+    the tag attribute matches one of the excluded names.
+
+    This is useful for filtering out specific examples, gotchas, or other
+    tagged content without removing all content of that language.
+
+    Args:
+        content: Skill markdown content
+        exclude: List of tag attribute values to exclude.
+                 If None or empty, returns content unchanged.
+
+    Returns:
+        Content with specified tagged sections removed
+
+    Example:
+        >>> # Remove specific gotchas by tag name
+        >>> filtered = strip_by_tags(content, exclude=["faiss-deserialize", "import-packages"])
+        >>> # Works with any tag attribute value
+        >>> filtered = strip_by_tags(content, exclude=["basic-setup", "advanced-config"])
+    """
+    if not exclude:
+        return content
+
+    result = content
+    for tag_name in exclude:
+        # Match <python tag="name">...</python> or <typescript tag="name">...</typescript>
+        # The tag attribute value must match exactly
+        pattern = rf'<(python|typescript)\s+tag="{re.escape(tag_name)}"[^>]*>.*?</\1>'
+        result = re.sub(pattern, "", result, flags=re.DOTALL)
+
+    # Clean up excessive blank lines left after removal
+    result = re.sub(r"\n{3,}", "\n\n", result)
+
+    return result

@@ -475,7 +475,7 @@ def _filter_scripts(scripts_dir: Path, script_filter: str) -> Path | None:
     Returns:
         Path to temp dir with filtered scripts, or original dir if no filtering needed
     """
-    from skills.parser import SCRIPT_EXTENSIONS
+    from scaffold.python.skill_parser import SCRIPT_EXTENSIONS
 
     if not scripts_dir or not scripts_dir.exists():
         return None

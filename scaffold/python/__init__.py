@@ -1,10 +1,11 @@
 """Python-specific scaffold components.
 
 - schema.py: NoiseTask, Treatment
-- validation.py: Class-based validators (legacy)
-- validation/: Function-based validators (preferred)
+- validation/: Function-based validators (preferred) and class-based (legacy)
 - utils.py: Docker wrappers, helpers
 - logging.py: Output parsing, experiment logging
+- tasks.py: Task loader for self-contained benchmark tasks
+- treatments.py: Treatment configuration loader
 """
 
 from .logging import (

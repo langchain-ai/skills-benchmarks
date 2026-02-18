@@ -49,7 +49,7 @@ TREATMENT_A:
 ```
 
 Usage:
-    from scaffold.treatments import load_treatments, load_treatment
+    from scaffold.python.treatments import load_treatments, load_treatment
 
     treatments = load_treatments()  # Load all from tests/treatments.yaml
     treatment = load_treatment("SEPARATE_NAMES")
@@ -64,9 +64,9 @@ import yaml
 
 from skills.parser import load_skill, load_skill_variant, skill_config
 
-TREATMENTS_FILE = Path(__file__).parent.parent / "tests" / "treatments.yaml"
-SKILL_BASE = Path(__file__).parent.parent / "skills" / "benchmarks"
-NOISE_SKILL_BASE = Path(__file__).parent.parent / "skills" / "noise"
+TREATMENTS_FILE = Path(__file__).parent.parent.parent / "tests" / "treatments.yaml"
+SKILL_BASE = Path(__file__).parent.parent.parent / "skills" / "benchmarks"
+NOISE_SKILL_BASE = Path(__file__).parent.parent.parent / "skills" / "noise"
 
 
 @dataclass

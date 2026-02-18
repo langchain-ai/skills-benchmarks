@@ -22,7 +22,7 @@ Example:
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .validation import NoiseTaskValidator, OutputQualityValidator, PythonFileValidator, Validator
+from .validation.classes import NoiseTaskValidator, OutputQualityValidator, PythonFileValidator, Validator
 
 
 @dataclass

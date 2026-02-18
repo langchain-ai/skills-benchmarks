@@ -8,7 +8,7 @@ Each task is a directory containing:
 - data/: Test data and ground truth (optional)
 
 Usage:
-    from scaffold.tasks import load_task, list_tasks
+    from scaffold.python.tasks import load_task, list_tasks
 
     task = load_task("ls-evaluator")
     prompt = task.render_prompt(py_dataset="ds-py", ts_dataset="ds-ts", run_id="abc123")
@@ -27,7 +27,7 @@ except ImportError:
     import tomli as tomllib  # Python < 3.11
 
 
-TASKS_DIR = Path(__file__).parent.parent / "tasks"
+TASKS_DIR = Path(__file__).parent.parent.parent / "tasks"
 
 
 @dataclass

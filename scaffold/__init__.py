@@ -2,20 +2,30 @@
 
 Structure:
 - scaffold/shell/   - Language-agnostic shell scripts (source of truth)
-- scaffold/python/  - Python wrappers and pytest utilities
-- scaffold/tasks.py - Task loader for self-contained benchmark tasks
+- scaffold/python/  - Python wrappers, pytest utilities, task/treatment loaders
+- scaffold/typescript/ - TypeScript equivalents for parity
 
 Usage:
     from scaffold import Treatment, NoiseTask, Validator
     from scaffold.python import ExperimentLogger, parse_output, extract_events
-    from scaffold.tasks import load_task, list_tasks
+    from scaffold.python.tasks import load_task, list_tasks
+    from scaffold.python.treatments import load_task_treatments, build_treatment_skills
 
     # Function-based validators (preferred)
     from scaffold import validate_python_tracing, validate_code_execution
 """
 
-# Re-export task utilities
-from .tasks import Task, TaskConfig, list_tasks, load_task
+# Re-export task utilities from python subpackage
+from .python.tasks import Task, TaskConfig, list_tasks, load_task
+from .python.treatments import (
+    TreatmentConfig,
+    build_treatment_skills,
+    get_task_treatment_names,
+    list_treatments,
+    load_task_treatments,
+    load_treatment,
+    load_treatments_yaml,
+)
 
 # Re-export from scaffold.python for convenience
 from .python import (
@@ -85,6 +95,14 @@ __all__ = [
     "TaskConfig",
     "load_task",
     "list_tasks",
+    # Treatments
+    "TreatmentConfig",
+    "build_treatment_skills",
+    "get_task_treatment_names",
+    "list_treatments",
+    "load_task_treatments",
+    "load_treatment",
+    "load_treatments_yaml",
     # Schema
     "NoiseTask",
     "Treatment",

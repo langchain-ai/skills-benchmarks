@@ -124,8 +124,8 @@ def test_task_treatment(
     # Render prompt with required variables
     template_vars = {"run_id": run_id}
 
-    # Add task-specific variables (e.g., datasets for ls-evaluator)
-    if task_name == "ls-evaluator":
+    # Add task-specific variables (e.g., datasets for ls-lang-evaluator)
+    if task_name == "ls-lang-evaluator":
         # These would come from fixtures in a real test
         template_vars["py_dataset"] = f"benchmark-sql-{run_id[:8]}"
         template_vars["ts_dataset"] = f"benchmark-support-{run_id[:8]}"

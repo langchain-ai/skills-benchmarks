@@ -314,6 +314,57 @@ def worker_id(request):
     return "master"
 
 
+def _get_langsmith_client():
+    """Get LangSmith client."""
+    try:
+        from langsmith import Client
+
+        return Client(), None
+    except Exception as e:
+        return None, str(e)
+
+
+@pytest.fixture(scope="session")
+def langsmith_project(worker_id, request):
+    """Create isolated LangSmith project for this test session.
+
+    Each pytest-xdist worker gets its own project to avoid conflicts.
+    Projects are cleaned up after the session.
+    """
+    # Skip for script-only runs
+    if _is_scripts_only(request.config):
+        yield None
+        return
+
+    import uuid
+
+    suffix = "main" if worker_id == "master" else worker_id
+    project_name = f"benchmark-{suffix}-{uuid.uuid4().hex[:8]}"
+
+    old_project = os.environ.get("LANGSMITH_PROJECT")
+    os.environ["LANGSMITH_PROJECT"] = project_name
+
+    print(f"\n{'=' * 60}")
+    print(f"LANGSMITH PROJECT: {project_name}")
+    print(f"{'=' * 60}\n")
+
+    yield project_name
+
+    # Cleanup
+    client, _ = _get_langsmith_client()
+    if client:
+        try:
+            client.delete_project(project_name=project_name)
+            print(f"Deleted project: {project_name}")
+        except Exception as e:
+            print(f"Warning: Could not delete project {project_name}: {e}")
+
+    if old_project:
+        os.environ["LANGSMITH_PROJECT"] = old_project
+    elif "LANGSMITH_PROJECT" in os.environ:
+        del os.environ["LANGSMITH_PROJECT"]
+
+
 @pytest.fixture(scope="session")
 def verify_environment(project_root, request):
     """Verify Docker, Claude CLI, and API keys are available.

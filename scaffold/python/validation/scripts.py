@@ -6,7 +6,6 @@ This is informational - doesn't fail, just records patterns.
 
 from pathlib import Path
 
-
 # Known skill scripts by language
 PY_SCRIPTS = [
     "query_traces.py",

@@ -26,7 +26,7 @@ import pytest
 
 from scaffold import NoiseTask, Treatment
 from scaffold.python import extract_events, parse_output
-from scaffold.python.tasks import load_task, list_tasks
+from scaffold.python.tasks import list_tasks, load_task
 from scaffold.python.treatments import build_treatment_skills, load_task_treatments
 from scaffold.python.validation import NOISE_TASK_DELIVERABLES, NOISE_TASK_PROMPTS
 

@@ -7,14 +7,11 @@
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { execSync } from "node:child_process";
 import { mkdtempSync, rmSync, readFileSync, existsSync } from "node:fs";
-import { resolve, dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { resolve, join } from "node:path";
 import { tmpdir } from "node:os";
 import {
   createSampleTraceJsonl,
   createSampleDatasetJson,
-  SAMPLE_TRACE_RUNS,
-  SAMPLE_LOCAL_DATASET,
   SCRIPTS_BASE,
   TS_QUERY_TRACES,
   TS_GENERATE_DATASETS,
@@ -90,7 +87,7 @@ function normalizeJson(data: unknown): unknown {
 /**
  * Assert two JSON structures are equal after normalization.
  */
-function assertJsonEqual(pyData: unknown, tsData: unknown, msg: string): void {
+function assertJsonEqual(pyData: unknown, tsData: unknown, _msg: string): void {
   const pyNormalized = normalizeJson(pyData);
   const tsNormalized = normalizeJson(tsData);
   expect(pyNormalized).toEqual(tsNormalized);

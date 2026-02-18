@@ -82,7 +82,7 @@ def execute_sql_query(query: str) -> str:
         columns = [description[0] for description in cursor.description] if cursor.description else []
 
         # Format results as list of dicts
-        formatted = [dict(zip(columns, row)) for row in results[:20]]  # Limit to 20 rows
+        formatted = [dict(zip(columns, row, strict=False)) for row in results[:20]]  # Limit to 20 rows
         return json.dumps(formatted, indent=2)
     except Exception as e:
         return f"SQL Error: {str(e)}"

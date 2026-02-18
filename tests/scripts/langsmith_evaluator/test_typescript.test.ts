@@ -66,7 +66,7 @@ describe("mocked API functions", () => {
 
   describe("getHeaders", () => {
     it("returns correct authentication headers", async () => {
-      const { getHeaders, LANGSMITH_API_KEY } =
+      const { getHeaders } =
         await import("../../../skills/benchmarks/langsmith_evaluator/scripts/upload_evaluators.js");
 
       const headers = getHeaders();

@@ -24,10 +24,11 @@
     "langsmith": "^0.3.87",
     "openai": "^6.22.0",
     "ora": "^8.0.0",
+    "yaml": "^2.8.2",
     "zod": "^3.24.0"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0",
+    "@types/node": "^22.19.11",
     "eslint": "^9.0.0",
     "tsx": "^4.7.0",
     "typescript": "^5.7.0",

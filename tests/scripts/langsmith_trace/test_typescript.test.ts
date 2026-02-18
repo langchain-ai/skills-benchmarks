@@ -13,6 +13,10 @@ import {
   runTsScript,
 } from "../fixtures.js";
 
+// Mock run objects - use 'any' for test mocks since we only test specific fields
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type MockRun = any;
+
 const SCRIPT_PATH = TS_QUERY_TRACES;
 
 /**
@@ -152,7 +156,7 @@ describe("mocked API functions", () => {
         parent_run_id: SAMPLE_TRACES_LIST[0].parent_run_id,
         start_time: new Date(SAMPLE_TRACES_LIST[0].start_time),
         end_time: new Date(SAMPLE_TRACES_LIST[0].end_time),
-      } as any;
+      } as MockRun;
 
       const extracted = extractRun(mockRun, false, false);
 
@@ -181,7 +185,7 @@ describe("mocked API functions", () => {
         prompt_tokens: runWithMetadata.token_usage?.prompt_tokens,
         completion_tokens: runWithMetadata.token_usage?.completion_tokens,
         total_tokens: runWithMetadata.token_usage?.total_tokens,
-      } as any;
+      } as MockRun;
 
       const extracted = extractRun(mockRun, true, false);
 
@@ -210,7 +214,7 @@ describe("mocked API functions", () => {
         end_time: new Date(),
         inputs: { query: "What is 2+2?" },
         outputs: { answer: "4" },
-      } as any;
+      } as MockRun;
 
       const extracted = extractRun(mockRun, false, true);
 
@@ -251,10 +255,10 @@ describe("mocked API with fixtures", () => {
           parent_run_id: t.parent_run_id,
           start_time: new Date(t.start_time),
           end_time: new Date(t.end_time),
-        }) as any,
+        }) as MockRun,
     );
 
-    const extracted = mockRuns.map((r: any) => extractRun(r, false, false));
+    const extracted = mockRuns.map((r: MockRun) => extractRun(r, false, false));
 
     // Should return 3 traces
     expect(extracted.length).toBe(3);
@@ -289,10 +293,10 @@ describe("mocked API with fixtures", () => {
           parent_run_id: r.parent_run_id,
           start_time: new Date(r.start_time),
           end_time: new Date(r.end_time),
-        }) as any,
+        }) as MockRun,
     );
 
-    const extracted = mockRuns.map((r: any) => extractRun(r, false, false));
+    const extracted = mockRuns.map((r: MockRun) => extractRun(r, false, false));
 
     // Should return 7 runs in the trace
     expect(extracted.length).toBe(7);
@@ -335,10 +339,10 @@ describe("mocked API with fixtures", () => {
           prompt_tokens: r.token_usage?.prompt_tokens,
           completion_tokens: r.token_usage?.completion_tokens,
           total_tokens: r.token_usage?.total_tokens,
-        }) as any,
+        }) as MockRun,
     );
 
-    const extracted = mockRuns.map((r: any) => extractRun(r, true, false));
+    const extracted = mockRuns.map((r: MockRun) => extractRun(r, true, false));
 
     // Should return 3 runs
     expect(extracted.length).toBe(3);

@@ -13,7 +13,6 @@ from scaffold.python.validation import (
     find_evaluator_function,
     validate_dataset_structure,
     validate_dataset_upload,
-    validate_evaluator_logic,
     validate_skill_scripts,
     validate_trajectory_accuracy,
 )

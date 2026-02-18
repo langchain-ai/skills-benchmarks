@@ -93,32 +93,41 @@ class Task:
         return self.instruction_template.format(**kwargs)
 
     def load_validators(self) -> list:
-        """Load function-based validators from the task's validation module.
+        """Load function-based validators from the task's validation module(s).
+
+        Discovers all files matching *validators*.py in the validation/ directory
+        and collects their VALIDATORS lists.
 
         Returns:
-            List of validator functions from VALIDATORS in validators.py
+            Combined list of validator functions from all validator modules
 
         Raises:
-            ImportError: If validation module cannot be loaded
+            ImportError: If a validation module cannot be loaded
         """
-        validators_path = self.validation_dir / "validators.py"
-        if not validators_path.exists():
+        if not self.validation_dir.exists():
             return []
 
-        module_name = f"tasks.{self.name}.validation.validators"
-        spec = importlib.util.spec_from_file_location(module_name, validators_path)
-        if spec is None or spec.loader is None:
-            raise ImportError(f"Cannot load validators from {validators_path}")
+        # Find all validator files (validators.py, custom_validators.py, etc.)
+        validator_files = sorted(self.validation_dir.glob("*validators*.py"))
+        if not validator_files:
+            return []
 
-        module = importlib.util.module_from_spec(spec)
-        sys.modules[module_name] = module
-        spec.loader.exec_module(module)
+        all_validators = []
+        for validators_path in validator_files:
+            module_name = f"tasks.{self.name}.validation.{validators_path.stem}"
+            spec = importlib.util.spec_from_file_location(module_name, validators_path)
+            if spec is None or spec.loader is None:
+                raise ImportError(f"Cannot load validators from {validators_path}")
 
-        # Return the VALIDATORS list
-        if hasattr(module, "VALIDATORS"):
-            return list(module.VALIDATORS)
+            module = importlib.util.module_from_spec(spec)
+            sys.modules[module_name] = module
+            spec.loader.exec_module(module)
 
-        return []
+            # Collect VALIDATORS list from this module
+            if hasattr(module, "VALIDATORS"):
+                all_validators.extend(module.VALIDATORS)
+
+        return all_validators
 
 
 def load_task(name: str, tasks_dir: Path | None = None) -> Task:

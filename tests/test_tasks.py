@@ -2,8 +2,8 @@
 
 This test file uses the new task-based structure where:
 - Tasks are self-contained directories with instruction.md, task.toml, environment/, validation/
-- Treatments are defined in treatments.yaml and specify skill configurations
-- Any treatment can be combined with any compatible task
+- Treatments are defined per-task in treatments.yaml
+- Each task defines its own treatments
 
 Usage:
     # Run all task/treatment combinations
@@ -24,53 +24,41 @@ from pathlib import Path
 
 import pytest
 
-from scaffold import Treatment
+from scaffold import NoiseTask, Treatment
 from scaffold.python import extract_events, parse_output
-from scaffold.tasks import load_task
-from scaffold.treatments import build_treatment_skills, load_treatments_yaml
+from scaffold.python.validation import NOISE_TASK_DELIVERABLES, NOISE_TASK_PROMPTS
+from scaffold.tasks import load_task, list_tasks
+from scaffold.treatments import build_treatment_skills, load_task_treatments
+
+
+def build_noise_tasks(noise_task_names: list[str]) -> list[NoiseTask]:
+    """Convert noise task names to NoiseTask objects."""
+    noise_tasks = []
+    for name in noise_task_names:
+        if name in NOISE_TASK_PROMPTS:
+            noise_tasks.append(
+                NoiseTask(
+                    prompt=NOISE_TASK_PROMPTS[name],
+                    deliverables=[NOISE_TASK_DELIVERABLES.get(name, "")],
+                )
+            )
+    return noise_tasks
 
 # Timeouts
 CLAUDE_TIMEOUT = 600  # 10 minutes for Claude to complete task
 PYTEST_TIMEOUT = 900  # 15 minutes total including setup/teardown
 
-# Task -> compatible treatments mapping
-TASK_TREATMENTS = {
-    "ls-evaluator": [
-        "SEPARATE_NAMES",
-        "UNIFIED_BOTH",
-        "UNIFIED_WITH_NOISE",
-        "UNIFIED_PY_ONLY",
-        "UNIFIED_TS_ONLY",
-        "CONTROL",
-    ],
-    "ls-tracing": [
-        "SEPARATE_NAMES",
-        "UNIFIED_BOTH",
-        "UNIFIED_WITH_NOISE",
-        "UNIFIED_PY_ONLY",
-        "UNIFIED_TS_ONLY",
-        "CONTROL",
-    ],
-    "ls-multiskill-basic": [
-        "MULTISKILL_ALL_SKILLS",
-        "MULTISKILL_SKILLS_ONLY",
-        "MULTISKILL_CLAUDEMD_ONLY",
-        "CONTROL",
-    ],
-    "ls-multiskill-advanced": [
-        "MULTISKILL_ALL_SKILLS",
-        "MULTISKILL_SKILLS_ONLY",
-        "MULTISKILL_CLAUDEMD_ONLY",
-        "CONTROL",
-    ],
-}
+# Tasks directory
+TASKS_DIR = Path(__file__).parent.parent / "tasks"
 
 
 def generate_test_params():
-    """Generate (task_name, treatment_name) pairs for parametrization."""
+    """Generate (task_name, treatment_name) pairs from per-task treatments.yaml files."""
     params = []
-    for task_name, treatments in TASK_TREATMENTS.items():
-        for treatment_name in treatments:
+    for task_name in list_tasks():
+        task = load_task(task_name)
+        treatments = load_task_treatments(task.path)
+        for treatment_name in treatments.keys():
             params.append((task_name, treatment_name))
     return params
 
@@ -99,21 +87,27 @@ def test_task_treatment(
     record_result,
 ):
     """Run a task with a treatment and validate results."""
-    # Load task and treatment
+    # Load task
     task = load_task(task_name)
-    treatment_configs = load_treatments_yaml()
-    treatment_cfg = treatment_configs[treatment_name]
+
+    # Load per-task treatments (treatments.yaml in task directory)
+    treatments = load_task_treatments(task.path)
+    if treatment_name not in treatments:
+        pytest.skip(f"Treatment {treatment_name} not found in {task_name}/treatments.yaml")
+    treatment_cfg = treatments[treatment_name]
 
     # Load validators from task
     validators = task.load_validators()
 
     # Build treatment
     skills = build_treatment_skills(treatment_cfg.skills) if treatment_cfg.skills else {}
+    noise_tasks = build_noise_tasks(treatment_cfg.noise_tasks) if treatment_cfg.noise_tasks else []
 
     treatment = Treatment(
         description=treatment_cfg.description,
         skills=skills,
         claude_md=treatment_cfg.claude_md if treatment_cfg.claude_md else None,
+        noise_tasks=noise_tasks,
         validators=[],  # We use function-based validators directly
     )
 
@@ -146,7 +140,12 @@ def test_task_treatment(
     events = extract_events(parse_output(result.stdout))
 
     # Run validators
-    outputs = {"run_id": run_id, "langsmith_project": langsmith_project}
+    outputs = {
+        "run_id": run_id,
+        "langsmith_project": langsmith_project,
+        "events": events,
+        "noise_tasks": treatment_cfg.noise_tasks,
+    }
     passed, failed = run_validators(validators, test_dir, outputs)
 
     # Record results

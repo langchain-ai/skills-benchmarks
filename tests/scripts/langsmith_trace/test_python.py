@@ -10,8 +10,14 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from ..conftest import PY_QUERY_TRACES, SCRIPTS_BASE, run_python_script
-from ..fixtures import SAMPLE_RUNS_WITH_METADATA, SAMPLE_TRACE_GET, SAMPLE_TRACES_LIST
+from ..conftest import (
+    PY_QUERY_TRACES,
+    SAMPLE_RUNS_WITH_METADATA,
+    SAMPLE_TRACE_GET,
+    SAMPLE_TRACES_LIST,
+    SCRIPTS_BASE,
+    run_python_script,
+)
 
 
 @pytest.fixture

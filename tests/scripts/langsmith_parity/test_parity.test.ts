@@ -15,43 +15,30 @@ import {
   createSampleDatasetJson,
   SAMPLE_TRACE_RUNS,
   SAMPLE_LOCAL_DATASET,
+  SCRIPTS_BASE,
+  TS_QUERY_TRACES,
+  TS_GENERATE_DATASETS,
+  TS_QUERY_DATASETS,
+  TS_UPLOAD_EVALUATORS,
+  runTsScript,
 } from "../fixtures.js";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const SCRIPTS_BASE = resolve(__dirname, "../../../skills/benchmarks");
-
-// Script paths
+// Python script paths (not in test-utils since Python runner is test-specific)
 const PY_QUERY_TRACES = resolve(
   SCRIPTS_BASE,
   "langsmith_trace/scripts/query_traces.py",
-);
-const TS_QUERY_TRACES = resolve(
-  SCRIPTS_BASE,
-  "langsmith_trace/scripts/query_traces.ts",
 );
 const PY_GENERATE_DATASETS = resolve(
   SCRIPTS_BASE,
   "langsmith_dataset/scripts/generate_datasets.py",
 );
-const TS_GENERATE_DATASETS = resolve(
-  SCRIPTS_BASE,
-  "langsmith_dataset/scripts/generate_datasets.ts",
-);
 const PY_QUERY_DATASETS = resolve(
   SCRIPTS_BASE,
   "langsmith_dataset/scripts/query_datasets.py",
 );
-const TS_QUERY_DATASETS = resolve(
-  SCRIPTS_BASE,
-  "langsmith_dataset/scripts/query_datasets.ts",
-);
 const PY_UPLOAD_EVALUATORS = resolve(
   SCRIPTS_BASE,
   "langsmith_evaluator/scripts/upload_evaluators.py",
-);
-const TS_UPLOAD_EVALUATORS = resolve(
-  SCRIPTS_BASE,
-  "langsmith_evaluator/scripts/upload_evaluators.ts",
 );
 
 /**
@@ -63,30 +50,6 @@ function runPythonScript(
 ): { stdout: string; stderr: string; returncode: number } {
   try {
     const stdout = execSync(`uv run python ${scriptPath} ${args.join(" ")}`, {
-      encoding: "utf8",
-      timeout: 30000,
-      stdio: ["pipe", "pipe", "pipe"],
-    });
-    return { stdout, stderr: "", returncode: 0 };
-  } catch (error) {
-    const err = error as { stdout?: string; stderr?: string; status?: number };
-    return {
-      stdout: err.stdout || "",
-      stderr: err.stderr || "",
-      returncode: err.status || 1,
-    };
-  }
-}
-
-/**
- * Run a TypeScript script and return the result.
- */
-function runTsScript(
-  scriptPath: string,
-  args: string[],
-): { stdout: string; stderr: string; returncode: number } {
-  try {
-    const stdout = execSync(`npx tsx ${scriptPath} ${args.join(" ")}`, {
       encoding: "utf8",
       timeout: 30000,
       stdio: ["pipe", "pipe", "pipe"],

@@ -16,10 +16,11 @@ from ..conftest import (
     TS_QUERY_DATASETS,
     TS_QUERY_TRACES,
     TS_UPLOAD_EVALUATORS,
+    create_sample_dataset_json,
+    create_sample_trace_jsonl,
     run_python_script,
     run_ts_script,
 )
-from ..fixtures import create_sample_dataset_json, create_sample_trace_jsonl
 
 
 @pytest.fixture

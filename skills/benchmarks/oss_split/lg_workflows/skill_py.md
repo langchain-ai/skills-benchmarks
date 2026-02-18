@@ -104,9 +104,16 @@ def search(query: str) -> str:
     return f"Results for: {query}"
 
 @tool
-def calculate(expression: str) -> str:
-    """Calculate a mathematical expression."""
-    return str(eval(expression))
+def calculate(a: float, b: float, op: str) -> str:
+    """Perform a mathematical operation.
+
+    Args:
+        a: First number
+        b: Second number
+        op: Operation (add, subtract, multiply, divide)
+    """
+    ops = {"add": a + b, "subtract": a - b, "multiply": a * b, "divide": a / b}
+    return str(ops.get(op, "Invalid operation"))
 
 class AgentState(TypedDict):
     messages: Annotated[list, operator.add]

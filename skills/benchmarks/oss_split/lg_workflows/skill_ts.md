@@ -102,10 +102,13 @@ const search = tool(async ({ query }) => `Results for: ${query}`, {
   schema: z.object({ query: z.string() }),
 });
 
-const calculate = tool(async ({ expression }) => eval(expression).toString(), {
+const calculate = tool(async ({ a, b, op }) => {
+  const ops: Record<string, number> = { add: a + b, subtract: a - b, multiply: a * b, divide: a / b };
+  return (ops[op] ?? "Invalid operation").toString();
+}, {
   name: "calculate",
-  description: "Calculate a mathematical expression",
-  schema: z.object({ expression: z.string() }),
+  description: "Perform a mathematical operation",
+  schema: z.object({ a: z.number(), b: z.number(), op: z.string() }),
 });
 
 const AgentState = new StateSchema({

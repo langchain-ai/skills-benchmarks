@@ -237,17 +237,19 @@ from langgraph.prebuilt import create_react_agent
 search_tool = TavilySearchResults(max_results=3)
 
 @tool
-def calculator(expression: str) -> str:
-    """Evaluate a mathematical expression.
-    
+def calculator(a: float, b: float, op: str) -> str:
+    """Perform a mathematical operation.
+
     Args:
-        expression: A mathematical expression to evaluate (e.g., "2 + 2")
+        a: First number
+        b: Second number
+        op: Operation to perform (add, subtract, multiply, divide)
     """
-    try:
-        result = eval(expression)
-        return str(result)
-    except Exception as e:
-        return f"Error: {str(e)}"
+    ops = {"add": a + b, "subtract": a - b, "multiply": a * b, "divide": a / b if b != 0 else float('inf')}
+    result = ops.get(op)
+    if result is None:
+        return f"Error: Unknown operation '{op}'"
+    return str(result)
 
 @tool
 def custom_lookup(query: str) -> str:

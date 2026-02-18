@@ -12,8 +12,11 @@ Usage:
 
     task = load_task("ls-evaluator")
     prompt = task.render_prompt(py_dataset="ds-py", ts_dataset="ds-ts", run_id="abc123")
+    validators = task.load_validators()
 """
 
+import importlib.util
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -88,6 +91,34 @@ class Task:
         if missing:
             raise KeyError(f"Missing required template variables: {missing}")
         return self.instruction_template.format(**kwargs)
+
+    def load_validators(self) -> list:
+        """Load function-based validators from the task's validation module.
+
+        Returns:
+            List of validator functions from VALIDATORS in validators.py
+
+        Raises:
+            ImportError: If validation module cannot be loaded
+        """
+        validators_path = self.validation_dir / "validators.py"
+        if not validators_path.exists():
+            return []
+
+        module_name = f"tasks.{self.name}.validation.validators"
+        spec = importlib.util.spec_from_file_location(module_name, validators_path)
+        if spec is None or spec.loader is None:
+            raise ImportError(f"Cannot load validators from {validators_path}")
+
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[module_name] = module
+        spec.loader.exec_module(module)
+
+        # Return the VALIDATORS list
+        if hasattr(module, "VALIDATORS"):
+            return list(module.VALIDATORS)
+
+        return []
 
 
 def load_task(name: str, tasks_dir: Path | None = None) -> Task:

@@ -3,10 +3,7 @@ name: LangChain Tools Integration (Python)
 description: [LangChain] Guide to using tool integrations in LangChain including pre-built toolkits, Tavily, Wikipedia, and custom tools
 ---
 
-# langchain-tools (Python)
-
-## Overview
-
+<overview>
 Tools enable LLMs to interact with external systems, perform calculations, search the web, query databases, and more. They extend model capabilities beyond text generation, making agents truly actionable.
 
 ### Key Concepts
@@ -15,9 +12,9 @@ Tools enable LLMs to interact with external systems, perform calculations, searc
 - **Tool Calling**: Models decide when and how to use tools based on user queries
 - **Toolkits**: Collections of related tools
 - **Tool Schema**: Describes tool parameters using Pydantic models
+</overview>
 
-## Tool Selection Decision Table
-
+<tool-selection>
 | Tool/Toolkit | Best For | Package | Key Features |
 |--------------|----------|---------|--------------|
 | **Tavily Search** | Web search | `langchain-community` | AI-optimized search API |
@@ -26,9 +23,9 @@ Tools enable LLMs to interact with external systems, perform calculations, searc
 | **ArXiv** | Academic papers | `langchain-community` | Research paper search |
 | **Vector Store Tools** | Semantic search | Based on vector store | Query your data |
 | **Custom Tools** | Your specific needs | `langchain-core` | Define any function |
+</tool-selection>
 
-### When to Choose Each Tool
-
+<when-to-choose>
 **Choose Tavily if:**
 - You need high-quality web search
 - You want AI-optimized results
@@ -43,11 +40,9 @@ Tools enable LLMs to interact with external systems, perform calculations, searc
 - You have specific business logic
 - You need to integrate proprietary systems
 - Built-in tools don't meet your needs
+</when-to-choose>
 
-## Code Examples
-
-### Tavily Search Tool
-
+<ex-tavily-search-tool>
 ```python
 from langchain_community.tools.tavily_search import TavilySearchResults
 import os
@@ -73,9 +68,9 @@ response = agent.invoke({
     "messages": [{"role": "user", "content": "What's new in AI today?"}]
 })
 ```
+</ex-tavily-search-tool>
 
-### Wikipedia Tool
-
+<ex-wikipedia-tool>
 ```python
 from langchain_community.tools import WikipediaQueryRun
 from langchain_community.utilities import WikipediaAPIWrapper
@@ -91,9 +86,9 @@ wikipedia = WikipediaQueryRun(
 result = wikipedia.invoke("Artificial Intelligence")
 print(result)
 ```
+</ex-wikipedia-tool>
 
-### DuckDuckGo Search (No API Key)
-
+<ex-duckduckgo-search>
 ```python
 from langchain_community.tools import DuckDuckGoSearchRun
 
@@ -108,9 +103,9 @@ from langchain_community.tools import DuckDuckGoSearchResults
 search_tool = DuckDuckGoSearchResults(max_results=5)
 results = search_tool.invoke("Python programming")
 ```
+</ex-duckduckgo-search>
 
-### ArXiv Tool
-
+<ex-arxiv-tool>
 ```python
 from langchain_community.tools import ArxivQueryRun
 
@@ -120,9 +115,9 @@ arxiv_tool = ArxivQueryRun()
 results = arxiv_tool.invoke("large language models")
 print(results)
 ```
+</ex-arxiv-tool>
 
-### Custom Tool with @tool Decorator
-
+<ex-custom-tool-decorator>
 ```python
 from langchain_core.tools import tool
 from typing import Optional
@@ -130,7 +125,7 @@ from typing import Optional
 @tool
 def get_weather(location: str, unit: Optional[str] = "celsius") -> str:
     """Get the current weather for a location.
-    
+
     Args:
         location: The city name, e.g., 'San Francisco'
         unit: Temperature unit, either 'celsius' or 'fahrenheit'
@@ -150,9 +145,9 @@ response = agent.invoke({
     "messages": [{"role": "user", "content": "What's the weather in London?"}]
 })
 ```
+</ex-custom-tool-decorator>
 
-### Custom Tool with Pydantic Schema
-
+<ex-custom-tool-pydantic-schema>
 ```python
 from langchain_core.tools import tool
 from pydantic import BaseModel, Field
@@ -169,9 +164,9 @@ def get_weather(location: str, unit: str = "celsius") -> str:
 
 # Tool now has proper schema validation
 ```
+</ex-custom-tool-pydantic-schema>
 
-### Custom Tool - Class-Based
-
+<ex-custom-tool-class-based>
 ```python
 from langchain_core.tools import BaseTool
 from pydantic import BaseModel, Field
@@ -184,13 +179,13 @@ class DatabaseQueryTool(BaseTool):
     name: str = "database_query"
     description: str = "Query the customer database for information"
     args_schema: Type[BaseModel] = DatabaseInput
-    
+
     def _run(self, customer_id: str) -> str:
         """Use the tool."""
         # Your database logic
         customer = db.get_customer(customer_id)
         return str(customer)
-    
+
     async def _arun(self, customer_id: str) -> str:
         """Async version."""
         # Async implementation
@@ -198,9 +193,9 @@ class DatabaseQueryTool(BaseTool):
 
 db_tool = DatabaseQueryTool()
 ```
+</ex-custom-tool-class-based>
 
-### Vector Store as Tool
-
+<ex-vector-store-as-tool>
 ```python
 from langchain_core.tools import create_retriever_tool
 from langchain_core.vectorstores import InMemoryVectorStore
@@ -224,9 +219,9 @@ from langgraph.prebuilt import create_react_agent
 
 agent = create_react_agent(model, [retriever_tool])
 ```
+</ex-vector-store-as-tool>
 
-### Multiple Tools Example
-
+<ex-multiple-tools>
 ```python
 from langchain_openai import ChatOpenAI
 from langchain_community.tools.tavily_search import TavilySearchResults
@@ -254,7 +249,7 @@ def calculator(a: float, b: float, op: str) -> str:
 @tool
 def custom_lookup(query: str) -> str:
     """Look up custom information.
-    
+
     Args:
         query: The query to look up
     """
@@ -275,9 +270,9 @@ response = agent.invoke({
     }]
 })
 ```
+</ex-multiple-tools>
 
-### Tool with Error Handling
-
+<ex-tool-with-error-handling>
 ```python
 from langchain_core.tools import tool
 import requests
@@ -285,7 +280,7 @@ import requests
 @tool
 def api_call(endpoint: str) -> str:
     """Call external API.
-    
+
     Args:
         endpoint: API endpoint to call
     """
@@ -298,9 +293,9 @@ def api_call(endpoint: str) -> str:
 
 # Error handling is critical for robust tools
 ```
+</ex-tool-with-error-handling>
 
-### Toolkits
-
+<ex-toolkits>
 ```python
 # SQL Database Toolkit
 from langchain_community.agent_toolkits import SQLDatabaseToolkit
@@ -315,137 +310,126 @@ tools = toolkit.get_tools()
 # Use in agent
 agent = create_react_agent(model, tools)
 ```
+</ex-toolkits>
 
-## Boundaries
-
+<boundaries>
 ### What Agents CAN Do
 
-✅ **Use pre-built tools**
+* Use pre-built tools**
 - Tavily search, Wikipedia, DuckDuckGo
 - ArXiv, calculators, web browsers
 - Any tool from LangChain community
 
-✅ **Create custom tools**
+* Create custom tools**
 - Define functions with @tool decorator
 - Implement class-based tools
 - Convert retrievers to tools
 
-✅ **Combine multiple tools**
+* Combine multiple tools**
 - Give agents access to many tools
 - Let models choose appropriate tools
 - Chain tool calls
 
-✅ **Handle tool responses**
+* Handle tool responses**
 - Parse tool output
 - Use results in conversation
 - Error handling
 
 ### What Agents CANNOT Do
 
-❌ **Execute arbitrary code safely**
+* Execute arbitrary code safely**
 - Cannot run untrusted code
 - Need sandboxing for code execution
 
-❌ **Bypass authentication**
+* Bypass authentication**
 - Tools need proper API keys
 - Cannot access protected resources without credentials
 
-❌ **Guarantee tool selection**
+* Guarantee tool selection**
 - Model decides which tool to use
 - Cannot force specific tool usage (without prompting)
+</boundaries>
 
-## Gotchas
-
-### 1. **Import from Correct Package**
-
+<fix-import-from-correct-package>
 ```python
-# ❌ OLD
+# WRONG: OLD
 from langchain.tools import WikipediaQueryRun
 
-# ✅ NEW
+# CORRECT: NEW
 from langchain_community.tools import WikipediaQueryRun
 ```
+</fix-import-from-correct-package>
 
-**Fix**: Use `langchain-community` for tools.
-
-### 2. **API Keys Required**
-
+<fix-api-keys-required>
 ```python
-# ❌ Missing API key
+# WRONG: Missing API key
 tool = TavilySearchResults()
 tool.invoke("query")  # Error!
 
-# ✅ Provide API key
+# CORRECT: Provide API key
 import os
 tool = TavilySearchResults(api_key=os.getenv("TAVILY_API_KEY"))
 ```
+</fix-api-keys-required>
 
-**Fix**: Set required API keys in environment variables.
-
-### 3. **Model Must Support Tools**
-
+<fix-model-must-support-tools>
 ```python
-# ❌ Model doesn't support tool calling
+# WRONG: Model doesn't support tool calling
 model = ChatOpenAI(model="gpt-3.5-turbo-instruct")
 # This model doesn't support tools!
 
-# ✅ Use tool-capable model
+# CORRECT: Use tool-capable model
 model = ChatOpenAI(model="gpt-4")
 ```
+</fix-model-must-support-tools>
 
-**Fix**: Use models that support function calling.
-
-### 4. **Tool Description Matters**
-
+<fix-tool-description-matters>
 ```python
-# ❌ Poor description
+# WRONG: Poor description
 @tool
 def tool1(x: int) -> int:
     """A tool"""  # Too vague!
     return x * 2
 
-# ✅ Clear, specific description
+# CORRECT: Clear, specific description
 @tool
 def double_number(number: int) -> int:
     """Multiply a number by 2. Use this when the user wants to double a value.
-    
+
     Args:
         number: The number to double
     """
     return number * 2
 ```
+</fix-tool-description-matters>
 
-**Fix**: Write clear docstrings that help the model know when to use the tool.
-
-### 5. **Type Hints Required**
-
+<fix-type-hints-required>
 ```python
-# ❌ Missing type hints
+# WRONG: Missing type hints
 @tool
 def my_tool(x):  # No type hints!
     return x
 
-# ✅ Include type hints
+# CORRECT: Include type hints
 @tool
 def my_tool(x: str) -> str:
     """Process input.
-    
+
     Args:
         x: Input string
     """
     return x.upper()
 ```
+</fix-type-hints-required>
 
-**Fix**: Always include type hints for tool parameters.
-
-## Links and Resources
-
+<links>
 ### Official Documentation
 - [LangChain Python Tools](https://python.langchain.com/docs/integrations/tools/)
 - [Custom Tools Guide](https://python.langchain.com/docs/how_to/custom_tools/)
 - [Tavily](https://docs.tavily.com/)
+</links>
 
-### Package Installation
+<installation>
 ```bash
 # Community tools
 pip install langchain-community
@@ -455,3 +439,4 @@ pip install tavily-python  # For Tavily
 pip install wikipedia  # For Wikipedia
 pip install duckduckgo-search  # For DuckDuckGo
 ```
+</installation>

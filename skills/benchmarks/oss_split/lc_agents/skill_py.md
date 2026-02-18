@@ -3,31 +3,26 @@ name: LangChain Agents (Python)
 description: [LangChain] Create and use LangChain agents with create_agent - includes agent loops, ReAct pattern, tool execution, and state management
 ---
 
-# langchain-agents (Python)
-
-## Overview
-
+<overview>
 Agents combine language models with tools to create systems that can reason about tasks, decide which tools to use, and iteratively work towards solutions. The `create_agent()` function provides a production-ready agent implementation built on LangGraph.
 
 **Key Concepts:**
 - **Agent Loop**: The model decides → calls tools → observes results → repeats until done
 - **ReAct Pattern**: Reasoning and Acting - the agent reasons about what to do, then acts by calling tools
 - **Graph-based Runtime**: Agents run on a LangGraph graph with nodes (model, tools, middleware) and edges
+</overview>
 
-## When to Use Agents
-
+<when-to-use-agents>
 | Scenario | Use Agent? | Why |
 |----------|-----------|-----|
-| Need to call external APIs/databases | ✅ Yes | Agents can dynamically choose which tools to call |
-| Multi-step task with decision points | ✅ Yes | Agent loop handles iterative reasoning |
-| Simple prompt-response | ❌ No | Use a chat model directly |
-| Predetermined workflow | ❌ No | Use LangGraph workflow instead |
-| Need tool calling without iteration | ⚠️ Maybe | Consider using model.bind_tools() directly |
+| Need to call external APIs/databases | Yes | Agents can dynamically choose which tools to call |
+| Multi-step task with decision points | Yes | Agent loop handles iterative reasoning |
+| Simple prompt-response | No | Use a chat model directly |
+| Predetermined workflow | No | Use LangGraph workflow instead |
+| Need tool calling without iteration | Partial Maybe | Consider using model.bind_tools() directly |
+</when-to-use-agents>
 
-## Decision Tables
-
-### Choosing Agent Configuration
-
+<agent-configuration-selection>
 | Need | Configuration | Example |
 |------|---------------|---------|
 | Basic agent with tools | `create_agent(model, tools)` | Search, calculator, weather |
@@ -35,20 +30,18 @@ Agents combine language models with tools to create systems that can reason abou
 | Human approval for sensitive operations | Add `human_in_the_loop_middleware` | Database writes, emails |
 | Persistence across sessions | Add `checkpointer` | Multi-turn conversations |
 | Structured output format | Add `response_format` | Extract contact info, parse forms |
+</agent-configuration-selection>
 
-### Tool Strategy
-
+<tool-strategy>
 | Tool Type | When to Use | Example |
 |-----------|-------------|---------|
 | Static tools | Tools don't change during execution | Search, weather, calculator |
 | Dynamic tools | Tools depend on runtime state | User-specific APIs |
 | Built-in tools | Need common functionality | File system, code execution |
 | Custom tools | Domain-specific operations | Your business logic |
+</tool-strategy>
 
-## Code Examples
-
-### Basic Agent with Tools
-
+<ex-basic-agent-with-tools>
 ```python
 from langchain.agents import create_agent
 from langchain.tools import tool
@@ -57,7 +50,7 @@ from langchain.tools import tool
 @tool
 def search(query: str) -> str:
     """Search for information on the web.
-    
+
     Args:
         query: The search query
     """
@@ -67,7 +60,7 @@ def search(query: str) -> str:
 @tool
 def get_weather(location: str) -> str:
     """Get current weather for a location.
-    
+
     Args:
         location: City name
     """
@@ -88,9 +81,9 @@ result = agent.invoke({
 
 print(result["messages"][-1].content)
 ```
+</ex-basic-agent-with-tools>
 
-### Agent with System Prompt
-
+<ex-agent-with-system-prompt>
 ```python
 from langchain.agents import create_agent
 
@@ -102,9 +95,9 @@ Always cite your sources when using the search tool.
 Show your work when performing calculations.""",
 )
 ```
+</ex-agent-with-system-prompt>
 
-### Agent Loop Execution Flow
-
+<ex-agent-loop-execution>
 ```python
 # The agent runs in a loop:
 # 1. Model receives user message
@@ -133,9 +126,9 @@ result = agent.invoke({
 # - Receives weather data
 # - Responds with final answer
 ```
+</ex-agent-loop-execution>
 
-### Streaming Agent Progress
-
+<ex-streaming-agent>
 ```python
 from langchain.agents import create_agent
 
@@ -160,9 +153,9 @@ for mode, chunk in agent.stream(
     if token.content:
         print(token.content, end="", flush=True)
 ```
+</ex-streaming-agent>
 
-### Agent with Persistence
-
+<ex-agent-with-persistence>
 ```python
 from langchain.agents import create_agent
 from langgraph.checkpoint.memory import MemorySaver
@@ -187,9 +180,9 @@ result = agent.invoke({
 }, config=config)
 # Response: "Your name is Alice"
 ```
+</ex-agent-with-persistence>
 
-### Multiple Tool Calls in Parallel
-
+<ex-parallel-tool-calls>
 ```python
 # Models can call multiple tools simultaneously
 agent = create_agent(
@@ -206,9 +199,9 @@ result = agent.invoke({
 
 # Agent may call both tools in parallel in a single step
 ```
+</ex-parallel-tool-calls>
 
-### Dynamic Tools (Runtime-Dependent)
-
+<ex-dynamic-tools>
 ```python
 from langchain.agents import create_agent
 
@@ -225,9 +218,9 @@ agent = create_agent(
     tools=get_tools,  # Pass function instead of list
 )
 ```
+</ex-dynamic-tools>
 
-### Error Handling in Agents
-
+<ex-error-handling>
 ```python
 from langchain.agents import create_agent, wrap_tool_call
 
@@ -248,9 +241,9 @@ agent = create_agent(
     middleware=[error_handler],
 )
 ```
+</ex-error-handling>
 
-### Tool with Type Hints
-
+<ex-typed-tool>
 ```python
 from langchain.tools import tool
 from typing import Literal
@@ -262,7 +255,7 @@ def calculate(
     b: float,
 ) -> float:
     """Perform a mathematical calculation.
-    
+
     Args:
         operation: The operation to perform
         a: First number
@@ -277,32 +270,30 @@ def calculate(
     elif operation == "divide":
         return a / b
 ```
+</ex-typed-tool>
 
-## Boundaries
-
+<boundaries>
 ### What Agents CAN Configure
 
-✅ **Model**: Any chat model (OpenAI, Anthropic, Google, etc.)
-✅ **Tools**: Custom tools, built-in tools, dynamic tools
-✅ **System Prompt**: Instructions for agent behavior
-✅ **Middleware**: Human-in-the-loop, error handling, logging
-✅ **Checkpointer**: Memory/persistence across conversations
-✅ **Response Format**: Structured output schemas (Pydantic, TypedDict, JSON Schema)
-✅ **Max Iterations**: Prevent infinite loops
+* Model**: Any chat model (OpenAI, Anthropic, Google, etc.)
+* Tools**: Custom tools, built-in tools, dynamic tools
+* System Prompt**: Instructions for agent behavior
+* Middleware**: Human-in-the-loop, error handling, logging
+* Checkpointer**: Memory/persistence across conversations
+* Response Format**: Structured output schemas (Pydantic, TypedDict, JSON Schema)
+* Max Iterations**: Prevent infinite loops
 
 ### What Agents CANNOT Configure
 
-❌ **Direct Graph Structure**: Use LangGraph directly for custom flows
-❌ **Tool Execution Order**: Model decides which tools to call
-❌ **Interrupt Model Decision**: Can only interrupt before tool execution
-❌ **Multiple Models**: One agent = one model (use subagents for multiple)
+* Direct Graph Structure**: Use LangGraph directly for custom flows
+* Tool Execution Order**: Model decides which tools to call
+* Interrupt Model Decision**: Can only interrupt before tool execution
+* Multiple Models**: One agent = one model (use subagents for multiple)
+</boundaries>
 
-## Gotchas
-
-### 1. Agent Doesn't Stop (Infinite Loop)
-
+<fix-infinite-loop>
 ```python
-# ❌ Problem: No clear stopping condition
+# WRONG: Problem: No clear stopping condition
 agent = create_agent(
     model="gpt-4.1",
     tools=[search],
@@ -312,40 +303,40 @@ result = agent.invoke({
     "messages": [{"role": "user", "content": "Keep searching until perfect"}]
 })
 
-# ✅ Solution: Set max iterations
+# CORRECT: Solution: Set max iterations
 agent = create_agent(
     model="gpt-4.1",
     tools=[search],
     max_iterations=10,  # Stop after 10 tool calls
 )
 ```
+</fix-infinite-loop>
 
-### 2. Tool Not Being Called
-
+<fix-tool-description>
 ```python
-# ❌ Problem: Vague tool description
+# WRONG: Problem: Vague tool description
 @tool
 def bad_tool(input: str) -> str:
     """Does stuff."""  # Too vague!
     return "result"
 
-# ✅ Solution: Clear, specific descriptions
+# CORRECT: Solution: Clear, specific descriptions
 @tool
 def web_search(query: str) -> str:
     """Search the web for current information about a topic.
-    
+
     Use this when you need recent data that wasn't in your training.
-    
+
     Args:
         query: The search query (2-10 words)
     """
     return "result"
 ```
+</fix-tool-description>
 
-### 3. State Not Persisting
-
+<fix-state-persistence>
 ```python
-# ❌ Problem: No checkpointer
+# WRONG: Problem: No checkpointer
 agent = create_agent(
     model="gpt-4.1",
     tools=[search],
@@ -356,7 +347,7 @@ agent.invoke({"messages": [{"role": "user", "content": "Hi, I'm Bob"}]})
 agent.invoke({"messages": [{"role": "user", "content": "What's my name?"}]})
 # Agent doesn't remember "Bob"
 
-# ✅ Solution: Add checkpointer and thread_id
+# CORRECT: Solution: Add checkpointer and thread_id
 from langgraph.checkpoint.memory import MemorySaver
 
 agent = create_agent(
@@ -370,45 +361,45 @@ agent.invoke({"messages": [{"role": "user", "content": "Hi, I'm Bob"}]}, config=
 agent.invoke({"messages": [{"role": "user", "content": "What's my name?"}]}, config=config)
 # Agent remembers: "Your name is Bob"
 ```
+</fix-state-persistence>
 
-### 4. Messages vs State Confusion
-
+<fix-messages-vs-state>
 ```python
 # Agent state includes more than just messages
 result = agent.invoke({
     "messages": [{"role": "user", "content": "Hello"}]
 })
 
-# ✅ Access full conversation history
+# CORRECT: Access full conversation history
 print(result["messages"])  # List of all messages
 
-# ✅ Access structured output (if configured)
+# CORRECT: Access structured output (if configured)
 print(result.get("structured_response"))
 
-# ❌ Don't try to access result.content directly
+# WRONG: Don't try to access result.content directly
 # print(result.content)  # KeyError!
 ```
+</fix-messages-vs-state>
 
-### 5. Tool Results Must Be Serializable
-
+<fix-serializable-tool-results>
 ```python
 from datetime import datetime
 
-# ❌ Problem: Returning non-serializable objects
+# WRONG: Problem: Returning non-serializable objects
 @tool
 def bad_get_time() -> datetime:
     """Get current time."""
     return datetime.now()  # datetime objects need special handling
 
-# ✅ Solution: Return serializable data
+# CORRECT: Solution: Return serializable data
 @tool
 def good_get_time() -> str:
     """Get current time."""
     return datetime.now().isoformat()  # String is serializable
 ```
+</fix-serializable-tool-results>
 
-### 6. Streaming Modes Matter
-
+<fix-streaming-modes>
 ```python
 # Different stream modes show different information
 
@@ -425,13 +416,13 @@ for mode, chunk in agent.stream(input, stream_mode=["messages"]):
     token, metadata = chunk
     print(token.content, end="", flush=True)
 ```
+</fix-streaming-modes>
 
-### 7. Async Tools Must Be Awaited Properly
-
+<fix-async-tools>
 ```python
 from langchain.tools import tool
 
-# ✅ Async tool properly defined
+# CORRECT: Async tool properly defined
 @tool
 async def async_search(query: str) -> str:
     """Async search tool."""
@@ -450,12 +441,13 @@ result = await agent.ainvoke({
     "messages": [{"role": "user", "content": "Search something"}]
 })
 ```
+</fix-async-tools>
 
-## Links to Documentation
-
+<links>
 - [Agents Overview](https://docs.langchain.com/oss/python/langchain/agents)
 - [create_agent API Reference](https://docs.langchain.com/oss/python/releases/langchain-v1)
 - [LangGraph Concepts](https://docs.langchain.com/oss/python/langgraph/workflows-agents)
 - [Tool Calling Guide](https://docs.langchain.com/oss/python/langchain/tools)
 - [Streaming Guide](https://docs.langchain.com/oss/python/langchain/streaming/overview)
 - [Human-in-the-Loop](https://docs.langchain.com/oss/python/langchain/human-in-the-loop)
+</links>

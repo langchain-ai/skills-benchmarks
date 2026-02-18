@@ -3,10 +3,7 @@ name: LangChain Structured Output (TypeScript)
 description: [LangChain] Get structured, validated output from LangChain agents and models using Pydantic schemas, type-safe responses, and automatic validation
 ---
 
-# langchain-structured-output (JavaScript/TypeScript)
-
-## Overview
-
+<overview>
 Structured output transforms unstructured model responses into validated, typed data. Instead of parsing free text, you get JSON objects conforming to your schema - perfect for extracting data, building forms, or integrating with downstream systems.
 
 **Key Concepts:**
@@ -14,32 +11,28 @@ Structured output transforms unstructured model responses into validated, typed 
 - **Zod Validation**: Type-safe schemas with automatic validation
 - **withStructuredOutput()**: Model method for direct structured output
 - **Tool Strategy**: Uses tool calling under the hood for models without native support
+</overview>
 
-## Decision Tables
-
-### When to Use Structured Output
-
+<when-to-use-structured-output>
 | Use Case | Use Structured Output? | Why |
 |----------|----------------------|-----|
-| Extract contact info, dates, etc. | ✅ Yes | Reliabledata extraction |
-| Form filling | ✅ Yes | Validate all required fields |
-| API integration | ✅ Yes | Type-safe responses |
-| Classification tasks | ✅ Yes | Enum validation |
-| Open-ended Q&A | ❌ No | Free-form text is fine |
-| Creative writing | ❌ No | Don't constrain creativity |
+| Extract contact info, dates, etc. | Yes | Reliable data extraction |
+| Form filling | Yes | Validate all required fields |
+| API integration | Yes | Type-safe responses |
+| Classification tasks | Yes | Enum validation |
+| Open-ended Q&A | No | Free-form text is fine |
+| Creative writing | No | Don't constrain creativity |
+</when-to-use-structured-output>
 
-### Schema Options
-
+<schema-options>
 | Schema Type | When to Use | Example |
 |-------------|-------------|---------|
 | Zod schema | TypeScript projects (recommended) | `z.object({...})` |
 | JSON Schema | Interoperability | `{ type: "object", properties: {...} }` |
 | Union types | Multiple possible formats | `z.union([schema1, schema2])` |
+</schema-options>
 
-## Code Examples
-
-### Basic Structured Output with Agent
-
+<ex-basic-structured-output-with-agent>
 ```typescript
 import { createAgent } from "langchain";
 import { z } from "zod";
@@ -65,9 +58,9 @@ const result = await agent.invoke({
 console.log(result.structuredResponse);
 // { name: 'John Doe', email: 'john@example.com', phone: '(555) 123-4567' }
 ```
+</ex-basic-structured-output-with-agent>
 
-### Model Direct Structured Output
-
+<ex-model-direct-structured-output>
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
@@ -86,9 +79,9 @@ const response = await structuredModel.invoke("Tell me about Inception");
 console.log(response);
 // { title: "Inception", year: 2010, director: "Christopher Nolan", rating: 8.8 }
 ```
+</ex-model-direct-structured-output>
 
-### Complex Nested Schema
-
+<ex-complex-nested-schema>
 ```typescript
 import { z } from "zod";
 
@@ -112,9 +105,9 @@ const agent = createAgent({
   responseFormat: PersonSchema,
 });
 ```
+</ex-complex-nested-schema>
 
-### Enum and Literal Types
-
+<ex-enum-and-literal-types>
 ```typescript
 import { z } from "zod";
 
@@ -137,9 +130,9 @@ const result = await agent.invoke({
 });
 // { category: "urgent", sentiment: "positive", confidence: 0.95 }
 ```
+</ex-enum-and-literal-types>
 
-### Optional Fields and Defaults
-
+<ex-optional-fields-and-defaults>
 ```typescript
 import { z } from "zod";
 
@@ -151,9 +144,9 @@ const EventSchema = z.object({
   confirmed: z.boolean().default(false),
 });
 ```
+</ex-optional-fields-and-defaults>
 
-### Union Types (Multiple Schemas)
-
+<ex-union-types>
 ```typescript
 import { z } from "zod";
 
@@ -177,9 +170,9 @@ const agent = createAgent({
 });
 // Model chooses which schema based on input
 ```
+</ex-union-types>
 
-### Array Extraction
-
+<ex-array-extraction>
 ```typescript
 import { z } from "zod";
 
@@ -203,9 +196,9 @@ const result = await agent.invoke({
   }],
 });
 ```
+</ex-array-extraction>
 
-### Include Raw AIMessage
-
+<ex-include-raw-aimessage>
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
 import { z } from "zod";
@@ -224,9 +217,9 @@ console.log(response);
 //   parsed: { name: "Alice", age: 30 }
 // }
 ```
+</ex-include-raw-aimessage>
 
-### Error Handling
-
+<ex-error-handling>
 ```typescript
 import { createAgent } from "langchain";
 import { z } from "zod";
@@ -250,75 +243,71 @@ try {
   // Model will retry or return error
 }
 ```
+</ex-error-handling>
 
-## Boundaries
+<boundaries>
+**What You CAN Configure:**
+- Schema structure: Any valid Zod schema
+- Field validation: Types, ranges, regex, etc.
+- Optional vs required: Control field presence
+- Nested objects: Complex hierarchies
+- Arrays: Lists of items
+- Enums: Restricted values
 
-### What You CAN Configure
+**What You CANNOT Configure:**
+- Model reasoning: Can't control how model generates data
+- Guarantee 100% accuracy: Model may still make mistakes
+- Force valid data if context lacks it: Model can't invent missing info
+</boundaries>
 
-✅ **Schema structure**: Any valid Zod schema
-✅ **Field validation**: Types, ranges, regex, etc.
-✅ **Optional vs required**: Control field presence
-✅ **Nested objects**: Complex hierarchies
-✅ **Arrays**: Lists of items
-✅ **Enums**: Restricted values
-
-### What You CANNOT Configure
-
-❌ **Model reasoning**: Can't control how model generates data
-❌ **Guarantee 100% accuracy**: Model may still make mistakes
-❌ **Force valid data if context lacks it**: Model can't invent missing info
-
-## Gotchas
-
-### 1. Accessing Response Wrong
-
+<fix-accessing-response-wrong>
 ```typescript
-// ❌ Problem: Accessing wrong property
+// WRONG: Problem: Accessing wrong property
 const result = await agent.invoke(input);
 console.log(result.response);  // undefined!
 
-// ✅ Solution: Use structuredResponse
+// CORRECT: Solution: Use structuredResponse
 console.log(result.structuredResponse);
 ```
+</fix-accessing-response-wrong>
 
-### 2. Missing Descriptions
-
+<fix-missing-descriptions>
 ```typescript
-// ❌ Problem: No field descriptions
+// WRONG: Problem: No field descriptions
 const schema = z.object({
   date: z.string(),  // What format?
   amount: z.number(),  // What unit?
 });
 
-// ✅ Solution: Add descriptions
+// CORRECT: Solution: Add descriptions
 const schema = z.object({
   date: z.string().describe("Date in YYYY-MM-DD format"),
   amount: z.number().describe("Amount in USD"),
 });
 ```
+</fix-missing-descriptions>
 
-### 3. Over-constraining
-
+<fix-over-constraining>
 ```typescript
-// ❌ Problem: Too strict for model
+// WRONG: Problem: Too strict for model
 const schema = z.object({
   code: z.string().regex(/^[A-Z]{2}-\d{4}-[A-Z]{3}$/),  // Very specific!
 });
 
-// ✅ Solution: Validate post-processing or use looser schema
+// CORRECT: Solution: Validate post-processing or use looser schema
 const schema = z.object({
   code: z.string().describe("Format: XX-0000-XXX (letters and numbers)"),
 });
 ```
+</fix-over-constraining>
 
-### 4. Not Handling Validation Errors
-
+<fix-not-handling-validation-errors>
 ```typescript
-// ❌ Problem: No error handling
+// WRONG: Problem: No error handling
 const result = await agent.invoke(input);
 const data = result.structuredResponse;  // May throw!
 
-// ✅ Solution: Try/catch or check for errors
+// CORRECT: Solution: Try/catch or check for errors
 try {
   const result = await agent.invoke(input);
   const data = result.structuredResponse;
@@ -326,11 +315,11 @@ try {
   console.error("Failed to get structured output:", error);
 }
 ```
+</fix-not-handling-validation-errors>
 
-### 5. Confusing responseFormat with tools
-
+<fix-confusing-responseformat-with-tools>
 ```typescript
-// ❌ Problem: Using responseFormat with tools incorrectly
+// WRONG: Problem: Using responseFormat with tools incorrectly
 const agent = createAgent({
   model: "gpt-4.1",
   tools: [searchTool],
@@ -338,12 +327,13 @@ const agent = createAgent({
 });
 // Tools run first, then schema extracted from final response
 
-// ✅ This is correct if you want tools + structured final output
+// CORRECT: This is correct if you want tools + structured final output
 // Just understand the flow
 ```
+</fix-confusing-responseformat-with-tools>
 
-## Links to Documentation
-
+<documentation-links>
 - [Structured Output Overview](https://docs.langchain.com/oss/javascript/langchain/structured-output)
 - [Model Structured Output](https://docs.langchain.com/oss/javascript/langchain/models)
 - [Agent Structured Output](https://docs.langchain.com/oss/javascript/langchain/agents)
+</documentation-links>

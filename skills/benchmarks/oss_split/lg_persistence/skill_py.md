@@ -3,31 +3,25 @@ name: LangGraph Persistence (Python)
 description: "[LangGraph] Implementing persistence and checkpointing in LangGraph: saving state, resuming execution, thread IDs, and checkpointer libraries"
 ---
 
-# langgraph-persistence (Python)
-
-
-## Overview
-
+<overview>
 LangGraph's persistence layer enables durable execution by checkpointing graph state at every super-step. This unlocks human-in-the-loop, memory, time travel, and fault-tolerance capabilities.
 
 **Key Components:**
 - **Checkpointer**: Saves/loads graph state
 - **Thread ID**: Identifier for checkpoint sequences
 - **Checkpoints**: Snapshots of state at each step
+</overview>
 
-## Decision Table: Checkpointer Selection
-
+<checkpointer-selection>
 | Checkpointer | Use Case | Persistence | Production Ready |
 |--------------|----------|-------------|------------------|
-| `InMemorySaver` | Testing, development | In-memory only | ❌ No |
-| `SqliteSaver` | Local development | SQLite file | ⚠️ Single-user |
-| `PostgresSaver` | Production | PostgreSQL | ✅ Yes |
-| `AsyncPostgresSaver` | Async production | PostgreSQL | ✅ Yes |
+| `InMemorySaver` | Testing, development | In-memory only | No |
+| `SqliteSaver` | Local development | SQLite file | Partial Single-user |
+| `PostgresSaver` | Production | PostgreSQL | Yes |
+| `AsyncPostgresSaver` | Async production | PostgreSQL | Yes |
+</checkpointer-selection>
 
-## Code Examples
-
-### Basic Persistence with InMemorySaver
-
+<ex-basic-persistence>
 ```python
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import StateGraph, START, END
@@ -61,9 +55,9 @@ print(len(result1["messages"]))  # 2
 result2 = graph.invoke({"messages": ["How are you?"]}, config)
 print(len(result2["messages"]))  # 4 (previous + new)
 ```
+</ex-basic-persistence>
 
-### SQLite Persistence
-
+<ex-sqlite-persistence>
 ```python
 from langgraph.checkpoint.sqlite import SqliteSaver
 
@@ -82,9 +76,9 @@ graph = (
 config = {"configurable": {"thread_id": "user-123"}}
 result = graph.invoke({"data": "test"}, config)
 ```
+</ex-sqlite-persistence>
 
-### Async PostgreSQL Persistence
-
+<ex-async-postgres-persistence>
 ```python
 from langgraph.checkpoint.postgres import AsyncPostgresSaver
 
@@ -100,13 +94,13 @@ async def main():
             .add_edge("process", END)
             .compile(checkpointer=checkpointer)
         )
-        
+
         config = {"configurable": {"thread_id": "thread-1"}}
         result = await graph.ainvoke({"data": "test"}, config)
 ```
+</ex-async-postgres-persistence>
 
-### Retrieving State
-
+<ex-retrieving-state>
 ```python
 # Get current state
 config = {"configurable": {"thread_id": "conversation-1"}}
@@ -118,15 +112,15 @@ print(current_state.next)    # Next nodes to execute
 for state in graph.get_state_history(config):
     print(f"Step: {state.values}")
 ```
+</ex-retrieving-state>
 
-### Resuming from Checkpoint
-
+<ex-resuming-from-checkpoint>
 ```python
 from langgraph.checkpoint.memory import InMemorySaver
 
 checkpointer = InMemorySaver()
 
-def step1(state): 
+def step1(state):
     return {"data": "step1"}
 
 def step2(state):
@@ -153,9 +147,9 @@ result = graph.invoke({"data": "start"}, config)
 # Resume execution
 result = graph.invoke(None, config)  # None continues from checkpoint
 ```
+</ex-resuming-from-checkpoint>
 
-### Update State
-
+<ex-update-state>
 ```python
 # Modify state before resuming
 config = {"configurable": {"thread_id": "1"}}
@@ -169,9 +163,9 @@ graph.update_state(
 # Resume with updated state
 result = graph.invoke(None, config)
 ```
+</ex-update-state>
 
-### Thread Management
-
+<ex-thread-management>
 ```python
 # Different threads maintain separate state
 thread1_config = {"configurable": {"thread_id": "user-alice"}}
@@ -185,9 +179,9 @@ graph.invoke({"messages": ["Hi from Bob"]}, thread2_config)
 
 # Alice's state is isolated from Bob's
 ```
+</ex-thread-management>
 
-### Checkpointer in Subgraphs
-
+<ex-checkpointer-in-subgraphs>
 ```python
 from langgraph.graph import StateGraph, START
 
@@ -212,61 +206,59 @@ parent = (
     .compile(checkpointer=checkpointer)  # Propagates to subgraph
 )
 ```
+</ex-checkpointer-in-subgraphs>
 
-## Boundaries
-
+<boundaries>
 ### What You CAN Configure
 
-✅ Choose checkpointer implementation
-✅ Specify thread IDs
-✅ Retrieve state at any checkpoint
-✅ Update state between invocations
-✅ Set breakpoints for pausing
-✅ Access state history
-✅ Resume from any checkpoint
+- Choose checkpointer implementation
+- Specify thread IDs
+- Retrieve state at any checkpoint
+- Update state between invocations
+- Set breakpoints for pausing
+- Access state history
+- Resume from any checkpoint
 
 ### What You CANNOT Configure
 
-❌ Checkpoint format/schema (internal)
-❌ Checkpoint timing (every super-step)
-❌ Thread ID structure (arbitrary strings only)
+- Checkpoint format/schema (internal)
+- Checkpoint timing (every super-step)
+- Thread ID structure (arbitrary strings only)
+</boundaries>
 
-## Gotchas
-
-### 1. Thread ID Required for Persistence
-
+<fix-thread-id-required>
 ```python
-# ❌ WRONG - No thread_id, state not saved
+# WRONG: WRONG - No thread_id, state not saved
 graph.invoke({"data": "test"})  # Lost after execution!
 
-# ✅ CORRECT - Always provide thread_id
+# CORRECT: CORRECT - Always provide thread_id
 config = {"configurable": {"thread_id": "session-1"}}
 graph.invoke({"data": "test"}, config)
 ```
+</fix-thread-id-required>
 
-### 2. InMemorySaver Not for Production
-
+<fix-inmemory-not-for-production>
 ```python
-# ❌ WRONG - Data lost on restart
+# WRONG: WRONG - Data lost on restart
 checkpointer = InMemorySaver()  # In-memory only!
 
-# ✅ CORRECT - Use persistent storage
+# CORRECT: CORRECT - Use persistent storage
 from langgraph.checkpoint.postgres import PostgresSaver
 checkpointer = PostgresSaver.from_conn_string("postgresql://...")
 ```
+</fix-inmemory-not-for-production>
 
-### 3. Resuming Requires None Input
-
+<fix-resume-with-none>
 ```python
-# ❌ WRONG - Providing input restarts
+# WRONG: WRONG - Providing input restarts
 graph.invoke({"new": "data"}, config)  # Restarts from beginning
 
-# ✅ CORRECT - Use None to resume
+# CORRECT: CORRECT - Use None to resume
 graph.invoke(None, config)  # Resumes from checkpoint
 ```
+</fix-resume-with-none>
 
-### 4. Update State Respects Reducers
-
+<fix-update-state-reducers>
 ```python
 from typing import Annotated
 import operator
@@ -285,21 +277,22 @@ from langgraph.types import Overwrite
 graph.update_state(config, {"items": Overwrite(["C"])})
 # Result: {"items": ["C"]}  # Replaced
 ```
+</fix-update-state-reducers>
 
-### 5. Checkpointer Must Be Passed to Compile
-
+<fix-checkpointer-at-compile>
 ```python
-# ❌ WRONG - Checkpointer after compile
+# WRONG: WRONG - Checkpointer after compile
 graph = builder.compile()
 graph.checkpointer = checkpointer  # Too late!
 
-# ✅ CORRECT - Pass during compile
+# CORRECT: CORRECT - Pass during compile
 graph = builder.compile(checkpointer=checkpointer)
 ```
+</fix-checkpointer-at-compile>
 
-## Links
-
+<links>
 - [Persistence Guide](https://docs.langchain.com/oss/python/langgraph/persistence)
 - [Checkpointer Libraries](https://docs.langchain.com/oss/python/langgraph/persistence#checkpointer-libraries)
 - [Thread Management](https://docs.langchain.com/oss/python/langgraph/persistence#threads)
 - [Time Travel](https://docs.langchain.com/langsmith/human-in-the-loop-time-travel)
+</links>

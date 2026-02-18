@@ -3,10 +3,7 @@ name: LangChain Vector Stores Integration (Python)
 description: [LangChain] Guide to using vector store integrations in LangChain including Chroma, Pinecone, FAISS, and memory vector stores
 ---
 
-# langchain-vector-stores (Python)
-
-## Overview
-
+<overview>
 Vector stores are databases optimized for storing and searching high-dimensional vectors (embeddings). They enable semantic search by finding documents similar to a query based on vector similarity rather than keyword matching. Essential for RAG (Retrieval-Augmented Generation) systems.
 
 ### Key Concepts
@@ -16,9 +13,9 @@ Vector stores are databases optimized for storing and searching high-dimensional
 - **Metadata Filtering**: Combining vector search with metadata filters
 - **Persistence**: Some vector stores run in-memory, others persist to disk/cloud
 - **Scaling**: Different stores have different scalability characteristics
+</overview>
 
-## Vector Store Selection Decision Table
-
+<vectorstore-selection>
 | Vector Store | Best For | Package | Persistence | Scalability | Key Features |
 |--------------|----------|---------|-------------|-------------|--------------|
 | **FAISS** | Local, high performance | `langchain-community` | Disk | Medium | Fast, CPU/GPU support, local |
@@ -28,9 +25,9 @@ Vector stores are databases optimized for storing and searching high-dimensional
 | **Weaviate** | GraphQL, hybrid search | `langchain-weaviate` | Cloud/Self-hosted | High | GraphQL, hybrid search |
 | **Qdrant** | High performance, filtering | `langchain-qdrant` | Cloud/Self-hosted | High | Fast, advanced filtering |
 | **PGVector** | PostgreSQL users | `langchain-postgres` | PostgreSQL | High | PostgreSQL extension |
+</vectorstore-selection>
 
-### When to Choose Each Store
-
+<when-to-choose>
 **Choose FAISS if:**
 - You need high performance local vector search
 - You want to avoid external dependencies
@@ -50,11 +47,9 @@ Vector stores are databases optimized for storing and searching high-dimensional
 - You're testing or prototyping
 - Data persistence isn't needed
 - You want the simplest possible setup
+</when-to-choose>
 
-## Code Examples
-
-### InMemory Vector Store (Simplest)
-
+<ex-inmemory-vectorstore>
 ```python
 from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_openai import OpenAIEmbeddings
@@ -82,9 +77,9 @@ results_with_score = vectorstore.similarity_search_with_score("LangChain", k=2)
 for doc, score in results_with_score:
     print(f"Score: {score}, Content: {doc.page_content}")
 ```
+</ex-inmemory-vectorstore>
 
-### FAISS Vector Store
-
+<ex-faiss-vectorstore>
 ```python
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
@@ -119,9 +114,9 @@ index = faiss.IndexFlatL2(embedding_dim)
 docstore = InMemoryDocstore()
 vectorstore = FAISS(embeddings, index, docstore, {})
 ```
+</ex-faiss-vectorstore>
 
-### Chroma Vector Store
-
+<ex-chroma-vectorstore>
 ```python
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
@@ -151,9 +146,9 @@ vectorstore = Chroma(
 # Delete collection
 vectorstore.delete_collection()
 ```
+</ex-chroma-vectorstore>
 
-### Pinecone Vector Store
-
+<ex-pinecone-vectorstore>
 ```python
 from langchain_pinecone import PineconeVectorStore
 from pinecone import Pinecone, ServerlessSpec
@@ -195,9 +190,9 @@ retriever = vectorstore.as_retriever(
 )
 docs = retriever.get_relevant_documents("query")
 ```
+</ex-pinecone-vectorstore>
 
-### Adding Documents Incrementally
-
+<ex-incremental-add>
 ```python
 from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_openai import OpenAIEmbeddings
@@ -221,9 +216,9 @@ vectorstore.add_texts(
     metadatas=[{"source": "A"}, {"source": "B"}]
 )
 ```
+</ex-incremental-add>
 
-### Using as a Retriever
-
+<ex-as-retriever>
 ```python
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
@@ -255,9 +250,9 @@ retrieval_chain = create_retrieval_chain(retriever, document_chain)
 result = retrieval_chain.invoke({"input": "What is LangChain?"})
 print(result["answer"])
 ```
+</ex-as-retriever>
 
-### Maximum Marginal Relevance (MMR)
-
+<ex-mmr-search>
 ```python
 from langchain_core.vectorstores import InMemoryVectorStore
 from langchain_openai import OpenAIEmbeddings
@@ -276,86 +271,80 @@ results = vectorstore.max_marginal_relevance_search(
     lambda_mult=0.5  # 0 = max diversity, 1 = max relevance
 )
 ```
+</ex-mmr-search>
 
-## Boundaries
-
+<boundaries>
 ### What Agents CAN Do
 
-✅ **Initialize vector stores**
+* Initialize vector stores**
 - Set up any supported vector store
 - Configure with embeddings and connection details
 
-✅ **Add and query documents**
+* Add and query documents**
 - Add documents with metadata
 - Perform similarity search
 - Use metadata filters
 
-✅ **Persist and load**
+* Persist and load**
 - Save vector stores to disk (FAISS, Chroma)
 - Load existing vector stores
 - Manage collections
 
-✅ **Use as retrievers**
+* Use as retrievers**
 - Convert vector stores to retrievers
 - Integrate with chains and agents
 - Configure search parameters
 
 ### What Agents CANNOT Do
 
-❌ **Mix embeddings from different models**
+* Mix embeddings from different models**
 - Cannot use different embedding models within same vector store
 - Must use consistent embeddings
 
-❌ **Bypass provider limits**
+* Bypass provider limits**
 - Cannot exceed Pinecone index size limits
 - Cannot bypass free tier restrictions
 
-❌ **Modify vector dimensions after creation**
+* Modify vector dimensions after creation**
 - Cannot change embedding dimensions once store is created
 - Must recreate store with new embeddings
+</boundaries>
 
-## Gotchas
-
-### 1. **FAISS Deserialization Warning**
-
+<fix-faiss-deserialization>
 ```python
-# ❌ Will raise error
+# WRONG: Will raise error
 loaded_store = FAISS.load_local("./faiss_index", embeddings)
 
-# ✅ Must explicitly allow deserialization
+# CORRECT: Must explicitly allow deserialization
 loaded_store = FAISS.load_local(
     "./faiss_index",
     embeddings,
     allow_dangerous_deserialization=True
 )
 ```
+</fix-faiss-deserialization>
 
-**Fix**: Add `allow_dangerous_deserialization=True` when loading FAISS indices.
-
-### 2. **Import from Correct Packages**
-
+<fix-import-packages>
 ```python
-# ❌ OLD: Using langchain imports
+# WRONG: OLD: Using langchain imports
 from langchain.vectorstores import FAISS  # Deprecated!
 from langchain.vectorstores import Chroma
 
-# ✅ NEW: Use specific packages
+# CORRECT: NEW: Use specific packages
 from langchain_community.vectorstores import FAISS
 from langchain_chroma import Chroma
 from langchain_pinecone import PineconeVectorStore
 ```
+</fix-import-packages>
 
-**Fix**: Use provider-specific packages.
-
-### 3. **Pinecone Index Creation**
-
+<fix-pinecone-index-creation>
 ```python
-# ❌ Index doesn't auto-create
+# WRONG: Index doesn't auto-create
 from pinecone import Pinecone
 pc = Pinecone(api_key=api_key)
 index = pc.Index("nonexistent")  # Error!
 
-# ✅ Check and create
+# CORRECT: Check and create
 if "my-index" not in pc.list_indexes().names():
     pc.create_index(
         name="my-index",
@@ -364,32 +353,28 @@ if "my-index" not in pc.list_indexes().names():
         spec=ServerlessSpec(cloud="aws", region="us-east-1")
     )
 ```
+</fix-pinecone-index-creation>
 
-**Fix**: Create Pinecone index before using it.
-
-### 4. **Chroma Persistence**
-
+<fix-chroma-persistence>
 ```python
-# ❌ Not persisting
+# WRONG: Not persisting
 vectorstore = Chroma.from_documents(
     docs,
     OpenAIEmbeddings()
 )  # Ephemeral!
 
-# ✅ Persist to disk
+# CORRECT: Persist to disk
 vectorstore = Chroma.from_documents(
     docs,
     OpenAIEmbeddings(),
     persist_directory="./chroma_db"
 )
 ```
+</fix-chroma-persistence>
 
-**Fix**: Specify `persist_directory` for persistence.
-
-### 5. **Dimension Mismatch**
-
+<fix-dimension-mismatch>
 ```python
-# ❌ Pinecone index has 1536 dimensions, using 512-dim embeddings
+# WRONG: Pinecone index has 1536 dimensions, using 512-dim embeddings
 pc.create_index(name="idx", dimension=1536, metric="cosine")
 
 vectorstore = PineconeVectorStore.from_documents(
@@ -398,15 +383,13 @@ vectorstore = PineconeVectorStore.from_documents(
     index=pc.Index("idx")
 )  # Error: dimension mismatch!
 
-# ✅ Match dimensions
+# CORRECT: Match dimensions
 embeddings = OpenAIEmbeddings()  # Default 1536
 # Or create index with 512 dimensions
 ```
+</fix-dimension-mismatch>
 
-**Fix**: Ensure vector store and embedding dimensions match.
-
-## Links and Resources
-
+<links>
 ### Official Documentation
 - [LangChain Python Vector Stores](https://python.langchain.com/docs/integrations/vectorstores/)
 - [FAISS](https://python.langchain.com/docs/integrations/vectorstores/faiss)
@@ -418,8 +401,9 @@ embeddings = OpenAIEmbeddings()  # Default 1536
 - [Chroma](https://docs.trychroma.com/)
 - [Pinecone](https://docs.pinecone.io/)
 - [Qdrant](https://qdrant.tech/documentation/)
+</links>
 
-### Package Installation
+<installation>
 ```bash
 # FAISS
 pip install langchain-community faiss-cpu
@@ -434,3 +418,4 @@ pip install langchain-pinecone pinecone-client
 # Qdrant
 pip install langchain-qdrant qdrant-client
 ```
+</installation>

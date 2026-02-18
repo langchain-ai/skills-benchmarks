@@ -3,10 +3,7 @@ name: LangChain Human-in-the-Loop (TypeScript)
 description: [LangChain] Add human oversight to LangChain agents using HITL middleware - includes interrupts, approval workflows, edit/reject decisions, and checkpoints
 ---
 
-# langchain-human-in-the-loop (JavaScript/TypeScript)
-
-## Overview
-
+<overview>
 Human-in-the-Loop (HITL) lets you add human oversight to agent tool calls. When agents propose sensitive actions (like database writes or sending emails), execution pauses for human approval, editing, or rejection.
 
 **Key Concepts:**
@@ -14,32 +11,28 @@ Human-in-the-Loop (HITL) lets you add human oversight to agent tool calls. When 
 - **Interrupts**: Checkpoint where agent waits for human input
 - **Decisions**: approve, edit, or reject tool calls
 - **Checkpointer**: Required for persistence across interruptions
+</overview>
 
-## When to Use HITL
-
+<when-to-use>
 | Scenario | Use HITL? | Why |
 |----------|-----------|-----|
-| Database writes | ✅ Yes | Prevent data corruption |
-| Sending emails/messages | ✅ Yes | Review before sending |
-| Financial transactions | ✅ Yes | Confirm before executing |
-| Deleting data | ✅ Yes | Prevent accidental loss |
-| Read-only operations | ❌ No | Low risk |
-| Internal calculations | ❌ No | No external impact |
+| Database writes | Yes | Prevent data corruption |
+| Sending emails/messages | Yes | Review before sending |
+| Financial transactions | Yes | Confirm before executing |
+| Deleting data | Yes | Prevent accidental loss |
+| Read-only operations | No | Low risk |
+| Internal calculations | No | No external impact |
+</when-to-use>
 
-## Decision Tables
-
-### HITL Decision Types
-
+<decision-types-table>
 | Decision | Effect | When to Use |
 |----------|--------|-------------|
 | `approve` | Execute tool as-is | Tool call looks correct |
 | `edit` | Modify args then execute | Need to change parameters |
 | `reject` | Don't execute, provide feedback | Tool call is wrong |
+</decision-types-table>
 
-## Code Examples
-
-### Basic HITL Setup
-
+<ex-basic-setup>
 ```typescript
 import { createAgent, humanInTheLoopMiddleware } from "langchain";
 import { MemorySaver } from "@langchain/langgraph";
@@ -77,9 +70,9 @@ const agent = createAgent({
   ],
 });
 ```
+</ex-basic-setup>
 
-### Running with Interrupts
-
+<ex-running-with-interrupts>
 ```typescript
 import { Command } from "@langchain/langgraph";
 
@@ -94,7 +87,7 @@ const result1 = await agent.invoke({
 if ("__interrupt__" in result1) {
   const interrupt = result1.__interrupt__[0];
   console.log("Waiting for approval:", interrupt.value);
-  
+
   // Interrupt contains: {toolCall: {...}, allowedDecisions: [...]}
 }
 
@@ -111,9 +104,9 @@ const result2 = await agent.invoke(
 // Tool now executes and agent completes
 console.log(result2.messages[result2.messages.length - 1].content);
 ```
+</ex-running-with-interrupts>
 
-### Editing Tool Arguments
-
+<ex-editing-args>
 ```typescript
 const config = { configurable: { thread_id: "session-2" } };
 
@@ -139,9 +132,9 @@ const result2 = await agent.invoke(
   config
 );
 ```
+</ex-editing-args>
 
-### Rejecting with Feedback
-
+<ex-rejecting-with-feedback>
 ```typescript
 const config = { configurable: { thread_id: "session-3" } };
 
@@ -165,9 +158,9 @@ const result2 = await agent.invoke(
 
 // Agent receives feedback and can try alternative approach
 ```
+</ex-rejecting-with-feedback>
 
-### Multiple Tools with Different Policies
-
+<ex-multiple-tools>
 ```typescript
 import { humanInTheLoopMiddleware } from "langchain";
 
@@ -190,9 +183,9 @@ const agent = createAgent({
   ],
 });
 ```
+</ex-multiple-tools>
 
-### Streaming with HITL
-
+<ex-streaming-with-hitl>
 ```typescript
 const config = { configurable: { thread_id: "session-4" } };
 
@@ -222,9 +215,9 @@ for await (const [mode, chunk] of await agent.stream(
   // Continue streaming
 }
 ```
+</ex-streaming-with-hitl>
 
-### Custom Interrupt Logic
-
+<ex-custom-logic>
 ```typescript
 import { createMiddleware } from "langchain";
 
@@ -234,14 +227,14 @@ const customHITL = createMiddleware({
     // Custom logic to decide if interrupt needed
     if (toolCall.name === "database_write") {
       const value = toolCall.args.value;
-      
+
       if (value > 1000) {
         // Interrupt for large values
         const decision = await runtime.interrupt({
           toolCall,
           reason: "Large database write requires approval",
         });
-        
+
         if (decision.type === "approve") {
           return await handler(toolCall);
         } else if (decision.type === "edit") {
@@ -251,43 +244,41 @@ const customHITL = createMiddleware({
         }
       }
     }
-    
+
     // No interrupt needed
     return await handler(toolCall);
   },
 });
 ```
+</ex-custom-logic>
 
-## Boundaries
+<boundaries>
+**What You CAN Configure**
 
-### What You CAN Configure
+* Which tools require approval**: Per-tool policies
+* Allowed decision types**: approve, edit, reject
+* Custom interrupt logic**: Conditional interrupts
+* Feedback messages**: Explain rejections
+* Modified arguments**: Edit tool parameters
 
-✅ **Which tools require approval**: Per-tool policies
-✅ **Allowed decision types**: approve, edit, reject
-✅ **Custom interrupt logic**: Conditional interrupts
-✅ **Feedback messages**: Explain rejections
-✅ **Modified arguments**: Edit tool parameters
+**What You CANNOT Configure**
 
-### What You CANNOT Configure
+* Skip checkpointer**: HITL requires persistence
+* Interrupt after execution**: Must interrupt before
+* Force model to not call tool**: HITL responds after model decides
+* Modify model's decision-making**: Only tool execution
+</boundaries>
 
-❌ **Skip checkpointer**: HITL requires persistence
-❌ **Interrupt after execution**: Must interrupt before
-❌ **Force model to not call tool**: HITL responds after model decides
-❌ **Modify model's decision-making**: Only tool execution
-
-## Gotchas
-
-### 1. Missing Checkpointer
-
+<fix-missing-checkpointer>
 ```typescript
-// ❌ Problem: No checkpointer
+// Problem: No checkpointer
 const agent = createAgent({
   model: "gpt-4.1",
   tools: [sendEmail],
   middleware: [humanInTheLoopMiddleware({...})],  // Error!
 });
 
-// ✅ Solution: Always add checkpointer
+// Solution: Always add checkpointer
 import { MemorySaver } from "@langchain/langgraph";
 
 const agent = createAgent({
@@ -297,28 +288,28 @@ const agent = createAgent({
   middleware: [humanInTheLoopMiddleware({...})],
 });
 ```
+</fix-missing-checkpointer>
 
-### 2. No thread_id
-
+<fix-no-thread-id>
 ```typescript
-// ❌ Problem: Missing thread_id
+// Problem: Missing thread_id
 await agent.invoke(input);  // No config!
 
-// ✅ Solution: Always provide thread_id
+// Solution: Always provide thread_id
 await agent.invoke(input, {
   configurable: { thread_id: "user-123" }
 });
 ```
+</fix-no-thread-id>
 
-### 3. Wrong Resume Syntax
-
+<fix-wrong-resume-syntax>
 ```typescript
-// ❌ Problem: Wrong resume format
+// Problem: Wrong resume format
 await agent.invoke({
   resume: { decisions: [...] }  // Wrong!
 });
 
-// ✅ Solution: Use Command
+// Solution: Use Command
 import { Command } from "@langchain/langgraph";
 
 await agent.invoke(
@@ -328,24 +319,25 @@ await agent.invoke(
   config
 );
 ```
+</fix-wrong-resume-syntax>
 
-### 4. Not Checking for Interrupts
-
+<fix-not-checking-for-interrupts>
 ```typescript
-// ❌ Problem: Not detecting interrupt
+// Problem: Not detecting interrupt
 const result = await agent.invoke(input, config);
 console.log(result.messages);  // May not have completed!
 
-// ✅ Solution: Check for __interrupt__
+// Solution: Check for __interrupt__
 if ("__interrupt__" in result) {
   // Handle human decision
 } else {
   // Agent completed
 }
 ```
+</fix-not-checking-for-interrupts>
 
-## Links to Documentation
-
+<documentation-links>
 - [Human-in-the-Loop Guide](https://docs.langchain.com/oss/javascript/langchain/human-in-the-loop)
 - [HITL Middleware](https://docs.langchain.com/oss/javascript/langchain/middleware/built-in)
 - [LangGraph Interrupts](https://docs.langchain.com/oss/javascript/langgraph/interrupts)
+</documentation-links>

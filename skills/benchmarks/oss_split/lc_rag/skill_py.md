@@ -3,10 +3,7 @@ name: LangChain RAG (Python)
 description: [LangChain] Build Retrieval Augmented Generation (RAG) systems with LangChain - includes embeddings, vector stores, retrievers, document loaders, and text splitting
 ---
 
-# langchain-rag (Python)
-
-## Overview
-
+<overview>
 Retrieval Augmented Generation (RAG) enhances LLM responses by fetching relevant context from external knowledge sources. Instead of relying solely on training data, RAG systems retrieve documents at query time and use them to ground responses.
 
 **Key Concepts:**
@@ -15,17 +12,15 @@ Retrieval Augmented Generation (RAG) enhances LLM responses by fetching relevant
 - **Embeddings**: Convert text to vectors
 - **Vector Stores**: Store and search embeddings
 - **Retrievers**: Fetch relevant documents for queries
+</overview>
 
-## RAG Pipeline
-
+<rag-pipeline>
 1. **Index**: Load → Split → Embed → Store
 2. **Retrieve**: Query → Embed → Search → Return docs
 3. **Generate**: Docs + Query → LLM → Response
+</rag-pipeline>
 
-## Code Examples
-
-### Basic RAG Setup
-
+<ex-basic-rag-setup>
 ```python
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_community.vectorstores import InMemoryVectorStore
@@ -66,9 +61,9 @@ response = model.invoke([
 
 print(response.content)
 ```
+</ex-basic-rag-setup>
 
-### Loading Web Pages
-
+<ex-loading-web-pages>
 ```python
 from langchain_community.document_loaders import WebBaseLoader
 
@@ -76,18 +71,18 @@ loader = WebBaseLoader("https://docs.langchain.com/oss/python/langchain/agents")
 docs = loader.load()
 print(f"Loaded {len(docs)} documents")
 ```
+</ex-loading-web-pages>
 
-### Loading PDF Files
-
+<ex-loading-pdf>
 ```python
 from langchain_community.document_loaders import PyPDFLoader
 
 loader = PyPDFLoader("./document.pdf")
 docs = loader.load()
 ```
+</ex-loading-pdf>
 
-### Advanced Text Splitting
-
+<ex-advanced-text-splitting>
 ```python
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
@@ -99,9 +94,9 @@ splitter = RecursiveCharacterTextSplitter(
 
 splits = splitter.split_documents(docs)
 ```
+</ex-advanced-text-splitting>
 
-### Using Chroma (Persistent)
-
+<ex-chroma-persistent>
 ```python
 from langchain_community.vectorstores import Chroma
 from langchain_openai import OpenAIEmbeddings
@@ -123,9 +118,9 @@ vectorstore2 = Chroma(
     persist_directory="./chroma_db",
 )
 ```
+</ex-chroma-persistent>
 
-### Advanced Retrieval
-
+<ex-advanced-retrieval>
 ```python
 # Similarity search with scores
 results = vectorstore.similarity_search_with_score(query, k=5)
@@ -138,9 +133,9 @@ retriever = vectorstore.as_retriever(
     search_kwargs={"fetch_k": 20, "lambda_mult": 0.5, "k": 5},
 )
 ```
+</ex-advanced-retrieval>
 
-### Metadata Filtering
-
+<ex-metadata-filtering>
 ```python
 # Add metadata when creating documents
 from langchain.schema import Document
@@ -163,9 +158,9 @@ results = vectorstore.similarity_search(
     filter={"language": "python"}  # Only Python docs
 )
 ```
+</ex-metadata-filtering>
 
-### RAG with Agent
-
+<ex-rag-with-agent>
 ```python
 from langchain.agents import create_agent
 from langchain.tools import tool
@@ -185,9 +180,9 @@ result = agent.invoke({
     "messages": [{"role": "user", "content": "How do I create an agent?"}]
 })
 ```
+</ex-rag-with-agent>
 
-### Using Faiss for Performance
-
+<ex-faiss-performance>
 ```python
 from langchain_community.vectorstores import FAISS
 from langchain_openai import OpenAIEmbeddings
@@ -203,9 +198,9 @@ vectorstore.save_local("faiss_index")
 # Load from disk
 vectorstore2 = FAISS.load_local("faiss_index", embeddings)
 ```
+</ex-faiss-performance>
 
-### Customizing Embeddings
-
+<ex-customizing-embeddings>
 ```python
 from langchain_openai import OpenAIEmbeddings
 
@@ -219,76 +214,74 @@ custom_embeddings = OpenAIEmbeddings(
     dimensions=1024  # Reduce from 3072 to save space
 )
 ```
+</ex-customizing-embeddings>
 
-## Boundaries
-
+<boundaries>
 ### What You CAN Configure
 
-✅ **Chunk size/overlap**: Control document splitting
-✅ **Embedding model**: Choose quality vs cost
-✅ **Number of results**: Top-k retrieval
-✅ **Metadata filters**: Filter by document properties
-✅ **Search algorithms**: Similarity, MMR, hybrid
+* Chunk size/overlap**: Control document splitting
+* Embedding model**: Choose quality vs cost
+* Number of results**: Top-k retrieval
+* Metadata filters**: Filter by document properties
+* Search algorithms**: Similarity, MMR, hybrid
 
 ### What You CANNOT Configure
 
-❌ **Embedding dimensions** (per model): Fixed by model
-❌ **Perfect retrieval**: Semantic search has limits
-❌ **Real-time document updates**: Re-indexing needed
+* Embedding dimensions** (per model): Fixed by model
+* Perfect retrieval**: Semantic search has limits
+* Real-time document updates**: Re-indexing needed
+</boundaries>
 
-## Gotchas
-
-### 1. Forgetting to Split Documents
-
+<fix-split-documents>
 ```python
-# ❌ Problem: Entire documents are too large
+# WRONG: Problem: Entire documents are too large
 vectorstore.add_documents(large_docs)  # May hit token limits
 
-# ✅ Solution: Always split first
+# CORRECT: Solution: Always split first
 splits = splitter.split_documents(large_docs)
 vectorstore.add_documents(splits)
 ```
+</fix-split-documents>
 
-### 2. Chunk Size Too Small/Large
-
+<fix-chunk-size>
 ```python
-# ❌ Problem: Too small - loses context
+# WRONG: Problem: Too small - loses context
 splitter = RecursiveCharacterTextSplitter(chunk_size=50)
 
-# ❌ Problem: Too large - hits limits
+# WRONG: Problem: Too large - hits limits
 splitter = RecursiveCharacterTextSplitter(chunk_size=10000)
 
-# ✅ Solution: Balance (500-1500 typically good)
+# CORRECT: Solution: Balance (500-1500 typically good)
 splitter = RecursiveCharacterTextSplitter(
     chunk_size=1000,
     chunk_overlap=200,
 )
 ```
+</fix-chunk-size>
 
-### 3. No Overlap
-
+<fix-chunk-overlap>
 ```python
-# ❌ Problem: No overlap - context breaks at boundaries
+# WRONG: Problem: No overlap - context breaks at boundaries
 splitter = RecursiveCharacterTextSplitter(
     chunk_size=1000,
     chunk_overlap=0,  # Bad!
 )
 
-# ✅ Solution: Use overlap (10-20% of chunk size)
+# CORRECT: Solution: Use overlap (10-20% of chunk size)
 splitter = RecursiveCharacterTextSplitter(
     chunk_size=1000,
     chunk_overlap=200,  # 20%
 )
 ```
+</fix-chunk-overlap>
 
-### 4. Not Persisting Vector Store
-
+<fix-persist-vectorstore>
 ```python
-# ❌ Problem: Using InMemoryVectorStore in production
+# WRONG: Problem: Using InMemoryVectorStore in production
 vectorstore = InMemoryVectorStore.from_documents(docs, embeddings)
 # Lost on restart!
 
-# ✅ Solution: Use persistent store
+# CORRECT: Solution: Use persistent store
 vectorstore = Chroma.from_documents(
     documents=docs,
     embedding=embeddings,
@@ -296,26 +289,27 @@ vectorstore = Chroma.from_documents(
     persist_directory="./chroma_db",
 )
 ```
+</fix-persist-vectorstore>
 
-### 5. Mixing Embedding Models
-
+<fix-consistent-embeddings>
 ```python
-# ❌ Problem: Different embeddings for index and query
+# WRONG: Problem: Different embeddings for index and query
 vectorstore = Chroma.from_documents(docs, OpenAIEmbeddings(model="text-embedding-3-small"))
 
 # Later with different model
 retriever = vectorstore.as_retriever(embeddings=OpenAIEmbeddings(model="text-embedding-3-large"))  # Incompatible!
 
-# ✅ Solution: Use same embedding model
+# CORRECT: Solution: Use same embedding model
 embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 vectorstore = Chroma.from_documents(docs, embeddings)
 retriever = vectorstore.as_retriever()  # Uses same embeddings
 ```
+</fix-consistent-embeddings>
 
-## Links to Documentation
-
+<links>
 - [RAG Tutorial](https://docs.langchain.com/oss/python/langchain/rag)
 - [Document Loaders](https://docs.langchain.com/oss/python/integrations/document_loaders/index)
 - [Text Splitters](https://docs.langchain.com/oss/python/integrations/splitters/index)
 - [Vector Stores](https://docs.langchain.com/oss/python/integrations/vectorstores/index)
 - [Embeddings](https://docs.langchain.com/oss/python/integrations/text_embedding/openai)
+</links>

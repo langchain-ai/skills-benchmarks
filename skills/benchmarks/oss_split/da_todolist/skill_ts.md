@@ -3,24 +3,19 @@ name: Deep Agents Todo List (TypeScript)
 description: [Deep Agents] Using TodoListMiddleware for task planning and tracking progress with the write_todos tool in Deep Agents for complex multi-step workflows.
 ---
 
-# deepagents-todolist (JavaScript/TypeScript)
-
-## Overview
-
+<overview>
 TodoListMiddleware provides agents with task planning and progress tracking capabilities through the `write_todos` tool. It's automatically included in every deep agent and helps agents break down complex, multi-step tasks into manageable pieces.
+</overview>
 
-## When to Use TodoList Middleware
-
+<when-to-use>
 | Use TodoList When | Skip TodoList When |
 |------------------|-------------------|
 | Complex multi-step tasks requiring coordination | Simple, single-action tasks |
 | Long-running operations where progress visibility matters | Quick operations (< 3 steps) |
 | Tasks that may need plan adaptation | Fixed, predetermined workflows |
+</when-to-use>
 
-## Basic Usage
-
-### Default Configuration (Included Automatically)
-
+<ex-default-config>
 ```typescript
 import { createDeepAgent } from "deepagents";
 
@@ -35,9 +30,9 @@ const result = await agent.invoke({
   }]
 });
 ```
+</ex-default-config>
 
-### Customizing TodoList Middleware
-
+<ex-custom-config>
 ```typescript
 import { createAgent, todoListMiddleware } from "langchain";
 
@@ -55,19 +50,17 @@ const agent = createAgent({
   ],
 });
 ```
+</ex-custom-config>
 
-## Decision Table: Todo List Patterns
-
+<todo-patterns-table>
 | Task Type | Todo List Strategy | Example |
 |-----------|-------------------|---------|
-| Sequential steps | Create all todos upfront, complete in order | Build app: setup → code → test → deploy |
-| Discovery-based | Add todos as you learn what's needed | Research: initial search → follow-up → synthesis |
+| Sequential steps | Create all todos upfront, complete in order | Build app: setup -> code -> test -> deploy |
+| Discovery-based | Add todos as you learn what's needed | Research: initial search -> follow-up -> synthesis |
 | Parallel work | Multiple "in_progress" items allowed | Data processing: extract + transform + load |
+</todo-patterns-table>
 
-## Code Examples
-
-### Example 1: Sequential Task Breakdown
-
+<ex-sequential-task>
 ```typescript
 import { createDeepAgent } from "deepagents";
 
@@ -95,9 +88,9 @@ const result = await agent.invoke({
 //   { content: "Generate OpenAPI documentation", status: "pending" }
 // ]
 ```
+</ex-sequential-task>
 
-### Example 2: Custom TodoList Instructions
-
+<ex-custom-instructions>
 ```typescript
 import { createAgent, todoListMiddleware } from "langchain";
 import { tool } from "langchain";
@@ -146,9 +139,9 @@ const result = await agent.invoke({
   }]
 });
 ```
+</ex-custom-instructions>
 
-### Example 3: Accessing Todo State
-
+<ex-accessing-todo-state>
 ```typescript
 import { createDeepAgent } from "deepagents";
 
@@ -170,49 +163,47 @@ for (const todo of todos) {
   console.log(`[${todo.status}] ${todo.content}`);
 }
 ```
+</ex-accessing-todo-state>
 
-## Boundaries
+<boundaries>
+**What Agents CAN Do with TodoLists**
 
-### What Agents CAN Do with TodoLists
+- Create todo lists with custom content and structure
+- Update todo status (pending -> in_progress -> completed)
+- Add new todos as work progresses
+- Remove todos that become irrelevant
+- Reorganize or reprioritize todos
+- Use todos for any task complexity level
 
-✅ Create todo lists with custom content and structure
-✅ Update todo status (pending → in_progress → completed)
-✅ Add new todos as work progresses
-✅ Remove todos that become irrelevant
-✅ Reorganize or reprioritize todos
-✅ Use todos for any task complexity level
+**What Agents CANNOT Do**
 
-### What Agents CANNOT Do
+- Change the tool name from `write_todos`
+- Use custom status values (must be pending/in_progress/completed)
+- Access todos from other threads without the thread_id
+- Disable TodoListMiddleware in createDeepAgent (it's always included)
+- Share todos across multiple agents (each agent has its own state)
+</boundaries>
 
-❌ Change the tool name from `write_todos`
-❌ Use custom status values (must be pending/in_progress/completed)
-❌ Access todos from other threads without the thread_id
-❌ Disable TodoListMiddleware in createDeepAgent (it's always included)
-❌ Share todos across multiple agents (each agent has its own state)
-
-## Gotchas
-
-### 1. TodoList is Stateful - Requires Thread ID
-
+<fix-todolist-is-stateful>
 ```typescript
-// ❌ Todo list won't persist without thread_id
+// WRONG: Todo list won't persist without thread_id
 await agent.invoke({ messages: [{ role: "user", content: "Task 1" }] });
 await agent.invoke({ messages: [{ role: "user", content: "Task 2" }] });
 
-// ✅ Use thread_id for persistence
+// CORRECT: Use thread_id for persistence
 const config = { configurable: { thread_id: "user-session" } };
 await agent.invoke({ messages: [{ role: "user", content: "Task 1" }] }, config);
 await agent.invoke({ messages: [{ role: "user", content: "Task 2" }] }, config);
 ```
+</fix-todolist-is-stateful>
 
-### 2. TodoList Middleware is Always Present
-
+<fix-middleware-always-present>
 ```typescript
 // You cannot remove TodoListMiddleware from createDeepAgent
-// ❌ This won't remove TodoList
+// WRONG: This won't remove TodoList
 const agent = await createDeepAgent({ middleware: [] });  // TodoList still included
 
-// ✅ If you need full control, use createAgent from LangChain
+// CORRECT: If you need full control, use createAgent from LangChain
 import { createAgent } from "langchain";
 
 const agent2 = createAgent({
@@ -220,9 +211,9 @@ const agent2 = createAgent({
   middleware: []  // No middleware at all
 });
 ```
+</fix-middleware-always-present>
 
-### 3. TodoList is Optional for Simple Tasks
-
+<fix-todolist-is-optional>
 ```typescript
 // The agent won't always use write_todos for simple tasks
 
@@ -238,9 +229,10 @@ const result2 = await agent.invoke({
 });
 // Todos present in state
 ```
+</fix-todolist-is-optional>
 
-## Full Documentation
-
+<documentation-links>
 - [TodoList Middleware Guide](https://docs.langchain.com/oss/javascript/langchain/middleware/built-in)
 - [Agent Harness Capabilities](https://docs.langchain.com/oss/javascript/deepagents/harness)
 - [TodoListMiddleware Reference](https://docs.langchain.com/oss/javascript/langchain/middleware/built-in#to-do-list)
+</documentation-links>

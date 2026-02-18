@@ -3,10 +3,7 @@ name: LangChain Multimodal (Python)
 description: [LangChain] Work with multimodal inputs/outputs in LangChain - includes images, audio, video, content blocks, and vision capabilities
 ---
 
-# langchain-multimodal (Python)
-
-## Overview
-
+<overview>
 Multimodal support lets you work with images, audio, video, and other non-text data. Models with multimodal capabilities can process and generate content across these different formats.
 
 **Key Concepts:**
@@ -14,11 +11,9 @@ Multimodal support lets you work with images, audio, video, and other non-text d
 - **Vision**: Image understanding with GPT-4V, Claude, Gemini
 - **Audio/Video**: Emerging support in newer models
 - **Standard Format**: Cross-provider content block structure
+</overview>
 
-## Code Examples
-
-### Basic Image Input (URL)
-
+<ex-basic-image-input-url>
 ```python
 from langchain_openai import ChatOpenAI
 from langchain.schema.messages import HumanMessage
@@ -33,9 +28,9 @@ message = HumanMessage(content_blocks=[
 response = model.invoke([message])
 print(response.content)
 ```
+</ex-basic-image-input-url>
 
-### Base64 Image Input
-
+<ex-base64-image-input>
 ```python
 from langchain_openai import ChatOpenAI
 from langchain.schema.messages import HumanMessage
@@ -58,9 +53,9 @@ message = HumanMessage(content_blocks=[
 
 response = model.invoke([message])
 ```
+</ex-base64-image-input>
 
-### Multiple Images
-
+<ex-multiple-images>
 ```python
 message = HumanMessage(content_blocks=[
     {"type": "text", "text": "Compare these two images"},
@@ -68,9 +63,9 @@ message = HumanMessage(content_blocks=[
     {"type": "image", "url": "https://example.com/image2.jpg"},
 ])
 ```
+</ex-multiple-images>
 
-### PDF Document Analysis
-
+<ex-pdf-document-analysis>
 ```python
 from langchain_anthropic import ChatAnthropic
 from langchain.schema.messages import HumanMessage
@@ -92,9 +87,9 @@ message = HumanMessage(content_blocks=[
 
 response = model.invoke([message])
 ```
+</ex-pdf-document-analysis>
 
-### Accessing Multimodal Output
-
+<ex-accessing-multimodal-output>
 ```python
 from langchain_openai import ChatOpenAI
 
@@ -110,9 +105,9 @@ for block in response.content_blocks:
         if "base64" in block:
             print(f"Image data: {block['base64'][:50]}...")
 ```
+</ex-accessing-multimodal-output>
 
-### Vision with Claude
-
+<ex-vision-with-claude>
 ```python
 from langchain_anthropic import ChatAnthropic
 from langchain.schema.messages import HumanMessage
@@ -126,9 +121,9 @@ message = HumanMessage(content_blocks=[
 
 response = model.invoke([message])
 ```
+</ex-vision-with-claude>
 
-### Vision with Gemini
-
+<ex-vision-with-gemini>
 ```python
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain.schema.messages import HumanMessage
@@ -142,38 +137,36 @@ message = HumanMessage(content_blocks=[
 
 response = model.invoke([message])
 ```
+</ex-vision-with-gemini>
 
-## Gotchas
-
-### 1. Model Doesn't Support Multimodal
-
+<fix-model-doesnt-support-multimodal>
 ```python
-# ❌ Problem: Using text-only model
+# WRONG: Problem: Using text-only model
 model = ChatOpenAI(model="gpt-3.5-turbo")
 model.invoke([image_message])  # Error!
 
-# ✅ Solution: Use vision-capable model
+# CORRECT: Solution: Use vision-capable model
 model = ChatOpenAI(model="gpt-4.1")
 ```
+</fix-model-doesnt-support-multimodal>
 
-### 2. Missing MIME Type for Base64
-
+<fix-missing-mime-type-for-base64>
 ```python
-# ❌ Problem: No MIME type
+# WRONG: Problem: No MIME type
 {"type": "image", "base64": base64_data}  # May fail
 
-# ✅ Solution: Always include MIME type
+# CORRECT: Solution: Always include MIME type
 {"type": "image", "base64": base64_data, "mime_type": "image/jpeg"}
 ```
+</fix-missing-mime-type-for-base64>
 
-### 3. Image Too Large
-
+<fix-image-too-large>
 ```python
-# ❌ Problem: Image exceeds size limit
+# WRONG: Problem: Image exceeds size limit
 with open("./10mb_image.jpg", "rb") as f:
     huge_image = f.read()  # Too large
 
-# ✅ Solution: Resize images first
+# CORRECT: Solution: Resize images first
 from PIL import Image
 import io
 
@@ -183,8 +176,9 @@ buffer = io.BytesIO()
 img.save(buffer, format="JPEG", quality=80)
 resized_data = base64.b64encode(buffer.getvalue()).decode()
 ```
+</fix-image-too-large>
 
-## Links to Documentation
-
+<links>
 - [Multimodal Guide](https://docs.langchain.com/oss/python/langchain/models)
 - [Messages & Content Blocks](https://docs.langchain.com/oss/python/langchain/messages)
+</links>

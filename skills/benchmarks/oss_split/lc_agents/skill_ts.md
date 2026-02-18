@@ -3,31 +3,26 @@ name: LangChain Agents (TypeScript)
 description: [LangChain] Create and use LangChain agents with create_agent - includes agent loops, ReAct pattern, tool execution, and state management
 ---
 
-# langchain-agents (JavaScript/TypeScript)
-
-## Overview
-
+<overview>
 Agents combine language models with tools to create systems that can reason about tasks, decide which tools to use, and iteratively work towards solutions. The `createAgent()` function provides a production-ready agent implementation built on LangGraph.
 
-**Key Concepts:**
-- **Agent Loop**: The model decides → calls tools → observes results → repeats until done
+Key Concepts:
+- **Agent Loop**: The model decides, calls tools, observes results, repeats until done
 - **ReAct Pattern**: Reasoning and Acting - the agent reasons about what to do, then acts by calling tools
 - **Graph-based Runtime**: Agents run on a LangGraph graph with nodes (model, tools, middleware) and edges
+</overview>
 
-## When to Use Agents
-
+<when-to-use>
 | Scenario | Use Agent? | Why |
 |----------|-----------|-----|
-| Need to call external APIs/databases | ✅ Yes | Agents can dynamically choose which tools to call |
-| Multi-step task with decision points | ✅ Yes | Agent loop handles iterative reasoning |
-| Simple prompt-response | ❌ No | Use a chat model directly |
-| Predetermined workflow | ❌ No | Use LangGraph workflow instead |
-| Need tool calling without iteration | ⚠️ Maybe | Consider using model.bindTools() directly |
+| Need to call external APIs/databases | Yes | Agents can dynamically choose which tools to call |
+| Multi-step task with decision points | Yes | Agent loop handles iterative reasoning |
+| Simple prompt-response | No | Use a chat model directly |
+| Predetermined workflow | No | Use LangGraph workflow instead |
+| Need tool calling without iteration | Partial Maybe | Consider using model.bindTools() directly |
+</when-to-use>
 
-## Decision Tables
-
-### Choosing Agent Configuration
-
+<choosing-agent-configuration>
 | Need | Configuration | Example |
 |------|---------------|---------|
 | Basic agent with tools | `createAgent({ model, tools })` | Search, calculator, weather |
@@ -35,19 +30,19 @@ Agents combine language models with tools to create systems that can reason abou
 | Human approval for sensitive operations | Add `humanInTheLoopMiddleware` | Database writes, emails |
 | Persistence across sessions | Add `checkpointer` | Multi-turn conversations |
 | Structured output format | Add `responseFormat` | Extract contact info, parse forms |
+</choosing-agent-configuration>
 
-### Tool Strategy
-
+<tool-strategy>
 | Tool Type | When to Use | Example |
 |-----------|-------------|---------|
 | Static tools | Tools don't change during execution | Search, weather, calculator |
 | Dynamic tools | Tools depend on runtime state | User-specific APIs |
 | Built-in tools | Need common functionality | File system, code execution |
 | Custom tools | Domain-specific operations | Your business logic |
+</tool-strategy>
 
-## Code Examples
-
-### Basic Agent with Tools
+<ex-basic>
+Basic agent with search and weather tools:
 
 ```typescript
 import { createAgent } from "langchain";
@@ -96,8 +91,10 @@ const result = await agent.invoke({
 
 console.log(result.messages[result.messages.length - 1].content);
 ```
+</ex-basic>
 
-### Agent with System Prompt
+<ex-system-prompt>
+Agent with custom system prompt:
 
 ```typescript
 import { createAgent } from "langchain";
@@ -110,17 +107,19 @@ Always cite your sources when using the search tool.
 Show your work when performing calculations.`,
 });
 ```
+</ex-system-prompt>
 
-### Agent Loop Execution Flow
+<ex-loop-flow>
+The agent runs in a loop:
+1. Model receives user message
+2. Model decides to call a tool (or finish)
+3. Tool executes and returns result
+4. Result goes back to model
+5. Repeat until model decides to finish
+
+Agent loop handles multi-step tasks:
 
 ```typescript
-// The agent runs in a loop:
-// 1. Model receives user message
-// 2. Model decides to call a tool (or finish)
-// 3. Tool executes and returns result
-// 4. Result goes back to model
-// 5. Repeat until model decides to finish
-
 const agent = createAgent({
   model: "gpt-4.1",
   tools: [searchTool, weatherTool],
@@ -129,9 +128,9 @@ const agent = createAgent({
 // This single invoke() call handles the entire loop
 const result = await agent.invoke({
   messages: [
-    { 
-      role: "user", 
-      content: "Search for the capital of France, then get its weather" 
+    {
+      role: "user",
+      content: "Search for the capital of France, then get its weather"
     }
   ],
 });
@@ -143,8 +142,10 @@ const result = await agent.invoke({
 // - Receives weather data
 // - Responds with final answer
 ```
+</ex-loop-flow>
 
-### Streaming Agent Progress
+<ex-streaming>
+Stream agent steps and tokens:
 
 ```typescript
 import { createAgent } from "langchain";
@@ -173,8 +174,10 @@ for await (const chunk of await agent.stream(
   }
 }
 ```
+</ex-streaming>
 
-### Agent with Persistence
+<ex-persistence>
+Persist state across conversations:
 
 ```typescript
 import { createAgent } from "langchain";
@@ -200,8 +203,10 @@ await agent.invoke({
 }, config);
 // Response: "Your name is Alice"
 ```
+</ex-persistence>
 
-### Multiple Tool Calls in Parallel
+<ex-parallel>
+Multiple tool calls in one step:
 
 ```typescript
 // Models can call multiple tools simultaneously
@@ -219,8 +224,10 @@ const result = await agent.invoke({
 
 // Agent may call both tools in parallel in a single step
 ```
+</ex-parallel>
 
-### Dynamic Tools (Runtime-Dependent)
+<ex-dynamic-tools>
+Tools that depend on runtime state:
 
 ```typescript
 import { createAgent } from "langchain";
@@ -237,8 +244,10 @@ const agent = createAgent({
   },
 });
 ```
+</ex-dynamic-tools>
 
-### Error Handling in Agents
+<ex-error-handling>
+Custom error handling middleware:
 
 ```typescript
 import { createAgent, wrapToolCall } from "langchain";
@@ -264,53 +273,38 @@ const agent = createAgent({
   middleware: [errorHandler],
 });
 ```
+</ex-error-handling>
 
-## Boundaries
+<boundaries>
+What Agents CAN Configure:
+- **Model**: Any chat model (OpenAI, Anthropic, Google, etc.)
+- **Tools**: Custom tools, built-in tools, dynamic tools
+- **System Prompt**: Instructions for agent behavior
+- **Middleware**: Human-in-the-loop, error handling, logging
+- **Checkpointer**: Memory/persistence across conversations
+- **Response Format**: Structured output schemas
+- **Max Iterations**: Prevent infinite loops
 
-### What Agents CAN Configure
+What Agents CANNOT Configure:
+- **Direct Graph Structure**: Use LangGraph directly for custom flows
+- **Tool Execution Order**: Model decides which tools to call
+- **Interrupt Model Decision**: Can only interrupt before tool execution
+- **Multiple Models**: One agent = one model (use subagents for multiple)
+</boundaries>
 
-✅ **Model**: Any chat model (OpenAI, Anthropic, Google, etc.)
-✅ **Tools**: Custom tools, built-in tools, dynamic tools
-✅ **System Prompt**: Instructions for agent behavior
-✅ **Middleware**: Human-in-the-loop, error handling, logging
-✅ **Checkpointer**: Memory/persistence across conversations
-✅ **Response Format**: Structured output schemas
-✅ **Max Iterations**: Prevent infinite loops
-
-### What Agents CANNOT Configure
-
-❌ **Direct Graph Structure**: Use LangGraph directly for custom flows
-❌ **Tool Execution Order**: Model decides which tools to call
-❌ **Interrupt Model Decision**: Can only interrupt before tool execution
-❌ **Multiple Models**: One agent = one model (use subagents for multiple)
-
-## Gotchas
-
-### 1. Agent Doesn't Stop (Infinite Loop)
+<fix-infinite-loop>
+Limit iterations to prevent runaway agents:
 
 ```typescript
-// ❌ Problem: No clear stopping condition
-const agent = createAgent({
-  model: "gpt-4.1",
-  tools: [searchTool],
-});
-
-await agent.invoke({
-  messages: [{ role: "user", content: "Keep searching until perfect" }]
-});
-
-// ✅ Solution: Set max iterations
-const agent = createAgent({
-  model: "gpt-4.1",
-  tools: [searchTool],
-  maxIterations: 10, // Stop after 10 tool calls
-});
+const agent = createAgent({ model: "gpt-4.1", tools: [searchTool], maxIterations: 10 });
 ```
+</fix-infinite-loop>
 
-### 2. Tool Not Being Called
+<fix-tool-not-called>
+Vague vs clear tool descriptions:
 
 ```typescript
-// ❌ Problem: Vague tool description
+// Bad: Vague tool description
 const badTool = tool(
   async ({ input }: { input: string }) => "result",
   {
@@ -320,7 +314,7 @@ const badTool = tool(
   }
 );
 
-// ✅ Solution: Clear, specific descriptions
+// Good: Clear, specific descriptions
 const goodTool = tool(
   async ({ query }: { query: string }) => "result",
   {
@@ -332,11 +326,13 @@ const goodTool = tool(
   }
 );
 ```
+</fix-tool-not-called>
 
-### 3. State Not Persisting
+<fix-state-not-persisting>
+Add checkpointer for conversation memory:
 
 ```typescript
-// ❌ Problem: No checkpointer
+// Problem: No checkpointer
 const agent = createAgent({
   model: "gpt-4.1",
   tools: [searchTool],
@@ -347,7 +343,7 @@ await agent.invoke({ messages: [{ role: "user", content: "Hi, I'm Bob" }] });
 await agent.invoke({ messages: [{ role: "user", content: "What's my name?" }] });
 // Agent doesn't remember "Bob"
 
-// ✅ Solution: Add checkpointer and thread_id
+// Solution: Add checkpointer and thread_id
 import { MemorySaver } from "@langchain/langgraph";
 
 const agent = createAgent({
@@ -361,29 +357,23 @@ await agent.invoke({ messages: [{ role: "user", content: "Hi, I'm Bob" }] }, con
 await agent.invoke({ messages: [{ role: "user", content: "What's my name?" }] }, config);
 // Agent remembers: "Your name is Bob"
 ```
+</fix-state-not-persisting>
 
-### 4. Messages vs State Confusion
+<fix-messages-vs-state>
+Access result messages correctly:
 
 ```typescript
-// Agent state includes more than just messages
-const result = await agent.invoke({
-  messages: [{ role: "user", content: "Hello" }]
-});
-
-// ✅ Access full conversation history
-console.log(result.messages); // Array of all messages
-
-// ✅ Access structured output (if configured)
-console.log(result.structuredResponse);
-
-// ❌ Don't try to access result.content directly
-// console.log(result.content); // undefined!
+const result = await agent.invoke({ messages: [{ role: "user", content: "Hello" }] });
+console.log(result.messages);  // Array of all messages - correct
+// console.log(result.content); // undefined! - wrong
 ```
+</fix-messages-vs-state>
 
-### 5. Tool Results Must Be Serializable
+<fix-serializable-results>
+Return JSON-serializable data from tools:
 
 ```typescript
-// ❌ Problem: Returning non-serializable objects
+// Problem: Returning non-serializable objects
 const badTool = tool(
   async () => {
     return new Date(); // Date objects aren't JSON-serializable by default
@@ -391,7 +381,7 @@ const badTool = tool(
   { name: "get_time", description: "Get current time" }
 );
 
-// ✅ Solution: Return serializable data
+// Solution: Return serializable data
 const goodTool = tool(
   async () => {
     return new Date().toISOString(); // String is serializable
@@ -399,12 +389,12 @@ const goodTool = tool(
   { name: "get_time", description: "Get current time" }
 );
 ```
+</fix-serializable-results>
 
-### 6. Streaming Modes Matter
+<fix-streaming-modes>
+Different stream modes show different information:
 
 ```typescript
-// Different stream modes show different information
-
 // "values" - Full state after each step
 for await (const chunk of await agent.stream(input, { streamMode: "values" })) {
   console.log(chunk.messages); // All messages so far
@@ -421,12 +411,13 @@ for await (const chunk of await agent.stream(input, { streamMode: "messages" }))
   console.log(token.content); // Each token
 }
 ```
+</fix-streaming-modes>
 
-## Links to Documentation
-
+<documentation-links>
 - [Agents Overview](https://docs.langchain.com/oss/javascript/langchain/agents)
 - [createAgent API Reference](https://docs.langchain.com/oss/javascript/releases/langchain-v1)
 - [LangGraph Concepts](https://docs.langchain.com/oss/javascript/langgraph/workflows-agents)
 - [Tool Calling Guide](https://docs.langchain.com/oss/javascript/langchain/tools)
 - [Streaming Guide](https://docs.langchain.com/oss/javascript/langchain/streaming/overview)
 - [Human-in-the-Loop](https://docs.langchain.com/oss/javascript/langchain/human-in-the-loop)
+</documentation-links>

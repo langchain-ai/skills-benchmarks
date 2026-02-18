@@ -3,10 +3,7 @@ name: Deep Agents Todo List (Python)
 description: [Deep Agents] Using TodoListMiddleware for task planning and tracking progress with the write_todos tool in Deep Agents for complex multi-step workflows.
 ---
 
-# deepagents-todolist (Python)
-
-## Overview
-
+<overview>
 TodoListMiddleware provides agents with task planning and progress tracking capabilities through the `write_todos` tool. It's automatically included in every deep agent and helps agents break down complex, multi-step tasks into manageable pieces.
 
 Planning is integral to solving complex problems. The middleware enables agents to:
@@ -14,18 +11,18 @@ Planning is integral to solving complex problems. The middleware enables agents 
 - Track progress as tasks are completed
 - Adapt plans dynamically as new information emerges
 - Provide visibility into long-running operations
+</overview>
 
-## When to Use TodoList Middleware
-
+<when-to-use-todolist>
 | Use TodoList When | Skip TodoList When |
 |------------------|-------------------|
 | Complex multi-step tasks requiring coordination | Simple, single-action tasks |
 | Long-running operations where progress visibility matters | Quick operations (< 3 steps) |
 | Tasks that may need plan adaptation | Fixed, predetermined workflows |
 | Multiple tools need to be orchestrated | Single tool invocation |
+</when-to-use-todolist>
 
-## How It Works
-
+<how-it-works>
 TodoListMiddleware is automatically included in `create_deep_agent()`. The agent receives:
 
 1. A `write_todos` tool for managing the task list
@@ -41,11 +38,9 @@ write_todos(todos: list[dict]) -> None
 Each todo item has:
 - `content`: Description of the task
 - `status`: One of `"pending"`, `"in_progress"`, `"completed"`
+</how-it-works>
 
-## Basic Usage
-
-### Default Configuration (Included Automatically)
-
+<ex-default-configuration>
 ```python
 from deepagents import create_deep_agent
 
@@ -60,9 +55,9 @@ result = agent.invoke({
     }]
 })
 ```
+</ex-default-configuration>
 
-### Customizing TodoList Middleware
-
+<ex-customizing-todolist-middleware>
 ```python
 from langchain.agents import create_agent
 from langchain.agents.middleware import TodoListMiddleware
@@ -83,20 +78,18 @@ agent = create_agent(
     ],
 )
 ```
+</ex-customizing-todolist-middleware>
 
-## Decision Table: Todo List Patterns
-
+<todolist-patterns>
 | Task Type | Todo List Strategy | Example |
 |-----------|-------------------|---------|
-| Sequential steps | Create all todos upfront, complete in order | Build app: setup → code → test → deploy |
-| Discovery-based | Add todos as you learn what's needed | Research: initial search → follow-up → synthesis |
+| Sequential steps | Create all todos upfront, complete in order | Build app: setup -> code -> test -> deploy |
+| Discovery-based | Add todos as you learn what's needed | Research: initial search -> follow-up -> synthesis |
 | Parallel work | Multiple "in_progress" items allowed | Data processing: extract + transform + load |
-| Iterative refinement | Update todo content as you refine approach | Debugging: reproduce → isolate → fix → verify |
+| Iterative refinement | Update todo content as you refine approach | Debugging: reproduce -> isolate -> fix -> verify |
+</todolist-patterns>
 
-## Code Examples
-
-### Example 1: Sequential Task Breakdown
-
+<ex-sequential-task-breakdown>
 ```python
 from deepagents import create_deep_agent
 
@@ -125,9 +118,9 @@ result = agent.invoke({
 #   {"content": "Generate OpenAPI documentation", "status": "pending"}
 # ]
 ```
+</ex-sequential-task-breakdown>
 
-### Example 2: Adaptive Planning
-
+<ex-adaptive-planning>
 ```python
 from deepagents import create_deep_agent
 
@@ -158,9 +151,9 @@ result = agent.invoke({
 #   {"content": "Update deployment documentation", "status": "pending"}
 # ]
 ```
+</ex-adaptive-planning>
 
-### Example 3: Custom TodoList Instructions
-
+<ex-custom-todolist-instructions>
 ```python
 from langchain.agents import create_agent
 from langchain.agents.middleware import TodoListMiddleware
@@ -197,11 +190,9 @@ result = agent.invoke({
     }]
 })
 ```
+</ex-custom-todolist-instructions>
 
-## Accessing Todo State
-
-The todo list is stored in the agent's state under the `todos` key:
-
+<ex-accessing-todo-state>
 ```python
 from deepagents import create_deep_agent
 
@@ -223,53 +214,51 @@ todos = result.get("todos", [])
 for todo in todos:
     print(f"[{todo['status']}] {todo['content']}")
 ```
+</ex-accessing-todo-state>
 
-## Boundaries
-
+<boundaries>
 ### What Agents CAN Do with TodoLists
 
-✅ Create todo lists with custom content and structure
-✅ Update todo status (pending → in_progress → completed)
-✅ Add new todos as work progresses
-✅ Remove todos that become irrelevant
-✅ Reorganize or reprioritize todos
-✅ Use todos for any task complexity level
+- Create todo lists with custom content and structure
+- Update todo status (pending -> in_progress -> completed)
+- Add new todos as work progresses
+- Remove todos that become irrelevant
+- Reorganize or reprioritize todos
+- Use todos for any task complexity level
 
 ### What Agents CANNOT Do
 
-❌ Change the tool name from `write_todos`
-❌ Use custom status values (must be pending/in_progress/completed)
-❌ Access todos from other threads without the thread_id
-❌ Disable TodoListMiddleware in create_deep_agent (it's always included)
-❌ Share todos across multiple agents (each agent has its own state)
+- Change the tool name from `write_todos`
+- Use custom status values (must be pending/in_progress/completed)
+- Access todos from other threads without the thread_id
+- Disable TodoListMiddleware in create_deep_agent (it's always included)
+- Share todos across multiple agents (each agent has its own state)
+</boundaries>
 
-## Gotchas
-
-### 1. TodoList is Stateful - Requires Thread ID
-
+<fix-todolist-requires-thread-id>
 ```python
-# ❌ Todo list won't persist without thread_id
+# WRONG: Todo list won't persist without thread_id
 agent.invoke({"messages": [{"role": "user", "content": "Task 1"}]})
 agent.invoke({"messages": [{"role": "user", "content": "Task 2"}]})
 
-# ✅ Use thread_id for persistence
+# CORRECT: Use thread_id for persistence
 config = {"configurable": {"thread_id": "user-session"}}
 agent.invoke({"messages": [{"role": "user", "content": "Task 1"}]}, config=config)
 agent.invoke({"messages": [{"role": "user", "content": "Task 2"}]}, config=config)
 ```
+</fix-todolist-requires-thread-id>
 
-### 2. TodoList Middleware is Always Present
-
+<fix-todolist-always-present>
 ```python
 # You cannot remove TodoListMiddleware from create_deep_agent
 # It's part of the core harness
 
-# ❌ This won't remove TodoList
+# WRONG: This won't remove TodoList
 from deepagents import create_deep_agent
 
 agent = create_deep_agent(middleware=[])  # TodoList still included
 
-# ✅ If you need full control, use create_agent from LangChain
+# CORRECT: If you need full control, use create_agent from LangChain
 from langchain.agents import create_agent
 
 agent = create_agent(
@@ -277,11 +266,11 @@ agent = create_agent(
     middleware=[]  # No middleware at all
 )
 ```
+</fix-todolist-always-present>
 
-### 3. Todos Are Not Shared Across Agents
-
+<fix-todos-not-shared-across-agents>
 ```python
-# ❌ Subagents have their own todo lists
+# WRONG: Subagents have their own todo lists
 from deepagents import create_deep_agent
 
 main_agent = create_deep_agent()
@@ -294,9 +283,9 @@ result = main_agent.invoke({
 
 # The subagent's todos are separate and won't appear in main_agent's state
 ```
+</fix-todos-not-shared-across-agents>
 
-### 4. TodoList is Optional for Simple Tasks
-
+<fix-todolist-optional-for-simple-tasks>
 ```python
 # The agent won't always use write_todos
 # For simple tasks, it may skip planning
@@ -317,9 +306,10 @@ result = agent.invoke({
 })
 # Todos present in state
 ```
+</fix-todolist-optional-for-simple-tasks>
 
-## Full Documentation
-
+<links>
 - [TodoList Middleware Guide](https://docs.langchain.com/oss/python/langchain/middleware/built-in)
 - [Agent Harness Capabilities](https://docs.langchain.com/oss/python/deepagents/harness)
 - [TodoListMiddleware API Reference](https://docs.langchain.com/oss/python/langchain/middleware/built-in#to-do-list)
+</links>

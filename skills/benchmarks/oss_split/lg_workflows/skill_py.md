@@ -3,20 +3,16 @@ name: LangGraph Workflows (Python)
 description: [LangGraph] Understanding workflows vs agents, predetermined vs dynamic patterns, and orchestrator-worker patterns using the Send API
 ---
 
-# langgraph-workflows (Python)
-
-
-## Overview
-
+<overview>
 LangGraph supports both **workflows** (predetermined paths) and **agents** (dynamic decision-making). Understanding when to use each pattern is crucial for effective agent design.
 
 **Key Distinctions:**
 - **Workflows**: Predetermined code paths, operate in specific order
 - **Agents**: Dynamic, define their own processes and tool usage
 - **Hybrid**: Combine deterministic and agentic steps
+</overview>
 
-## Decision Table: Workflow vs Agent
-
+<workflow-vs-agent>
 | Characteristic | Workflow | Agent | Hybrid |
 |----------------|----------|-------|--------|
 | **Control Flow** | Fixed, predetermined | Dynamic, model-driven | Mixed |
@@ -24,9 +20,9 @@ LangGraph supports both **workflows** (predetermined paths) and **agents** (dyna
 | **Complexity** | Simple | Complex | Variable |
 | **Use Case** | Sequential tasks | Open-ended problems | Structured flexibility |
 | **Examples** | ETL, validation | Research, QA | Review approval |
+</workflow-vs-agent>
 
-## Key Patterns
-
+<key-patterns>
 ### 1. Predetermined Workflows
 
 Sequential execution with fixed paths:
@@ -47,11 +43,9 @@ One coordinator delegates to multiple workers:
 - Map-reduce operations
 - Parallel processing
 - Multi-agent collaboration
+</key-patterns>
 
-## Code Examples
-
-### Basic Workflow (Predetermined)
-
+<ex-basic-workflow>
 ```python
 from langgraph.graph import StateGraph, START, END
 from typing_extensions import TypedDict
@@ -87,9 +81,9 @@ workflow = (
 result = workflow.invoke({"data": "hello"})
 print(result)  # {'data': 'HELLO', 'validated': True, 'processed': True}
 ```
+</ex-basic-workflow>
 
-### Dynamic Agent (Model-Driven)
-
+<ex-dynamic-agent>
 ```python
 from langchain.tools import tool
 from langchain.chat_models import init_chat_model
@@ -131,12 +125,12 @@ def tool_node(state: AgentState) -> dict:
     """Execute tools chosen by agent."""
     tools_by_name = {tool.name: tool for tool in tools}
     result = []
-    
+
     for tool_call in state["messages"][-1].tool_calls:
         tool = tools_by_name[tool_call["name"]]
         observation = tool.invoke(tool_call["args"])
         result.append(ToolMessage(content=observation, tool_call_id=tool_call["id"]))
-    
+
     return {"messages": result}
 
 def should_continue(state: AgentState):
@@ -156,9 +150,9 @@ agent = (
     .compile()
 )
 ```
+</ex-dynamic-agent>
 
-### Orchestrator-Worker Pattern
-
+<ex-orchestrator-worker>
 ```python
 from langgraph.types import Send
 from typing import Annotated
@@ -201,9 +195,9 @@ result = graph.invoke({
 })
 print(result["summary"])  # "Processed 3 tasks"
 ```
+</ex-orchestrator-worker>
 
-### Hybrid: Workflow with Agent Step
-
+<ex-hybrid-workflow>
 ```python
 class HybridState(TypedDict):
     input: str
@@ -238,9 +232,9 @@ hybrid = (
     .compile()
 )
 ```
+</ex-hybrid-workflow>
 
-### Map-Reduce Example
-
+<ex-map-reduce>
 ```python
 class MapReduceState(TypedDict):
     documents: list[str]
@@ -279,9 +273,9 @@ result = graph.invoke({
     "documents": ["Doc 1 content...", "Doc 2 content...", "Doc 3 content..."]
 })
 ```
+</ex-map-reduce>
 
-### Parallel Knowledge Base Router
-
+<ex-parallel-router>
 ```python
 from langgraph.types import Send
 
@@ -294,14 +288,14 @@ def classify(state: RouterState) -> dict:
     """Determine which sources to query."""
     query = state["query"].lower()
     sources = []
-    
+
     if "code" in query:
         sources.append("github")
     if "doc" in query:
         sources.append("notion")
     if "message" in query:
         sources.append("slack")
-    
+
     return {"sources": sources}
 
 def route_to_sources(state: RouterState):
@@ -339,63 +333,61 @@ graph = (
     .compile()
 )
 ```
+</ex-parallel-router>
 
-## Boundaries
-
+<boundaries>
 ### What You CAN Configure
 
-✅ Choose workflow vs agent pattern
-✅ Mix deterministic and agentic steps
-✅ Use Send API for parallel execution
-✅ Define custom orchestrator logic
-✅ Control worker node behavior
-✅ Aggregate results with reducers
+- Choose workflow vs agent pattern
+- Mix deterministic and agentic steps
+- Use Send API for parallel execution
+- Define custom orchestrator logic
+- Control worker node behavior
+- Aggregate results with reducers
 
 ### What You CANNOT Configure
 
-❌ Change Send API message-passing model
-❌ Bypass worker state isolation
-❌ Modify parallel execution mechanism
-❌ Override reducer behavior at runtime
+- Change Send API message-passing model
+- Bypass worker state isolation
+- Modify parallel execution mechanism
+- Override reducer behavior at runtime
+</boundaries>
 
-## Gotchas
-
-### 1. Send Requires Worker State Isolation
-
+<fix-worker-state-isolation>
 ```python
-# ❌ WRONG - Workers share state, causing conflicts
+# WRONG: WRONG - Workers share state, causing conflicts
 class State(TypedDict):
     shared_counter: int  # All workers modify same counter!
 
-# ✅ CORRECT - Each worker gets isolated input
+# CORRECT: CORRECT - Each worker gets isolated input
 def worker(state: dict) -> dict:
     # state is isolated to this worker
     return {"results": [process(state["task"])]}
 ```
+</fix-worker-state-isolation>
 
-### 2. Send Needs Accumulator Reducer
-
+<fix-send-accumulator>
 ```python
-# ❌ WRONG - Last worker overwrites all others
+# WRONG: WRONG - Last worker overwrites all others
 class State(TypedDict):
     results: list  # No reducer!
 
-# ✅ CORRECT - Use Annotated with operator.add
+# CORRECT: CORRECT - Use Annotated with operator.add
 from typing import Annotated
 import operator
 
 class State(TypedDict):
     results: Annotated[list, operator.add]  # Accumulates
 ```
+</fix-send-accumulator>
 
-### 3. Workflows Can Become Too Rigid
-
+<fix-workflow-flexibility>
 ```python
-# ❌ ANTI-PATTERN - Overly rigid workflow
+# WRONG: ANTI-PATTERN - Overly rigid workflow
 # What if validation fails? No recovery path!
 .add_edge("validate", "process")  # Always proceeds
 
-# ✅ BETTER - Add conditional logic
+# CORRECT: BETTER - Add conditional logic
 def route_after_validate(state):
     if not state["validated"]:
         return "error_handler"
@@ -403,14 +395,14 @@ def route_after_validate(state):
 
 .add_conditional_edges("validate", route_after_validate)
 ```
+</fix-workflow-flexibility>
 
-### 4. Agents Can Become Unpredictable
-
+<fix-agent-guardrails>
 ```python
-# ❌ RISKY - Pure agent, no guardrails
+# WRONG: RISKY - Pure agent, no guardrails
 # Agent might loop forever or make bad choices
 
-# ✅ BETTER - Hybrid with constraints
+# CORRECT: BETTER - Hybrid with constraints
 def should_continue(state):
     # Add max iterations check
     if state["iterations"] > 10:
@@ -419,9 +411,10 @@ def should_continue(state):
         return "tools"
     return END
 ```
+</fix-agent-guardrails>
 
-## Links
-
+<links>
 - [Workflows and Agents (Python)](https://docs.langchain.com/oss/python/langgraph/workflows-agents)
 - [Send API Guide](https://docs.langchain.com/oss/python/langgraph/use-graph-api#map-reduce-and-the-send-api)
 - [Map-Reduce Example](https://docs.langchain.com/oss/python/langgraph/use-graph-api#map-reduce-and-the-send-api)
+</links>

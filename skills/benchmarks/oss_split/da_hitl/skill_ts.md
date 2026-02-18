@@ -3,16 +3,13 @@ name: Deep Agents Human-in-the-Loop (TypeScript)
 description: [Deep Agents] Implementing human-in-the-loop approval workflows with interrupt_on parameter for sensitive tool operations in Deep Agents.
 ---
 
-# deepagents-hitl (JavaScript/TypeScript)
-
-## Overview
-
+<overview>
 HITL middleware adds human oversight to tool calls. Execution pauses for human decision: **approve**, **edit**, or **reject**.
 
 Requires checkpointer to save state during interrupts.
+</overview>
 
-## Basic Setup
-
+<basic-setup>
 ```typescript
 import { createDeepAgent } from "deepagents";
 import { MemorySaver } from "@langchain/langgraph";
@@ -26,19 +23,17 @@ const agent = await createDeepAgent({
   checkpointer: new MemorySaver()  // REQUIRED
 });
 ```
+</basic-setup>
 
-## Decision Table
-
+<decision-table>
 | Tool Type | Config | Decisions | Use Case |
 |-----------|--------|-----------|----------|
 | Destructive | `true` | approve/edit/reject | write_file, delete |
 | Critical | `{allowedDecisions: [...]}` | approve/reject only | deploy, SQL |
 | Safe | `false` | none | read_file |
+</decision-table>
 
-## Code Examples
-
-### Example 1: Basic Approval
-
+<ex-basic-approval>
 ```typescript
 import { createDeepAgent } from "deepagents";
 import { MemorySaver } from "@langchain/langgraph";
@@ -77,9 +72,9 @@ await agent.updateState(config, {
 // Step 4: Continue
 result = await agent.invoke(null, config);
 ```
+</ex-basic-approval>
 
-### Example 2: Edit Before Execution
-
+<ex-edit-before-execution>
 ```typescript
 const agent = await createDeepAgent({
   interruptOn: { execute_sql: true },
@@ -112,9 +107,9 @@ await agent.updateState(config, {
 // Continue
 await agent.invoke(null, config);
 ```
+</ex-edit-before-execution>
 
-### Example 3: Reject with Feedback
-
+<ex-reject-with-feedback>
 ```typescript
 const agent = await createDeepAgent({
   interruptOn: { deploy_code: true },
@@ -143,9 +138,9 @@ await agent.updateState(config, {
 
 await agent.invoke(null, config);
 ```
+</ex-reject-with-feedback>
 
-### Example 4: Custom Middleware
-
+<ex-custom-middleware>
 ```typescript
 import { createAgent, humanInTheLoopMiddleware } from "langchain";
 import { MemorySaver } from "@langchain/langgraph";
@@ -158,10 +153,10 @@ const agent = createAgent({
       interruptOn: {
         deploy_to_prod: {
           allowedDecisions: ["approve", "reject"],
-          description: "🚨 PRODUCTION DEPLOYMENT requires approval"
+          description: "PRODUCTION DEPLOYMENT requires approval"
         },
         send_email: {
-          description: "📧 Email draft ready for review"
+          description: "Email draft ready for review"
         },
       },
     }),
@@ -169,47 +164,48 @@ const agent = createAgent({
   checkpointer: new MemorySaver(),
 });
 ```
+</ex-custom-middleware>
 
-## Boundaries
+<boundaries>
+**What Agents CAN Configure**
+- Which tools require approval
+- Allowed decision types per tool
+- Custom interrupt descriptions
+- Checkpointer implementation
 
-### What Agents CAN Configure
-✅ Which tools require approval  
-✅ Allowed decision types per tool  
-✅ Custom interrupt descriptions  
-✅ Checkpointer implementation
+**What Agents CANNOT Configure**
+- HITL protocol structure
+- Skip checkpointer requirement
+- Interrupt without saving state
+</boundaries>
 
-### What Agents CANNOT Configure
-❌ HITL protocol structure  
-❌ Skip checkpointer requirement  
-❌ Interrupt without saving state
-
-## Gotchas
-
-### 1. Checkpointer is REQUIRED
+<fix-checkpointer-required>
 ```typescript
-// ❌ Error
+// WRONG: Error
 await createDeepAgent({ interruptOn: { write_file: true } });
 
-// ✅ Must provide checkpointer
+// CORRECT: Must provide checkpointer
 await createDeepAgent({
   interruptOn: { write_file: true },
   checkpointer: new MemorySaver()
 });
 ```
+</fix-checkpointer-required>
 
-### 2. Thread ID Required
+<fix-thread-id-required>
 ```typescript
-// ❌ Can't resume without thread_id
+// WRONG: Can't resume without thread_id
 await agent.invoke({...});
 await agent.updateState(...);  // Which thread?
 
-// ✅ Use consistent thread_id
+// CORRECT: Use consistent thread_id
 const config = { configurable: { thread_id: "session-1" } };
 await agent.invoke({...}, config);
 await agent.updateState(config, ...);
 ```
+</fix-thread-id-required>
 
-### 3. Check State Between Invocations
+<fix-check-state-between-invocations>
 ```typescript
 // Interrupts happen between invoke() calls
 
@@ -226,8 +222,10 @@ if (state.next) {
 await agent.updateState(config, {...});
 await agent.invoke(null, config);
 ```
+</fix-check-state-between-invocations>
 
-## Full Documentation
+<documentation-links>
 - [Human-in-the-Loop Guide](https://docs.langchain.com/oss/javascript/langchain/human-in-the-loop)
 - [HITL Middleware](https://docs.langchain.com/oss/javascript/langchain/middleware/built-in#human-in-the-loop)
 - [Deep Agents HITL](https://docs.langchain.com/oss/javascript/deepagents/human-in-the-loop)
+</documentation-links>

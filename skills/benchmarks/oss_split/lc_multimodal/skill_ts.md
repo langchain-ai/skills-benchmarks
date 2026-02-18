@@ -3,10 +3,7 @@ name: LangChain Multimodal (TypeScript)
 description: [LangChain] Work with multimodal inputs/outputs in LangChain - includes images, audio, video, content blocks, and vision capabilities
 ---
 
-# langchain-multimodal (JavaScript/TypeScript)
-
-## Overview
-
+<overview>
 Multimodal support lets you work with images, audio, video, and other non-text data. Models with multimodal capabilities can process and generate content across these different formats.
 
 **Key Concepts:**
@@ -14,30 +11,26 @@ Multimodal support lets you work with images, audio, video, and other non-text d
 - **Vision**: Image understanding with GPT-4V, Claude, Gemini
 - **Audio/Video**: Emerging support in newer models
 - **Standard Format**: Cross-provider content block structure
+</overview>
 
-## Decision Tables
-
-### Model Selection for Multimodal
-
+<model-selection-table>
 | Task | Recommended Model | Why |
 |------|------------------|-----|
 | Image understanding | GPT-4.1, Claude Sonnet, Gemini | Strong vision capabilities |
 | Image generation | DALL-E (via OpenAI) | Specialized for generation |
 | Document analysis (PDF) | Claude, GPT-4.1 | Handle complex layouts |
 | Audio transcription | Whisper (OpenAI) | Specialized for audio |
+</model-selection-table>
 
-### Input Methods
-
+<input-methods-table>
 | Method | When to Use | Example |
 |--------|-------------|---------|
 | URL | Public images | `{ type: "image", url: "https://..." }` |
 | Base64 | Private/local images | `{ type: "image", data: "base64..." }` |
 | File reference | Provider file APIs | `{ type: "image", fileId: "..." }` |
+</input-methods-table>
 
-## Code Examples
-
-### Basic Image Input (URL)
-
+<ex-basic-image-url>
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
 import { HumanMessage } from "langchain";
@@ -47,7 +40,7 @@ const model = new ChatOpenAI({ model: "gpt-4.1" });
 const message = new HumanMessage({
   contentBlocks: [
     { type: "text", text: "What's in this image?" },
-    { 
+    {
       type: "image",
       url: "https://example.com/photo.jpg",
     },
@@ -57,9 +50,9 @@ const message = new HumanMessage({
 const response = await model.invoke([message]);
 console.log(response.content);
 ```
+</ex-basic-image-url>
 
-### Base64 Image Input
-
+<ex-base64-image>
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
 import { HumanMessage } from "langchain";
@@ -84,9 +77,9 @@ const message = new HumanMessage({
 
 const response = await model.invoke([message]);
 ```
+</ex-base64-image>
 
-### Multiple Images
-
+<ex-multiple-images>
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
 import { HumanMessage } from "langchain";
@@ -103,9 +96,9 @@ const message = new HumanMessage({
 
 const response = await model.invoke([message]);
 ```
+</ex-multiple-images>
 
-### PDF Document Analysis
-
+<ex-pdf-analysis>
 ```typescript
 import { ChatAnthropic } from "@langchain/anthropic";
 import { HumanMessage } from "langchain";
@@ -129,9 +122,9 @@ const message = new HumanMessage({
 
 const response = await model.invoke([message]);
 ```
+</ex-pdf-analysis>
 
-### Audio Input (Emerging)
-
+<ex-audio-input>
 ```typescript
 // Example with hypothetical audio support
 const message = new HumanMessage({
@@ -145,9 +138,9 @@ const message = new HumanMessage({
   ],
 });
 ```
+</ex-audio-input>
 
-### Accessing Multimodal Output
-
+<ex-multimodal-output>
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
 
@@ -165,14 +158,14 @@ for (const block of response.contentBlocks) {
   }
 }
 ```
+</ex-multimodal-output>
 
-### Vision with Claude
-
+<ex-vision-claude>
 ```typescript
 import { ChatAnthropic } from "@langchain/anthropic";
 import { HumanMessage } from "langchain";
 
-const model = new ChatAnthropic({ 
+const model = new ChatAnthropic({
   model: "claude-sonnet-4-5-20250929",
 });
 
@@ -191,9 +184,9 @@ const message = new HumanMessage({
 
 const response = await model.invoke([message]);
 ```
+</ex-vision-claude>
 
-### Vision with Gemini
-
+<ex-vision-gemini>
 ```typescript
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { HumanMessage } from "langchain";
@@ -211,73 +204,71 @@ const message = new HumanMessage({
 
 const response = await model.invoke([message]);
 ```
+</ex-vision-gemini>
 
-## Boundaries
+<boundaries>
+**What You CAN Do**
 
-### What You CAN Do
+* Image URLs**: Public images via HTTPS
+* Base64 images**: Local or private images
+* Multiple images**: Compare, analyze together
+* PDF documents**: Text extraction, analysis
+* Cross-provider format**: Standard content blocks
 
-✅ **Image URLs**: Public images via HTTPS
-✅ **Base64 images**: Local or private images
-✅ **Multiple images**: Compare, analyze together
-✅ **PDF documents**: Text extraction, analysis
-✅ **Cross-provider format**: Standard content blocks
+**What You CANNOT Do (Yet)**
 
-### What You CANNOT Do (Yet)
+* Image generation in all models**: Limited to specific models
+* Video understanding**: Emerging, limited support
+* Audio in all models**: Model-specific
+* Modify images**: Models analyze, don't edit
+</boundaries>
 
-❌ **Image generation in all models**: Limited to specific models
-❌ **Video understanding**: Emerging, limited support
-❌ **Audio in all models**: Model-specific
-❌ **Modify images**: Models analyze, don't edit
-
-## Gotchas
-
-### 1. Model Doesn't Support Multimodal
-
+<fix-model-doesnt-support-multimodal>
 ```typescript
-// ❌ Problem: Using text-only model
+// Problem: Using text-only model
 const model = new ChatOpenAI({ model: "gpt-3.5-turbo" });
 await model.invoke([imageMessage]);  // Error!
 
-// ✅ Solution: Use vision-capable model
+// Solution: Use vision-capable model
 const model = new ChatOpenAI({ model: "gpt-4.1" });
 ```
+</fix-model-doesnt-support-multimodal>
 
-### 2. Wrong Content Block Format
-
+<fix-wrong-content-block-format>
 ```typescript
-// ❌ Problem: Old format
+// Problem: Old format
 const message = new HumanMessage({
   content: [
     { type: "image_url", image_url: { url: "..." } }  // OpenAI-specific
   ]
 });
 
-// ✅ Solution: Use standard content blocks
+// Solution: Use standard content blocks
 const message = new HumanMessage({
   contentBlocks: [
     { type: "image", url: "..." }  // Cross-provider
   ]
 });
 ```
+</fix-wrong-content-block-format>
 
-### 3. Missing MIME Type for Base64
-
+<fix-missing-mime-type>
 ```typescript
-// ❌ Problem: No MIME type
+// Problem: No MIME type
 { type: "image", data: base64Data }  // May fail
 
-// ✅ Solution: Always include MIME type
+// Solution: Always include MIME type
 { type: "image", data: base64Data, mimeType: "image/jpeg" }
 ```
+</fix-missing-mime-type>
 
-### 4. Image Too Large
-
+<fix-image-too-large>
 ```typescript
-// ❌ Problem: Image exceeds size limit
+// Problem: Image exceeds size limit
 const hugeImage = fs.readFileSync("./10mb_image.jpg");
 // Model may reject
 
-// ✅ Solution: Resize or compress images first
+// Solution: Resize or compress images first
 import sharp from "sharp";
 
 const resized = await sharp("./10mb_image.jpg")
@@ -285,10 +276,11 @@ const resized = await sharp("./10mb_image.jpg")
   .jpeg({ quality: 80 })
   .toBuffer();
 ```
+</fix-image-too-large>
 
-## Links to Documentation
-
+<documentation-links>
 - [Multimodal Guide](https://docs.langchain.com/oss/javascript/langchain/models)
 - [Messages & Content Blocks](https://docs.langchain.com/oss/javascript/langchain/messages)
 - [OpenAI Vision](https://docs.langchain.com/oss/javascript/integrations/chat/openai)
 - [Anthropic Vision](https://docs.langchain.com/oss/javascript/integrations/chat/anthropic)
+</documentation-links>

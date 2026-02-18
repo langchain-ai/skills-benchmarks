@@ -3,29 +3,23 @@ name: LangGraph Interrupts (TypeScript)
 description: "[LangGraph] Human-in-the-loop with dynamic interrupts and breakpoints: pausing execution for human review and resuming with Command"
 ---
 
-# langgraph-interrupts (JavaScript/TypeScript)
-
-
-## Overview
-
+<overview>
 Interrupts enable human-in-the-loop patterns by pausing graph execution for external input. LangGraph saves state and waits indefinitely until you resume execution.
 
 **Key Types:**
 - **Dynamic Interrupts**: `interrupt()` function called in nodes
 - **Static Breakpoints**: `interruptBefore`/`interruptAfter` at compile time
+</overview>
 
-## Decision Table: Interrupt Types
-
+<decision-table>
 | Type | When Set | Use Case |
 |------|----------|----------|
 | Dynamic (`interrupt()`) | Inside node code | Conditional pausing based on logic |
 | Static (`interruptBefore`) | At compile time | Debug/test before specific nodes |
 | Static (`interruptAfter`) | At compile time | Review output after specific nodes |
+</decision-table>
 
-## Code Examples
-
-### Dynamic Interrupt
-
+<ex-dynamic-interrupt>
 ```typescript
 import { interrupt, Command } from "@langchain/langgraph";
 import { MemorySaver } from "@langchain/langgraph";
@@ -39,13 +33,13 @@ const reviewNode = async (state) => {
       data: state.draft,
       question: "Approve this draft?",
     });
-    
+
     // userResponse comes from Command({ resume: ... })
     if (userResponse === "reject") {
       return { status: "rejected" };
     }
   }
-  
+
   return { status: "approved" };
 };
 
@@ -75,9 +69,9 @@ const finalResult = await graph.invoke(
   config
 );
 ```
+</ex-dynamic-interrupt>
 
-### Static Breakpoints
-
+<ex-static-breakpoints>
 ```typescript
 const checkpointer = new MemorySaver();
 
@@ -106,16 +100,16 @@ await graph.invoke(null, config);  // null = resume
 // Resume again
 await graph.invoke(null, config);
 ```
+</ex-static-breakpoints>
 
-### Tool Review Pattern
-
+<ex-tool-review-pattern>
 ```typescript
 import { interrupt, Command } from "@langchain/langgraph";
 
 const toolExecutor = async (state) => {
   const toolCalls = state.messages.at(-1)?.tool_calls || [];
   const results = [];
-  
+
   for (const toolCall of toolCalls) {
     // Pause for each tool call
     const userDecision = interrupt({
@@ -123,7 +117,7 @@ const toolExecutor = async (state) => {
       args: toolCall.args,
       question: "Execute this tool?",
     });
-    
+
     let result;
     if (userDecision.type === "approve") {
       // Execute tool
@@ -134,14 +128,14 @@ const toolExecutor = async (state) => {
     } else {  // reject
       result = "Tool execution rejected";
     }
-    
+
     // Store result
     results.push(new ToolMessage({
       content: result,
       tool_call_id: toolCall.id,
     }));
   }
-  
+
   return { messages: results };
 };
 
@@ -160,9 +154,9 @@ await graph.invoke(
 // Or reject
 await graph.invoke(new Command({ resume: { type: "reject" } }), config);
 ```
+</ex-tool-review-pattern>
 
-### Editing State During Interrupt
-
+<ex-editing-state-during-interrupt>
 ```typescript
 const config = { configurable: { thread_id: "1" } };
 
@@ -175,9 +169,9 @@ await graph.updateState(config, { data: "manually edited" });
 // Resume with edited state
 await graph.invoke(null, config);
 ```
+</ex-editing-state-during-interrupt>
 
-### Stream with Interrupts
-
+<ex-stream-with-interrupts>
 ```typescript
 const config = {
   configurable: { thread_id: "1" },
@@ -190,7 +184,7 @@ for await (const [mode, chunk] of await graph.stream({ query: "test" }, config))
       // Handle interrupt
       const interruptInfo = chunk.__interrupt__[0].value;
       const userInput = await getUserInput(interruptInfo);
-      
+
       // Resume
       await graph.invoke(new Command({ resume: userInput }), config);
       break;
@@ -198,74 +192,71 @@ for await (const [mode, chunk] of await graph.stream({ query: "test" }, config))
   }
 }
 ```
+</ex-stream-with-interrupts>
 
-## Boundaries
+<boundaries>
+**What You CAN Configure:**
+- Call `interrupt()` anywhere in nodes
+- Set compile-time breakpoints
+- Resume with `Command({ resume: ... })`
+- Edit state during interrupts
+- Stream while handling interrupts
+- Conditional interrupt logic
 
-### What You CAN Configure
+**What You CANNOT Configure:**
+- Interrupt without checkpointer
+- Modify interrupt mechanism
+- Resume without thread_id
+</boundaries>
 
-✅ Call `interrupt()` anywhere in nodes
-✅ Set compile-time breakpoints
-✅ Resume with `Command({ resume: ... })`
-✅ Edit state during interrupts
-✅ Stream while handling interrupts
-✅ Conditional interrupt logic
-
-### What You CANNOT Configure
-
-❌ Interrupt without checkpointer
-❌ Modify interrupt mechanism
-❌ Resume without thread_id
-
-## Gotchas
-
-### 1. Checkpointer Required
-
+<fix-checkpointer-required>
 ```typescript
-// ❌ WRONG - No checkpointer
+// WRONG: No checkpointer
 const graph = builder.compile();  // No persistence!
 await graph.invoke(...);  // Interrupt won't work
 
-// ✅ CORRECT
+// CORRECT
 const checkpointer = new MemorySaver();
 const graph = builder.compile({ checkpointer });
 ```
+</fix-checkpointer-required>
 
-### 2. Thread ID Required
-
+<fix-thread-id-required>
 ```typescript
-// ❌ WRONG - No thread_id
+// WRONG: No thread_id
 await graph.invoke({ data: "test" });  // Can't resume!
 
-// ✅ CORRECT
+// CORRECT
 const config = { configurable: { thread_id: "session-1" } };
 await graph.invoke({ data: "test" }, config);
 ```
+</fix-thread-id-required>
 
-### 3. Resume with Command, Not Object
-
+<fix-resume-with-command-not-object>
 ```typescript
-// ❌ WRONG - Passing regular object
+// WRONG: Passing regular object
 await graph.invoke({ resumeData: "approve" }, config);  // Restarts!
 
-// ✅ CORRECT - Use Command
+// CORRECT: Use Command
 import { Command } from "@langchain/langgraph";
 await graph.invoke(new Command({ resume: "approve" }), config);
 ```
+</fix-resume-with-command-not-object>
 
-### 4. Always Await
-
+<fix-always-await>
 ```typescript
-// ❌ WRONG
+// WRONG
 const result = graph.invoke({}, config);
 console.log(result);  // Promise!
 
-// ✅ CORRECT
+// CORRECT
 const result = await graph.invoke({}, config);
 console.log(result);
 ```
+</fix-always-await>
 
-## Links
-
+<documentation-links>
 - [Interrupts Guide](https://docs.langchain.com/oss/javascript/langgraph/interrupts)
 - [Human-in-the-Loop](https://docs.langchain.com/oss/javascript/langchain/human-in-the-loop)
 - [Command API](https://docs.langchain.com/oss/javascript/langgraph/graph-api#command)
+</documentation-links>

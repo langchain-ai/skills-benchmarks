@@ -3,15 +3,14 @@ name: Deep Agents Memory (TypeScript)
 description: [Deep Agents] Implementing long-term memory in Deep Agents with cross-session storage using StoreBackend, CompositeBackend, and InMemoryStore for persistent data.
 ---
 
-# deepagents-memory (JavaScript/TypeScript)
-
-## Overview
-
-**Short-term (StateBackend)**: Single thread only  
-**Long-term (StoreBackend)**: Persists across threads  
+<overview>
+**Short-term (StateBackend)**: Single thread only
+**Long-term (StoreBackend)**: Persists across threads
 **Hybrid (CompositeBackend)**: Mix both
+</overview>
 
-## Long-term Memory Setup
+<ex-setup>
+Long-term memory setup:
 
 ```typescript
 import { createDeepAgent, CompositeBackend, StateBackend, StoreBackend } from "deepagents";
@@ -30,10 +29,10 @@ const agent = await createDeepAgent({
 // /memories/* files persist across threads
 // Other files are ephemeral
 ```
+</ex-setup>
 
-## Code Examples
-
-### Example 1: User Preferences Across Sessions
+<ex-user-preferences>
+User preferences across sessions:
 
 ```typescript
 import { createDeepAgent, CompositeBackend, StateBackend, StoreBackend } from "deepagents";
@@ -68,8 +67,10 @@ await agent.invoke({
 }, config2);
 // Agent reads /memories/style.txt
 ```
+</ex-user-preferences>
 
-### Example 2: Using Store Directly in Tools
+<ex-store-tools>
+Using Store directly in tools:
 
 ```typescript
 import { tool } from "langchain";
@@ -119,8 +120,10 @@ await agent.invoke({
   messages: [{ role: "user", content: "What UI theme do I prefer?" }]
 });
 ```
+</ex-store-tools>
 
-### Example 3: Project Knowledge Base
+<ex-knowledge-base>
+Project knowledge base:
 
 ```typescript
 const agent = await createDeepAgent({
@@ -150,71 +153,77 @@ await agent.invoke({
   }]
 }, { configurable: { thread_id: "thread-2" } });
 ```
+</ex-knowledge-base>
 
-## Decision Table
-
+<backend-selection>
 | Pattern | Backend | Use Case |
 |---------|---------|----------|
 | All ephemeral | StateBackend | Single-session tasks |
 | All persistent | StoreBackend | Everything remembered |
 | Hybrid | CompositeBackend | `/memories/` persistent, rest ephemeral |
+</backend-selection>
 
-## Boundaries
+<boundaries>
+What Agents CAN Do:
+- Save files to persistent storage
+- Access persisted files across threads
+- Mix ephemeral and persistent storage
+- Use Store namespace/key pattern
 
-### What Agents CAN Do
-✅ Save files to persistent storage  
-✅ Access persisted files across threads  
-✅ Mix ephemeral and persistent storage  
-✅ Use Store namespace/key pattern
+What Agents CANNOT Do:
+- Access memory without Store
+- Persist StateBackend files across threads
+- Share memory across agents without shared Store
+</boundaries>
 
-### What Agents CANNOT Do
-❌ Access memory without Store  
-❌ Persist StateBackend files across threads  
-❌ Share memory across agents without shared Store
-
-## Gotchas
-
-### 1. StoreBackend Requires Store
+<fix-store-required>
+StoreBackend requires Store:
 
 ```typescript
-// ❌ Missing store
+// WRONG: Missing store
 await createDeepAgent({
   backend: (config) => new StoreBackend(config)
 });
 
-// ✅ Provide store
+// CORRECT: Provide store
 await createDeepAgent({
   backend: (config) => new StoreBackend(config),
   store: new InMemoryStore()
 });
 ```
+</fix-store-required>
 
-### 2. Path Prefix Matters
+<fix-path-prefix>
+Path prefix determines persistence:
 
 ```typescript
-// ❌ Not persistent (wrong path)
+// WRONG: Not persistent (wrong path)
 await agent.invoke({
   messages: [{ role: "user", content: "Save to /prefs.txt" }]
 });
 
-// ✅ Persistent (matches /memories/ route)
+// CORRECT: Persistent (matches /memories/ route)
 await agent.invoke({
   messages: [{ role: "user", content: "Save to /memories/prefs.txt" }]
 });
 ```
+</fix-path-prefix>
 
-### 3. InMemoryStore Not Persistent
+<fix-inmemory-production>
+InMemoryStore is not persistent across restarts:
 
 ```typescript
-// ❌ Lost on restart
+// WRONG: Lost on restart
 const store = new InMemoryStore();
 
-// ✅ Use persistent store for production
+// CORRECT: Use persistent store for production
 import { PostgresStore } from "@langchain/langgraph";
 const store = new PostgresStore({ connectionString: "postgresql://..." });
 ```
+</fix-inmemory-production>
 
-### 4. Routes Use Longest Prefix Match
+<fix-prefix-match>
+Routes use longest prefix match:
 
 ```typescript
 const backend = (config) => new CompositeBackend(
@@ -228,10 +237,11 @@ const backend = (config) => new CompositeBackend(
 // /mem/file.txt -> StoreBackend
 // /mem/temp/file.txt -> StateBackend (longer match)
 ```
+</fix-prefix-match>
 
-## Full Documentation
-
+<documentation-links>
 - [Long-term Memory](https://docs.langchain.com/oss/javascript/deepagents/long-term-memory)
 - [Backends](https://docs.langchain.com/oss/javascript/deepagents/backends)
 - [Memory Overview](https://docs.langchain.com/oss/javascript/concepts/memory)
 - [LangGraph Store](https://docs.langchain.com/oss/javascript/langgraph/add-memory)
+</documentation-links>

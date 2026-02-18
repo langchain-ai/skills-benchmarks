@@ -3,10 +3,7 @@ name: LangChain Tools (TypeScript)
 description: [LangChain] Define and use tools in LangChain - includes @tool decorator, custom tools, built-in tools, and tool schemas
 ---
 
-# langchain-tools (JavaScript/TypeScript)
-
-## Overview
-
+<overview>
 Tools are functions that agents can execute to perform actions like fetching data, running code, or querying databases. Tools have schemas that describe their purpose and parameters, helping models understand when and how to use them.
 
 **Key Concepts:**
@@ -14,32 +11,28 @@ Tools are functions that agents can execute to perform actions like fetching dat
 - **Schema**: Zod schema defining tool parameters
 - **Description**: Helps model understand when to use the tool
 - **Built-in Tools**: Pre-made tools for common tasks
+</overview>
 
-## When to Define Custom Tools
-
+<when-to-define-custom-tools>
 | Scenario | Create Custom Tool? | Why |
 |----------|---------------------|-----|
-| Domain-specific logic | ✅ Yes | Unique to your application |
-| Third-party API integration | ✅ Yes | Custom integration needed |
-| Database queries | ✅ Yes | Your schema/data |
-| Common utilities (search, calc) | ⚠️ Maybe | Check for existing tools first |
-| File operations | ⚠️ Maybe | Built-in filesystem tools exist |
+| Domain-specific logic | Yes | Unique to your application |
+| Third-party API integration | Yes | Custom integration needed |
+| Database queries | Yes | Your schema/data |
+| Common utilities (search, calc) | Partial Maybe | Check for existing tools first |
+| File operations | Partial Maybe | Built-in filesystem tools exist |
+</when-to-define-custom-tools>
 
-## Decision Tables
-
-### Tool Definition Methods
-
+<tool-definition-methods>
 | Method | When to Use | Example |
 |--------|-------------|---------|
 | `tool()` with function | Simple tools | Basic transformations |
 | `tool()` with schema | Complex parameters | Multiple typed fields |
 | `StructuredTool` | Full control | Custom error handling |
 | Built-in tools | Common operations | Search, code execution |
+</tool-definition-methods>
 
-## Code Examples
-
-### Basic Tool Definition
-
+<ex-basic-tool-definition>
 ```typescript
 import { tool } from "langchain";
 import { z } from "zod";
@@ -70,9 +63,9 @@ const result = await calculator.invoke({
 });
 console.log(result); // "8"
 ```
+</ex-basic-tool-definition>
 
-### Tool with Detailed Schema
-
+<ex-tool-with-detailed-schema>
 ```typescript
 import { tool } from "langchain";
 import { z } from "zod";
@@ -96,9 +89,9 @@ const searchDatabase = tool(
   }
 );
 ```
+</ex-tool-with-detailed-schema>
 
-### Async Tool
-
+<ex-async-tool>
 ```typescript
 import { tool } from "langchain";
 import { z } from "zod";
@@ -121,9 +114,9 @@ const fetchWeather = tool(
   }
 );
 ```
+</ex-async-tool>
 
-### Tool with Error Handling
-
+<ex-tool-with-error-handling>
 ```typescript
 import { tool } from "langchain";
 import { z } from "zod";
@@ -147,9 +140,9 @@ const divisionTool = tool(
 
 // Error will be caught and returned as ToolMessage
 ```
+</ex-tool-with-error-handling>
 
-### Tool with Side Effects
-
+<ex-tool-with-side-effects>
 ```typescript
 import { tool } from "langchain";
 import { z } from "zod";
@@ -170,9 +163,9 @@ const writeFile = tool(
   }
 );
 ```
+</ex-tool-with-side-effects>
 
-### Tool with External Dependencies
-
+<ex-tool-with-external-dependencies>
 ```typescript
 import { tool } from "langchain";
 import { z } from "zod";
@@ -187,9 +180,9 @@ const githubSearch = tool(
         headers: { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` },
       }
     );
-    
+
     const repos = response.data.items.slice(0, 5);
-    return repos.map(r => `${r.full_name} (⭐ ${r.stargazers_count})`).join("\n");
+    return repos.map(r => `${r.full_name} (stars: ${r.stargazers_count})`).join("\n");
   },
   {
     name: "search_github",
@@ -201,9 +194,9 @@ const githubSearch = tool(
   }
 );
 ```
+</ex-tool-with-external-dependencies>
 
-### Tool with Complex Return Type
-
+<ex-tool-with-complex-return-type>
 ```typescript
 import { tool } from "langchain";
 import { z } from "zod";
@@ -226,9 +219,9 @@ const analyzeText = tool(
   }
 );
 ```
+</ex-tool-with-complex-return-type>
 
-### Tool with Runtime Configuration
-
+<ex-tool-with-runtime-configuration>
 ```typescript
 import { tool } from "langchain";
 import { z } from "zod";
@@ -254,9 +247,9 @@ function createDatabaseTool(connectionString: string) {
 const prodDbTool = createDatabaseTool(process.env.PROD_DB_URL);
 const devDbTool = createDatabaseTool(process.env.DEV_DB_URL);
 ```
+</ex-tool-with-runtime-configuration>
 
-### Multiple Related Tools
-
+<ex-multiple-related-tools>
 ```typescript
 import { tool } from "langchain";
 import { z } from "zod";
@@ -278,7 +271,7 @@ const emailTools = {
       }),
     }
   ),
-  
+
   read: tool(
     async ({ folder, limit }) => {
       // Read emails logic
@@ -301,9 +294,9 @@ const agent = createAgent({
   tools: Object.values(emailTools),
 });
 ```
+</ex-multiple-related-tools>
 
-### Tool with Response Format Validation
-
+<ex-tool-with-response-format-validation>
 ```typescript
 import { tool } from "langchain";
 import { z } from "zod";
@@ -311,7 +304,7 @@ import { z } from "zod";
 const getUser = tool(
   async ({ userId }) => {
     const user = await db.users.findById(userId);
-    
+
     // Return structured data as JSON string
     return JSON.stringify({
       id: user.id,
@@ -329,9 +322,9 @@ const getUser = tool(
   }
 );
 ```
+</ex-tool-with-response-format-validation>
 
-### Tool with Streaming Updates
-
+<ex-tool-with-streaming-updates>
 ```typescript
 import { tool } from "langchain";
 import { z } from "zod";
@@ -339,18 +332,18 @@ import { z } from "zod";
 const processLargeFile = tool(
   async ({ filepath }, { runtime }) => {
     const totalLines = 1000;
-    
+
     for (let i = 0; i < totalLines; i += 100) {
       // Stream progress updates
       await runtime.stream_writer.write({
         type: "progress",
         data: { processed: i, total: totalLines },
       });
-      
+
       // Process chunk
       await processChunk(i, i + 100);
     }
-    
+
     return "Processing complete";
   },
   {
@@ -362,31 +355,27 @@ const processLargeFile = tool(
   }
 );
 ```
+</ex-tool-with-streaming-updates>
 
-## Boundaries
+<boundaries>
+**What You CAN Configure:**
+- Function logic: Any JavaScript/TypeScript code
+- Parameters: Via Zod schema with descriptions
+- Name and description: Guide model's tool selection
+- Return value: Any serializable data (string, JSON, etc.)
+- Async operations: Tools can be async
+- Error handling: Throw errors or return error messages
 
-### What You CAN Configure
+**What You CANNOT Configure:**
+- When model calls tool: Model decides based on context
+- Tool call order: Model determines execution flow
+- Parameter values: Model generates based on schema
+- Response format from model: Tool returns, model interprets
+</boundaries>
 
-✅ **Function logic**: Any JavaScript/TypeScript code
-✅ **Parameters**: Via Zod schema with descriptions
-✅ **Name and description**: Guide model's tool selection
-✅ **Return value**: Any serializable data (string, JSON, etc.)
-✅ **Async operations**: Tools can be async
-✅ **Error handling**: Throw errors or return error messages
-
-### What You CANNOT Configure
-
-❌ **When model calls tool**: Model decides based on context
-❌ **Tool call order**: Model determines execution flow
-❌ **Parameter values**: Model generates based on schema
-❌ **Response format from model**: Tool returns, model interprets
-
-## Gotchas
-
-### 1. Poor Tool Descriptions
-
+<fix-poor-tool-descriptions>
 ```typescript
-// ❌ Problem: Vague description
+// WRONG: Problem: Vague description
 const badTool = tool(
   async ({ data }) => "result",
   {
@@ -396,7 +385,7 @@ const badTool = tool(
   }
 );
 
-// ✅ Solution: Specific, actionable description
+// CORRECT: Solution: Specific, actionable description
 const goodTool = tool(
   async ({ query }) => searchDatabase(query),
   {
@@ -408,33 +397,33 @@ const goodTool = tool(
   }
 );
 ```
+</fix-poor-tool-descriptions>
 
-### 2. Missing Parameter Descriptions
-
+<fix-missing-parameter-descriptions>
 ```typescript
-// ❌ Problem: No field descriptions
+// WRONG: Problem: No field descriptions
 const badSchema = z.object({
   query: z.string(),
   limit: z.number(),
 });
 
-// ✅ Solution: Describe each field
+// CORRECT: Solution: Describe each field
 const goodSchema = z.object({
   query: z.string().describe("Search terms or keywords"),
   limit: z.number().describe("Maximum results to return (1-100)"),
 });
 ```
+</fix-missing-parameter-descriptions>
 
-### 3. Non-Serializable Return Values
-
+<fix-non-serializable-return-values>
 ```typescript
-// ❌ Problem: Returning complex objects
+// WRONG: Problem: Returning complex objects
 const badTool = tool(
   async () => new Date(), // Date not serializable!
   { name: "get_time", description: "Get time", schema: z.object({}) }
 );
 
-// ✅ Solution: Return strings or JSON
+// CORRECT: Solution: Return strings or JSON
 const goodTool = tool(
   async () => new Date().toISOString(),
   { name: "get_time", description: "Get current time", schema: z.object({}) }
@@ -446,18 +435,18 @@ const dataTool = tool(
   { name: "get_data", description: "Get data", schema: z.object({}) }
 );
 ```
+</fix-non-serializable-return-values>
 
-### 4. Tools Without Schemas
-
+<fix-tools-without-schemas>
 ```typescript
-// ❌ Problem: No schema
+// WRONG: Problem: No schema
 const badTool = tool(
   async (input: any) => "result",
   { name: "tool", description: "A tool" }
   // Missing schema!
 );
 
-// ✅ Solution: Always provide schema
+// CORRECT: Solution: Always provide schema
 const goodTool = tool(
   async ({ input }) => "result",
   {
@@ -467,11 +456,11 @@ const goodTool = tool(
   }
 );
 ```
+</fix-tools-without-schemas>
 
-### 5. Forgetting Async
-
+<fix-forgetting-async>
 ```typescript
-// ❌ Problem: Not awaiting async operations
+// WRONG: Problem: Not awaiting async operations
 const badTool = tool(
   ({ url }) => {
     fetch(url); // Not awaited!
@@ -484,7 +473,7 @@ const badTool = tool(
   }
 );
 
-// ✅ Solution: Use async/await
+// CORRECT: Solution: Use async/await
 const goodTool = tool(
   async ({ url }) => {
     const response = await fetch(url);
@@ -498,11 +487,11 @@ const goodTool = tool(
   }
 );
 ```
+</fix-forgetting-async>
 
-### 6. Tool Names with Spaces or Special Chars
-
+<fix-tool-names-with-spaces-or-special-chars>
 ```typescript
-// ❌ Problem: Invalid tool name
+// WRONG: Problem: Invalid tool name
 const badTool = tool(
   async () => "result",
   {
@@ -512,7 +501,7 @@ const badTool = tool(
   }
 );
 
-// ✅ Solution: Use snake_case or camelCase
+// CORRECT: Solution: Use snake_case or camelCase
 const goodTool = tool(
   async () => "result",
   {
@@ -522,9 +511,10 @@ const goodTool = tool(
   }
 );
 ```
+</fix-tool-names-with-spaces-or-special-chars>
 
-## Links to Documentation
-
+<documentation-links>
 - [Tools Overview](https://docs.langchain.com/oss/javascript/langchain/tools)
 - [Tool Integrations](https://docs.langchain.com/oss/javascript/integrations/tools/index)
 - [Custom Tools Guide](https://docs.langchain.com/oss/javascript/integrations/chat/openai)
+</documentation-links>

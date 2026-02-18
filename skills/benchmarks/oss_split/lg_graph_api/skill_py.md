@@ -3,11 +3,7 @@ name: LangGraph Graph API (Python)
 description: [LangGraph] Building graphs with StateGraph, nodes, edges, START/END nodes, and the Command API for combining control flow with state updates
 ---
 
-# langgraph-graph-api (Python)
-
-
-## Overview
-
+<overview>
 The LangGraph Graph API allows you to define agent workflows as directed graphs composed of **nodes** (functions) and **edges** (control flow). This provides fine-grained control over agent orchestration.
 
 **Core Components:**
@@ -16,18 +12,18 @@ The LangGraph Graph API allows you to define agent workflows as directed graphs 
 - **Edges**: Define execution order (static or conditional)
 - **START/END**: Special nodes marking graph entry and exit points
 - **Command**: Combine state updates with dynamic routing
+</overview>
 
-## Decision Table: Edge Types
-
+<edge-type-selection>
 | Need | Edge Type | When to Use |
 |------|-----------|-------------|
 | Always go to same node | `add_edge()` | Fixed, deterministic flow |
 | Route based on state | `add_conditional_edges()` | Dynamic branching logic |
 | Fan-out to multiple nodes | `Send` API | Map-reduce, parallel execution |
 | Update state AND route | `Command` | Combine logic in single node |
+</edge-type-selection>
 
-## Key Concepts
-
+<key-concepts>
 ### 1. Graph Execution Model
 
 LangGraph uses a **message-passing** model inspired by Google's Pregel:
@@ -62,11 +58,9 @@ def my_node(state: State) -> dict:
 
 - **START**: Entry point of the graph (virtual node)
 - **END**: Terminal node (graph halts)
+</key-concepts>
 
-## Code Examples
-
-### Basic Graph with Static Edges
-
+<ex-basic-graph>
 ```python
 from langgraph.graph import StateGraph, START, END
 from typing_extensions import TypedDict
@@ -98,9 +92,9 @@ graph = (
 result = graph.invoke({"input": "hello"})
 print(result["output"])  # "PROCESSED: HELLO"
 ```
+</ex-basic-graph>
 
-### Conditional Edges (Branching)
-
+<ex-conditional-edges>
 ```python
 from typing import Literal
 from langgraph.graph import StateGraph, START, END
@@ -145,9 +139,9 @@ graph = (
 
 result = graph.invoke({"query": "What's the weather?"})
 ```
+</ex-conditional-edges>
 
-### Using Command for State + Routing
-
+<ex-command-state-routing>
 ```python
 from langgraph.types import Command
 from typing import Literal
@@ -159,7 +153,7 @@ class State(TypedDict):
 def node_a(state: State) -> Command[Literal["node_b", "node_c"]]:
     """Update state AND decide next node."""
     new_count = state["count"] + 1
-    
+
     if new_count > 5:
         # Go to node_c
         return Command(
@@ -196,9 +190,9 @@ print(result["result"])  # "B executed, count=1"
 result = graph.invoke({"count": 5})
 print(result["result"])  # "C executed, count=6"
 ```
+</ex-command-state-routing>
 
-### Map-Reduce with Send API
-
+<ex-map-reduce-send>
 ```python
 from langgraph.types import Send
 from typing import Annotated
@@ -237,9 +231,9 @@ graph = (
 result = graph.invoke({"items": ["A", "B", "C"]})
 print(result["final"])  # "Processed: A, Processed: B, Processed: C"
 ```
+</ex-map-reduce-send>
 
-### Graph with Loops
-
+<ex-graph-with-loops>
 ```python
 from langgraph.graph import StateGraph, START, END
 
@@ -267,9 +261,9 @@ graph = (
 result = graph.invoke({"count": 0, "max_iterations": 5})
 print(result["count"])  # 5
 ```
+</ex-graph-with-loops>
 
-### Compiling with Options
-
+<ex-compile-options>
 ```python
 from langgraph.checkpoint.memory import InMemorySaver
 
@@ -287,79 +281,77 @@ graph = (
     )
 )
 ```
+</ex-compile-options>
 
-## Boundaries
-
+<boundaries>
 ### What Agents CAN Configure
 
-✅ Define custom nodes (any Python function)
-✅ Add static edges between nodes
-✅ Add conditional edges with custom logic
-✅ Use Command for combined state/routing
-✅ Create loops with conditional termination
-✅ Fan-out with Send API (map-reduce)
-✅ Set breakpoints (interrupt_before/after)
-✅ Customize state schema
-✅ Specify checkpointer for persistence
+- Define custom nodes (any Python function)
+- Add static edges between nodes
+- Add conditional edges with custom logic
+- Use Command for combined state/routing
+- Create loops with conditional termination
+- Fan-out with Send API (map-reduce)
+- Set breakpoints (interrupt_before/after)
+- Customize state schema
+- Specify checkpointer for persistence
 
 ### What Agents CANNOT Configure
 
-❌ Modify START/END node behavior
-❌ Change super-step execution model
-❌ Alter message-passing protocol
-❌ Override graph compilation logic
-❌ Bypass state update mechanism
+- Modify START/END node behavior
+- Change super-step execution model
+- Alter message-passing protocol
+- Override graph compilation logic
+- Bypass state update mechanism
+</boundaries>
 
-## Gotchas
-
-### 1. Must Compile Before Execution
-
+<fix-compile-before-execution>
 ```python
-# ❌ WRONG
+# WRONG: WRONG
 builder = StateGraph(State).add_node("node", func)
 builder.invoke({"input": "test"})  # AttributeError!
 
-# ✅ CORRECT
+# CORRECT: CORRECT
 graph = builder.compile()
 graph.invoke({"input": "test"})
 ```
+</fix-compile-before-execution>
 
-### 2. Conditional Edge Destinations Must Exist
-
+<fix-conditional-edge-destinations>
 ```python
-# ❌ WRONG - "missing_node" not added to graph
+# WRONG: WRONG - "missing_node" not added to graph
 def router(state):
     return "missing_node"
 
 builder.add_conditional_edges("node_a", router, ["missing_node"])
 
-# ✅ CORRECT - Add all possible destinations
+# CORRECT: CORRECT - Add all possible destinations
 builder.add_node("missing_node", func)
 builder.add_conditional_edges("node_a", router, ["missing_node"])
 ```
+</fix-conditional-edge-destinations>
 
-### 3. Command Requires Type Annotation
-
+<fix-command-type-annotation>
 ```python
-# ❌ WRONG - No type hint for routing
+# WRONG: WRONG - No type hint for routing
 def node_a(state) -> Command:
     return Command(goto="node_b")
 
-# ✅ CORRECT - Specify possible destinations
+# CORRECT: CORRECT - Specify possible destinations
 from typing import Literal
 
 def node_a(state) -> Command[Literal["node_b", "node_c"]]:
     return Command(goto="node_b")
 ```
+</fix-command-type-annotation>
 
-### 4. Loops Need Exit Condition
-
+<fix-loop-exit-condition>
 ```python
-# ❌ WRONG - Infinite loop
+# WRONG: WRONG - Infinite loop
 builder.add_edge("node_a", "node_b")
 builder.add_edge("node_b", "node_a")  # No way out!
 
-# ✅ CORRECT - Conditional edge to END
+# CORRECT: CORRECT - Conditional edge to END
 def should_continue(state):
     if state["count"] > 10:
         return END
@@ -367,38 +359,39 @@ def should_continue(state):
 
 builder.add_conditional_edges("node_a", should_continue)
 ```
+</fix-loop-exit-condition>
 
-### 5. Send API Requires Accumulator
-
+<fix-send-api-accumulator>
 ```python
-# ❌ WRONG - Results will be overwritten
+# WRONG: WRONG - Results will be overwritten
 class State(TypedDict):
     results: list  # No reducer!
 
-# ✅ CORRECT - Use Annotated with operator.add
+# CORRECT: CORRECT - Use Annotated with operator.add
 from typing import Annotated
 import operator
 
 class State(TypedDict):
     results: Annotated[list, operator.add]  # Accumulates results
 ```
+</fix-send-api-accumulator>
 
-### 6. START is Virtual, Cannot Be a Destination
-
+<fix-start-not-destination>
 ```python
-# ❌ WRONG - Cannot route back to START
+# WRONG: WRONG - Cannot route back to START
 builder.add_edge("node_a", START)  # Error!
 
-# ✅ CORRECT - Use named entry node instead
+# CORRECT: CORRECT - Use named entry node instead
 builder.add_node("entry", entry_func)
 builder.add_edge(START, "entry")
 builder.add_edge("node_a", "entry")  # OK
 ```
+</fix-start-not-destination>
 
-## Links
-
+<links>
 - [Graph API Reference (Python)](https://docs.langchain.com/oss/python/langgraph/graph-api)
 - [Using the Graph API](https://docs.langchain.com/oss/python/langgraph/use-graph-api)
 - [Command Documentation](https://docs.langchain.com/oss/python/langgraph/use-graph-api#combine-control-flow-and-state-updates-with-command)
 - [Send API Guide](https://docs.langchain.com/oss/python/langgraph/use-graph-api#map-reduce-and-the-send-api)
 - [Conditional Branching](https://docs.langchain.com/oss/python/langgraph/use-graph-api#conditional-branching)
+</links>

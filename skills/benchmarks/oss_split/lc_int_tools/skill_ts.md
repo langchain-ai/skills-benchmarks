@@ -3,21 +3,17 @@ name: LangChain Tools Integration (TypeScript)
 description: [LangChain] Guide to using tool integrations in LangChain including pre-built toolkits, Tavily, Wikipedia, and custom tools
 ---
 
-# langchain-tools (JavaScript/TypeScript)
-
-## Overview
-
+<overview>
 Tools enable LLMs to interact with external systems, perform calculations, search the web, query databases, and more. They extend model capabilities beyond text generation, making agents truly actionable.
 
-### Key Concepts
-
+**Key Concepts:**
 - **Tools**: Functions that agents can call to perform specific tasks
 - **Tool Calling**: Models decide when and how to use tools based on user queries
 - **Toolkits**: Collections of related tools
 - **Tool Schema**: Describes tool parameters using Zod or JSON Schema
+</overview>
 
-## Tool Selection Decision Table
-
+<tool-selection-table>
 | Tool/Toolkit | Best For | Package | Key Features |
 |--------------|----------|---------|--------------|
 | **Tavily Search** | Web search | `@langchain/community` | AI-optimized search API |
@@ -27,9 +23,9 @@ Tools enable LLMs to interact with external systems, perform calculations, searc
 | **Browser Tools** | Web automation | `@langchain/community` | Headless browsing |
 | **Vector Store Tools** | Semantic search | Based on vector store | Query your data |
 | **Custom Tools** | Your specific needs | `@langchain/core/tools` | Define any function |
+</tool-selection-table>
 
-### When to Choose Each Tool
-
+<when-to-choose>
 **Choose Tavily if:**
 - You need high-quality web search
 - You want AI-optimized results
@@ -44,11 +40,9 @@ Tools enable LLMs to interact with external systems, perform calculations, searc
 - You have specific business logic
 - You need to integrate proprietary systems
 - Built-in tools don't meet your needs
+</when-to-choose>
 
-## Code Examples
-
-### Tavily Search Tool
-
+<ex-tavily-search>
 ```typescript
 import { TavilySearchResults } from "@langchain/community/tools/tavily_search";
 
@@ -76,9 +70,9 @@ const response = await agent.invoke({
   messages: [{ role: "user", content: "What's new in AI today?" }]
 });
 ```
+</ex-tavily-search>
 
-### Wikipedia Tool
-
+<ex-wikipedia>
 ```typescript
 import { WikipediaQueryRun } from "@langchain/community/tools/wikipedia_query_run";
 
@@ -91,9 +85,9 @@ const wikipediaTool = new WikipediaQueryRun({
 const result = await wikipediaTool.invoke("Artificial Intelligence");
 console.log(result);
 ```
+</ex-wikipedia>
 
-### Calculator Tool
-
+<ex-calculator>
 ```typescript
 import { Calculator } from "@langchain/community/tools/calculator";
 
@@ -109,9 +103,9 @@ const mathAgent = createReactAgent({
   tools: [calculator],
 });
 ```
+</ex-calculator>
 
-### DuckDuckGo Search (No API Key)
-
+<ex-duckduckgo>
 ```typescript
 import { DuckDuckGoSearch } from "@langchain/community/tools/duckduckgo_search";
 
@@ -121,9 +115,9 @@ const searchTool = new DuckDuckGoSearch({
 
 const results = await searchTool.invoke("LangChain framework");
 ```
+</ex-duckduckgo>
 
-### Custom Tool with Zod Schema
-
+<ex-custom-tool-zod>
 ```typescript
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
@@ -155,9 +149,9 @@ const response = await agent.invoke({
   messages: [{ role: "user", content: "What's the weather in London?" }]
 });
 ```
+</ex-custom-tool-zod>
 
-### Custom Tool - Class-Based
-
+<ex-custom-tool-class>
 ```typescript
 import { StructuredTool } from "@langchain/core/tools";
 import { z } from "zod";
@@ -165,7 +159,7 @@ import { z } from "zod";
 class DatabaseQueryTool extends StructuredTool {
   name = "database_query";
   description = "Query the customer database for information";
-  
+
   schema = z.object({
     customerId: z.string().describe("Customer ID to look up"),
   });
@@ -179,9 +173,9 @@ class DatabaseQueryTool extends StructuredTool {
 
 const dbTool = new DatabaseQueryTool();
 ```
+</ex-custom-tool-class>
 
-### Vector Store as Tool
-
+<ex-vector-store-tool>
 ```typescript
 import { createRetrieverTool } from "langchain/tools/retriever";
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
@@ -209,9 +203,9 @@ const agent = createReactAgent({
   tools: [retrieverTool],
 });
 ```
+</ex-vector-store-tool>
 
-### Multiple Tools Example
-
+<ex-multiple-tools>
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
 import { TavilySearchResults } from "@langchain/community/tools/tavily_search";
@@ -252,9 +246,9 @@ const response = await agent.invoke({
   }]
 });
 ```
+</ex-multiple-tools>
 
-### Tool with Error Handling
-
+<ex-error-handling>
 ```typescript
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
@@ -281,86 +275,80 @@ const apiTool = tool(
   }
 );
 ```
+</ex-error-handling>
 
-## Boundaries
+<boundaries>
+**What Agents CAN Do**
 
-### What Agents CAN Do
-
-✅ **Use pre-built tools**
+* Use pre-built tools**
 - Tavily search, Wikipedia, Calculator
 - DuckDuckGo, web browsers
 - Any tool from LangChain community
 
-✅ **Create custom tools**
+* Create custom tools**
 - Define functions with Zod schemas
 - Implement class-based tools
 - Convert retrievers to tools
 
-✅ **Combine multiple tools**
+* Combine multiple tools**
 - Give agents access to many tools
 - Let models choose appropriate tools
 - Chain tool calls
 
-✅ **Handle tool responses**
+* Handle tool responses**
 - Parse tool output
 - Use results in conversation
 - Error handling
 
-### What Agents CANNOT Do
+**What Agents CANNOT Do**
 
-❌ **Execute arbitrary code safely**
+* Execute arbitrary code safely**
 - Cannot run untrusted code
 - Need sandboxing for code execution
 
-❌ **Bypass authentication**
+* Bypass authentication**
 - Tools need proper API keys
 - Cannot access protected resources without credentials
 
-❌ **Guarantee tool selection**
+* Guarantee tool selection**
 - Model decides which tool to use
 - Cannot force specific tool usage (without prompting)
 
-❌ **Use tools model doesn't support**
+* Use tools model doesn't support**
 - Not all models support tool calling
 - Need GPT-4, Claude 3, or similar
+</boundaries>
 
-## Gotchas
-
-### 1. **API Keys Required**
-
+<fix-api-keys-required>
 ```typescript
-// ❌ Missing API key
+// WRONG: Missing API key
 const tool = new TavilySearchResults();
 await tool.invoke("query"); // Error!
 
-// ✅ Provide API key
+// CORRECT: Provide API key
 const tool = new TavilySearchResults({
   apiKey: process.env.TAVILY_API_KEY,
 });
 ```
+</fix-api-keys-required>
 
-**Fix**: Set required API keys in environment variables.
-
-### 2. **Model Must Support Tools**
-
+<fix-model-must-support-tools>
 ```typescript
-// ❌ Model doesn't support tool calling
+// WRONG: Model doesn't support tool calling
 import { ChatOpenAI } from "@langchain/openai";
 
 const model = new ChatOpenAI({ modelName: "gpt-3.5-turbo-instruct" });
 // This model doesn't support tools!
 
-// ✅ Use tool-capable model
+// CORRECT: Use tool-capable model
 const model = new ChatOpenAI({ modelName: "gpt-4" });
 const modelWithTools = model.bindTools([myTool]);
 ```
+</fix-model-must-support-tools>
 
-**Fix**: Use models that support function calling (GPT-4, Claude 3, etc.).
-
-### 3. **Tool Description Matters**
-
+<fix-tool-description-matters>
 ```typescript
-// ❌ Poor description
+// WRONG: Poor description
 const tool = tool(
   async ({ x }) => x * 2,
   {
@@ -370,7 +358,7 @@ const tool = tool(
   }
 );
 
-// ✅ Clear, specific description
+// CORRECT: Clear, specific description
 const tool = tool(
   async ({ number }) => number * 2,
   {
@@ -382,13 +370,11 @@ const tool = tool(
   }
 );
 ```
+</fix-tool-description-matters>
 
-**Fix**: Write clear descriptions that help the model know when to use the tool.
-
-### 4. **Schema Validation**
-
+<fix-schema-validation>
 ```typescript
-// ❌ No schema validation
+// WRONG: No schema validation
 const tool = tool(
   async ({ location }) => {
     // Assumes location is a string, but no validation
@@ -401,7 +387,7 @@ const tool = tool(
   }
 );
 
-// ✅ Proper schema
+// CORRECT: Proper schema
 const tool = tool(
   async ({ location }) => {
     return location.toUpperCase();
@@ -415,17 +401,15 @@ const tool = tool(
   }
 );
 ```
+</fix-schema-validation>
 
-**Fix**: Use specific Zod schemas for type safety.
-
-## Links and Resources
-
-### Official Documentation
+<documentation-links>
 - [LangChain JS Tools](https://js.langchain.com/docs/integrations/tools/)
 - [Custom Tools Guide](https://js.langchain.com/docs/how_to/custom_tools/)
 - [Tavily](https://docs.tavily.com/)
+</documentation-links>
 
-### Package Installation
+<package-installation>
 ```bash
 # Community tools
 npm install @langchain/community
@@ -436,3 +420,4 @@ npm install @langchain/core
 # Specific integrations
 npm install @langchain/openai  # For OpenAI-based tools
 ```
+</package-installation>

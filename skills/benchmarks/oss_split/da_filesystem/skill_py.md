@@ -3,10 +3,7 @@ name: Deep Agents Filesystem (Python)
 description: [Deep Agents] Using FilesystemMiddleware with virtual filesystems, backends (State, Store, Filesystem, Composite), and context management for Deep Agents.
 ---
 
-# deepagents-filesystem (Python)
-
-## Overview
-
+<overview>
 FilesystemMiddleware solves context engineering challenges by providing file operations through a pluggable backend system. It allows agents to offload large context to filesystem storage, preventing context window overflow.
 
 **Built-in Filesystem Tools:**
@@ -16,22 +13,28 @@ FilesystemMiddleware solves context engineering challenges by providing file ope
 - `edit_file` - Edit existing files with exact string replacement
 - `glob` - Find files matching patterns
 - `grep` - Search for text across files
+</overview>
 
-## When to Use Filesystem Middleware
-
+<when-to-use-filesystem>
 | Use Filesystem Tools When | Alternative Approach |
 |--------------------------|---------------------|
 | Tool results are variable-length (web_search, RAG) | Keep in message history (if small) |
 | Working with large documents or code | Use specialized tools |
 | Need persistent storage across turns | Use short-term message history |
 | Multiple files need coordination | Single-turn operations |
+</when-to-use-filesystem>
 
-## Backend Types
+<backend-selection>
+| Use Case | Backend | Why |
+|----------|---------|-----|
+| Temporary working files | StateBackend | Default, no setup needed |
+| Local development CLI | FilesystemBackend | Direct disk access |
+| Cross-session memory | StoreBackend | Persists across threads |
+| Hybrid storage | CompositeBackend | Mix ephemeral + persistent |
+| Production web app | StateBackend or Sandbox | Never use FilesystemBackend |
+</backend-selection>
 
-### StateBackend (Default)
-
-Ephemeral storage in agent state - persists within a thread only.
-
+<ex-state-backend-default>
 ```python
 from deepagents import create_deep_agent
 
@@ -43,11 +46,9 @@ result = agent.invoke({
 })
 # File exists only within this thread
 ```
+</ex-state-backend-default>
 
-### FilesystemBackend (Local Disk)
-
-Direct access to local filesystem.
-
+<ex-filesystem-backend>
 ```python
 from deepagents import create_deep_agent
 from deepagents.backends import FilesystemBackend
@@ -70,11 +71,9 @@ result = agent.invoke({
 - Enable Human-in-the-Loop for sensitive operations
 - Never use in web servers - use StateBackend or sandbox instead
 - Secrets (API keys, .env) are readable by the agent
+</ex-filesystem-backend>
 
-### StoreBackend (Persistent Cross-Thread)
-
-Storage that persists across threads using LangGraph's Store.
-
+<ex-store-backend>
 ```python
 from deepagents import create_deep_agent
 from deepagents.backends import StoreBackend
@@ -89,11 +88,9 @@ agent = create_deep_agent(
 
 # Files persist across different thread_ids
 ```
+</ex-store-backend>
 
-### CompositeBackend (Hybrid Storage)
-
-Route different paths to different backends.
-
+<ex-composite-backend>
 ```python
 from deepagents import create_deep_agent
 from deepagents.backends import CompositeBackend, StateBackend, StoreBackend
@@ -116,21 +113,9 @@ agent = create_deep_agent(
 # /draft.txt -> ephemeral (StateBackend)
 # /memories/user-prefs.txt -> persistent (StoreBackend)
 ```
+</ex-composite-backend>
 
-## Decision Table: Which Backend to Use
-
-| Use Case | Backend | Why |
-|----------|---------|-----|
-| Temporary working files | StateBackend | Default, no setup needed |
-| Local development CLI | FilesystemBackend | Direct disk access |
-| Cross-session memory | StoreBackend | Persists across threads |
-| Hybrid storage | CompositeBackend | Mix ephemeral + persistent |
-| Production web app | StateBackend or Sandbox | Never use FilesystemBackend |
-
-## Code Examples
-
-### Example 1: Managing Large Context
-
+<ex-managing-large-context>
 ```python
 from deepagents import create_deep_agent
 
@@ -150,9 +135,9 @@ result = agent.invoke({
 # 3. Continue with compact context
 # 4. Later: read_file("/search-results.txt") when needed
 ```
+</ex-managing-large-context>
 
-### Example 2: Custom Tool Descriptions
-
+<ex-custom-tool-descriptions>
 ```python
 from langchain.agents import create_agent
 from deepagents.middleware.filesystem import FilesystemMiddleware
@@ -171,9 +156,9 @@ agent = create_agent(
     ],
 )
 ```
+</ex-custom-tool-descriptions>
 
-### Example 3: Long-term Memory with CompositeBackend
-
+<ex-long-term-memory-with-composite>
 ```python
 from deepagents import create_deep_agent
 from deepagents.backends import CompositeBackend, StateBackend, StoreBackend
@@ -202,9 +187,9 @@ agent.invoke({
 }, config=config2)
 # Agent reads /memories/prefs.txt and provides concise explanation
 ```
+</ex-long-term-memory-with-composite>
 
-### Example 4: FilesystemBackend for Local Development
-
+<ex-filesystem-backend-local-dev>
 ```python
 from deepagents import create_deep_agent
 from deepagents.backends import FilesystemBackend
@@ -222,32 +207,30 @@ result = agent.invoke({
     "messages": [{"role": "user", "content": "Analyze the code in src/main.py"}]
 })
 ```
+</ex-filesystem-backend-local-dev>
 
-## Boundaries
-
+<boundaries>
 ### What Agents CAN Configure
 
-✅ Backend type and configuration
-✅ Custom tool descriptions
-✅ File paths and organization
-✅ Human-in-the-loop for file operations
-✅ Root directory for FilesystemBackend
-✅ Routing rules for CompositeBackend
+- Backend type and configuration
+- Custom tool descriptions
+- File paths and organization
+- Human-in-the-loop for file operations
+- Root directory for FilesystemBackend
+- Routing rules for CompositeBackend
 
 ### What Agents CANNOT Configure
 
-❌ Tool names (ls, read_file, write_file, edit_file, glob, grep)
-❌ The fundamental file operation protocol
-❌ Disable filesystem tools in create_deep_agent
-❌ Access files outside virtual_mode restrictions
-❌ Cross-thread file access without proper backend setup
+- Tool names (ls, read_file, write_file, edit_file, glob, grep)
+- The fundamental file operation protocol
+- Disable filesystem tools in create_deep_agent
+- Access files outside virtual_mode restrictions
+- Cross-thread file access without proper backend setup
+</boundaries>
 
-## Gotchas
-
-### 1. StateBackend Files Don't Persist Across Threads
-
+<fix-statebackend-files-dont-persist>
 ```python
-# ❌ Files lost when thread changes
+# WRONG: Files lost when thread changes
 config1 = {"configurable": {"thread_id": "thread-1"}}
 agent.invoke({"messages": [{"role": "user", "content": "Write to /notes.txt"}]}, config=config1)
 
@@ -255,28 +238,28 @@ config2 = {"configurable": {"thread_id": "thread-2"}}
 agent.invoke({"messages": [{"role": "user", "content": "Read /notes.txt"}]}, config=config2)
 # File not found! Different thread
 
-# ✅ Use same thread_id OR use StoreBackend for persistence
+# CORRECT: Use same thread_id OR use StoreBackend for persistence
 ```
+</fix-statebackend-files-dont-persist>
 
-### 2. FilesystemBackend Needs virtual_mode for Security
-
+<fix-filesystem-backend-needs-virtual-mode>
 ```python
-# ❌ Insecure - agent can access anywhere
+# WRONG: Insecure - agent can access anywhere
 backend = FilesystemBackend(root_dir="/project", virtual_mode=False)
 
-# ✅ Secure - agent restricted to /project
+# CORRECT: Secure - agent restricted to /project
 backend = FilesystemBackend(root_dir="/project", virtual_mode=True)
 ```
+</fix-filesystem-backend-needs-virtual-mode>
 
-### 3. StoreBackend Requires a Store Instance
-
+<fix-storebackend-requires-store>
 ```python
-# ❌ Missing store
+# WRONG: Missing store
 agent = create_deep_agent(
     backend=lambda rt: StoreBackend(rt)
 )
 
-# ✅ Provide store
+# CORRECT: Provide store
 from langgraph.store.memory import InMemoryStore
 
 agent = create_deep_agent(
@@ -284,23 +267,24 @@ agent = create_deep_agent(
     store=InMemoryStore()
 )
 ```
+</fix-storebackend-requires-store>
 
-### 4. edit_file Requires Exact String Match
-
+<fix-edit-file-requires-exact-match>
 ```python
 # The edit_file tool needs exact string matching
 
-# ❌ Won't work - whitespace mismatch
+# WRONG: Won't work - whitespace mismatch
 old_string = "def hello():\n  print('hi')"
 new_string = "def hello():\n    print('hi')"  # Different indentation
 
-# ✅ Match exactly as it appears in the file
+# CORRECT: Match exactly as it appears in the file
 old_string = "  print('hi')"  # Exact match from file
 new_string = "    print('hi')"  # New content
 ```
+</fix-edit-file-requires-exact-match>
 
-## Full Documentation
-
+<links>
 - [Filesystem Middleware](https://docs.langchain.com/oss/python/langchain/middleware/built-in#filesystem-middleware)
 - [Backends Guide](https://docs.langchain.com/oss/python/deepagents/backends)
 - [Long-term Memory](https://docs.langchain.com/oss/python/deepagents/long-term-memory)
+</links>

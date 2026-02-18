@@ -3,30 +3,25 @@ name: Deep Agents Skills (Python)
 description: [Deep Agents] Creating and using custom skills with progressive disclosure, SKILL.md format, and the Agent Skills protocol in Deep Agents.
 ---
 
-# deepagents-skills (Python)
-
-## Overview
-
+<overview>
 Skills are reusable agent capabilities that provide specialized workflows and domain knowledge. They use **progressive disclosure**: agents only load skill content when it's relevant to the task.
 
 **How it works:**
 1. **Match**: Agent sees skill descriptions in system prompt
 2. **Read**: If relevant, agent reads full SKILL.md using read_file
 3. **Execute**: Agent follows instructions and accesses supporting files
+</overview>
 
-## Skills vs Memory
-
+<skills-vs-memory>
 | Skills | Memory (AGENTS.md) |
 |--------|-------------------|
 | On-demand loading | Always loaded at startup |
 | Task-specific instructions | General preferences |
 | Large documentation | Compact context |
 | SKILL.md in directories | Single AGENTS.md file |
+</skills-vs-memory>
 
-## Creating Skills
-
-### Skill Directory Structure
-
+<skill-directory-structure>
 ```
 skills/
 └── langgraph-docs/
@@ -34,9 +29,9 @@ skills/
     ├── examples.py     # Optional: supporting files
     └── templates/      # Optional: templates
 ```
+</skill-directory-structure>
 
-### SKILL.md Format
-
+<skill-md-format>
 ```markdown
 
 # LangGraph Documentation Skill
@@ -56,11 +51,9 @@ Use this skill when the user asks about LangGraph features, APIs, or usage.
 - examples.py: Common usage patterns
 - templates/graph.py: Graph template
 ```
+</skill-md-format>
 
-## Using Skills in Agents
-
-### With FilesystemBackend
-
+<ex-filesystem-backend>
 ```python
 from deepagents import create_deep_agent
 from deepagents.backends import FilesystemBackend
@@ -79,9 +72,9 @@ result = agent.invoke({
     }]
 })
 ```
+</ex-filesystem-backend>
 
-### With StoreBackend
-
+<ex-store-backend>
 ```python
 from urllib.request import urlopen
 from deepagents import create_deep_agent
@@ -116,9 +109,9 @@ result = agent.invoke({
     }]
 })
 ```
+</ex-store-backend>
 
-### With StateBackend (In-State Files)
-
+<ex-state-backend>
 ```python
 from deepagents import create_deep_agent
 from deepagents.backends.utils import create_file_data
@@ -149,9 +142,9 @@ result = agent.invoke({
     "files": skills_files  # Seed state with skill files
 })
 ```
+</ex-state-backend>
 
-## Decision Table: When to Create Skills
-
+<when-to-create-skills>
 | Create a Skill When | Use Memory Instead |
 |--------------------|--------------------|
 | Instructions are task-specific | Context always relevant |
@@ -159,11 +152,9 @@ result = agent.invoke({
 | Only needed occasionally | Needed every session |
 | Multiple supporting files | Single preference |
 | Domain-specific expertise | General preferences |
+</when-to-create-skills>
 
-## Example Skills
-
-### Example 1: API Documentation Skill
-
+<ex-api-documentation-skill>
 ```markdown
 
 # FastAPI Documentation Skill
@@ -183,9 +174,9 @@ Use Pydantic models for request/response validation.
 ## Supporting Files
 See endpoints.py for complete examples.
 ```
+</ex-api-documentation-skill>
 
-### Example 2: Testing Skill
-
+<ex-testing-skill>
 ```markdown
 
 # Pytest Patterns Skill
@@ -202,62 +193,60 @@ async def db_session():
 ## Mocking
 Use pytest-mock for external dependencies.
 ```
+</ex-testing-skill>
 
-## Boundaries
-
+<boundaries>
 ### What Agents CAN Do
-✅ Load skills on-demand when relevant  
-✅ Read SKILL.md and supporting files  
-✅ Follow skill instructions  
-✅ Update skills (if permitted)  
-✅ Create new skills
+- Load skills on-demand when relevant
+- Read SKILL.md and supporting files
+- Follow skill instructions
+- Update skills (if permitted)
+- Create new skills
 
 ### What Agents CANNOT Do
-❌ Load all skills at startup (only descriptions)  
-❌ Change the SKILL.md frontmatter format  
-❌ Access skills outside configured directories  
-❌ Share skills across agents without proper backend
+- Load all skills at startup (only descriptions)
+- Change the SKILL.md frontmatter format
+- Access skills outside configured directories
+- Share skills across agents without proper backend
+</boundaries>
 
-## Gotchas
-
-### 1. Skills Require Backend Setup
-
+<fix-backend-required>
 ```python
-# ❌ Skills won't load without backend
+# WRONG: Skills won't load without backend
 agent = create_deep_agent(
     skills=["./skills/"]
 )
 
-# ✅ Provide backend
+# CORRECT: Provide backend
 agent = create_deep_agent(
     backend=FilesystemBackend(root_dir=".", virtual_mode=True),
     skills=["./skills/"]
 )
 ```
+</fix-backend-required>
 
-### 2. Frontmatter is Required
-
+<fix-frontmatter-required>
 ```markdown
-# ❌ Missing frontmatter
+# WRONG: Missing frontmatter
 # My Skill
 This is my skill...
 
-# ✅ Include frontmatter
+# CORRECT: Include frontmatter
 # My Skill
 ```
+</fix-frontmatter-required>
 
-### 3. Skill Descriptions Drive Discovery
-
+<fix-specific-descriptions>
 ```markdown
-# ❌ Vague description
+# WRONG: Vague description
 description: Helpful skill
 
-# ✅ Specific description
+# CORRECT: Specific description
 description: Python testing best practices with pytest fixtures and mocking
 ```
+</fix-specific-descriptions>
 
-### 4. Custom Subagents Don't Inherit Skills
-
+<fix-subagent-skills>
 ```python
 # Main agent skills NOT inherited by custom subagents
 agent = create_deep_agent(
@@ -265,7 +254,7 @@ agent = create_deep_agent(
     subagents=[{"name": "helper", ...}]  # No skills
 )
 
-# ✅ Provide skills to subagent explicitly
+# CORRECT: Provide skills to subagent explicitly
 agent = create_deep_agent(
     skills=["/main-skills/"],
     subagents=[{
@@ -275,9 +264,10 @@ agent = create_deep_agent(
     }]
 )
 ```
+</fix-subagent-skills>
 
-## Full Documentation
-
+<links>
 - [Skills Guide](https://docs.langchain.com/oss/python/deepagents/skills)
 - [Agent Skills Protocol](https://docs.langchain.com/oss/python/langchain/multi-agent/skills)
 - [Progressive Disclosure](https://docs.langchain.com/oss/python/langchain/multi-agent/skills-sql-assistant)
+</links>

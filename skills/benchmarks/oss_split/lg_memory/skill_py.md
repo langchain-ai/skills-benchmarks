@@ -3,26 +3,20 @@ name: LangGraph Memory (Python)
 description: "[LangGraph] Memory in LangGraph: short-term (thread-scoped) vs long-term (cross-thread) memory using checkpointers and stores"
 ---
 
-# langgraph-memory (Python)
-
-
-## Overview
-
+<overview>
 LangGraph provides two types of memory for agents:
 - **Short-term memory**: Thread-scoped, managed via checkpointers
 - **Long-term memory**: Cross-thread, managed via stores
+</overview>
 
-## Decision Table: Memory Types
-
+<memory-type-selection>
 | Type | Scope | Persistence | Use Case |
 |------|-------|-------------|----------|
 | Short-term | Single thread | Via checkpointer | Conversation history |
 | Long-term | Cross-thread | Via store | User preferences, facts |
+</memory-type-selection>
 
-## Code Examples
-
-### Short-Term Memory (Thread-Scoped)
-
+<ex-short-term-memory>
 ```python
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import StateGraph, START, END
@@ -55,9 +49,9 @@ graph.invoke({"messages": ["Hello"]}, config)
 graph.invoke({"messages": ["How are you?"]}, config)
 # Response: "I remember 3 messages" (Hello, response, How are you?)
 ```
+</ex-short-term-memory>
 
-### Long-Term Memory (Cross-Thread)
-
+<ex-long-term-memory>
 ```python
 from langgraph.store.memory import InMemoryStore
 
@@ -79,7 +73,7 @@ def get_user_prefs(state, *, store):
     """Access store via dependency injection."""
     user_id = state["user_id"]
     namespace = (user_id, "preferences")
-    
+
     prefs = store.get(namespace, "language")
     return {"preferences": prefs}
 
@@ -97,9 +91,9 @@ thread2 = {"configurable": {"thread_id": "thread-2"}}
 graph.invoke({"user_id": "alice"}, thread1)  # Gets preferences
 graph.invoke({"user_id": "alice"}, thread2)  # Same preferences
 ```
+</ex-long-term-memory>
 
-### Store Operations
-
+<ex-store-operations>
 ```python
 from langgraph.store.memory import InMemoryStore
 
@@ -125,26 +119,26 @@ results = store.search(
 # Delete
 store.delete(("user-123", "facts"), "location")
 ```
+</ex-store-operations>
 
-### Accessing Store in Nodes
-
+<ex-store-in-nodes>
 ```python
 from langgraph.store.base import BaseStore
 
 def my_node(state, *, store: BaseStore):
     """Store injected automatically."""
     namespace = (state["user_id"], "memories")
-    
+
     # Retrieve past memories
     memories = store.search(namespace, query="preferences")
-    
+
     # Save new memory
     store.put(
         namespace,
         "new_fact",
         {"fact": "User likes Python"}
     )
-    
+
     return {"processed": True}
 
 graph = builder.compile(
@@ -152,21 +146,21 @@ graph = builder.compile(
     store=store
 )
 ```
+</ex-store-in-nodes>
 
-### Combining Short and Long-Term Memory
-
+<ex-combining-memory-types>
 ```python
 def smart_node(state, *, store):
     # Short-term: conversation context
     recent_messages = state["messages"][-5:]  # Last 5 messages
-    
+
     # Long-term: user profile
     user_id = state["user_id"]
     profile = store.get((user_id, "profile"), "info")
-    
+
     # Use both for personalized response
     response = generate_response(recent_messages, profile)
-    
+
     return {"messages": [response]}
 
 graph = (
@@ -177,9 +171,9 @@ graph = (
     .compile(checkpointer=checkpointer, store=store)
 )
 ```
+</ex-combining-memory-types>
 
-### Persistent Stores (Production)
-
+<ex-postgres-store>
 ```python
 from langgraph.store.postgres import PostgresStore
 
@@ -193,74 +187,73 @@ graph = builder.compile(
     store=store
 )
 ```
+</ex-postgres-store>
 
-## Boundaries
-
+<boundaries>
 ### What You CAN Configure
 
-✅ Use checkpointers for short-term memory
-✅ Use stores for long-term memory
-✅ Namespace organization
-✅ Search and filter memories
-✅ Inject store into nodes
-✅ Choose store backend
+- Use checkpointers for short-term memory
+- Use stores for long-term memory
+- Namespace organization
+- Search and filter memories
+- Inject store into nodes
+- Choose store backend
 
 ### What You CANNOT Configure
 
-❌ Share short-term memory across threads
-❌ Modify memory serialization format
-❌ Store mechanism internals
+- Share short-term memory across threads
+- Modify memory serialization format
+- Store mechanism internals
+</boundaries>
 
-## Gotchas
-
-### 1. Short-Term Needs Checkpointer
-
+<fix-checkpointer-required>
 ```python
-# ❌ WRONG - No checkpointer, no memory
+# WRONG: WRONG - No checkpointer, no memory
 graph = builder.compile()  # Messages lost!
 
-# ✅ CORRECT
+# CORRECT: CORRECT
 checkpointer = InMemorySaver()
 graph = builder.compile(checkpointer=checkpointer)
 ```
+</fix-checkpointer-required>
 
-### 2. Long-Term Needs Store
-
+<fix-store-required>
 ```python
-# ❌ WRONG - Trying to share data without store
+# WRONG: WRONG - Trying to share data without store
 # Can't access data from other threads with checkpointer alone!
 
-# ✅ CORRECT - Use store
+# CORRECT: CORRECT - Use store
 store = InMemoryStore()
 graph = builder.compile(checkpointer=checkpointer, store=store)
 ```
+</fix-store-required>
 
-### 3. Store Must Be Injected
-
+<fix-store-injection>
 ```python
-# ❌ WRONG - Store not available
+# WRONG: WRONG - Store not available
 def my_node(state):
     store.put(...)  # NameError or wrong store!
 
-# ✅ CORRECT - Inject via parameter
+# CORRECT: CORRECT - Inject via parameter
 def my_node(state, *, store: BaseStore):
     store.put(...)  # Correct store instance
 ```
+</fix-store-injection>
 
-### 4. InMemoryStore Not for Production
-
+<fix-production-store>
 ```python
-# ❌ WRONG - Data lost on restart
+# WRONG: WRONG - Data lost on restart
 store = InMemoryStore()  # Memory only!
 
-# ✅ CORRECT - Use persistent backend
+# CORRECT: CORRECT - Use persistent backend
 from langgraph.store.postgres import PostgresStore
 store = PostgresStore.from_conn_string("postgresql://...")
 ```
+</fix-production-store>
 
-## Links
-
+<links>
 - [Memory Overview](https://docs.langchain.com/oss/python/concepts/memory)
 - [Short-Term Memory](https://docs.langchain.com/oss/python/langchain/short-term-memory)
 - [Long-Term Memory](https://docs.langchain.com/oss/python/langchain/long-term-memory)
 - [Store Reference](https://docs.langchain.com/oss/python/langgraph/persistence#memory-store)
+</links>

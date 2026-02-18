@@ -3,10 +3,7 @@ name: Deep Agents Overview (TypeScript)
 description: [Deep Agents] Understanding Deep Agents framework - what they are, how to create them with create_deep_agent/createDeepAgent, and the agent harness architecture with built-in middleware for planning, filesystems, and subagents.
 ---
 
-# deepagents-overview (JavaScript/TypeScript)
-
-## What are Deep Agents?
-
+<overview>
 Deep Agents are an opinionated agent framework built on top of LangChain and LangGraph, designed for complex, multi-step tasks. They come "batteries included" with built-in capabilities:
 
 - **Task Planning**: TodoListMiddleware for breaking down complex tasks
@@ -16,9 +13,9 @@ Deep Agents are an opinionated agent framework built on top of LangChain and Lan
 - **Human-in-the-loop**: Approval workflows for sensitive operations
 
 Deep Agents use an "agent harness" architecture - the same core tool-calling loop as other frameworks, but with pre-configured middleware and tools.
+</overview>
 
-## When to Use Deep Agents
-
+<when-to-use>
 | Use Deep Agents When | Use LangChain's createAgent When |
 |---------------------|-----------------------------------|
 | Multi-step tasks requiring planning | Simple, single-purpose tasks |
@@ -26,10 +23,10 @@ Deep Agents use an "agent harness" architecture - the same core tool-calling loo
 | Need for specialized subagents | Single agent is sufficient |
 | Persistent memory across sessions | Ephemeral, single-session work |
 | CLI or coding assistant use cases | Simple API or chat applications |
+</when-to-use>
 
-## Creating a Deep Agent
-
-### Basic Agent Creation
+<ex-basic>
+Minimal agent with default settings:
 
 ```typescript
 import { createDeepAgent } from "deepagents";
@@ -44,8 +41,10 @@ const result = await agent.invoke({
   ]
 });
 ```
+</ex-basic>
 
-### Agent with Custom Tools
+<ex-custom-tools>
+Agent with custom tools:
 
 ```typescript
 import { createDeepAgent } from "deepagents";
@@ -74,8 +73,10 @@ const result = await agent.invoke({
   ]
 });
 ```
+</ex-custom-tools>
 
-### Agent with Custom Model
+<ex-custom-model>
+Agent with custom model:
 
 ```typescript
 import { createDeepAgent } from "deepagents";
@@ -92,10 +93,10 @@ const agent2 = await createDeepAgent({
   model
 });
 ```
+</ex-custom-model>
 
-## The Agent Harness Architecture
-
-Deep Agents automatically attach middleware when created:
+<ex-harness>
+The agent harness architecture:
 
 ```typescript
 import { createDeepAgent } from "deepagents";
@@ -110,15 +111,14 @@ import { createDeepAgent } from "deepagents";
 const agent = await createDeepAgent({});
 ```
 
-### Built-in Tools
-
-Every deep agent has access to:
-
+Built-in Tools:
 1. **Planning Tool**: `write_todos` - Track multi-step tasks
 2. **Filesystem Tools**: `ls`, `read_file`, `write_file`, `edit_file`, `glob`, `grep`
 3. **Subagent Tool**: `task` - Delegate work to specialized agents
+</ex-harness>
 
-## Configuration Options
+<ex-full-config>
+Full configuration options:
 
 ```typescript
 import { createDeepAgent, FilesystemBackend } from "deepagents";
@@ -138,9 +138,9 @@ const agent = await createDeepAgent({
   store: new InMemoryStore()        // For long-term memory
 });
 ```
+</ex-full-config>
 
-## Decision Table: Which Middleware to Customize
-
+<middleware-selection>
 | If you need to... | Use this middleware | When to customize |
 |------------------|-------------------|------------------|
 | Track complex multi-step tasks | todoListMiddleware | Default works; customize prompt if needed |
@@ -151,39 +151,37 @@ const agent = await createDeepAgent({
 | Add human approval | humanInTheLoopMiddleware | Configure which tools require approval |
 | Load skills on-demand | skillsMiddleware | Provide skill directories |
 | Access persistent memory | memoryMiddleware | Provide a Store instance |
+</middleware-selection>
 
-## Boundaries
+<boundaries>
+What Agents CAN Configure:
+- Model selection and parameters
+- Additional custom tools
+- System prompt customization
+- Backend storage strategy
+- Which tools require approval
+- Custom subagents with specialized tools
+- Skill directories and content
+- Middleware order and configuration
 
-### What Agents CAN Configure
+What Agents CANNOT Configure:
+- Core middleware removal (TodoList, Filesystem, SubAgent are always present)
+- The write_todos, task, or filesystem tool names
+- The fundamental tool-calling loop
+- LangGraph's runtime execution model
+- The Agent Skills protocol format
+</boundaries>
 
-✅ Model selection and parameters
-✅ Additional custom tools
-✅ System prompt customization
-✅ Backend storage strategy
-✅ Which tools require approval
-✅ Custom subagents with specialized tools
-✅ Skill directories and content
-✅ Middleware order and configuration
-
-### What Agents CANNOT Configure
-
-❌ Core middleware removal (TodoList, Filesystem, SubAgent are always present)
-❌ The write_todos, task, or filesystem tool names
-❌ The fundamental tool-calling loop
-❌ LangGraph's runtime execution model
-❌ The Agent Skills protocol format
-
-## Gotchas
-
-### 1. Checkpointer Required for Interrupts
+<fix-checkpointer-required>
+Checkpointer required for interrupts:
 
 ```typescript
-// ❌ This will error if interruptOn is set
+// WRONG: This will error if interruptOn is set
 const agent = await createDeepAgent({
   interruptOn: { write_file: true }
 });
 
-// ✅ Checkpointer is required
+// CORRECT: Checkpointer is required
 import { MemorySaver } from "@langchain/langgraph";
 
 const agent = await createDeepAgent({
@@ -191,18 +189,20 @@ const agent = await createDeepAgent({
   checkpointer: new MemorySaver()
 });
 ```
+</fix-checkpointer-required>
 
-### 2. Store Required for Persistent Memory
+<fix-store-required>
+Store required for persistent memory:
 
 ```typescript
-// ❌ StoreBackend needs a Store
+// WRONG: StoreBackend needs a Store
 import { StoreBackend } from "deepagents";
 
 const agent = await createDeepAgent({
   backend: (config) => new StoreBackend(config)
 });
 
-// ✅ Pass a Store instance
+// CORRECT: Pass a Store instance
 import { InMemoryStore } from "@langchain/langgraph";
 
 const agent = await createDeepAgent({
@@ -210,16 +210,18 @@ const agent = await createDeepAgent({
   store: new InMemoryStore()
 });
 ```
+</fix-store-required>
 
-### 3. Skills Require Backend Setup
+<fix-skills-backend>
+Skills require backend setup:
 
 ```typescript
-// ❌ Skills won't load without proper backend
+// WRONG: Skills won't load without proper backend
 const agent = await createDeepAgent({
   skills: ["/path/to/skills/"]
 });
 
-// ✅ Use FilesystemBackend for local skills
+// CORRECT: Use FilesystemBackend for local skills
 import { FilesystemBackend } from "deepagents";
 
 const agent = await createDeepAgent({
@@ -227,21 +229,25 @@ const agent = await createDeepAgent({
   skills: ["./skills/"]
 });
 ```
+</fix-skills-backend>
 
-### 4. Thread ID Required for Stateful Conversations
+<fix-thread-id>
+Thread ID required for stateful conversations:
 
 ```typescript
-// ❌ Each invocation is isolated without thread_id
+// WRONG: Each invocation is isolated without thread_id
 await agent.invoke({ messages: [{ role: "user", content: "Hi" }] });
 await agent.invoke({ messages: [{ role: "user", content: "What did I say?" }] });
 
-// ✅ Use consistent thread_id for conversation continuity
+// CORRECT: Use consistent thread_id for conversation continuity
 const config = { configurable: { thread_id: "user-123" } };
 await agent.invoke({ messages: [{ role: "user", content: "Hi" }] }, config);
 await agent.invoke({ messages: [{ role: "user", content: "What did I say?" }] }, config);
 ```
+</fix-thread-id>
 
-### 5. Default Model is Anthropic Claude
+<fix-default-model>
+Default model requires Anthropic API key:
 
 ```typescript
 // Uses claude-sonnet-4-5-20250929 by default
@@ -251,20 +257,23 @@ const agent = await createDeepAgent({});
 // Set OPENAI_API_KEY if using OpenAI models
 process.env.ANTHROPIC_API_KEY = "your-key";
 ```
+</fix-default-model>
 
-### 6. Await createDeepAgent
+<fix-await>
+createDeepAgent is async:
 
 ```typescript
-// ❌ Missing await
+// WRONG: Missing await
 const agent = createDeepAgent({});
 
-// ✅ createDeepAgent is async
+// CORRECT: createDeepAgent is async
 const agent = await createDeepAgent({});
 ```
+</fix-await>
 
-## Full Documentation
-
+<documentation-links>
 - [Deep Agents Overview](https://docs.langchain.com/oss/javascript/deepagents/overview)
 - [Agent Harness Capabilities](https://docs.langchain.com/oss/javascript/deepagents/harness)
 - [Customizing Deep Agents](https://docs.langchain.com/oss/javascript/deepagents/customization)
 - [Deep Agents Quickstart](https://docs.langchain.com/oss/javascript/deepagents/quickstart)
+</documentation-links>

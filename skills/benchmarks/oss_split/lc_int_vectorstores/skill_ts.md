@@ -3,22 +3,18 @@ name: LangChain Vector Stores Integration (TypeScript)
 description: [LangChain] Guide to using vector store integrations in LangChain including Chroma, Pinecone, FAISS, and memory vector stores
 ---
 
-# langchain-vector-stores (JavaScript/TypeScript)
-
-## Overview
-
+<overview>
 Vector stores are databases optimized for storing and searching high-dimensional vectors (embeddings). They enable semantic search by finding documents similar to a query based on vector similarity rather than keyword matching. Essential for RAG (Retrieval-Augmented Generation) systems.
 
-### Key Concepts
-
+Key Concepts:
 - **Vector Database**: Specialized database for storing and querying embeddings
 - **Similarity Search**: Finding similar documents using vector distance metrics (cosine, euclidean)
 - **Metadata Filtering**: Combining vector search with metadata filters
 - **Persistence**: Some vector stores run in-memory, others persist to disk/cloud
 - **Scaling**: Different stores have different scalability characteristics
+</overview>
 
-## Vector Store Selection Decision Table
-
+<vector-store-selection>
 | Vector Store | Best For | Package | Persistence | Scalability | Key Features |
 |--------------|----------|---------|-------------|-------------|--------------|
 | **FAISS** | Local, high performance | `@langchain/community` | Disk | Medium | Fast, CPU/GPU support, local |
@@ -28,9 +24,9 @@ Vector stores are databases optimized for storing and searching high-dimensional
 | **Weaviate** | GraphQL, hybrid search | `@langchain/weaviate` | Cloud/Self-hosted | High | GraphQL, hybrid search, modular |
 | **Qdrant** | High performance, filtering | `@langchain/qdrant` | Cloud/Self-hosted | High | Fast, advanced filtering, Rust-based |
 | **Supabase** | PostgreSQL users | `@langchain/community` | Cloud/Self-hosted | High | PostgreSQL extension, familiar tooling |
+</vector-store-selection>
 
-### When to Choose Each Store
-
+<when-to-use>
 **Choose FAISS if:**
 - You need high performance local vector search
 - You want to avoid external dependencies
@@ -55,10 +51,10 @@ Vector stores are databases optimized for storing and searching high-dimensional
 - You need advanced filtering and hybrid search
 - You want flexibility in deployment (cloud or self-hosted)
 - You need high performance at scale
+</when-to-use>
 
-## Code Examples
-
-### Memory Vector Store (Simplest)
+<ex-memory>
+Simple in-memory vector store for testing:
 
 ```typescript
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
@@ -84,8 +80,10 @@ resultsWithScore.forEach(([doc, score]) => {
   console.log(`Score: ${score}, Content: ${doc.pageContent}`);
 });
 ```
+</ex-memory>
 
-### FAISS Vector Store
+<ex-faiss>
+High-performance local vector store:
 
 ```typescript
 import { FaissStore } from "@langchain/community/vectorstores/faiss";
@@ -111,8 +109,10 @@ await vectorStore.save("./faiss_index");
 // Load from disk
 const loadedStore = await FaissStore.load("./faiss_index", embeddings);
 ```
+</ex-faiss>
 
-### Chroma Vector Store
+<ex-chroma>
+Local development with persistence:
 
 ```typescript
 import { Chroma } from "@langchain/community/vectorstores/chroma";
@@ -139,8 +139,10 @@ const results = await vectorStore.similaritySearch("query", 3, {
 // Delete collection
 await vectorStore.delete({ collectionName: "my-collection" });
 ```
+</ex-chroma>
 
-### Pinecone Vector Store
+<ex-pinecone>
+Production-ready managed vector store:
 
 ```typescript
 import { PineconeStore } from "@langchain/pinecone";
@@ -179,8 +181,10 @@ const retriever = vectorStore.asRetriever({
 });
 const docs = await retriever.getRelevantDocuments("query");
 ```
+</ex-pinecone>
 
-### Adding Documents Incrementally
+<ex-incremental>
+Add documents incrementally:
 
 ```typescript
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
@@ -205,8 +209,10 @@ await vectorStore.addTexts(
   [{ source: "A" }, { source: "B" }]
 );
 ```
+</ex-incremental>
 
-### Using as a Retriever
+<ex-retriever>
+Use vector store as retriever in chains:
 
 ```typescript
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
@@ -245,8 +251,10 @@ const chain = await createRetrievalChain({
 
 const result = await chain.invoke({ input: "What is LangChain?" });
 ```
+</ex-retriever>
 
-### Maximum Marginal Relevance (MMR)
+<ex-mmr>
+Balance relevance and diversity with MMR:
 
 ```typescript
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
@@ -265,83 +273,51 @@ const results = await vectorStore.maxMarginalRelevanceSearch("query", {
   lambda: 0.5, // 0 = max diversity, 1 = max relevance
 });
 ```
+</ex-mmr>
 
-## Boundaries
+<boundaries>
+What Agents CAN Do:
+- **Initialize vector stores**: Set up any supported vector store; configure with embeddings and connection details
+- **Add and query documents**: Add documents with metadata; perform similarity search; use metadata filters
+- **Persist and load**: Save vector stores to disk (FAISS, Chroma); load existing vector stores; manage collections
+- **Use as retrievers**: Convert vector stores to retrievers; integrate with chains and agents; configure search parameters (k, filters, etc.)
+- **Choose appropriate store**: Select based on scale, performance, persistence needs; switch between stores with minimal code changes
 
-### What Agents CAN Do
+What Agents CANNOT Do:
+- **Mix embeddings from different models**: Cannot use different embedding models within same vector store; must use consistent embeddings
+- **Bypass provider limits**: Cannot exceed Pinecone index size limits; cannot bypass free tier restrictions
+- **Modify vector dimensions after creation**: Cannot change embedding dimensions once store is created; must recreate store with new embeddings
+- **Query without proper setup**: Cannot use Chroma without server running; cannot use Pinecone without API key and index
+</boundaries>
 
-✅ **Initialize vector stores**
-- Set up any supported vector store
-- Configure with embeddings and connection details
-
-✅ **Add and query documents**
-- Add documents with metadata
-- Perform similarity search
-- Use metadata filters
-
-✅ **Persist and load**
-- Save vector stores to disk (FAISS, Chroma)
-- Load existing vector stores
-- Manage collections
-
-✅ **Use as retrievers**
-- Convert vector stores to retrievers
-- Integrate with chains and agents
-- Configure search parameters (k, filters, etc.)
-
-✅ **Choose appropriate store**
-- Select based on scale, performance, persistence needs
-- Switch between stores with minimal code changes
-
-### What Agents CANNOT Do
-
-❌ **Mix embeddings from different models**
-- Cannot use different embedding models within same vector store
-- Must use consistent embeddings
-
-❌ **Bypass provider limits**
-- Cannot exceed Pinecone index size limits
-- Cannot bypass free tier restrictions
-
-❌ **Modify vector dimensions after creation**
-- Cannot change embedding dimensions once store is created
-- Must recreate store with new embeddings
-
-❌ **Query without proper setup**
-- Cannot use Chroma without server running
-- Cannot use Pinecone without API key and index
-
-## Gotchas
-
-### 1. **Embedding Model Consistency**
+<fix-embedding-consistency>
+Use same embedding model for all operations:
 
 ```typescript
-// ❌ BAD: Different embeddings for indexing and querying
+// BAD: Different embeddings for indexing and querying
 const store1 = await MemoryVectorStore.fromDocuments(
   docs,
   new OpenAIEmbeddings({ model: "text-embedding-3-small" })
 );
 
-const results = await store1.similaritySearch("query"); // Uses same embeddings ✓
-
-// But if you recreate:
+// But if you recreate with different model:
 const store2 = new MemoryVectorStore(
   new OpenAIEmbeddings({ model: "text-embedding-ada-002" }) // Different!
 );
 // Queries won't work correctly!
 
-// ✅ GOOD: Keep embedding instance
+// GOOD: Keep embedding instance
 const embeddings = new OpenAIEmbeddings({ model: "text-embedding-3-small" });
 const store = await MemoryVectorStore.fromDocuments(docs, embeddings);
 // Always use same embeddings instance
 ```
+</fix-embedding-consistency>
 
-**Fix**: Use the same embedding model instance for creation and queries.
-
-### 2. **Chroma Server Must Be Running**
+<fix-chroma-server>
+Ensure Chroma server is running:
 
 ```typescript
-// ❌ Chroma not running
+// Chroma not running - will fail
 import { Chroma } from "@langchain/community/vectorstores/chroma";
 
 const store = await Chroma.fromDocuments(docs, embeddings, {
@@ -349,7 +325,7 @@ const store = await Chroma.fromDocuments(docs, embeddings, {
 });
 // Error: Connection refused!
 
-// ✅ Start Chroma first
+// Fix: Start Chroma first
 // Terminal: docker run -p 8000:8000 chromadb/chroma
 // Or: chroma run --path ./chroma_data
 
@@ -357,20 +333,19 @@ const store = await Chroma.fromDocuments(docs, embeddings, {
   url: "http://localhost:8000"
 }); // Works!
 ```
+</fix-chroma-server>
 
-**Fix**: Ensure Chroma server is running before creating the vector store.
-
-### 3. **Pinecone Index Must Exist**
+<fix-pinecone-index>
+Create Pinecone index before using:
 
 ```typescript
-// ❌ Index doesn't exist
+// Index doesn't exist - will fail
 import { Pinecone } from "@pinecone-database/pinecone";
 
 const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
 const index = pinecone.Index("nonexistent-index"); // Won't create index!
 
-// ✅ Create index first
-// Do this in Pinecone dashboard or via API
+// Fix: Create index first
 const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY });
 
 // Check if index exists, create if needed
@@ -386,16 +361,16 @@ if (!indexList.indexes?.some(idx => idx.name === "my-index")) {
 
 const index = pinecone.Index("my-index");
 ```
+</fix-pinecone-index>
 
-**Fix**: Create Pinecone index before using it.
-
-### 4. **FAISS Save/Load Path Issues**
+<fix-faiss-paths>
+Use absolute paths for FAISS save/load:
 
 ```typescript
-// ❌ Relative path issues
+// Relative path issues
 await vectorStore.save("./index"); // May fail depending on cwd
 
-// ✅ Use absolute paths or be explicit
+// Fix: Use absolute paths or be explicit
 import path from "path";
 const indexPath = path.join(process.cwd(), "data", "faiss_index");
 await vectorStore.save(indexPath);
@@ -403,28 +378,28 @@ await vectorStore.save(indexPath);
 // Load with same path
 const loadedStore = await FaissStore.load(indexPath, embeddings);
 ```
+</fix-faiss-paths>
 
-**Fix**: Use absolute paths or be careful with working directory.
-
-### 5. **Memory Vector Store is Ephemeral**
+<fix-memory-ephemeral>
+Use persistent store for production:
 
 ```typescript
-// ❌ Expecting persistence
+// Problem: Expecting persistence from MemoryVectorStore
 const vectorStore = new MemoryVectorStore(embeddings);
 await vectorStore.addDocuments(docs);
 // App restarts...
 // All data is lost!
 
-// ✅ Use persistent store for production
+// Fix: Use persistent store for production
 import { FaissStore } from "@langchain/community/vectorstores/faiss";
 
 const vectorStore = await FaissStore.fromDocuments(docs, embeddings);
 await vectorStore.save("./faiss_index"); // Persists to disk
 ```
+</fix-memory-ephemeral>
 
-**Fix**: Use FAISS, Chroma, or cloud stores (Pinecone) for persistent data.
-
-### 6. **Metadata Filtering Syntax Varies**
+<fix-filter-syntax>
+Different stores have different filter syntaxes:
 
 ```typescript
 // Different stores have different filter syntaxes
@@ -440,13 +415,13 @@ const chromaResults = await chromaStore.similaritySearch("query", 3, {
 
 // Check each store's documentation for filter syntax!
 ```
+</fix-filter-syntax>
 
-**Fix**: Read the specific vector store's documentation for filter syntax.
-
-### 7. **Dimension Mismatch**
+<fix-dimension-mismatch>
+Match embedding dimensions to index:
 
 ```typescript
-// ❌ Creating Pinecone index with wrong dimensions
+// Creating Pinecone index with wrong dimensions
 await pinecone.createIndex({
   name: "my-index",
   dimension: 1536, // OpenAI ada-002 dimensions
@@ -459,30 +434,28 @@ const store = await PineconeStore.fromDocuments(
   { pineconeIndex }
 ); // Error: dimension mismatch!
 
-// ✅ Match dimensions
+// Fix: Match dimensions
 const embeddings = new OpenAIEmbeddings({ model: "text-embedding-3-small" });
 // Default is 1536, matches Pinecone index
 ```
+</fix-dimension-mismatch>
 
-**Fix**: Ensure vector store dimension configuration matches embedding dimensions.
-
-## Links and Resources
-
-### Official Documentation
+<documentation-links>
+Official Documentation:
 - [LangChain JS Vector Stores](https://js.langchain.com/docs/integrations/vectorstores/)
 - [FAISS](https://js.langchain.com/docs/integrations/vectorstores/faiss)
 - [Chroma](https://js.langchain.com/docs/integrations/vectorstores/chroma)
 - [Pinecone](https://js.langchain.com/docs/integrations/vectorstores/pinecone)
 - [Memory Vector Store](https://js.langchain.com/docs/integrations/vectorstores/memory)
 
-### Provider Documentation
+Provider Documentation:
 - [FAISS Library](https://github.com/facebookresearch/faiss)
 - [Chroma](https://docs.trychroma.com/)
 - [Pinecone](https://docs.pinecone.io/)
 - [Weaviate](https://weaviate.io/developers/weaviate)
 - [Qdrant](https://qdrant.tech/documentation/)
 
-### Package Installation
+Package Installation:
 ```bash
 # Community package (includes FAISS, Chroma, etc.)
 npm install @langchain/community
@@ -496,3 +469,4 @@ npm install @langchain/weaviate weaviate-ts-client
 # Qdrant
 npm install @langchain/qdrant @qdrant/js-client-rest
 ```
+</documentation-links>

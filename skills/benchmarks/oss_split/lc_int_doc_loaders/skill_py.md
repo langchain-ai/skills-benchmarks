@@ -3,21 +3,17 @@ name: LangChain Document Loaders Integration (Python)
 description: [LangChain] Guide to using document loader integrations in LangChain for PDFs, web pages, text files, and APIs
 ---
 
-# langchain-document-loaders (Python)
-
-## Overview
-
+<overview>
 Document loaders extract data from various sources and formats into LangChain's standardized Document format. They're essential for building RAG systems, as they convert raw data into processable text chunks with metadata.
 
-### Key Concepts
-
+**Key Concepts:**
 - **Document**: Object with `page_content` (text) and `metadata` (source info, page numbers, etc.)
 - **Loaders**: Classes that extract content from specific sources/formats
 - **Metadata**: Contextual information preserved during loading
 - **Lazy Loading**: Stream documents without loading everything into memory
+</overview>
 
-## Loader Selection Decision Table
-
+<loader-selection>
 | Loader Type | Best For | Package | Key Features |
 |-------------|----------|---------|--------------|
 | **PyPDFLoader** | PDF files | `langchain-community` | Page-by-page extraction |
@@ -27,9 +23,9 @@ Document loaders extract data from various sources and formats into LangChain's 
 | **CSVLoader** | CSV files | `langchain-community` | Tabular data |
 | **DirectoryLoader** | Multiple files | `langchain-community` | Bulk loading from directories |
 | **UnstructuredLoader** | Various formats | `langchain-community` | PDFs, DOCXs, PPTs, images |
+</loader-selection>
 
-### When to Choose Each Loader
-
+<when-to-choose-loader>
 **Choose PyPDFLoader if:**
 - You're processing standard PDF documents
 - You need page number metadata
@@ -44,10 +40,10 @@ Document loaders extract data from various sources and formats into LangChain's 
 - You have mixed document types
 - You need OCR for scanned documents
 - You want sophisticated parsing
+</when-to-choose-loader>
 
-## Code Examples
-
-### PDF Loader
+<ex-pdf>
+Load PDF with lazy loading:
 
 ```python
 from langchain_community.document_loaders import PyPDFLoader
@@ -69,8 +65,10 @@ loader = PyPDFLoader("large-file.pdf")
 for doc in loader.lazy_load():
     print(f"Processing page {doc.metadata['page']}")
 ```
+</ex-pdf>
 
-### Web Scraping
+<ex-web>
+Web scraping with BeautifulSoup:
 
 ```python
 from langchain_community.document_loaders import WebBaseLoader
@@ -97,8 +95,10 @@ loader = WebBaseLoader([
 ])
 docs = loader.load()
 ```
+</ex-web>
 
-### Text File Loader
+<ex-text>
+Simple text file loading:
 
 ```python
 from langchain_community.document_loaders import TextLoader
@@ -113,8 +113,10 @@ print(docs[0].metadata["source"])  # File path
 # With specific encoding
 loader = TextLoader("file.txt", encoding="utf-8")
 ```
+</ex-text>
 
-### JSON Loader
+<ex-json>
+JSON with jq extraction:
 
 ```python
 from langchain_community.document_loaders import JSONLoader
@@ -145,8 +147,10 @@ loader = JSONLoader(
     metadata_func=metadata_func
 )
 ```
+</ex-json>
 
-### CSV Loader
+<ex-csv>
+CSV rows as documents:
 
 ```python
 from langchain_community.document_loaders import CSVLoader
@@ -161,8 +165,10 @@ docs = loader.load()
 # Each row becomes a document
 # All columns stored in metadata
 ```
+</ex-csv>
 
-### Directory Loader
+<ex-directory>
+Bulk load from directory:
 
 ```python
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
@@ -187,8 +193,10 @@ def get_loader(file_path):
     elif file_path.endswith(".txt"):
         return TextLoader(file_path)
 ```
+</ex-directory>
 
-### Unstructured Loader (Advanced)
+<ex-unstructured>
+Universal loader with OCR:
 
 ```python
 from langchain_community.document_loaders import UnstructuredFileLoader
@@ -210,8 +218,10 @@ from langchain_community.document_loaders import UnstructuredURLLoader
 loader = UnstructuredURLLoader(urls=["https://example.com"])
 docs = loader.load()
 ```
+</ex-unstructured>
 
-### S3 Loader (Cloud Storage)
+<ex-s3>
+Load from S3 bucket:
 
 ```python
 from langchain_community.document_loaders import S3FileLoader
@@ -231,8 +241,10 @@ loader = S3DirectoryLoader(
 )
 docs = loader.load()
 ```
+</ex-s3>
 
-### Custom Metadata Example
+<ex-metadata>
+Enrich with custom metadata:
 
 ```python
 from langchain_community.document_loaders import TextLoader
@@ -246,8 +258,10 @@ for doc in docs:
     doc.metadata["loaded_at"] = datetime.now().isoformat()
     doc.metadata["category"] = "research"
 ```
+</ex-metadata>
 
-### Lazy Loading (Memory Efficient)
+<ex-lazy>
+Stream large files:
 
 ```python
 from langchain_community.document_loaders import PyPDFLoader
@@ -259,141 +273,114 @@ for doc in loader.lazy_load():
     print(f"Processing page {doc.metadata.get('page', 0)}")
     # Process without loading all pages into memory
 ```
+</ex-lazy>
 
-## Boundaries
+<boundaries>
+**What Agents CAN Do:**
+- Load from various sources: PDF, text, CSV, JSON, DOCX, PPTX files, web pages, cloud storage (S3, GCS, Azure), APIs and databases
+- Extract with metadata: Preserve source information, add custom metadata, track page numbers, URLs, timestamps
+- Process efficiently: Use lazy loading for large files, batch process directories, stream data
+- Customize extraction: Use jq for JSON extraction, BeautifulSoup for HTML parsing, OCR for scanned documents
 
-### What Agents CAN Do
+**What Agents CANNOT Do:**
+- Extract from encrypted/protected files: Cannot bypass password-protected PDFs, cannot access auth-required sites without credentials
+- Process all formats automatically: Scanned PDFs need OCR, proprietary formats need specific loaders
+- Bypass rate limits: Must respect website rate limiting
+</boundaries>
 
-✅ **Load from various sources**
-- PDF, text, CSV, JSON, DOCX, PPTX files
-- Web pages and URLs
-- Cloud storage (S3, GCS, Azure)
-- APIs and databases
-
-✅ **Extract with metadata**
-- Preserve source information
-- Add custom metadata
-- Track page numbers, URLs, timestamps
-
-✅ **Process efficiently**
-- Use lazy loading for large files
-- Batch process directories
-- Stream data
-
-✅ **Customize extraction**
-- Use jq for JSON extraction
-- BeautifulSoup for HTML parsing
-- OCR for scanned documents
-
-### What Agents CANNOT Do
-
-❌ **Extract from encrypted/protected files**
-- Cannot bypass password-protected PDFs
-- Cannot access auth-required sites without credentials
-
-❌ **Process all formats automatically**
-- Scanned PDFs need OCR
-- Proprietary formats need specific loaders
-
-❌ **Bypass rate limits**
-- Must respect website rate limiting
-
-## Gotchas
-
-### 1. **Import from Correct Package**
+<fix-import-community-package>
+Updated import path:
 
 ```python
-# ❌ OLD: Using langchain imports
+# OLD: Using langchain imports
 from langchain.document_loaders import PyPDFLoader  # Deprecated!
 
-# ✅ NEW: Use community package
+# NEW: Use community package
 from langchain_community.document_loaders import PyPDFLoader
 ```
+</fix-import-community-package>
 
-**Fix**: Use `langchain-community` package.
-
-### 2. **PyPDF vs Unstructured**
+<fix-pypdf-vs-unstructured>
+Use Unstructured for complex PDFs:
 
 ```python
-# ❌ PyPDF may not work for complex PDFs
+# PyPDF may not work for complex PDFs
 from langchain_community.document_loaders import PyPDFLoader
 loader = PyPDFLoader("complex.pdf")
 docs = loader.load()  # Poor extraction!
 
-# ✅ Use Unstructured for complex PDFs
+# Use Unstructured for complex PDFs
 from langchain_community.document_loaders import UnstructuredPDFLoader
 loader = UnstructuredPDFLoader("complex.pdf")
 docs = loader.load()  # Better extraction
 ```
+</fix-pypdf-vs-unstructured>
 
-**Fix**: Use UnstructuredPDFLoader for complex layouts.
-
-### 3. **Web Scraping Dependencies**
+<fix-web-scraping-dependencies>
+Install bs4 and lxml:
 
 ```python
-# ❌ Missing dependencies
+# Missing dependencies
 from langchain_community.document_loaders import WebBaseLoader
 loader = WebBaseLoader("https://example.com")
 # ImportError: bs4 not found!
 
-# ✅ Install required packages
+# Install required packages
 # pip install beautifulsoup4 lxml
 ```
+</fix-web-scraping-dependencies>
 
-**Fix**: Install `beautifulsoup4` and `lxml`.
-
-### 4. **Unstructured API Keys**
+<fix-unstructured-api-keys>
+Set API key or install dependencies:
 
 ```python
-# ❌ Unstructured may need API key for advanced features
+# Unstructured may need API key for advanced features
 from langchain_community.document_loaders import UnstructuredFileLoader
 loader = UnstructuredFileLoader("file.pdf", strategy="ocr_only")
 # May fail without API key!
 
-# ✅ Set API key or install dependencies
+# Set API key or install dependencies
 # pip install unstructured[local-inference]
 # Or set UNSTRUCTURED_API_KEY environment variable
 ```
+</fix-unstructured-api-keys>
 
-**Fix**: Install local dependencies or use API key.
-
-### 5. **Encoding Issues**
+<fix-encoding-issues>
+Specify UTF-8 encoding:
 
 ```python
-# ❌ Default encoding may fail
+# Default encoding may fail
 loader = TextLoader("file.txt")
 docs = loader.load()  # UnicodeDecodeError!
 
-# ✅ Specify encoding
+# Specify encoding
 loader = TextLoader("file.txt", encoding="utf-8")
 docs = loader.load()
 ```
+</fix-encoding-issues>
 
-**Fix**: Specify correct encoding for text files.
-
-### 6. **S3 Credentials**
+<fix-s3-credentials>
+Configure AWS credentials:
 
 ```python
-# ❌ Missing AWS credentials
+# Missing AWS credentials
 from langchain_community.document_loaders import S3FileLoader
 loader = S3FileLoader("bucket", "key")
 docs = loader.load()  # Credential error!
 
-# ✅ Configure AWS credentials
+# Configure AWS credentials
 # Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY
 # Or use AWS CLI: aws configure
 ```
+</fix-s3-credentials>
 
-**Fix**: Configure AWS credentials properly.
-
-## Links and Resources
-
-### Official Documentation
+<links>
 - [LangChain Python Document Loaders](https://python.langchain.com/docs/integrations/document_loaders/)
 - [PDF Loaders](https://python.langchain.com/docs/integrations/document_loaders/#pdfs)
 - [Web Loaders](https://python.langchain.com/docs/integrations/document_loaders/#web)
+</links>
 
-### Package Installation
+<installation>
 ```bash
 # Community loaders
 pip install langchain-community
@@ -409,3 +396,4 @@ pip install unstructured
 # or with local inference
 pip install "unstructured[local-inference]"
 ```
+</installation>

@@ -3,10 +3,7 @@ name: LangChain Models (Python)
 description: [LangChain] Initialize and use LangChain chat models - includes provider selection (OpenAI, Anthropic, Google), model configuration, and invocation patterns
 ---
 
-# langchain-models (Python)
-
-## Overview
-
+<overview>
 Chat models are the core of LangChain applications. They take messages as input and return AI-generated messages as output. LangChain provides a unified interface across multiple providers (OpenAI, Anthropic, Google, etc.).
 
 **Key Concepts:**
@@ -14,9 +11,9 @@ Chat models are the core of LangChain applications. They take messages as input 
 - **Provider-specific classes**: Direct initialization (ChatOpenAI, ChatAnthropic, etc.)
 - **Messages**: Structured input/output format (HumanMessage, AIMessage, etc.)
 - **Invocation patterns**: invoke(), stream(), batch()
+</overview>
 
-## When to Use Each Provider
-
+<when-to-use-each-provider>
 | Provider | Best For | Models | Strengths |
 |----------|----------|--------|-----------|
 | OpenAI | General purpose, reasoning | GPT-4.1, GPT-5 | Strong reasoning, large context |
@@ -24,11 +21,9 @@ Chat models are the core of LangChain applications. They take messages as input 
 | Google | Multimodal, speed | Gemini 2.5 | Fast, multimodal, cost-effective |
 | AWS Bedrock | Enterprise, compliance | Multiple providers | Security, compliance, variety |
 | Azure OpenAI | Enterprise OpenAI | GPT models | Enterprise features, SLAs |
+</when-to-use-each-provider>
 
-## Decision Tables
-
-### Choosing a Model
-
+<model-selection>
 | Use Case | Recommended Model | Why |
 |----------|------------------|-----|
 | Complex reasoning | GPT-5, Claude Opus | Best logical capabilities |
@@ -37,19 +32,17 @@ Chat models are the core of LangChain applications. They take messages as input 
 | Long context | Claude Opus, Gemini | 100k+ token windows |
 | Cost-effective | GPT-4.1-mini, Gemini Flash | Lower pricing |
 | Enterprise/compliance | Azure OpenAI, AWS Bedrock | Security features |
+</model-selection>
 
-### Initialization Methods
-
+<initialization-methods>
 | Method | When to Use | Example |
 |--------|-------------|---------|
 | `init_chat_model("provider:model")` | Quick switching between providers | `init_chat_model("openai:gpt-4.1")` |
 | Provider class | Need provider-specific features | `ChatOpenAI(model="gpt-4.1")` |
 | With configuration | Custom parameters needed | Temperature, max tokens, etc. |
+</initialization-methods>
 
-## Code Examples
-
-### Basic Model Initialization
-
+<ex-basic-model-initialization>
 ```python
 from langchain.chat_models import init_chat_model
 
@@ -64,9 +57,9 @@ import os
 os.environ["OPENAI_API_KEY"] = "your-api-key"
 model3 = init_chat_model("openai:gpt-4.1")
 ```
+</ex-basic-model-initialization>
 
-### Provider-Specific Initialization
-
+<ex-provider-specific-initialization>
 ```python
 from langchain_openai import ChatOpenAI
 from langchain_anthropic import ChatAnthropic
@@ -96,9 +89,9 @@ google = ChatGoogleGenerativeAI(
     google_api_key=os.getenv("GOOGLE_API_KEY"),
 )
 ```
+</ex-provider-specific-initialization>
 
-### Simple Invocation
-
+<ex-simple-invocation>
 ```python
 from langchain.chat_models import init_chat_model
 
@@ -114,9 +107,9 @@ response2 = model.invoke([
 ])
 print(response2.content)
 ```
+</ex-simple-invocation>
 
-### Streaming Responses
-
+<ex-streaming-responses>
 ```python
 from langchain.chat_models import init_chat_model
 
@@ -126,9 +119,9 @@ model = init_chat_model("gpt-4.1")
 for chunk in model.stream("Explain quantum computing"):
     print(chunk.content, end="", flush=True)
 ```
+</ex-streaming-responses>
 
-### Batch Processing
-
+<ex-batch-processing>
 ```python
 from langchain.chat_models import init_chat_model
 
@@ -144,9 +137,9 @@ results = model.batch([
 for i, result in enumerate(results):
     print(f"Answer {i + 1}: {result.content}")
 ```
+</ex-batch-processing>
 
-### Multi-turn Conversation
-
+<ex-multi-turn-conversation>
 ```python
 from langchain.chat_models import init_chat_model
 
@@ -167,41 +160,41 @@ response2 = model.invoke(messages)
 
 print(response2.content)  # Knows we're talking about Paris
 ```
+</ex-multi-turn-conversation>
 
-### Model Configuration Options
-
+<ex-model-configuration-options>
 ```python
 from langchain_openai import ChatOpenAI
 
 model = ChatOpenAI(
     model="gpt-4.1",
-    
+
     # Control randomness (0 = deterministic, 1 = creative)
     temperature=0.7,
-    
+
     # Limit response length
     max_tokens=500,
-    
+
     # Alternative sampling method
     top_p=0.9,
-    
+
     # Penalize repetition
     frequency_penalty=0.5,
     presence_penalty=0.5,
-    
+
     # Stop generation at these strings
     stop=["\n\n", "END"],
-    
+
     # Timeout for requests (seconds)
     request_timeout=30,
-    
+
     # Max retries on failure
     max_retries=3,
 )
 ```
+</ex-model-configuration-options>
 
-### Azure OpenAI
-
+<ex-azure-openai>
 ```python
 from langchain_openai import AzureChatOpenAI
 import os
@@ -213,9 +206,9 @@ azure = AzureChatOpenAI(
     deployment_name="your-deployment-name",
 )
 ```
+</ex-azure-openai>
 
-### AWS Bedrock
-
+<ex-aws-bedrock>
 ```python
 from langchain_aws import ChatBedrock
 
@@ -226,9 +219,9 @@ bedrock = ChatBedrock(
     # Credentials automatically loaded from environment
 )
 ```
+</ex-aws-bedrock>
 
-### Model Selection Helper
-
+<ex-model-selection-helper>
 ```python
 from langchain.chat_models import init_chat_model
 
@@ -240,16 +233,16 @@ def get_model(task: str):
         "long_context": "anthropic:claude-sonnet-4-5-20250929",
         "cost_effective": "openai:gpt-4.1-mini",
     }
-    
+
     return init_chat_model(model_map.get(task, "openai:gpt-4.1"))
 
 # Usage
 reasoning_model = get_model("reasoning")
 fast_model = get_model("fast")
 ```
+</ex-model-selection-helper>
 
-### Error Handling
-
+<ex-error-handling>
 ```python
 from langchain.chat_models import init_chat_model
 from openai import RateLimitError, AuthenticationError
@@ -266,24 +259,24 @@ except AuthenticationError:
 except Exception as e:
     print(f"Error: {e}")
 ```
+</ex-error-handling>
 
-### Async Invocation
-
+<ex-async-invocation>
 ```python
 from langchain.chat_models import init_chat_model
 import asyncio
 
 async def main():
     model = init_chat_model("gpt-4.1")
-    
+
     # Async invoke
     response = await model.ainvoke("Hello!")
     print(response.content)
-    
+
     # Async stream
     async for chunk in model.astream("Explain AI"):
         print(chunk.content, end="", flush=True)
-    
+
     # Async batch
     results = await model.abatch([
         "What is AI?",
@@ -294,9 +287,9 @@ async def main():
 
 asyncio.run(main())
 ```
+</ex-async-invocation>
 
-### Checking Model Capabilities
-
+<ex-checking-model-capabilities>
 ```python
 from langchain.chat_models import init_chat_model
 
@@ -307,37 +300,35 @@ print("Supports streaming:", hasattr(model, "stream"))
 print("Supports tool calling:", hasattr(model, "bind_tools"))
 print("Supports structured output:", hasattr(model, "with_structured_output"))
 ```
+</ex-checking-model-capabilities>
 
-## Boundaries
-
+<boundaries>
 ### What You CAN Configure
 
-✅ **Model Selection**: Any supported model from any provider
-✅ **Temperature**: Control randomness (0-1)
-✅ **Max Tokens**: Limit response length
-✅ **Stop Sequences**: Define where to stop generation
-✅ **Timeout/Retries**: Control request behavior
-✅ **API Keys**: Per-model or from environment
-✅ **Provider-specific Options**: Each provider has unique features
+* Model Selection**: Any supported model from any provider
+* Temperature**: Control randomness (0-1)
+* Max Tokens**: Limit response length
+* Stop Sequences**: Define where to stop generation
+* Timeout/Retries**: Control request behavior
+* API Keys**: Per-model or from environment
+* Provider-specific Options**: Each provider has unique features
 
 ### What You CANNOT Configure
 
-❌ **Model Training Data**: Models are pre-trained
-❌ **Model Architecture**: Can't modify internal structure
-❌ **Token Costs**: Set by provider
-❌ **Rate Limits**: Set by provider (can manage with queues)
-❌ **Model Capabilities**: Vision/tool support is model-specific
+* Model Training Data**: Models are pre-trained
+* Model Architecture**: Can't modify internal structure
+* Token Costs**: Set by provider
+* Rate Limits**: Set by provider (can manage with queues)
+* Model Capabilities**: Vision/tool support is model-specific
+</boundaries>
 
-## Gotchas
-
-### 1. API Key Not Found
-
+<fix-api-key-not-found>
 ```python
-# ❌ Problem: Missing API key
+# WRONG: Problem: Missing API key
 model = init_chat_model("openai:gpt-4.1")
 model.invoke("Hello")  # Error: API key not found
 
-# ✅ Solution: Set environment variable
+# CORRECT: Solution: Set environment variable
 import os
 os.environ["OPENAI_API_KEY"] = "sk-..."
 model = init_chat_model("openai:gpt-4.1")
@@ -349,63 +340,63 @@ model = ChatOpenAI(
     api_key="sk-...",
 )
 ```
+</fix-api-key-not-found>
 
-### 2. Model Name Typos
-
+<fix-model-name-typos>
 ```python
-# ❌ Problem: Wrong model name
+# WRONG: Problem: Wrong model name
 model = init_chat_model("gpt4")  # Error!
 
-# ✅ Solution: Use correct format
+# CORRECT: Solution: Use correct format
 model = init_chat_model("openai:gpt-4.1")
 # Or provider shorthand
 model2 = init_chat_model("gpt-4.1")
 ```
+</fix-model-name-typos>
 
-### 3. Response Content Access
-
+<fix-response-content-access>
 ```python
-# ❌ Problem: Wrong property access
+# WRONG: Problem: Wrong property access
 response = model.invoke("Hello")
 print(response)  # AIMessage object, not string
 
-# ✅ Solution: Access .content property
+# CORRECT: Solution: Access .content property
 print(response.content)  # "Hello! How can I help you?"
 
 # Or convert to string
 print(str(response))
 ```
+</fix-response-content-access>
 
-### 4. Streaming Requires Iteration
-
+<fix-streaming-requires-iteration>
 ```python
-# ❌ Problem: Not iterating stream
+# WRONG: Problem: Not iterating stream
 stream = model.stream("Hello")
 print(stream)  # Generator object, not chunks
 
-# ✅ Solution: Use for loop
+# CORRECT: Solution: Use for loop
 for chunk in model.stream("Hello"):
     print(chunk.content, end="", flush=True)
 ```
+</fix-streaming-requires-iteration>
 
-### 5. Temperature Confusion
-
+<fix-temperature-confusion>
 ```python
-# ❌ Problem: Wrong temperature range
+# WRONG: Problem: Wrong temperature range
 model = ChatOpenAI(
     temperature=10,  # Too high! Should be 0-1
 )
 
-# ✅ Solution: Use 0-1 range
+# CORRECT: Solution: Use 0-1 range
 deterministic = ChatOpenAI(temperature=0)  # Always same
 balanced = ChatOpenAI(temperature=0.7)  # Default
 creative = ChatOpenAI(temperature=1)  # Maximum randomness
 ```
+</fix-temperature-confusion>
 
-### 6. Token Limits
-
+<fix-token-limits>
 ```python
-# ❌ Problem: Input + output exceeds model limit
+# WRONG: Problem: Input + output exceeds model limit
 long_text = "..." * 50000  # Very long text
 model = init_chat_model("gpt-4.1")  # 128k context
 model.invoke(long_text)  # May succeed
@@ -413,7 +404,7 @@ model.invoke(long_text)  # May succeed
 model2 = init_chat_model("gpt-4.1-mini")  # 16k context
 model2.invoke(long_text)  # Error: context too long
 
-# ✅ Solution: Check input length or use larger context model
+# CORRECT: Solution: Check input length or use larger context model
 import tiktoken
 
 enc = tiktoken.encoding_for_model("gpt-4.1")
@@ -424,29 +415,30 @@ if len(tokens) > 100000:
     # Use Claude with 200k context
     model = init_chat_model("anthropic:claude-opus-4")
 ```
+</fix-token-limits>
 
-### 7. Sync vs Async Confusion
-
+<fix-sync-vs-async-confusion>
 ```python
-# ❌ Problem: Using sync in async context
+# WRONG: Problem: Using sync in async context
 async def process():
     model = init_chat_model("gpt-4.1")
     response = model.invoke("Hello")  # Blocks async loop!
 
-# ✅ Solution: Use async methods
+# CORRECT: Solution: Use async methods
 async def process():
     model = init_chat_model("gpt-4.1")
     response = await model.ainvoke("Hello")  # Non-blocking
-    
+
     async for chunk in model.astream("Hello"):
         print(chunk.content)
 ```
+</fix-sync-vs-async-confusion>
 
-## Links to Documentation
-
+<links>
 - [Chat Models Overview](https://docs.langchain.com/oss/python/langchain/models)
 - [OpenAI Integration](https://docs.langchain.com/oss/python/integrations/chat/openai)
 - [Anthropic Integration](https://docs.langchain.com/oss/python/integrations/chat/anthropic)
 - [Google Integration](https://docs.langchain.com/oss/python/integrations/chat/google_generative_ai)
 - [All Chat Model Integrations](https://docs.langchain.com/oss/python/integrations/chat/index)
 - [Model Providers Overview](https://docs.langchain.com/oss/python/integrations/providers/all_providers)
+</links>

@@ -3,10 +3,7 @@ name: LangChain Text Splitters Integration (Python)
 description: [LangChain] Guide to using text splitter integrations in LangChain including recursive, character, and semantic splitters
 ---
 
-# langchain-text-splitters (Python)
-
-## Overview
-
+<overview>
 Text splitters divide large documents into smaller chunks that fit within model context windows and enable effective retrieval. Proper chunking is critical for RAG system performance.
 
 ### Key Concepts
@@ -15,9 +12,9 @@ Text splitters divide large documents into smaller chunks that fit within model 
 - **Chunk Overlap**: Number of characters/tokens to overlap between chunks
 - **Separators**: Characters used to split text
 - **Metadata**: Preserved and enriched during splitting
+</overview>
 
-## Splitter Selection Decision Table
-
+<splitter-selection>
 | Splitter | Best For | Package | Key Features |
 |----------|----------|---------|--------------|
 | **RecursiveCharacterTextSplitter** | General purpose | `langchain-text-splitters` | Hierarchical splitting |
@@ -25,9 +22,9 @@ Text splitters divide large documents into smaller chunks that fit within model 
 | **TokenTextSplitter** | Token-aware | `langchain-text-splitters` | Actual token counts |
 | **MarkdownHeaderTextSplitter** | Markdown | `langchain-text-splitters` | Preserves headers |
 | **SemanticChunker** | Semantic boundaries | `langchain-experimental` | AI-driven splitting |
+</splitter-selection>
 
-### When to Choose Each Splitter
-
+<when-to-choose>
 **Choose RecursiveCharacterTextSplitter if:**
 - General purpose text (default choice)
 - Want to preserve structure
@@ -40,11 +37,9 @@ Text splitters divide large documents into smaller chunks that fit within model 
 **Choose SemanticChunker if:**
 - Want AI to determine boundaries
 - Quality over speed
+</when-to-choose>
 
-## Code Examples
-
-### RecursiveCharacterTextSplitter (Recommended)
-
+<ex-recursive-character-text-splitter>
 ```python
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
@@ -77,9 +72,9 @@ split_docs = splitter.split_documents(docs)
 # Metadata preserved and enriched
 print(split_docs[0].metadata)
 ```
+</ex-recursive-character-text-splitter>
 
-### CharacterTextSplitter
-
+<ex-character-text-splitter>
 ```python
 from langchain_text_splitters import CharacterTextSplitter
 
@@ -92,9 +87,9 @@ splitter = CharacterTextSplitter(
 
 chunks = splitter.split_text(text)
 ```
+</ex-character-text-splitter>
 
-### TokenTextSplitter (Token-Aware)
-
+<ex-token-text-splitter>
 ```python
 from langchain_text_splitters import TokenTextSplitter
 
@@ -109,9 +104,9 @@ chunks = splitter.split_text(text)
 # Uses tiktoken for OpenAI token counting
 # More accurate than character counting
 ```
+</ex-token-text-splitter>
 
-### Markdown Splitter
-
+<ex-markdown-splitter>
 ```python
 from langchain_text_splitters import MarkdownHeaderTextSplitter
 
@@ -143,9 +138,9 @@ for doc in splits:
     print(doc.metadata)
     print(doc.page_content)
 ```
+</ex-markdown-splitter>
 
-### Code Splitter
-
+<ex-code-splitter>
 ```python
 from langchain_text_splitters import RecursiveCharacterTextSplitter, Language
 
@@ -174,9 +169,9 @@ js_splitter = RecursiveCharacterTextSplitter.from_language(
     chunk_overlap=50,
 )
 ```
+</ex-code-splitter>
 
-### Semantic Chunker (Experimental)
-
+<ex-semantic-chunker>
 ```python
 from langchain_experimental.text_splitter import SemanticChunker
 from langchain_openai import OpenAIEmbeddings
@@ -190,9 +185,9 @@ splitter = SemanticChunker(
 chunks = splitter.split_text(text)
 # Splits at semantic boundaries, not fixed sizes
 ```
+</ex-semantic-chunker>
 
-### Splitting with Vector Store Integration
-
+<ex-vector-store-integration>
 ```python
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
@@ -218,9 +213,9 @@ vectorstore = FAISS.from_documents(
 # Ready for semantic search
 results = vectorstore.similarity_search("query", k=4)
 ```
+</ex-vector-store-integration>
 
-### Custom Length Function
-
+<ex-custom-length-function>
 ```python
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 import tiktoken
@@ -236,9 +231,9 @@ splitter = RecursiveCharacterTextSplitter(
     length_function=tiktoken_len,
 )
 ```
+</ex-custom-length-function>
 
-### Splitting Large PDFs
-
+<ex-splitting-large-pdfs>
 ```python
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -256,110 +251,101 @@ splitter = RecursiveCharacterTextSplitter(
 
 chunks = splitter.split_documents(pages)
 
-print(f"{len(pages)} pages → {len(chunks)} chunks")
+print(f"{len(pages)} pages -> {len(chunks)} chunks")
 
 # Metadata includes original page number
 for chunk in chunks:
     print(chunk.metadata)
 ```
+</ex-splitting-large-pdfs>
 
-## Boundaries
-
+<boundaries>
 ### What Agents CAN Do
 
-✅ **Split text intelligently**
+* Split text intelligently**
 - Recursive splitting to preserve structure
 - Configure chunk size and overlap
 - Choose separators
 
-✅ **Handle various formats**
+* Handle various formats**
 - Plain text, markdown, code
 - Documents with metadata
 - Structured data
 
-✅ **Optimize for use case**
+* Optimize for use case**
 - Balance size vs context
 - Token-based splitting
 - Semantic splitting
 
 ### What Agents CANNOT Do
 
-❌ **Guarantee semantic boundaries**
+* Guarantee semantic boundaries**
 - Uses heuristics, not perfect understanding
 - May split mid-sentence
 
-❌ **Perfectly estimate tokens**
+* Perfectly estimate tokens**
 - Character splitters approximate
 - Use TokenTextSplitter for exact counts
+</boundaries>
 
-## Gotchas
-
-### 1. **Chunk Size vs Token Limits**
-
+<fix-chunk-size-vs-token-limits>
 ```python
-# ❌ Character count != token count
+# WRONG: Character count != token count
 splitter = RecursiveCharacterTextSplitter(chunk_size=4000)
 # May exceed 4096 token limit!
 
-# ✅ Use token-aware splitter
+# CORRECT: Use token-aware splitter
 from langchain_text_splitters import TokenTextSplitter
 splitter = TokenTextSplitter(chunk_size=4000)
 ```
+</fix-chunk-size-vs-token-limits>
 
-**Fix**: Use TokenTextSplitter for token precision.
-
-### 2. **Import from Correct Package**
-
+<fix-import-from-correct-package>
 ```python
-# ❌ OLD
+# WRONG: OLD
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
-# ✅ NEW
+# CORRECT: NEW
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 ```
+</fix-import-from-correct-package>
 
-**Fix**: Use `langchain-text-splitters` package.
-
-### 3. **Zero Overlap**
-
+<fix-zero-overlap>
 ```python
-# ❌ No overlap
+# WRONG: No overlap
 splitter = RecursiveCharacterTextSplitter(
     chunk_size=1000,
     chunk_overlap=0,  # Context lost at boundaries
 )
 
-# ✅ Use overlap
+# CORRECT: Use overlap
 splitter = RecursiveCharacterTextSplitter(
     chunk_size=1000,
     chunk_overlap=200,  # 20% overlap
 )
 ```
+</fix-zero-overlap>
 
-**Fix**: Always use 10-20% overlap.
-
-### 4. **Metadata Not Preserved**
-
+<fix-metadata-not-preserved>
 ```python
-# ❌ splitText loses metadata
+# WRONG: splitText loses metadata
 chunks = splitter.split_text(text)
 
-# ✅ Use split_documents
+# CORRECT: Use split_documents
 docs = [Document(page_content=text, metadata={"source": "file"})]
 chunks = splitter.split_documents(docs)
 ```
+</fix-metadata-not-preserved>
 
-**Fix**: Use `split_documents()` to preserve metadata.
-
-## Links and Resources
-
-### Official Documentation
-- [LangChain Python Text Splitters](https://python.langchain.com/docs/integrations/text_splitters/)
-
-### Package Installation
+<installation>
 ```bash
 pip install langchain-text-splitters
 
 # For semantic chunker
 pip install langchain-experimental
 ```
+</installation>
+
+<links>
+- [LangChain Python Text Splitters](https://python.langchain.com/docs/integrations/text_splitters/)
+</links>

@@ -3,10 +3,7 @@ name: Deep Agents Overview (Python)
 description: [Deep Agents] Understanding Deep Agents framework - what they are, how to create them with create_deep_agent/createDeepAgent, and the agent harness architecture with built-in middleware for planning, filesystems, and subagents.
 ---
 
-# deepagents-overview (Python)
-
-## What are Deep Agents?
-
+<overview>
 Deep Agents are an opinionated agent framework built on top of LangChain and LangGraph, designed for complex, multi-step tasks. They come "batteries included" with built-in capabilities:
 
 - **Task Planning**: TodoListMiddleware for breaking down complex tasks
@@ -16,9 +13,9 @@ Deep Agents are an opinionated agent framework built on top of LangChain and Lan
 - **Human-in-the-loop**: Approval workflows for sensitive operations
 
 Deep Agents use an "agent harness" architecture - the same core tool-calling loop as other frameworks, but with pre-configured middleware and tools.
+</overview>
 
-## When to Use Deep Agents
-
+<when-to-use>
 | Use Deep Agents When | Use LangChain's create_agent When |
 |---------------------|-----------------------------------|
 | Multi-step tasks requiring planning | Simple, single-purpose tasks |
@@ -26,11 +23,9 @@ Deep Agents use an "agent harness" architecture - the same core tool-calling loo
 | Need for specialized subagents | Single agent is sufficient |
 | Persistent memory across sessions | Ephemeral, single-session work |
 | CLI or coding assistant use cases | Simple API or chat applications |
+</when-to-use>
 
-## Creating a Deep Agent
-
-### Basic Agent Creation
-
+<ex-basic-agent>
 ```python
 from deepagents import create_deep_agent
 
@@ -44,9 +39,9 @@ result = agent.invoke({
     ]
 })
 ```
+</ex-basic-agent>
 
-### Agent with Custom Tools
-
+<ex-custom-tools>
 ```python
 from deepagents import create_deep_agent
 from langchain.tools import tool
@@ -67,9 +62,9 @@ result = agent.invoke({
     ]
 })
 ```
+</ex-custom-tools>
 
-### Agent with Custom Model
-
+<ex-custom-model>
 ```python
 from deepagents import create_deep_agent
 from langchain_openai import ChatOpenAI
@@ -85,9 +80,9 @@ agent = create_deep_agent(
     model=model
 )
 ```
+</ex-custom-model>
 
-## The Agent Harness Architecture
-
+<agent-harness-architecture>
 Deep Agents automatically attach middleware when created:
 
 ```python
@@ -110,9 +105,9 @@ Every deep agent has access to:
 1. **Planning Tool**: `write_todos` - Track multi-step tasks
 2. **Filesystem Tools**: `ls`, `read_file`, `write_file`, `edit_file`, `glob`, `grep`
 3. **Subagent Tool**: `task` - Delegate work to specialized agents
+</agent-harness-architecture>
 
-## Configuration Options
-
+<ex-configuration-options>
 ```python
 from deepagents import create_deep_agent
 from langgraph.checkpoint.memory import MemorySaver
@@ -131,9 +126,9 @@ agent = create_deep_agent(
     store=InMemoryStore()          # For long-term memory
 )
 ```
+</ex-configuration-options>
 
-## Decision Table: Which Middleware to Customize
-
+<middleware-selection>
 | If you need to... | Use this middleware | When to customize |
 |------------------|-------------------|------------------|
 | Track complex multi-step tasks | TodoListMiddleware | Default works; customize prompt if needed |
@@ -144,39 +139,37 @@ agent = create_deep_agent(
 | Add human approval | HumanInTheLoopMiddleware | Configure which tools require approval |
 | Load skills on-demand | SkillsMiddleware | Provide skill directories |
 | Access persistent memory | MemoryMiddleware | Provide a Store instance |
+</middleware-selection>
 
-## Boundaries
-
+<boundaries>
 ### What Agents CAN Configure
 
-✅ Model selection and parameters
-✅ Additional custom tools
-✅ System prompt customization
-✅ Backend storage strategy
-✅ Which tools require approval
-✅ Custom subagents with specialized tools
-✅ Skill directories and content
-✅ Middleware order and configuration
+- Model selection and parameters
+- Additional custom tools
+- System prompt customization
+- Backend storage strategy
+- Which tools require approval
+- Custom subagents with specialized tools
+- Skill directories and content
+- Middleware order and configuration
 
 ### What Agents CANNOT Configure
 
-❌ Core middleware removal (TodoList, Filesystem, SubAgent are always present)
-❌ The write_todos, task, or filesystem tool names
-❌ The fundamental tool-calling loop
-❌ LangGraph's runtime execution model
-❌ The Agent Skills protocol format
+- Core middleware removal (TodoList, Filesystem, SubAgent are always present)
+- The write_todos, task, or filesystem tool names
+- The fundamental tool-calling loop
+- LangGraph's runtime execution model
+- The Agent Skills protocol format
+</boundaries>
 
-## Gotchas
-
-### 1. Checkpointer Required for Interrupts
-
+<fix-checkpointer-for-interrupts>
 ```python
-# ❌ This will error if interrupt_on is set
+# WRONG: This will error if interrupt_on is set
 agent = create_deep_agent(
     interrupt_on={"write_file": True}
 )
 
-# ✅ Checkpointer is required
+# CORRECT: Checkpointer is required
 from langgraph.checkpoint.memory import MemorySaver
 
 agent = create_deep_agent(
@@ -184,18 +177,18 @@ agent = create_deep_agent(
     checkpointer=MemorySaver()
 )
 ```
+</fix-checkpointer-for-interrupts>
 
-### 2. Store Required for Persistent Memory
-
+<fix-store-for-memory>
 ```python
-# ❌ StoreBackend needs a Store
+# WRONG: StoreBackend needs a Store
 from deepagents.backends import StoreBackend
 
 agent = create_deep_agent(
     backend=lambda rt: StoreBackend(rt)
 )
 
-# ✅ Pass a Store instance
+# CORRECT: Pass a Store instance
 from langgraph.store.memory import InMemoryStore
 
 agent = create_deep_agent(
@@ -203,16 +196,16 @@ agent = create_deep_agent(
     store=InMemoryStore()
 )
 ```
+</fix-store-for-memory>
 
-### 3. Skills Require Backend Setup
-
+<fix-backend-for-skills>
 ```python
-# ❌ Skills won't load without proper backend
+# WRONG: Skills won't load without proper backend
 agent = create_deep_agent(
     skills=["/path/to/skills/"]
 )
 
-# ✅ Use FilesystemBackend for local skills
+# CORRECT: Use FilesystemBackend for local skills
 from deepagents.backends import FilesystemBackend
 
 agent = create_deep_agent(
@@ -220,22 +213,22 @@ agent = create_deep_agent(
     skills=["./skills/"]
 )
 ```
+</fix-backend-for-skills>
 
-### 4. Thread ID Required for Stateful Conversations
-
+<fix-thread-id-for-conversations>
 ```python
-# ❌ Each invocation is isolated without thread_id
+# WRONG: Each invocation is isolated without thread_id
 agent.invoke({"messages": [{"role": "user", "content": "Hi"}]})
 agent.invoke({"messages": [{"role": "user", "content": "What did I say?"}]})
 
-# ✅ Use consistent thread_id for conversation continuity
+# CORRECT: Use consistent thread_id for conversation continuity
 config = {"configurable": {"thread_id": "user-123"}}
 agent.invoke({"messages": [{"role": "user", "content": "Hi"}]}, config=config)
 agent.invoke({"messages": [{"role": "user", "content": "What did I say?"}]}, config=config)
 ```
+</fix-thread-id-for-conversations>
 
-### 5. Default Model is Anthropic Claude
-
+<fix-default-model>
 ```python
 # Uses claude-sonnet-4-5-20250929 by default
 agent = create_deep_agent()
@@ -245,10 +238,11 @@ agent = create_deep_agent()
 import os
 os.environ["ANTHROPIC_API_KEY"] = "your-key"
 ```
+</fix-default-model>
 
-## Full Documentation
-
+<links>
 - [Deep Agents Overview](https://docs.langchain.com/oss/python/deepagents/overview)
 - [Agent Harness Capabilities](https://docs.langchain.com/oss/python/deepagents/harness)
 - [Customizing Deep Agents](https://docs.langchain.com/oss/python/deepagents/customization)
 - [Deep Agents Quickstart](https://docs.langchain.com/oss/python/deepagents/quickstart)
+</links>

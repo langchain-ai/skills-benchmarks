@@ -3,21 +3,17 @@ name: LangChain Document Loaders Integration (TypeScript)
 description: [LangChain] Guide to using document loader integrations in LangChain for PDFs, web pages, text files, and APIs
 ---
 
-# langchain-document-loaders (JavaScript/TypeScript)
-
-## Overview
-
+<overview>
 Document loaders extract data from various sources and formats into LangChain's standardized Document format. They're essential for building RAG systems, as they convert raw data into processable text chunks with metadata.
 
-### Key Concepts
-
+Key Concepts:
 - **Document**: Object with `pageContent` (text) and `metadata` (source info, page numbers, etc.)
 - **Loaders**: Classes that extract content from specific sources/formats
 - **Metadata**: Contextual information preserved during loading (URLs, file paths, page numbers)
 - **Lazy Loading**: Stream documents without loading everything into memory
+</overview>
 
-## Loader Selection Decision Table
-
+<loader-selection>
 | Loader Type | Best For | Package | Key Features |
 |-------------|----------|---------|--------------|
 | **PDFLoader** | PDF files | `@langchain/community` | Extracts text and page numbers |
@@ -29,9 +25,9 @@ Document loaders extract data from various sources and formats into LangChain's 
 | **DirectoryLoader** | Multiple files | `langchain/document_loaders/fs/directory` | Bulk loading from directories |
 | **GithubRepoLoader** | GitHub repos | `@langchain/community` | Clone and load repo files |
 | **NotionLoader** | Notion pages | `@langchain/community` | Notion workspace data |
+</loader-selection>
 
-### When to Choose Each Loader
-
+<when-to-use>
 **Choose PDFLoader if:**
 - You're processing PDF documents
 - You need page number metadata
@@ -51,10 +47,10 @@ Document loaders extract data from various sources and formats into LangChain's 
 - You have simple plain text files
 - No special parsing needed
 - Direct file-to-document conversion
+</when-to-use>
 
-## Code Examples
-
-### PDF Loader
+<ex-pdf>
+Load PDF files with page metadata:
 
 ```typescript
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
@@ -72,8 +68,10 @@ docs.forEach((doc, i) => {
 // Each page is a separate document
 // metadata includes: source, pdf.totalPages, loc.pageNumber
 ```
+</ex-pdf>
 
-### Web Scraping - Cheerio (Static)
+<ex-cheerio>
+Scrape static web pages:
 
 ```typescript
 import { CheerioWebBaseLoader } from "@langchain/community/document_loaders/web/cheerio";
@@ -102,8 +100,10 @@ const loaderMultiple = new CheerioWebBaseLoader([
 ]);
 const allDocs = await loaderMultiple.load();
 ```
+</ex-cheerio>
 
-### Web Scraping - Playwright (Dynamic)
+<ex-playwright>
+Scrape JavaScript-rendered pages:
 
 ```typescript
 import { PlaywrightWebBaseLoader } from "@langchain/community/document_loaders/web/playwright";
@@ -124,8 +124,10 @@ const loader = new PlaywrightWebBaseLoader("https://spa-app.com", {
 
 const docs = await loader.load();
 ```
+</ex-playwright>
 
-### Text File Loader
+<ex-text>
+Load plain text files:
 
 ```typescript
 import { TextLoader } from "langchain/document_loaders/fs/text";
@@ -137,8 +139,10 @@ const docs = await loader.load();
 console.log(docs[0].pageContent);
 console.log(docs[0].metadata.source); // File path
 ```
+</ex-text>
 
-### JSON Loader
+<ex-json>
+Extract specific fields from JSON:
 
 ```typescript
 import { JSONLoader } from "langchain/document_loaders/fs/json";
@@ -154,8 +158,10 @@ const docs = await loader.load();
 // Example JSON: { "texts": [{ "content": "...", "id": 1 }] }
 // Each matching field becomes a document
 ```
+</ex-json>
 
-### CSV Loader
+<ex-csv>
+Load tabular data from CSV:
 
 ```typescript
 import { CSVLoader } from "@langchain/community/document_loaders/fs/csv";
@@ -170,8 +176,10 @@ const docs = await loader.load();
 // Each row becomes a document
 // Other columns stored in metadata
 ```
+</ex-csv>
 
-### Directory Loader
+<ex-directory>
+Bulk load files from a directory:
 
 ```typescript
 import { DirectoryLoader } from "langchain/document_loaders/fs/directory";
@@ -190,8 +198,10 @@ const loader = new DirectoryLoader(
 const docs = await loader.load();
 console.log(`Loaded ${docs.length} documents from directory`);
 ```
+</ex-directory>
 
-### GitHub Loader
+<ex-github>
+Load files from a GitHub repository:
 
 ```typescript
 import { GithubRepoLoader } from "@langchain/community/document_loaders/web/github";
@@ -209,8 +219,10 @@ const loader = new GithubRepoLoader(
 const docs = await loader.load();
 // Each file becomes a document
 ```
+</ex-github>
 
-### Custom Metadata Example
+<ex-custom-metadata>
+Add custom metadata to documents:
 
 ```typescript
 import { CheerioWebBaseLoader } from "@langchain/community/document_loaders/web/cheerio";
@@ -228,8 +240,10 @@ const enrichedDocs = docs.map(doc => ({
   },
 }));
 ```
+</ex-custom-metadata>
 
-### Lazy Loading (Memory Efficient)
+<ex-lazy>
+Stream documents for memory efficiency:
 
 ```typescript
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
@@ -242,168 +256,137 @@ for await (const doc of loader.lazy()) {
   // Process one page at a time without loading all into memory
 }
 ```
+</ex-lazy>
 
-## Boundaries
+<boundaries>
+What Agents CAN Do:
+- **Load from various sources**: PDF, text, CSV, JSON files; web pages (static and dynamic); GitHub repositories, Notion pages; APIs and custom sources
+- **Extract with metadata**: Preserve source information; add custom metadata fields; track page numbers, URLs, file paths
+- **Process efficiently**: Use lazy loading for large files; batch process directories; stream data without loading everything
+- **Customize extraction**: Use CSS selectors for web scraping; extract specific JSON fields; filter and transform content
 
-### What Agents CAN Do
+What Agents CANNOT Do:
+- **Extract from encrypted/protected files**: Cannot bypass password-protected PDFs; cannot access authentication-required websites without credentials
+- **Process binary data directly**: Cannot extract from images without OCR; cannot process proprietary formats without converters
+- **Handle all PDF types**: Scanned PDFs need OCR; image-based PDFs won't extract text
+- **Bypass rate limits**: Cannot ignore website rate limiting; must respect robots.txt
+</boundaries>
 
-✅ **Load from various sources**
-- PDF, text, CSV, JSON files
-- Web pages (static and dynamic)
-- GitHub repositories, Notion pages
-- APIs and custom sources
-
-✅ **Extract with metadata**
-- Preserve source information
-- Add custom metadata fields
-- Track page numbers, URLs, file paths
-
-✅ **Process efficiently**
-- Use lazy loading for large files
-- Batch process directories
-- Stream data without loading everything
-
-✅ **Customize extraction**
-- Use CSS selectors for web scraping
-- Extract specific JSON fields
-- Filter and transform content
-
-### What Agents CANNOT Do
-
-❌ **Extract from encrypted/protected files**
-- Cannot bypass password-protected PDFs
-- Cannot access authentication-required websites without credentials
-
-❌ **Process binary data directly**
-- Cannot extract from images without OCR
-- Cannot process proprietary formats without converters
-
-❌ **Handle all PDF types**
-- Scanned PDFs need OCR
-- Image-based PDFs won't extract text
-
-❌ **Bypass rate limits**
-- Cannot ignore website rate limiting
-- Must respect robots.txt
-
-## Gotchas
-
-### 1. **PDF Loader Requires Installation**
+<fix-pdf-install>
+PDFLoader requires peer dependency:
 
 ```typescript
-// ❌ Will fail if pdf-parse not installed
+// Will fail if pdf-parse not installed
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 const loader = new PDFLoader("file.pdf");
 
-// ✅ Install dependencies first
+// Fix: Install dependencies first
 // npm install pdf-parse
 
 const loader = new PDFLoader("file.pdf");
 const docs = await loader.load(); // Works!
 ```
+</fix-pdf-install>
 
-**Fix**: Install required peer dependencies: `npm install pdf-parse`
-
-### 2. **Web Scraping Blocked by CORS/Robots**
+<fix-cors-blocking>
+Handle blocked web scraping:
 
 ```typescript
-// ❌ May fail due to CORS or blocking
+// May fail due to CORS or blocking
 const loader = new CheerioWebBaseLoader("https://protected-site.com");
 await loader.load(); // Error!
 
-// ✅ Check robots.txt and use appropriate loader
+// Fix: Check robots.txt and use appropriate loader
 // For client-side blocking, run in Node.js (server-side)
 // For dynamic content, use Playwright
 
 const loader = new PlaywrightWebBaseLoader("https://protected-site.com");
 ```
+</fix-cors-blocking>
 
-**Fix**: Use PlaywrightWebBaseLoader for blocked sites or check robots.txt.
-
-### 3. **Large Files and Memory**
+<fix-large-files>
+Handle large files with lazy loading:
 
 ```typescript
-// ❌ Loading huge PDF into memory
+// Problem: Loading huge PDF into memory
 const loader = new PDFLoader("huge-book.pdf");
 const docs = await loader.load(); // May crash!
 
-// ✅ Use lazy loading
+// Fix: Use lazy loading
 for await (const doc of loader.lazy()) {
   processDocument(doc);
   // Only one page in memory at a time
 }
 ```
+</fix-large-files>
 
-**Fix**: Use `lazy()` method for large files.
-
-### 4. **Path Resolution Issues**
+<fix-path-resolution>
+Use absolute paths for reliability:
 
 ```typescript
-// ❌ Relative paths may not work as expected
+// Problem: Relative paths may not work as expected
 const loader = new TextLoader("./data/file.txt");
 
-// ✅ Use absolute paths or path module
+// Fix: Use absolute paths or path module
 import path from "path";
 const filePath = path.join(process.cwd(), "data", "file.txt");
 const loader = new TextLoader(filePath);
 ```
+</fix-path-resolution>
 
-**Fix**: Use absolute paths or `path` module for reliability.
-
-### 5. **Cheerio vs Playwright Confusion**
+<fix-cheerio-playwright>
+Choose the right loader for dynamic content:
 
 ```typescript
-// ❌ Using Cheerio for dynamic content
+// Problem: Using Cheerio for dynamic content
 const loader = new CheerioWebBaseLoader("https://react-app.com");
 const docs = await loader.load();
 // Content is empty or incomplete!
 
-// ✅ Use Playwright for JavaScript-rendered pages
+// Fix: Use Playwright for JavaScript-rendered pages
 const loader = new PlaywrightWebBaseLoader("https://react-app.com", {
   gotoOptions: { waitUntil: "networkidle" }
 });
 ```
+</fix-cheerio-playwright>
 
-**Fix**: Use Playwright for SPAs and dynamic content.
-
-### 6. **JSON Pointer Syntax**
+<fix-json-pointer>
+Use correct JSON pointer format:
 
 ```typescript
-// ❌ Wrong JSON pointer format
+// Problem: Wrong JSON pointer format
 const loader = new JSONLoader("data.json", ["texts.content"]);
 
-// ✅ Correct JSON pointer format (starts with /)
+// Fix: Correct JSON pointer format (starts with /)
 const loader = new JSONLoader("data.json", ["/texts/0/content"]);
 ```
+</fix-json-pointer>
 
-**Fix**: JSON pointers must start with `/` and use `/` as separator.
-
-### 7. **Directory Loader File Extension Matching**
+<fix-directory-extensions>
+Include the dot in file extensions:
 
 ```typescript
-// ❌ Extensions don't match
+// Problem: Extensions don't match
 const loader = new DirectoryLoader("docs", {
   "txt": (path) => new TextLoader(path),  // Wrong!
 });
 
-// ✅ Include the dot
+// Fix: Include the dot
 const loader = new DirectoryLoader("docs", {
   ".txt": (path) => new TextLoader(path),
   ".pdf": (path) => new PDFLoader(path),
 });
 ```
+</fix-directory-extensions>
 
-**Fix**: File extensions must include the dot (`.txt`, `.pdf`).
-
-## Links and Resources
-
-### Official Documentation
+<documentation-links>
+Official Documentation:
 - [LangChain JS Document Loaders](https://js.langchain.com/docs/integrations/document_loaders/)
 - [PDF Loader](https://js.langchain.com/docs/integrations/document_loaders/file_loaders/pdf)
 - [Web Loaders](https://js.langchain.com/docs/integrations/document_loaders/web_loaders/)
 - [File System Loaders](https://js.langchain.com/docs/integrations/document_loaders/file_loaders/)
 
-### Package Installation
+Package Installation:
 ```bash
 # Community loaders
 npm install @langchain/community
@@ -415,3 +398,4 @@ npm install pdf-parse
 npm install playwright
 npx playwright install
 ```
+</documentation-links>

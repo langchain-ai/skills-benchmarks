@@ -3,11 +3,7 @@ name: LangGraph Graph API (TypeScript)
 description: [LangGraph] Building graphs with StateGraph, nodes, edges, START/END nodes, and the Command API for combining control flow with state updates
 ---
 
-# langgraph-graph-api (JavaScript/TypeScript)
-
-
-## Overview
-
+<overview>
 The LangGraph Graph API allows you to define agent workflows as directed graphs composed of **nodes** (functions) and **edges** (control flow). This provides fine-grained control over agent orchestration.
 
 **Core Components:**
@@ -16,19 +12,19 @@ The LangGraph Graph API allows you to define agent workflows as directed graphs 
 - **Edges**: Define execution order (static or conditional)
 - **START/END**: Special nodes marking graph entry and exit points
 - **Command**: Combine state updates with dynamic routing
+</overview>
 
-## Decision Table: Edge Types
-
+<decision-table>
 | Need | Edge Type | When to Use |
 |------|-----------|-------------|
 | Always go to same node | `addEdge()` | Fixed, deterministic flow |
 | Route based on state | `addConditionalEdges()` | Dynamic branching logic |
 | Fan-out to multiple nodes | `Send` API | Map-reduce, parallel execution |
 | Update state AND route | `Command` | Combine logic in single node |
+</decision-table>
 
-## Key Concepts
-
-### 1. Graph Execution Model
+<key-concepts>
+**1. Graph Execution Model**
 
 LangGraph uses a **message-passing** model inspired by Google's Pregel:
 - Execution proceeds in **super-steps** (discrete iterations)
@@ -36,7 +32,7 @@ LangGraph uses a **message-passing** model inspired by Google's Pregel:
 - Sequential nodes belong to separate super-steps
 - Graph ends when all nodes are inactive and no messages in transit
 
-### 2. Nodes
+**2. Nodes**
 
 **Nodes** are async functions that:
 - Receive the current state as input
@@ -50,7 +46,7 @@ const myNode = async (state: State): Promise<Partial<State>> => {
 };
 ```
 
-### 3. Edges
+**3. Edges**
 
 | Edge Type | Description | Example |
 |-----------|-------------|---------|
@@ -59,15 +55,13 @@ const myNode = async (state: State): Promise<Partial<State>> => {
 | **Dynamic (Send)** | Fan-out to multiple nodes | `new Send("worker", {...})` |
 | **Command** | State update + routing | `new Command({ goto: "B" })` |
 
-### 4. Special Nodes
+**4. Special Nodes**
 
 - **START**: Entry point of the graph (virtual node)
 - **END**: Terminal node (graph halts)
+</key-concepts>
 
-## Code Examples
-
-### Basic Graph with Static Edges
-
+<ex-basic-graph-with-static-edges>
 ```typescript
 import { StateGraph, StateSchema, START, END } from "@langchain/langgraph";
 import { z } from "zod";
@@ -100,9 +94,9 @@ const graph = new StateGraph(State)
 const result = await graph.invoke({ input: "hello" });
 console.log(result.output);  // "PROCESSED: HELLO"
 ```
+</ex-basic-graph-with-static-edges>
 
-### Conditional Edges (Branching)
-
+<ex-conditional-edges-branching>
 ```typescript
 import { StateGraph, StateSchema, ConditionalEdgeRouter, START, END } from "@langchain/langgraph";
 import { z } from "zod";
@@ -150,9 +144,9 @@ const graph = new StateGraph(State)
 
 const result = await graph.invoke({ query: "What's the weather?" });
 ```
+</ex-conditional-edges-branching>
 
-### Using Command for State + Routing
-
+<ex-using-command-for-state-routing>
 ```typescript
 import { StateGraph, StateSchema, Command, START, END } from "@langchain/langgraph";
 import { z } from "zod";
@@ -164,7 +158,7 @@ const State = new StateSchema({
 
 const nodeA = async (state: typeof State.State) => {
   const newCount = state.count + 1;
-  
+
   if (newCount > 5) {
     // Go to nodeC
     return new Command({
@@ -203,9 +197,9 @@ console.log(result1.result);  // "B executed, count=1"
 const result2 = await graph.invoke({ count: 5 });
 console.log(result2.result);  // "C executed, count=6"
 ```
+</ex-using-command-for-state-routing>
 
-### Map-Reduce with Send API
-
+<ex-map-reduce-with-send-api>
 ```typescript
 import { StateGraph, StateSchema, Send, ReducedValue, START, END } from "@langchain/langgraph";
 import { z } from "zod";
@@ -221,7 +215,7 @@ const State = new StateSchema({
 
 const fanOut = (state: typeof State.State) => {
   // Send each item to a worker node
-  return state.items.map(item => 
+  return state.items.map(item =>
     new Send("worker", { item })
   );
 };
@@ -247,9 +241,9 @@ const graph = new StateGraph(State)
 const result = await graph.invoke({ items: ["A", "B", "C"] });
 console.log(result.final);  // "Processed: A, Processed: B, Processed: C"
 ```
+</ex-map-reduce-with-send-api>
 
-### Graph with Loops
-
+<ex-graph-with-loops>
 ```typescript
 import { StateGraph, StateSchema, ConditionalEdgeRouter, START, END } from "@langchain/langgraph";
 import { z } from "zod";
@@ -279,9 +273,9 @@ const graph = new StateGraph(State)
 const result = await graph.invoke({ count: 0, maxIterations: 5 });
 console.log(result.count);  // 5
 ```
+</ex-graph-with-loops>
 
-### Compiling with Options
-
+<ex-compiling-with-options>
 ```typescript
 import { MemorySaver } from "@langchain/langgraph";
 
@@ -297,79 +291,75 @@ const graph = new StateGraph(State)
     interruptAfter: ["nodeA"],       // Breakpoint after node
   });
 ```
+</ex-compiling-with-options>
 
-## Boundaries
+<boundaries>
+**What Agents CAN Configure:**
+- Define custom nodes (any async function)
+- Add static edges between nodes
+- Add conditional edges with custom logic
+- Use Command for combined state/routing
+- Create loops with conditional termination
+- Fan-out with Send API (map-reduce)
+- Set breakpoints (interruptBefore/After)
+- Customize state schema
+- Specify checkpointer for persistence
 
-### What Agents CAN Configure
+**What Agents CANNOT Configure:**
+- Modify START/END node behavior
+- Change super-step execution model
+- Alter message-passing protocol
+- Override graph compilation logic
+- Bypass state update mechanism
+</boundaries>
 
-✅ Define custom nodes (any async function)
-✅ Add static edges between nodes
-✅ Add conditional edges with custom logic
-✅ Use Command for combined state/routing
-✅ Create loops with conditional termination
-✅ Fan-out with Send API (map-reduce)
-✅ Set breakpoints (interruptBefore/After)
-✅ Customize state schema
-✅ Specify checkpointer for persistence
-
-### What Agents CANNOT Configure
-
-❌ Modify START/END node behavior
-❌ Change super-step execution model
-❌ Alter message-passing protocol
-❌ Override graph compilation logic
-❌ Bypass state update mechanism
-
-## Gotchas
-
-### 1. Must Compile Before Execution
-
+<fix-must-compile-before-execution>
 ```typescript
-// ❌ WRONG
+// WRONG
 const builder = new StateGraph(State).addNode("node", func);
 await builder.invoke({ input: "test" });  // Error!
 
-// ✅ CORRECT
+// CORRECT
 const graph = builder.compile();
 await graph.invoke({ input: "test" });
 ```
+</fix-must-compile-before-execution>
 
-### 2. Conditional Edge Destinations Must Exist
-
+<fix-conditional-edge-destinations-must-exist>
 ```typescript
-// ❌ WRONG - "missingNode" not added to graph
+// WRONG: "missingNode" not added to graph
 const router = (state) => "missingNode";
 
 builder.addConditionalEdges("nodeA", router, ["missingNode"]);
 
-// ✅ CORRECT - Add all possible destinations
+// CORRECT: Add all possible destinations
 builder.addNode("missingNode", func);
 builder.addConditionalEdges("nodeA", router, ["missingNode"]);
 ```
+</fix-conditional-edge-destinations-must-exist>
 
-### 3. Command Requires `ends` Parameter
-
+<fix-command-requires-ends-parameter>
 ```typescript
-// ❌ WRONG - No ends specified
+// WRONG: No ends specified
 const nodeA = async (state) => {
   return new Command({ goto: "nodeB" });
 };
 
 builder.addNode("nodeA", nodeA);  // Error when using Command!
 
-// ✅ CORRECT - Specify possible destinations
+// CORRECT: Specify possible destinations
 builder.addNode("nodeA", nodeA, { ends: ["nodeB", "nodeC"] });
 ```
+</fix-command-requires-ends-parameter>
 
-### 4. Loops Need Exit Condition
-
+<fix-loops-need-exit-condition>
 ```typescript
-// ❌ WRONG - Infinite loop
+// WRONG: Infinite loop
 builder
   .addEdge("nodeA", "nodeB")
   .addEdge("nodeB", "nodeA");  // No way out!
 
-// ✅ CORRECT - Conditional edge to END
+// CORRECT: Conditional edge to END
 const shouldContinue = (state) => {
   if (state.count > 10) return END;
   return "nodeB";
@@ -377,16 +367,16 @@ const shouldContinue = (state) => {
 
 builder.addConditionalEdges("nodeA", shouldContinue, ["nodeB", END]);
 ```
+</fix-loops-need-exit-condition>
 
-### 5. Send API Requires Reducer
-
+<fix-send-api-requires-reducer>
 ```typescript
-// ❌ WRONG - Results will be overwritten
+// WRONG: Results will be overwritten
 const State = new StateSchema({
   results: z.array(z.string()),  // No reducer!
 });
 
-// ✅ CORRECT - Use ReducedValue
+// CORRECT: Use ReducedValue
 import { ReducedValue } from "@langchain/langgraph";
 
 const State = new StateSchema({
@@ -396,35 +386,36 @@ const State = new StateSchema({
   ),
 });
 ```
+</fix-send-api-requires-reducer>
 
-### 6. START is Virtual, Cannot Be a Destination
-
+<fix-start-is-virtual-cannot-be-destination>
 ```typescript
-// ❌ WRONG - Cannot route back to START
+// WRONG: Cannot route back to START
 builder.addEdge("nodeA", START);  // Error!
 
-// ✅ CORRECT - Use named entry node instead
+// CORRECT: Use named entry node instead
 builder.addNode("entry", entryFunc);
 builder.addEdge(START, "entry");
 builder.addEdge("nodeA", "entry");  // OK
 ```
+</fix-start-is-virtual-cannot-be-destination>
 
-### 7. Always Use Await
-
+<fix-always-use-await>
 ```typescript
-// ❌ WRONG - Forgetting await
+// WRONG: Forgetting await
 const result = graph.invoke({ input: "test" });
 console.log(result.output);  // undefined (Promise!)
 
-// ✅ CORRECT
+// CORRECT
 const result = await graph.invoke({ input: "test" });
 console.log(result.output);  // Works!
 ```
+</fix-always-use-await>
 
-## Links
-
+<documentation-links>
 - [Graph API Reference (JavaScript)](https://docs.langchain.com/oss/javascript/langgraph/graph-api)
 - [Using the Graph API](https://docs.langchain.com/oss/javascript/langgraph/use-graph-api)
 - [Command Documentation](https://docs.langchain.com/oss/javascript/langgraph/use-graph-api#combine-control-flow-and-state-updates-with-command)
 - [Send API Guide](https://docs.langchain.com/oss/javascript/langgraph/use-graph-api#map-reduce-and-the-send-api)
 - [Conditional Branching](https://docs.langchain.com/oss/javascript/langgraph/use-graph-api#create-and-control-loops)
+</documentation-links>

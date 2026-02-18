@@ -3,15 +3,11 @@ name: LangGraph Streaming (TypeScript)
 description: "[LangGraph] Streaming real-time updates from LangGraph: stream modes (values, updates, messages, custom, debug) for responsive UX"
 ---
 
-# langgraph-streaming (JavaScript/TypeScript)
-
-
-## Overview
-
+<overview>
 LangGraph's streaming system surfaces real-time updates during graph execution, crucial for responsive LLM applications. Stream graph state, LLM tokens, or custom data as it's generated.
+</overview>
 
-## Decision Table: Stream Modes
-
+<decision-table>
 | Mode | What it Streams | Use Case |
 |------|----------------|----------|
 | `values` | Full state after each step | Monitor complete state changes |
@@ -19,11 +15,9 @@ LangGraph's streaming system surfaces real-time updates during graph execution, 
 | `messages` | LLM tokens + metadata | Chat UIs, token streaming |
 | `custom` | User-defined data | Progress indicators, logs |
 | `debug` | All execution details | Debugging, detailed tracing |
+</decision-table>
 
-## Code Examples
-
-### Stream State Values
-
+<ex-stream-state-values>
 ```typescript
 import { StateGraph, START, END } from "@langchain/langgraph";
 
@@ -43,9 +37,9 @@ for await (const chunk of await graph.stream(
   console.log(chunk);  // { count: 0 }, then { count: 1 }
 }
 ```
+</ex-stream-state-values>
 
-### Stream State Updates (Deltas)
-
+<ex-stream-state-updates-deltas>
 ```typescript
 // Stream only the changes
 for await (const chunk of await graph.stream(
@@ -55,9 +49,9 @@ for await (const chunk of await graph.stream(
   console.log(chunk);  // { process: { count: 1 } }
 }
 ```
+</ex-stream-state-updates-deltas>
 
-### Stream LLM Tokens
-
+<ex-stream-llm-tokens>
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
 import { HumanMessage } from "@langchain/core/messages";
@@ -84,22 +78,22 @@ for await (const chunk of await graph.stream(
   }
 }
 ```
+</ex-stream-llm-tokens>
 
-### Stream Custom Data
-
+<ex-stream-custom-data>
 ```typescript
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 
 const myNode = async (state, config: LangGraphRunnableConfig) => {
   const writer = config.writer;
-  
+
   // Emit custom updates
   writer?.("Processing step 1...");
   // Do work
   writer?.("Processing step 2...");
   // More work
   writer?.("Complete!");
-  
+
   return { result: "done" };
 };
 
@@ -114,9 +108,9 @@ for await (const chunk of await graph.stream(
   console.log(chunk);  // "Processing step 1...", etc.
 }
 ```
+</ex-stream-custom-data>
 
-### Multiple Stream Modes
-
+<ex-multiple-stream-modes>
 ```typescript
 // Stream multiple modes simultaneously
 for await (const [mode, chunk] of await graph.stream(
@@ -126,14 +120,14 @@ for await (const [mode, chunk] of await graph.stream(
   console.log(`${mode}:`, chunk);
 }
 ```
+</ex-multiple-stream-modes>
 
-### Stream with Subgraphs
-
+<ex-stream-with-subgraphs>
 ```typescript
 // Include subgraph outputs
 for await (const chunk of await graph.stream(
   { data: "test" },
-  { 
+  {
     streamMode: "updates",
     subgraphs: true  // Stream from nested graphs too
   }
@@ -141,11 +135,11 @@ for await (const chunk of await graph.stream(
   console.log(chunk);
 }
 ```
+</ex-stream-with-subgraphs>
 
-### Stream with Interrupts
-
+<ex-stream-with-interrupts>
 ```typescript
-const config = { 
+const config = {
   configurable: { thread_id: "1" },
   streamMode: ["messages", "updates"] as const,
   subgraphs: true
@@ -172,52 +166,48 @@ for await (const [metadata, mode, chunk] of await graph.stream(
   }
 }
 ```
+</ex-stream-with-interrupts>
 
-## Boundaries
+<boundaries>
+**What You CAN Configure:**
+- Choose stream modes
+- Stream multiple modes simultaneously
+- Emit custom data from nodes
+- Stream from subgraphs
+- Combine streaming with interrupts
 
-### What You CAN Configure
+**What You CANNOT Configure:**
+- Modify streaming protocol
+- Change when checkpoints are created
+- Alter token streaming format
+</boundaries>
 
-✅ Choose stream modes
-✅ Stream multiple modes simultaneously
-✅ Emit custom data from nodes
-✅ Stream from subgraphs
-✅ Combine streaming with interrupts
-
-### What You CANNOT Configure
-
-❌ Modify streaming protocol
-❌ Change when checkpoints are created
-❌ Alter token streaming format
-
-## Gotchas
-
-### 1. Messages Mode Requires LLM Invocation
-
+<fix-messages-mode-requires-llm-invocation>
 ```typescript
-// ❌ WRONG - No LLM called, nothing streamed
+// WRONG: No LLM called, nothing streamed
 const node = async (state) => ({ output: "static text" });
 
 for await (const chunk of await graph.stream({}, { streamMode: "messages" })) {
   console.log(chunk);  // Nothing!
 }
 
-// ✅ CORRECT - LLM invoked
+// CORRECT: LLM invoked
 const node = async (state) => {
   const response = await model.invoke(state.messages);  // LLM call
   return { messages: [response] };
 };
 ```
+</fix-messages-mode-requires-llm-invocation>
 
-### 2. Custom Mode Needs Writer
-
+<fix-custom-mode-needs-writer>
 ```typescript
-// ❌ WRONG - No writer, nothing streamed
+// WRONG: No writer, nothing streamed
 const node = async (state) => {
   console.log("Processing...");  // Not streamed!
   return { data: "done" };
 };
 
-// ✅ CORRECT
+// CORRECT
 import { LangGraphRunnableConfig } from "@langchain/langgraph";
 
 const node = async (state, config: LangGraphRunnableConfig) => {
@@ -225,33 +215,34 @@ const node = async (state, config: LangGraphRunnableConfig) => {
   return { data: "done" };
 };
 ```
+</fix-custom-mode-needs-writer>
 
-### 3. Stream Modes Are Arrays
-
+<fix-stream-modes-are-arrays>
 ```typescript
-// ❌ WRONG - Single string with comma
+// WRONG: Single string with comma
 await graph.stream({}, { streamMode: "updates, messages" });
 
-// ✅ CORRECT - Array
+// CORRECT: Array
 await graph.stream({}, { streamMode: ["updates", "messages"] });
 ```
+</fix-stream-modes-are-arrays>
 
-### 4. Always Await Stream
-
+<fix-always-await-stream>
 ```typescript
-// ❌ WRONG - Missing await
+// WRONG: Missing await
 const stream = graph.stream({});
 for await (const chunk of stream) {  // Error!
   console.log(chunk);
 }
 
-// ✅ CORRECT
+// CORRECT
 for await (const chunk of await graph.stream({})) {
   console.log(chunk);
 }
 ```
+</fix-always-await-stream>
 
-## Links
-
+<documentation-links>
 - [Streaming Guide](https://docs.langchain.com/oss/javascript/langgraph/streaming)
 - [Stream Modes](https://docs.langchain.com/oss/javascript/langgraph/streaming#supported-stream-modes)
+</documentation-links>

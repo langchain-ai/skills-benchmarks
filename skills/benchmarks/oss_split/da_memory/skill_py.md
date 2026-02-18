@@ -3,29 +3,24 @@ name: Deep Agents Memory (Python)
 description: [Deep Agents] Implementing long-term memory in Deep Agents with cross-session storage using StoreBackend, CompositeBackend, and InMemoryStore for persistent data.
 ---
 
-# deepagents-memory (Python)
-
-## Overview
-
+<overview>
 Deep agents support two types of memory:
 
 **Short-term (StateBackend)**: Persists within a single thread, lost when thread ends
 **Long-term (StoreBackend)**: Persists across threads and sessions
 
 Use **CompositeBackend** for hybrid storage: mix ephemeral and persistent files.
+</overview>
 
-## Memory Types Comparison
-
+<memory-types>
 | Type | Backend | Persistence | Use Case |
 |------|---------|------------|----------|
 | Short-term | StateBackend | Single thread | Temporary working files |
 | Long-term | StoreBackend | Across threads | User preferences, learned patterns |
 | Hybrid | CompositeBackend | Mix both | Some persistent, some temporary |
+</memory-types>
 
-## Long-term Memory Setup
-
-### Using CompositeBackend
-
+<ex-composite-backend>
 ```python
 from deepagents import create_deep_agent
 from deepagents.backends import CompositeBackend, StateBackend, StoreBackend
@@ -48,9 +43,9 @@ agent = create_deep_agent(
 # Files with /memories/ prefix persist across threads
 # Other files are ephemeral
 ```
+</ex-composite-backend>
 
-### Path Routing
-
+<ex-path-routing>
 ```python
 # Ephemeral (StateBackend) - lost after thread ends
 await agent.invoke({
@@ -62,11 +57,9 @@ await agent.invoke({
     "messages": [{"role": "user", "content": "Save preferences to /memories/prefs.txt"}]
 })
 ```
+</ex-path-routing>
 
-## Code Examples
-
-### Example 1: User Preferences Across Sessions
-
+<ex-user-preferences>
 ```python
 from deepagents import create_deep_agent
 from deepagents.backends import CompositeBackend, StateBackend, StoreBackend
@@ -101,9 +94,9 @@ agent.invoke({
 }, config=config2)
 # Agent reads /memories/style.txt and applies preferences
 ```
+</ex-user-preferences>
 
-### Example 2: Learning from Feedback
-
+<ex-learning-from-feedback>
 ```python
 from deepagents import create_deep_agent
 from deepagents.backends import CompositeBackend, StateBackend, StoreBackend
@@ -139,9 +132,9 @@ agent.invoke({
 }, config=config2)
 # Agent reads preferences and uses FastAPI
 ```
+</ex-learning-from-feedback>
 
-### Example 3: Project Knowledge Base
-
+<ex-project-knowledge-base>
 ```python
 from deepagents import create_deep_agent
 from deepagents.backends import CompositeBackend, StateBackend, StoreBackend
@@ -180,9 +173,9 @@ agent.invoke({
 }, config=config2)
 # Agent reads /memories/db-schema.md for context
 ```
+</ex-project-knowledge-base>
 
-### Example 4: Using Store Directly in Tools
-
+<ex-store-in-tools>
 ```python
 from langchain.tools import tool, ToolRuntime
 from langchain.agents import create_agent
@@ -220,76 +213,74 @@ agent.invoke({
     "messages": [{"role": "user", "content": "What UI theme do I prefer?"}]
 })
 ```
+</ex-store-in-tools>
 
-## Decision Table: Memory Storage Patterns
-
+<storage-patterns>
 | Pattern | Backend Setup | Use Case |
 |---------|--------------|----------|
 | All ephemeral | StateBackend | Single-session tasks |
 | All persistent | StoreBackend | Everything remembered |
 | Hybrid | CompositeBackend | `/memories/` persistent, rest ephemeral |
 | Custom routing | CompositeBackend with multiple routes | Complex storage needs |
+</storage-patterns>
 
-## Boundaries
-
+<boundaries>
 ### What Agents CAN Do
-✅ Save files to persistent storage (/memories/)  
-✅ Access persisted files across threads  
-✅ Organize memory with custom paths  
-✅ Mix ephemeral and persistent storage  
-✅ Use Store namespace/key pattern directly
+- Save files to persistent storage (/memories/)
+- Access persisted files across threads
+- Organize memory with custom paths
+- Mix ephemeral and persistent storage
+- Use Store namespace/key pattern directly
 
 ### What Agents CANNOT Do
-❌ Access memory without proper Store setup  
-❌ Share memory across different agents (without shared Store)  
-❌ Persist files without StoreBackend configuration  
-❌ Access StateBackend files across threads
+- Access memory without proper Store setup
+- Share memory across different agents (without shared Store)
+- Persist files without StoreBackend configuration
+- Access StateBackend files across threads
+</boundaries>
 
-## Gotchas
-
-### 1. StoreBackend Requires Store Instance
-
+<fix-store-required>
 ```python
-# ❌ Missing store
+# WRONG: Missing store
 agent = create_deep_agent(
     backend=lambda rt: StoreBackend(rt)
 )
 
-# ✅ Provide store
+# CORRECT: Provide store
 agent = create_deep_agent(
     backend=lambda rt: StoreBackend(rt),
     store=InMemoryStore()
 )
 ```
+</fix-store-required>
 
-### 2. Path Prefix Matters for Routing
-
+<fix-path-prefix>
 ```python
-# ❌ Won't be persistent (wrong path)
+# WRONG: Won't be persistent (wrong path)
 agent.invoke({
     "messages": [{"role": "user", "content": "Save to /prefs.txt"}]
 })
 
-# ✅ Persistent (matches /memories/ route)
+# CORRECT: Persistent (matches /memories/ route)
 agent.invoke({
     "messages": [{"role": "user", "content": "Save to /memories/prefs.txt"}]
 })
 ```
+</fix-path-prefix>
 
-### 3. InMemoryStore Not Persistent Across Process Restarts
-
+<fix-production-store>
 ```python
-# ❌ InMemoryStore lost on restart
+# WRONG: InMemoryStore lost on restart
 from langgraph.store.memory import InMemoryStore
 store = InMemoryStore()  # Lost when process ends
 
-# ✅ Use PostgresStore for production
+# CORRECT: Use PostgresStore for production
 from langgraph.store.postgres import PostgresStore
 store = PostgresStore(connection_string="postgresql://...")
 ```
+</fix-production-store>
 
-### 4. CompositeBackend Routes Use Longest Prefix Match
-
+<fix-longest-prefix-match>
 ```python
 # Routes are matched by longest prefix
 backend = CompositeBackend(
@@ -304,10 +295,11 @@ backend = CompositeBackend(
 # /mem/temp/file.txt -> StateBackend (longer match)
 # /workspace/file.txt -> StateBackend (default)
 ```
+</fix-longest-prefix-match>
 
-## Full Documentation
-
+<links>
 - [Long-term Memory Guide](https://docs.langchain.com/oss/python/deepagents/long-term-memory)
 - [Backends](https://docs.langchain.com/oss/python/deepagents/backends)
 - [Memory Overview](https://docs.langchain.com/oss/python/concepts/memory)
 - [LangGraph Store](https://docs.langchain.com/oss/python/langgraph/add-memory)
+</links>

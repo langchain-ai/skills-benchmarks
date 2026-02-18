@@ -3,10 +3,7 @@ name: LangChain RAG (TypeScript)
 description: [LangChain] Build Retrieval Augmented Generation (RAG) systems with LangChain - includes embeddings, vector stores, retrievers, document loaders, and text splitting
 ---
 
-# langchain-rag (JavaScript/TypeScript)
-
-## Overview
-
+<overview>
 Retrieval Augmented Generation (RAG) enhances LLM responses by fetching relevant context from external knowledge sources. Instead of relying solely on training data, RAG systems retrieve documents at query time and use them to ground responses.
 
 **Key Concepts:**
@@ -15,36 +12,32 @@ Retrieval Augmented Generation (RAG) enhances LLM responses by fetching relevant
 - **Embeddings**: Convert text to vectors
 - **Vector Stores**: Store and search embeddings
 - **Retrievers**: Fetch relevant documents for queries
+</overview>
 
-## RAG Pipeline
-
+<rag-pipeline>
 1. **Index**: Load → Split → Embed → Store
 2. **Retrieve**: Query → Embed → Search → Return docs
 3. **Generate**: Docs + Query → LLM → Response
+</rag-pipeline>
 
-## Decision Tables
-
-### Vector Store Selection
-
+<vector-store-selection>
 | Store | When to Use | Why |
 |-------|-------------|-----|
 | MemoryVectorStore | Development, testing | In-memory, fast, ephemeral |
 | Chroma | Local production | Persistent, open-source |
 | Pinecone | Cloud, scale | Managed, fast, scalable |
 | Faiss | High performance | Fast similarity search |
+</vector-store-selection>
 
-### Embedding Model Selection
-
+<embedding-model-selection>
 | Model | When to Use | Dimension |
 |-------|-------------|-----------|
 | text-embedding-3-small | Cost-effective | 1536 |
 | text-embedding-3-large | Best quality | 3072 |
 | text-embedding-ada-002 | Legacy | 1536 |
+</embedding-model-selection>
 
-## Code Examples
-
-### Basic RAG Setup
-
+<ex-basic-rag-setup>
 ```typescript
 import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
 import { MemoryVectorStore } from "@langchain/classic/vectorstores/memory";
@@ -87,9 +80,9 @@ const response = await model.invoke([
 
 console.log(response.content);
 ```
+</ex-basic-rag-setup>
 
-### Loading Web Pages
-
+<ex-loading-web-pages>
 ```typescript
 import { CheerioWebBaseLoader } from "@langchain/community/document_loaders/web/cheerio";
 
@@ -100,18 +93,18 @@ const loader = new CheerioWebBaseLoader(
 const docs = await loader.load();
 console.log(`Loaded ${docs.length} documents`);
 ```
+</ex-loading-web-pages>
 
-### Loading PDF Files
-
+<ex-loading-pdf-files>
 ```typescript
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 
 const loader = new PDFLoader("./document.pdf");
 const docs = await loader.load();
 ```
+</ex-loading-pdf-files>
 
-### Advanced Text Splitting
-
+<ex-advanced-text-splitting>
 ```typescript
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 
@@ -123,9 +116,9 @@ const splitter = new RecursiveCharacterTextSplitter({
 
 const splits = await splitter.splitDocuments(docs);
 ```
+</ex-advanced-text-splitting>
 
-### Using Chroma (Persistent)
-
+<ex-using-chroma-persistent>
 ```typescript
 import { Chroma } from "@langchain/community/vectorstores/chroma";
 import { OpenAIEmbeddings } from "@langchain/openai";
@@ -145,9 +138,9 @@ const vectorStore2 = await Chroma.fromExistingCollection(
   { collectionName: "my-docs" }
 );
 ```
+</ex-using-chroma-persistent>
 
-### Advanced Retrieval
-
+<ex-advanced-retrieval>
 ```typescript
 // Similarity search with scores
 const results = await vectorStore.similaritySearchWithScore(query, 5);
@@ -162,9 +155,9 @@ const retriever = vectorStore.asRetriever({
   k: 5,
 });
 ```
+</ex-advanced-retrieval>
 
-### Metadata Filtering
-
+<ex-metadata-filtering>
 ```typescript
 // Add metadata when creating documents
 const docs = [
@@ -185,9 +178,9 @@ const results = await vectorStore.similaritySearch(
   { language: "python" }  // Only Python docs
 );
 ```
+</ex-metadata-filtering>
 
-### RAG with Agent
-
+<ex-rag-with-agent>
 ```typescript
 import { createAgent } from "langchain";
 import { tool } from "langchain";
@@ -216,9 +209,9 @@ const result = await agent.invoke({
   messages: [{ role: "user", content: "How do I create an agent?" }],
 });
 ```
+</ex-rag-with-agent>
 
-### Hybrid Search (Keywords + Semantic)
-
+<ex-hybrid-search-keywords-semantic>
 ```typescript
 // Combine keyword and vector search
 import { similarity } from "ml-distance";
@@ -226,102 +219,99 @@ import { similarity } from "ml-distance";
 async function hybridSearch(query: string, k: number = 5) {
   // Vector search
   const vectorResults = await vectorStore.similaritySearch(query, k);
-  
+
   // Keyword search (simple example)
   const allDocs = await vectorStore.getAllDocuments();
   const keywordResults = allDocs.filter(doc =>
     doc.pageContent.toLowerCase().includes(query.toLowerCase())
   );
-  
+
   // Combine and deduplicate
   const combined = [...vectorResults, ...keywordResults];
   const unique = Array.from(new Set(combined.map(d => d.pageContent)))
     .map(content => combined.find(d => d.pageContent === content));
-  
+
   return unique.slice(0, k);
 }
 ```
+</ex-hybrid-search-keywords-semantic>
 
-## Boundaries
+<boundaries>
+**What You CAN Configure:**
+* Chunk size/overlap: Control document splitting
+* Embedding model: Choose quality vs cost
+* Number of results: Top-k retrieval
+* Metadata filters: Filter by document properties
+* Search algorithms: Similarity, MMR, hybrid
 
-### What You CAN Configure
+**What You CANNOT Configure:**
+* Embedding dimensions (per model): Fixed by model
+* Perfect retrieval: Semantic search has limits
+* Real-time document updates: Re-indexing needed
+</boundaries>
 
-✅ **Chunk size/overlap**: Control document splitting
-✅ **Embedding model**: Choose quality vs cost
-✅ **Number of results**: Top-k retrieval
-✅ **Metadata filters**: Filter by document properties
-✅ **Search algorithms**: Similarity, MMR, hybrid
-
-### What You CANNOT Configure
-
-❌ **Embedding dimensions** (per model): Fixed by model
-❌ **Perfect retrieval**: Semantic search has limits
-❌ **Real-time document updates**: Re-indexing needed
-
-## Gotchas
-
-### 1. Forgetting to Split Documents
-
+<fix-forgetting-to-split-documents>
 ```typescript
-// ❌ Problem: Entire documents are too large
+// WRONG: Entire documents are too large
 await vectorStore.addDocuments(largeDocs);  // May hit token limits
 
-// ✅ Solution: Always split first
+// CORRECT: Always split first
 const splits = await splitter.splitDocuments(largeDocs);
 await vectorStore.addDocuments(splits);
 ```
+</fix-forgetting-to-split-documents>
 
-### 2. Chunk Size Too Small/Large
-
+<fix-chunk-size-too-small-large>
 ```typescript
-// ❌ Problem: Too small - loses context
+// WRONG: Too small - loses context
 const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 50 });
 
-// ❌ Problem: Too large - hits limits
+// WRONG: Too large - hits limits
 const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 10000 });
 
-// ✅ Solution: Balance (500-1500 typically good)
+// CORRECT: Balance (500-1500 typically good)
 const splitter = new RecursiveCharacterTextSplitter({
   chunkSize: 1000,
   chunkOverlap: 200,
 });
 ```
+</fix-chunk-size-too-small-large>
 
-### 3. No Overlap
-
+<fix-no-overlap>
 ```typescript
-// ❌ Problem: No overlap - context breaks at boundaries
+// WRONG: No overlap - context breaks at boundaries
 const splitter = new RecursiveCharacterTextSplitter({
   chunkSize: 1000,
   chunkOverlap: 0,  // Bad!
 });
 
-// ✅ Solution: Use overlap (10-20% of chunk size)
+// CORRECT: Use overlap (10-20% of chunk size)
 const splitter = new RecursiveCharacterTextSplitter({
   chunkSize: 1000,
   chunkOverlap: 200,  // 20%
 });
 ```
+</fix-no-overlap>
 
-### 4. Not Persisting Vector Store
-
+<fix-not-persisting-vector-store>
 ```typescript
-// ❌ Problem: Using MemoryVectorStore in production
+// WRONG: Using MemoryVectorStore in production
 const vectorStore = await MemoryVectorStore.fromDocuments(docs, embeddings);
 // Lost on restart!
 
-// ✅ Solution: Use persistent store
+// CORRECT: Use persistent store
 const vectorStore = await Chroma.fromDocuments(
   docs,
   embeddings,
   { collectionName: "prod-docs" }
 );
 ```
+</fix-not-persisting-vector-store>
 
-## Links to Documentation
-
+<documentation-links>
 - [RAG Tutorial](https://docs.langchain.com/oss/javascript/langchain/rag)
 - [Document Loaders](https://docs.langchain.com/oss/javascript/integrations/document_loaders/index)
 - [Text Splitters](https://docs.langchain.com/oss/javascript/integrations/splitters/index)
 - [Vector Stores](https://docs.langchain.com/oss/javascript/integrations/vectorstores/index)
 - [Embeddings](https://docs.langchain.com/oss/javascript/integrations/text_embedding/openai)
+</documentation-links>

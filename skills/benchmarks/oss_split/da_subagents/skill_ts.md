@@ -3,17 +3,14 @@ name: Deep Agents Subagents (TypeScript)
 description: [Deep Agents] Using SubAgentMiddleware to spawn subagents for task delegation, context isolation, and specialized work in Deep Agents.
 ---
 
-# deepagents-subagents (JavaScript/TypeScript)
-
-## Overview
-
+<overview>
 SubAgentMiddleware enables task delegation via the `task` tool. Benefits: context isolation, specialization, token efficiency, parallel execution.
 
 **Default subagent**: "general-purpose" - automatically available with same tools/config as main agent.
+</overview>
 
-## Defining Subagents
-
-### Dictionary-based Subagent
+<defining-subagents>
+**Dictionary-based Subagent**
 
 ```typescript
 import { createDeepAgent } from "deepagents";
@@ -46,7 +43,7 @@ const result = await agent.invoke({
 });
 ```
 
-### CompiledSubAgent (Custom Graph)
+**CompiledSubAgent (Custom Graph)**
 
 ```typescript
 import { createDeepAgent, CompiledSubAgent } from "deepagents";
@@ -63,11 +60,9 @@ const agent = await createDeepAgent({
   subagents: [weatherSubagent]
 });
 ```
+</defining-subagents>
 
-## Code Examples
-
-### Example 1: Research Subagent
-
+<ex-research-subagent>
 ```typescript
 import { createDeepAgent } from "deepagents";
 import { tool } from "langchain";
@@ -100,9 +95,9 @@ const result = await agent.invoke({
   }]
 });
 ```
+</ex-research-subagent>
 
-### Example 2: Subagent with HITL
-
+<ex-subagent-with-hitl>
 ```typescript
 import { createDeepAgent } from "deepagents";
 import { MemorySaver } from "@langchain/langgraph";
@@ -120,9 +115,9 @@ const agent = await createDeepAgent({
   checkpointer: new MemorySaver()  // Required
 });
 ```
+</ex-subagent-with-hitl>
 
-### Example 3: Subagent with Custom Skills
-
+<ex-subagent-with-custom-skills>
 ```typescript
 const agent = await createDeepAgent({
   skills: ["/main-skills/"],
@@ -139,42 +134,42 @@ const agent = await createDeepAgent({
 // Custom subagents DON'T inherit main skills by default
 // General-purpose subagent DOES inherit main skills
 ```
+</ex-subagent-with-custom-skills>
 
-## Boundaries
+<boundaries>
+**What Agents CAN Configure:**
+- Subagent name, description, tools
+- Different models per subagent
+- Subagent-specific prompts, middleware, skills
+- HITL for subagent tools
 
-### What Agents CAN Configure
-✅ Subagent name, description, tools  
-✅ Different models per subagent  
-✅ Subagent-specific prompts, middleware, skills  
-✅ HITL for subagent tools
+**What Agents CANNOT Configure:**
+- Change `task` tool name
+- Make subagents stateful
+- Share state between subagents
+- Remove default general-purpose subagent
+</boundaries>
 
-### What Agents CANNOT Configure
-❌ Change `task` tool name  
-❌ Make subagents stateful  
-❌ Share state between subagents  
-❌ Remove default general-purpose subagent
-
-## Gotchas
-
-### 1. Subagents Are Stateless
+<fix-subagents-are-stateless>
 ```typescript
-// ❌ Subagents don't remember previous calls
+// WRONG: Subagents don't remember previous calls
 await agent.invoke({messages: [{role: "user", content: "Research X"}]});
 await agent.invoke({messages: [{role: "user", content: "What did you find?"}]});
 // Fresh subagent each time
 
-// ✅ Main agent maintains conversation memory
+// CORRECT: Main agent maintains conversation memory
 ```
+</fix-subagents-are-stateless>
 
-### 2. Custom Subagents Don't Inherit Skills
+<fix-custom-subagents-dont-inherit-skills>
 ```typescript
-// ❌ Subagent won't have main skills
+// WRONG: Subagent won't have main skills
 await createDeepAgent({
   skills: ["/main-skills/"],
   subagents: [{ name: "helper", ... }]
 });
 
-// ✅ Provide skills explicitly
+// CORRECT: Provide skills explicitly
 await createDeepAgent({
   skills: ["/main-skills/"],
   subagents: [{
@@ -184,10 +179,11 @@ await createDeepAgent({
   }]
 });
 ```
+</fix-custom-subagents-dont-inherit-skills>
 
-### 3. Subagent Interrupts Need Main Checkpointer
+<fix-subagent-interrupts-need-main-checkpointer>
 ```typescript
-// ❌ Missing checkpointer
+// WRONG: Missing checkpointer
 await createDeepAgent({
   subagents: [{
     name: "deployer",
@@ -195,7 +191,7 @@ await createDeepAgent({
   }]
 });
 
-// ✅ Checkpointer on main agent
+// CORRECT: Checkpointer on main agent
 await createDeepAgent({
   subagents: [{
     name: "deployer",
@@ -204,8 +200,10 @@ await createDeepAgent({
   checkpointer: new MemorySaver()
 });
 ```
+</fix-subagent-interrupts-need-main-checkpointer>
 
-## Full Documentation
+<documentation-links>
 - [Subagents Guide](https://docs.langchain.com/oss/javascript/deepagents/subagents)
 - [SubAgent Middleware](https://docs.langchain.com/oss/javascript/langchain/middleware/built-in#subagent)
 - [Task Delegation](https://docs.langchain.com/oss/javascript/deepagents/harness#task-delegation-subagents)
+</documentation-links>

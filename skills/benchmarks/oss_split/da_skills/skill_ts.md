@@ -3,26 +3,21 @@ name: Deep Agents Skills (TypeScript)
 description: [Deep Agents] Creating and using custom skills with progressive disclosure, SKILL.md format, and the Agent Skills protocol in Deep Agents.
 ---
 
-# deepagents-skills (JavaScript/TypeScript)
-
-## Overview
-
+<overview>
 Skills provide specialized capabilities through **progressive disclosure**: agents load content only when relevant.
 
 **Process:** Match (see descriptions) → Read (load SKILL.md) → Execute (follow instructions)
+</overview>
 
-## Skills vs Memory
-
+<skills-vs-memory>
 | Skills | Memory (AGENTS.md) |
 |--------|-------------------|
 | On-demand loading | Always loaded |
 | Task-specific | General preferences |
 | Large docs | Compact context |
+</skills-vs-memory>
 
-## Using Skills
-
-### With FilesystemBackend
-
+<ex-with-filesystembackend>
 ```typescript
 import { createDeepAgent, FilesystemBackend } from "deepagents";
 import { MemorySaver } from "@langchain/langgraph";
@@ -40,9 +35,9 @@ const result = await agent.invoke({
   }]
 });
 ```
+</ex-with-filesystembackend>
 
-### With StoreBackend
-
+<ex-with-storebackend>
 ```typescript
 import { createDeepAgent, StoreBackend, type FileData } from "deepagents";
 import { InMemoryStore } from "@langchain/langgraph";
@@ -74,9 +69,9 @@ const agent = await createDeepAgent({
   skills: ["/skills/"]
 });
 ```
+</ex-with-storebackend>
 
-### With StateBackend
-
+<ex-with-statebackend>
 ```typescript
 import { createDeepAgent, type FileData } from "deepagents";
 import { MemorySaver } from "@langchain/langgraph";
@@ -107,9 +102,9 @@ await agent.invoke({
   files: skillsFiles
 });
 ```
+</ex-with-statebackend>
 
-## SKILL.md Format
-
+<skill-md-format>
 ```markdown
 
 # FastAPI Documentation Skill
@@ -126,43 +121,42 @@ app.get("/users/:id", async (req, res) => {
 });
 \`\`\`
 ```
+</skill-md-format>
 
-## Gotchas
-
-### 1. Skills Need Backend
-
+<fix-skills-need-backend>
 ```typescript
-// ❌ No backend
+// WRONG: No backend
 await createDeepAgent({ skills: ["./skills/"] });
 
-// ✅ Provide backend
+// CORRECT: Provide backend
 await createDeepAgent({
   backend: new FilesystemBackend({ rootDir: ".", virtualMode: true }),
   skills: ["./skills/"]
 });
 ```
+</fix-skills-need-backend>
 
-### 2. Frontmatter Required
-
+<fix-frontmatter-required>
 ```markdown
-# ❌ Missing
+# WRONG: Missing
 # My Skill
 
-# ✅ Include
+# CORRECT: Include
 # My Skill
 ```
+</fix-frontmatter-required>
 
-### 3. Specific Descriptions
-
+<fix-specific-descriptions>
 ```markdown
-# ❌ Vague
+# WRONG: Vague
 description: Helpful skill
 
-# ✅ Specific
+# CORRECT: Specific
 description: TypeScript testing with Jest and mocking patterns
 ```
+</fix-specific-descriptions>
 
-## Full Documentation
-
+<documentation-links>
 - [Skills Guide](https://docs.langchain.com/oss/javascript/deepagents/skills)
 - [Agent Skills Protocol](https://docs.langchain.com/oss/javascript/langchain/multi-agent/skills)
+</documentation-links>

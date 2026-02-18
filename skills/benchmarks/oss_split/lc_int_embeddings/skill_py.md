@@ -3,10 +3,7 @@ name: LangChain Embeddings Integration (Python)
 description: [LangChain] Guide to using embedding model integrations in LangChain including OpenAI, Azure, and local embeddings
 ---
 
-# langchain-embeddings (Python)
-
-## Overview
-
+<overview>
 Embedding models convert text into numerical vector representations that capture semantic meaning. These vectors enable semantic search, similarity comparison, and are essential for building RAG (Retrieval-Augmented Generation) systems with vector databases.
 
 ### Key Concepts
@@ -16,9 +13,9 @@ Embedding models convert text into numerical vector representations that capture
 - **Similarity Search**: Finding similar texts by comparing vector distances (cosine similarity, euclidean distance)
 - **Batch Processing**: Efficiently embedding multiple texts at once
 - **Use Cases**: Semantic search, document retrieval, clustering, recommendation systems
+</overview>
 
-## Provider Selection Decision Table
-
+<provider-selection>
 | Provider | Best For | Model Examples | Dimensions | Package | Key Features |
 |----------|----------|----------------|------------|---------|--------------|
 | **OpenAI** | General purpose, high quality | text-embedding-3-small, text-embedding-3-large, text-embedding-ada-002 | 1536, 3072 | `langchain-openai` | High quality, reliable, flexible dimensions |
@@ -27,9 +24,9 @@ Embedding models convert text into numerical vector representations that capture
 | **HuggingFace** | Open source, customizable | all-MiniLM-L6-v2, BGE models | Varies | `langchain-huggingface` | Free, local inference, many models |
 | **Google** | GCP integration | textembedding-gecko | 768 | `langchain-google-genai` | GCP ecosystem, multimodal |
 | **Ollama** | Local, privacy | llama2, mistral, nomic-embed-text | Varies | `langchain-ollama` | Fully local, no API costs, privacy |
+</provider-selection>
 
-### When to Choose Each Provider
-
+<when-to-choose>
 **Choose OpenAI if:**
 - You need high-quality embeddings for production
 - You want reliable, fast API-based embeddings
@@ -54,11 +51,9 @@ Embedding models convert text into numerical vector representations that capture
 - Privacy is paramount (fully local)
 - You want zero API costs after setup
 - You have sufficient local compute resources
+</when-to-choose>
 
-## Code Examples
-
-### OpenAI Embeddings
-
+<ex-openai-embeddings>
 ```python
 from langchain_openai import OpenAIEmbeddings
 import os
@@ -91,9 +86,9 @@ small_embeddings = OpenAIEmbeddings(
     dimensions=512,  # Reduce from default 1536 for efficiency
 )
 ```
+</ex-openai-embeddings>
 
-### Azure OpenAI Embeddings
-
+<ex-azure-openai-embeddings>
 ```python
 from langchain_openai import AzureOpenAIEmbeddings
 import os
@@ -108,9 +103,9 @@ embeddings = AzureOpenAIEmbeddings(
 embedding = embeddings.embed_query("Hello world")
 print(f"Embedding length: {len(embedding)}")
 ```
+</ex-azure-openai-embeddings>
 
-### HuggingFace Embeddings (Local)
-
+<ex-huggingface-embeddings>
 ```python
 from langchain_huggingface import HuggingFaceEmbeddings
 
@@ -129,9 +124,9 @@ embeddings = HuggingFaceEmbeddings(
     model_name="BAAI/bge-small-en-v1.5",
 )
 ```
+</ex-huggingface-embeddings>
 
-### Ollama Embeddings (Local)
-
+<ex-ollama-embeddings>
 ```python
 from langchain_ollama import OllamaEmbeddings
 
@@ -143,9 +138,9 @@ embeddings = OllamaEmbeddings(
 
 embedding = embeddings.embed_query("Fully local embeddings")
 ```
+</ex-ollama-embeddings>
 
-### Cohere Embeddings
-
+<ex-cohere-embeddings>
 ```python
 from langchain_cohere import CohereEmbeddings
 import os
@@ -158,9 +153,9 @@ embeddings = CohereEmbeddings(
 query_embedding = embeddings.embed_query("Search query")
 doc_embeddings = embeddings.embed_documents(["doc1", "doc2"])
 ```
+</ex-cohere-embeddings>
 
-### Computing Similarity
-
+<ex-computing-similarity>
 ```python
 from langchain_openai import OpenAIEmbeddings
 import numpy as np
@@ -189,9 +184,9 @@ print("Similarities:", similarities)
 most_similar_idx = np.argmax(similarities)
 print("Most similar doc:", docs[most_similar_idx])
 ```
+</ex-computing-similarity>
 
-### Batch Processing for Efficiency
-
+<ex-batch-processing>
 ```python
 from langchain_openai import OpenAIEmbeddings
 
@@ -205,9 +200,9 @@ large_doc_set = [f"Document {i}: Some content here" for i in range(1000)]
 doc_embeddings = embeddings.embed_documents(large_doc_set)
 print(f"Embedded {len(doc_embeddings)} documents in batches")
 ```
+</ex-batch-processing>
 
-### Using with Vector Stores
-
+<ex-with-vectorstores>
 ```python
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
@@ -229,56 +224,54 @@ docs = vectorstore.similarity_search(query, k=2)
 for doc in docs:
     print(doc.page_content)
 ```
+</ex-with-vectorstores>
 
-## Boundaries
-
+<boundaries>
 ### What Agents CAN Do
 
-✅ **Initialize embedding models**
+* Initialize embedding models**
 - Set up OpenAI, Azure, Cohere, HuggingFace, or Ollama embeddings
 - Configure API keys and model parameters
 
-✅ **Embed text content**
+* Embed text content**
 - Embed single queries with `embed_query()`
 - Embed multiple documents with `embed_documents()`
 - Process large batches efficiently
 
-✅ **Use embeddings with vector stores**
+* Use embeddings with vector stores**
 - Pass embeddings to vector store constructors
 - Enable semantic search capabilities
 
-✅ **Choose appropriate models**
+* Choose appropriate models**
 - Select based on quality, cost, latency requirements
 - Use local models for privacy concerns
 
-✅ **Optimize for use case**
+* Optimize for use case**
 - Adjust batch sizes for efficiency
 - Use smaller dimensions to reduce costs/storage
 
 ### What Agents CANNOT Do
 
-❌ **Modify embedding dimensions arbitrarily**
+* Modify embedding dimensions arbitrarily**
 - Cannot change dimensions beyond what the model supports
 - text-embedding-3-* models support custom dimensions, older models don't
 
-❌ **Mix embeddings from different models**
+* Mix embeddings from different models**
 - Cannot compare embeddings from different models directly
 - Must use same model for all embeddings in a similarity search
 
-❌ **Exceed API rate limits**
+* Exceed API rate limits**
 - Cannot bypass provider rate limits
 - Must implement rate limiting for large-scale operations
 
-❌ **Generate embeddings without proper authentication**
+* Generate embeddings without proper authentication**
 - Cannot use cloud providers without valid API keys
 - Cannot access models without proper credentials
+</boundaries>
 
-## Gotchas
-
-### 1. **Model Consistency is Critical**
-
+<fix-model-consistency>
 ```python
-# ❌ BAD: Using different models
+# WRONG: BAD: Using different models
 embeddings1 = OpenAIEmbeddings(model="text-embedding-3-small")
 embeddings2 = OpenAIEmbeddings(model="text-embedding-ada-002")
 
@@ -286,38 +279,34 @@ query_vec = embeddings1.embed_query("query")
 doc_vec = embeddings2.embed_query("document")
 # Similarity comparison will be meaningless!
 
-# ✅ GOOD: Use same model for everything
+# CORRECT: GOOD: Use same model for everything
 embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 query_vec = embeddings.embed_query("query")
 doc_vec = embeddings.embed_query("document")
 # Now similarity makes sense
 ```
+</fix-model-consistency>
 
-**Fix**: Always use the same embedding model for all texts you want to compare.
-
-### 2. **Import from Correct Packages**
-
+<fix-import-packages>
 ```python
-# ❌ OLD: Using deprecated community imports
+# WRONG: OLD: Using deprecated community imports
 from langchain.embeddings import OpenAIEmbeddings  # Deprecated!
 
-# ✅ NEW: Use provider-specific packages
+# CORRECT: NEW: Use provider-specific packages
 from langchain_openai import OpenAIEmbeddings
 from langchain_cohere import CohereEmbeddings
 from langchain_huggingface import HuggingFaceEmbeddings
 ```
+</fix-import-packages>
 
-**Fix**: Use provider-specific packages, not `langchain-community`.
-
-### 3. **Text Length Limits**
-
+<fix-text-length-limits>
 ```python
-# ❌ Text too long
+# WRONG: Text too long
 embeddings = OpenAIEmbeddings()
 very_long_text = "..." * 100000
 embeddings.embed_query(very_long_text)  # Will fail!
 
-# ✅ Chunk long texts first
+# CORRECT: Chunk long texts first
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 splitter = RecursiveCharacterTextSplitter(
@@ -327,13 +316,11 @@ splitter = RecursiveCharacterTextSplitter(
 chunks = splitter.split_text(very_long_text)
 chunk_embeddings = embeddings.embed_documents(chunks)
 ```
+</fix-text-length-limits>
 
-**Fix**: Split long texts into chunks before embedding. Most models have 8k token limits.
-
-### 4. **HuggingFace Model Download**
-
+<fix-huggingface-download>
 ```python
-# ❌ First run may be slow (downloading model)
+# WRONG: First run may be slow (downloading model)
 from langchain_huggingface import HuggingFaceEmbeddings
 
 embeddings = HuggingFaceEmbeddings(
@@ -341,22 +328,20 @@ embeddings = HuggingFaceEmbeddings(
 )
 # Downloads ~420MB on first run!
 
-# ✅ Be aware and cache models
+# CORRECT: Be aware and cache models
 # Models are cached in ~/.cache/huggingface/
 # Subsequent runs will be fast
 ```
+</fix-huggingface-download>
 
-**Fix**: First run downloads the model. Plan for network and disk space.
-
-### 5. **Azure Configuration Complexity**
-
+<fix-azure-configuration>
 ```python
-# ❌ INCOMPLETE: Missing required fields
+# WRONG: INCOMPLETE: Missing required fields
 embeddings = AzureOpenAIEmbeddings(
     api_key=os.getenv("AZURE_OPENAI_API_KEY"),
 )
 
-# ✅ COMPLETE: All required fields
+# CORRECT: COMPLETE: All required fields
 embeddings = AzureOpenAIEmbeddings(
     azure_endpoint="https://my-instance.openai.azure.com/",
     api_key=os.getenv("AZURE_OPENAI_API_KEY"),
@@ -364,19 +349,17 @@ embeddings = AzureOpenAIEmbeddings(
     api_version="2024-02-01",
 )
 ```
+</fix-azure-configuration>
 
-**Fix**: Azure requires endpoint, deployment name, and API version.
-
-### 6. **Ollama Service Must Be Running**
-
+<fix-ollama-service>
 ```python
-# ❌ Ollama not running
+# WRONG: Ollama not running
 from langchain_ollama import OllamaEmbeddings
 
 embeddings = OllamaEmbeddings(model="nomic-embed-text")
 embeddings.embed_query("test")  # Connection error!
 
-# ✅ Ensure Ollama is running and model is pulled
+# CORRECT: Ensure Ollama is running and model is pulled
 # Terminal:
 # ollama pull nomic-embed-text
 # ollama serve
@@ -384,28 +367,24 @@ embeddings.embed_query("test")  # Connection error!
 embeddings = OllamaEmbeddings(model="nomic-embed-text")
 embeddings.embed_query("test")  # Works!
 ```
+</fix-ollama-service>
 
-**Fix**: Start Ollama service and pull the model first.
-
-### 7. **Batch Size for Performance**
-
+<fix-batch-efficiency>
 ```python
-# ❌ Inefficient: One API call per document
+# WRONG: Inefficient: One API call per document
 embeddings = OpenAIEmbeddings()
 for doc in large_doc_list:
     emb = embeddings.embed_query(doc)  # Slow!
 
-# ✅ Efficient: Batch processing
+# CORRECT: Efficient: Batch processing
 embeddings = OpenAIEmbeddings(chunk_size=100)
 all_embeddings = embeddings.embed_documents(large_doc_list)  # Fast!
 ```
+</fix-batch-efficiency>
 
-**Fix**: Use `embed_documents()` for batch processing instead of calling `embed_query()` in a loop.
-
-### 8. **Dimension Mismatch**
-
+<fix-dimension-mismatch>
 ```python
-# ❌ Vector store expecting 1536 dimensions, model produces 512
+# WRONG: Vector store expecting 1536 dimensions, model produces 512
 embeddings = OpenAIEmbeddings(
     model="text-embedding-3-small",
     dimensions=512,
@@ -418,15 +397,13 @@ vectorstore = FAISS.from_texts(
 )
 # Adding with 512-dim embeddings will fail!
 
-# ✅ Consistent dimensions
+# CORRECT: Consistent dimensions
 embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 vectorstore = FAISS.from_texts(["text1"], embeddings)
 ```
+</fix-dimension-mismatch>
 
-**Fix**: Ensure all embeddings use consistent dimensions throughout your application.
-
-## Links and Resources
-
+<links>
 ### Official Documentation
 - [LangChain Python Embeddings Overview](https://python.langchain.com/docs/integrations/text_embedding/)
 - [OpenAI Embeddings](https://python.langchain.com/docs/integrations/text_embedding/openai)
@@ -439,8 +416,9 @@ vectorstore = FAISS.from_texts(["text1"], embeddings)
 - [Cohere Embeddings](https://docs.cohere.com/docs/embeddings)
 - [HuggingFace Models](https://huggingface.co/models?pipeline_tag=feature-extraction)
 - [Ollama](https://ollama.ai/)
+</links>
 
-### Package Installation
+<installation>
 ```bash
 # OpenAI
 pip install langchain-openai
@@ -457,3 +435,4 @@ pip install langchain-ollama
 # Google
 pip install langchain-google-genai
 ```
+</installation>

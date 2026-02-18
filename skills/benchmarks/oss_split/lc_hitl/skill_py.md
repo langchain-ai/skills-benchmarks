@@ -3,10 +3,7 @@ name: LangChain Human-in-the-Loop (Python)
 description: [LangChain] Add human oversight to LangChain agents using HITL middleware - includes interrupts, approval workflows, edit/reject decisions, and checkpoints
 ---
 
-# langchain-human-in-the-loop (Python)
-
-## Overview
-
+<overview>
 Human-in-the-Loop (HITL) lets you add human oversight to agent tool calls. When agents propose sensitive actions (like database writes or sending emails), execution pauses for human approval, editing, or rejection.
 
 **Key Concepts:**
@@ -14,11 +11,9 @@ Human-in-the-Loop (HITL) lets you add human oversight to agent tool calls. When 
 - **Interrupts**: Checkpoint where agent waits for human input
 - **Decisions**: approve, edit, or reject tool calls
 - **Checkpointer**: Required for persistence across interruptions
+</overview>
 
-## Code Examples
-
-### Basic HITL Setup
-
+<ex-basic-hitl-setup>
 ```python
 from langchain.agents import create_agent, human_in_the_loop_middleware
 from langgraph.checkpoint.memory import MemorySaver
@@ -45,9 +40,9 @@ agent = create_agent(
     ],
 )
 ```
+</ex-basic-hitl-setup>
 
-### Running with Interrupts
-
+<ex-running-with-interrupts>
 ```python
 from langgraph.types import Command
 
@@ -72,9 +67,9 @@ result2 = agent.invoke(
 # Tool now executes and agent completes
 print(result2["messages"][-1].content)
 ```
+</ex-running-with-interrupts>
 
-### Editing Tool Arguments
-
+<ex-editing-tool-arguments>
 ```python
 # Human edits the arguments
 result2 = agent.invoke(
@@ -91,9 +86,9 @@ result2 = agent.invoke(
     config=config
 )
 ```
+</ex-editing-tool-arguments>
 
-### Rejecting with Feedback
-
+<ex-rejecting-with-feedback>
 ```python
 # Human rejects
 result2 = agent.invoke(
@@ -106,9 +101,9 @@ result2 = agent.invoke(
     config=config
 )
 ```
+</ex-rejecting-with-feedback>
 
-### Multiple Tools with Different Policies
-
+<ex-multiple-tools-different-policies>
 ```python
 agent = create_agent(
     model="gpt-4.1",
@@ -129,9 +124,9 @@ agent = create_agent(
     ],
 )
 ```
+</ex-multiple-tools-different-policies>
 
-### Streaming with HITL
-
+<ex-streaming-with-hitl>
 ```python
 # Stream until interrupt
 for mode, chunk in agent.stream(
@@ -157,20 +152,18 @@ for mode, chunk in agent.stream(
     # Continue streaming
     pass
 ```
+</ex-streaming-with-hitl>
 
-## Gotchas
-
-### 1. Missing Checkpointer
-
+<fix-missing-checkpointer>
 ```python
-# ❌ Problem: No checkpointer
+# WRONG: Problem: No checkpointer
 agent = create_agent(
     model="gpt-4.1",
     tools=[send_email],
     middleware=[human_in_the_loop_middleware({...})],  # Error!
 )
 
-# ✅ Solution: Always add checkpointer
+# CORRECT: Solution: Always add checkpointer
 from langgraph.checkpoint.memory import MemorySaver
 
 agent = create_agent(
@@ -180,24 +173,24 @@ agent = create_agent(
     middleware=[human_in_the_loop_middleware({...})],
 )
 ```
+</fix-missing-checkpointer>
 
-### 2. No thread_id
-
+<fix-no-thread-id>
 ```python
-# ❌ Problem: Missing thread_id
+# WRONG: Problem: Missing thread_id
 agent.invoke(input)  # No config!
 
-# ✅ Solution: Always provide thread_id
+# CORRECT: Solution: Always provide thread_id
 agent.invoke(input, config={"configurable": {"thread_id": "user-123"}})
 ```
+</fix-no-thread-id>
 
-### 3. Wrong Resume Syntax
-
+<fix-wrong-resume-syntax>
 ```python
-# ❌ Problem: Wrong resume format
+# WRONG: Problem: Wrong resume format
 agent.invoke({"resume": {"decisions": [...]}})  # Wrong!
 
-# ✅ Solution: Use Command
+# CORRECT: Solution: Use Command
 from langgraph.types import Command
 
 agent.invoke(
@@ -205,8 +198,9 @@ agent.invoke(
     config=config
 )
 ```
+</fix-wrong-resume-syntax>
 
-## Links to Documentation
-
+<links>
 - [Human-in-the-Loop Guide](https://docs.langchain.com/oss/python/langchain/human-in-the-loop)
 - [LangGraph Interrupts](https://docs.langchain.com/oss/python/langgraph/interrupts)
+</links>

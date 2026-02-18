@@ -3,10 +3,7 @@ name: LangChain Streaming (TypeScript)
 description: [LangChain] Stream outputs from LangChain agents and models - includes stream modes, token streaming, progress updates, and real-time feedback
 ---
 
-# langchain-streaming (JavaScript/TypeScript)
-
-## Overview
-
+<overview>
 Streaming allows you to surface real-time updates from LangChain agents and models as they run. Instead of waiting for complete responses, you can display output progressively, improving user experience especially for long-running operations.
 
 **Key Concepts:**
@@ -14,21 +11,19 @@ Streaming allows you to surface real-time updates from LangChain agents and mode
 - **Token Streaming**: LLM tokens as they're generated
 - **Agent Progress**: State updates after each agent step
 - **Custom Updates**: User-defined progress signals
+</overview>
 
-## When to Use Streaming
-
+<when-to-use>
 | Scenario | Stream? | Why |
 |----------|---------|-----|
-| Long model responses | ✅ Yes | Show tokens as generated |
-| Multi-step agent tasks | ✅ Yes | Show progress through steps |
-| Long-running tools | ✅ Yes | Provide progress updates |
-| Simple quick requests | ⚠️ Maybe | Overhead might not be worth it |
-| Backend batch processing | ❌ No | No user waiting for updates |
+| Long model responses | Yes | Show tokens as generated |
+| Multi-step agent tasks | Yes | Show progress through steps |
+| Long-running tools | Yes | Provide progress updates |
+| Simple quick requests | Partial Maybe | Overhead might not be worth it |
+| Backend batch processing | No | No user waiting for updates |
+</when-to-use>
 
-## Decision Tables
-
-### Stream Mode Selection
-
+<stream-mode-selection>
 | Mode | Use When | Returns |
 |------|----------|---------|
 | `"values"` | Need full state after each step | Complete state object |
@@ -36,11 +31,9 @@ Streaming allows you to surface real-time updates from LangChain agents and mode
 | `"messages"` | Need LLM token stream | [token, metadata] tuples |
 | `"custom"` | Need custom progress signals | User-defined data |
 | Multiple modes | Need combined data | Array of modes |
+</stream-mode-selection>
 
-## Code Examples
-
-### Basic Model Token Streaming
-
+<ex-basic-model-token-streaming>
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
 
@@ -54,9 +47,9 @@ for await (const chunk of stream) {
 }
 // Output appears progressively: "Quantum" "computing" "is" ...
 ```
+</ex-basic-model-token-streaming>
 
-### Agent Progress Streaming
-
+<ex-agent-progress-streaming>
 ```typescript
 import { createAgent } from "langchain";
 
@@ -74,9 +67,9 @@ for await (const chunk of await agent.stream(
 }
 // Shows each step: model call, tool execution, final response
 ```
+</ex-agent-progress-streaming>
 
-### Combined Streaming (Messages + Updates)
-
+<ex-combined-streaming>
 ```typescript
 import { createAgent } from "langchain";
 
@@ -102,9 +95,9 @@ for await (const [mode, chunk] of await agent.stream(
   }
 }
 ```
+</ex-combined-streaming>
 
-### Stream with Values Mode
-
+<ex-stream-with-values-mode>
 ```typescript
 import { createAgent } from "langchain";
 
@@ -122,9 +115,9 @@ for await (const state of await agent.stream(
   console.log("Last message:", state.messages[state.messages.length - 1].content);
 }
 ```
+</ex-stream-with-values-mode>
 
-### Custom Progress Updates from Tools
-
+<ex-custom-progress-updates-from-tools>
 ```typescript
 import { tool } from "langchain";
 import { z } from "zod";
@@ -132,7 +125,7 @@ import { z } from "zod";
 const processData = tool(
   async ({ data }, { runtime }) => {
     const total = data.length;
-    
+
     for (let i = 0; i < total; i += 100) {
       // Emit custom progress update
       await runtime.stream_writer.write({
@@ -143,11 +136,11 @@ const processData = tool(
           percentage: (i / total) * 100,
         },
       });
-      
+
       // Do actual processing
       await processChunk(data.slice(i, i + 100));
     }
-    
+
     return "Processing complete";
   },
   {
@@ -169,9 +162,9 @@ for await (const [mode, chunk] of await agent.stream(
   }
 }
 ```
+</ex-custom-progress-updates-from-tools>
 
-### Streaming in Web Applications
-
+<ex-streaming-in-web-applications>
 ```typescript
 import { createAgent } from "langchain";
 
@@ -186,7 +179,7 @@ app.post("/api/chat", async (req, res) => {
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
-  
+
   try {
     for await (const [mode, chunk] of await agent.stream(
       { messages: req.body.messages },
@@ -203,7 +196,7 @@ app.post("/api/chat", async (req, res) => {
         res.write(`data: ${JSON.stringify({ type: "step", data: chunk })}\n\n`);
       }
     }
-    
+
     res.write("data: [DONE]\n\n");
     res.end();
   } catch (error) {
@@ -212,9 +205,9 @@ app.post("/api/chat", async (req, res) => {
   }
 });
 ```
+</ex-streaming-in-web-applications>
 
-### Error Handling in Streams
-
+<ex-error-handling-in-streams>
 ```typescript
 import { createAgent } from "langchain";
 
@@ -233,16 +226,16 @@ try {
       console.error("Error in stream:", chunk.__error__);
       break;
     }
-    
+
     console.log("Update:", chunk);
   }
 } catch (error) {
   console.error("Stream error:", error);
 }
 ```
+</ex-error-handling-in-streams>
 
-### Streaming with Timeouts
-
+<ex-streaming-with-timeouts>
 ```typescript
 import { createAgent } from "langchain";
 
@@ -255,7 +248,7 @@ async function streamWithTimeout(timeoutMs: number) {
   const timeout = setTimeout(() => {
     throw new Error(`Stream timeout after ${timeoutMs}ms`);
   }, timeoutMs);
-  
+
   try {
     for await (const chunk of await agent.stream(
       { messages: [{ role: "user", content: "Do something slow" }] },
@@ -263,7 +256,7 @@ async function streamWithTimeout(timeoutMs: number) {
     )) {
       clearTimeout(timeout);
       console.log(chunk);
-      
+
       // Reset timeout for next chunk
       timeout.setTimeout(() => {
         throw new Error(`Stream timeout after ${timeoutMs}ms`);
@@ -274,9 +267,9 @@ async function streamWithTimeout(timeoutMs: number) {
   }
 }
 ```
+</ex-streaming-with-timeouts>
 
-### Buffering Tokens for Display
-
+<ex-buffering-tokens-for-display>
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
 
@@ -287,7 +280,7 @@ const stream = await model.stream("Write a long essay");
 
 for await (const chunk of stream) {
   buffer += chunk.content;
-  
+
   // Update UI every 10 characters or on complete words
   if (buffer.length >= 10 || chunk.content.includes(" ")) {
     console.log(buffer);
@@ -300,83 +293,79 @@ if (buffer) {
   console.log(buffer);
 }
 ```
+</ex-buffering-tokens-for-display>
 
-## Boundaries
+<boundaries>
+**What You CAN Configure:**
+- Stream modes: Choose which data to stream
+- Multiple modes: Combine different stream types
+- Custom updates: Emit user-defined progress data
+- Chunk processing: Handle each chunk as needed
+- Error handling: Catch and handle stream errors
 
-### What You CAN Configure
+**What You CANNOT Configure:**
+- Chunk size: Determined by model/provider
+- Chunk timing: Arrives as provider sends
+- Guarantee order: Async streams may vary
+- Modify past chunks: Chunks are immutable
+</boundaries>
 
-✅ **Stream modes**: Choose which data to stream
-✅ **Multiple modes**: Combine different stream types
-✅ **Custom updates**: Emit user-defined progress data
-✅ **Chunk processing**: Handle each chunk as needed
-✅ **Error handling**: Catch and handle stream errors
-
-### What You CANNOT Configure
-
-❌ **Chunk size**: Determined by model/provider
-❌ **Chunk timing**: Arrives as provider sends
-❌ **Guarantee order**: Async streams may vary
-❌ **Modify past chunks**: Chunks are immutable
-
-## Gotchas
-
-### 1. Not Awaiting Stream
-
+<fix-not-awaiting-stream>
 ```typescript
-// ❌ Problem: Missing await
+// WRONG: Problem: Missing await
 const stream = agent.stream(input, { streamMode: "updates" });
 for await (const chunk of stream) {  // Error: stream is Promise!
   console.log(chunk);
 }
 
-// ✅ Solution: Await stream initialization
+// CORRECT: Solution: Await stream initialization
 const stream = await agent.stream(input, { streamMode: "updates" });
 for await (const chunk of stream) {
   console.log(chunk);
 }
 ```
+</fix-not-awaiting-stream>
 
-### 2. Accessing Content Wrong
-
+<fix-accessing-content-wrong>
 ```typescript
-// ❌ Problem: Wrong property for messages mode
+// WRONG: Problem: Wrong property for messages mode
 for await (const chunk of await agent.stream(input, { streamMode: "messages" })) {
   console.log(chunk.content);  // undefined!
 }
 
-// ✅ Solution: Messages mode returns [token, metadata] tuple
+// CORRECT: Solution: Messages mode returns [token, metadata] tuple
 for await (const chunk of await agent.stream(input, { streamMode: "messages" })) {
   const [token, metadata] = chunk;
   console.log(token.content);  // Correct!
 }
 ```
+</fix-accessing-content-wrong>
 
-### 3. Stream Mode Confusion
-
+<fix-stream-mode-confusion>
 ```typescript
-// ❌ Problem: Using wrong mode for tokens
+// WRONG: Problem: Using wrong mode for tokens
 for await (const chunk of await agent.stream(input, { streamMode: "updates" })) {
   console.log(chunk.content);  // Not how updates work!
 }
 
-// ✅ Solution: Use "messages" mode for tokens
+// CORRECT: Solution: Use "messages" mode for tokens
 for await (const chunk of await agent.stream(input, { streamMode: "messages" })) {
   const [token, metadata] = chunk;
   console.log(token.content);
 }
 ```
+</fix-stream-mode-confusion>
 
-### 4. Breaking Out of Stream Early
-
+<fix-breaking-out-of-stream-early>
 ```typescript
-// ❌ Problem: Not properly cleaning up
+// WRONG: Problem: Not properly cleaning up
 for await (const chunk of await agent.stream(input)) {
   if (someCondition) {
     break;  // Stream may not clean up properly
   }
 }
 
-// ✅ Solution: Use try/finally or explicit cleanup
+// CORRECT: Solution: Use try/finally or explicit cleanup
 const stream = await agent.stream(input);
 try {
   for await (const chunk of stream) {
@@ -388,11 +377,11 @@ try {
   // Cleanup if needed
 }
 ```
+</fix-breaking-out-of-stream-early>
 
-### 5. Mixing Stream Modes
-
+<fix-mixing-stream-modes>
 ```typescript
-// ❌ Problem: Not handling different modes
+// WRONG: Problem: Not handling different modes
 for await (const chunk of await agent.stream(
   input,
   { streamMode: ["updates", "messages"] }
@@ -400,7 +389,7 @@ for await (const chunk of await agent.stream(
   console.log(chunk);  // Which mode is this?
 }
 
-// ✅ Solution: Destructure mode
+// CORRECT: Solution: Destructure mode
 for await (const [mode, chunk] of await agent.stream(
   input,
   { streamMode: ["updates", "messages"] }
@@ -413,10 +402,11 @@ for await (const [mode, chunk] of await agent.stream(
   }
 }
 ```
+</fix-mixing-stream-modes>
 
-## Links to Documentation
-
+<documentation-links>
 - [Streaming Overview](https://docs.langchain.com/oss/javascript/langchain/streaming/overview)
 - [LangGraph Streaming](https://docs.langchain.com/oss/javascript/langgraph/streaming)
 - [Model Streaming](https://docs.langchain.com/oss/javascript/langchain/models)
 - [Human-in-the-Loop Streaming](https://docs.langchain.com/oss/javascript/langchain/human-in-the-loop)
+</documentation-links>

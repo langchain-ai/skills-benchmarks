@@ -3,11 +3,7 @@ name: LangGraph State (TypeScript)
 description: "[LangGraph] Managing state in LangGraph: schemas, reducers, channels, and message passing for coordinating agent execution"
 ---
 
-# langgraph-state (JavaScript/TypeScript)
-
-
-## Overview
-
+<overview>
 State is the central data structure in LangGraph that persists throughout graph execution. Proper state management is crucial for building reliable agents.
 
 **Key Concepts:**
@@ -15,20 +11,18 @@ State is the central data structure in LangGraph that persists throughout graph 
 - **Reducers**: Control how state updates are applied (ReducedValue)
 - **Channels**: Low-level state management primitives
 - **Message Passing**: How nodes communicate via state updates
+</overview>
 
-## Decision Table: State Update Strategies
-
+<decision-table>
 | Need | Solution | Use Case |
 |------|----------|----------|
 | Overwrite value | Plain Zod schema | Simple fields like strings |
 | Append to list | `ReducedValue` with concat | Logs, accumulating data |
 | Custom logic | Custom reducer function | Complex merging, validation |
 | Messages | `MessagesValue` | Chat applications |
+</decision-table>
 
-## Code Examples
-
-### Basic State Management
-
+<ex-basic-state-management>
 ```typescript
 import { StateGraph, StateSchema, START, END } from "@langchain/langgraph";
 import { z } from "zod";
@@ -55,9 +49,9 @@ const graph = new StateGraph(State)
 const result = await graph.invoke({ input: "hello", count: 0 });
 console.log(result);  // { input: 'hello', processed: 'HELLO', count: 1 }
 ```
+</ex-basic-state-management>
 
-### Messages with Reducer
-
+<ex-messages-with-reducer>
 ```typescript
 import { StateSchema, MessagesValue, StateGraph, START, END } from "@langchain/langgraph";
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
@@ -85,9 +79,9 @@ const result = await graph.invoke({
 });
 console.log(result.messages.length);  // 2 (original + response)
 ```
+</ex-messages-with-reducer>
 
-### Custom Reducer with ReducedValue
-
+<ex-custom-reducer-with-reducedvalue>
 ```typescript
 import { StateSchema, ReducedValue, START, END, StateGraph } from "@langchain/langgraph";
 import { z } from "zod";
@@ -119,9 +113,9 @@ const result = await graph.invoke({
 });
 // metadata is merged: { user: "alice", timestamp: "2024-01-01" }
 ```
+</ex-custom-reducer-with-reducedvalue>
 
-### List Accumulation with ReducedValue
-
+<ex-list-accumulation-with-reducedvalue>
 ```typescript
 import { StateSchema, ReducedValue } from "@langchain/langgraph";
 import { z } from "zod";
@@ -149,9 +143,9 @@ const graph = new StateGraph(State)
 const result = await graph.invoke({ items: ["old1", "old2"] });
 console.log(result.items);  // ['old1', 'old2', 'new_item']
 ```
+</ex-list-accumulation-with-reducedvalue>
 
-### Using Channels API
-
+<ex-using-channels-api>
 ```typescript
 import { StateGraph, LastValue, BinaryOperatorAggregate } from "@langchain/langgraph";
 
@@ -173,9 +167,9 @@ const graph = new StateGraph<State>({
   },
 });
 ```
+</ex-using-channels-api>
 
-### Partial State Updates
-
+<ex-partial-state-updates>
 ```typescript
 import { StateSchema, StateGraph, START, END } from "@langchain/langgraph";
 import { z } from "zod";
@@ -211,32 +205,28 @@ const result = await graph.invoke({
 });
 // field1: "updated", field2: "also updated", field3: "original3"
 ```
+</ex-partial-state-updates>
 
-## Boundaries
+<boundaries>
+**What You CAN Configure:**
+- Define custom state schemas with Zod
+- Add reducers via ReducedValue
+- Create custom reducer functions
+- Use built-in channels
+- Use MessagesValue for chat
+- Partial state updates
+- Nested state structures
 
-### What You CAN Configure
+**What You CANNOT Configure:**
+- Change state schema after compilation
+- Access state outside node functions
+- Modify state directly (must return updates)
+- Share state between separate graphs
+</boundaries>
 
-✅ Define custom state schemas with Zod
-✅ Add reducers via ReducedValue
-✅ Create custom reducer functions
-✅ Use built-in channels
-✅ Use MessagesValue for chat
-✅ Partial state updates
-✅ Nested state structures
-
-### What You CANNOT Configure
-
-❌ Change state schema after compilation
-❌ Access state outside node functions
-❌ Modify state directly (must return updates)
-❌ Share state between separate graphs
-
-## Gotchas
-
-### 1. Forgot Reducer for Arrays
-
+<fix-forgot-reducer-for-arrays>
 ```typescript
-// ❌ WRONG - Array will be overwritten
+// WRONG: Array will be overwritten
 const State = new StateSchema({
   items: z.array(z.string()),  // No reducer!
 });
@@ -245,7 +235,7 @@ const State = new StateSchema({
 // Node 2 returns: { items: ["B"] }
 // Final state: { items: ["B"] }  // A is lost!
 
-// ✅ CORRECT
+// CORRECT
 import { ReducedValue } from "@langchain/langgraph";
 
 const State = new StateSchema({
@@ -256,26 +246,26 @@ const State = new StateSchema({
 });
 // Final state: { items: ["A", "B"] }
 ```
+</fix-forgot-reducer-for-arrays>
 
-### 2. State Updates Must Return Partial
-
+<fix-state-updates-must-return-partial>
 ```typescript
-// ❌ WRONG - Returning entire state object
+// WRONG: Returning entire state object
 const myNode = async (state: typeof State.State) => {
   state.field = "updated";
   return state;  // Don't do this!
 };
 
-// ✅ CORRECT - Return partial updates
+// CORRECT: Return partial updates
 const myNode = async (state: typeof State.State) => {
   return { field: "updated" };
 };
 ```
+</fix-state-updates-must-return-partial>
 
-### 3. Default Values
-
+<fix-default-values>
 ```typescript
-// ❌ RISKY - No default handling
+// RISKY: No default handling
 const State = new StateSchema({
   count: z.number(),  // What if undefined?
 });
@@ -284,26 +274,27 @@ const increment = async (state: typeof State.State) => {
   return { count: state.count + 1 };  // May error if count undefined
 };
 
-// ✅ BETTER - Use defaults in schema
+// BETTER: Use defaults in schema
 const State = new StateSchema({
   count: z.number().default(0),
 });
 ```
+</fix-default-values>
 
-### 4. Always Await Nodes
-
+<fix-always-await-nodes>
 ```typescript
-// ❌ WRONG - Forgetting await
+// WRONG: Forgetting await
 const result = graph.invoke({ input: "test" });
 console.log(result.output);  // undefined (Promise!)
 
-// ✅ CORRECT
+// CORRECT
 const result = await graph.invoke({ input: "test" });
 console.log(result.output);  // Works!
 ```
+</fix-always-await-nodes>
 
-## Links
-
+<documentation-links>
 - [StateSchema Guide](https://docs.langchain.com/oss/javascript/langgraph/graph-api#schema)
 - [Channels API](https://docs.langchain.com/oss/javascript/langgraph/use-graph-api#channels-api)
 - [ReducedValue](https://docs.langchain.com/oss/javascript/releases/changelog#standard-json-schema-support)
+</documentation-links>

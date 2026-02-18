@@ -3,11 +3,7 @@ name: LangGraph Overview (Python)
 description: "[LangGraph] Understanding LangGraph: A low-level orchestration framework for building stateful, long-running agents with durable execution, streaming, and human-in-the-loop capabilities"
 ---
 
-# langgraph-overview (Python)
-
-
-## Overview
-
+<overview>
 LangGraph is a low-level orchestration framework and runtime for building, managing, and deploying long-running, stateful agents. It is trusted by companies like Klarna, Replit, and Elastic for production agent workloads.
 
 **Key Characteristics:**
@@ -15,9 +11,9 @@ LangGraph is a low-level orchestration framework and runtime for building, manag
 - **Stateful execution**: Built-in state management and persistence
 - **Production-ready**: Durable execution, streaming, human-in-the-loop, and fault-tolerance
 - **Framework agnostic**: Works standalone or with LangChain components
+</overview>
 
-### When to Use LangGraph
-
+<when-to-use-langgraph>
 LangGraph is ideal when you need:
 - Fine-grained control over agent orchestration
 - Durable execution for long-running, stateful agents
@@ -26,28 +22,26 @@ LangGraph is ideal when you need:
 - Human-in-the-loop workflows
 - Persistent state across multiple interactions
 
-### When NOT to Use LangGraph
-
-Consider alternatives when you:
-- Need a quick start with pre-built architectures → Use **LangChain agents**
-- Want batteries-included features (automatic compression, virtual filesystem) → Use **Deep Agents**
-- Have simple, stateless LLM workflows → Use **LangChain LCEL**
+When NOT to Use LangGraph:
+- Need a quick start with pre-built architectures -> Use **LangChain agents**
+- Want batteries-included features (automatic compression, virtual filesystem) -> Use **Deep Agents**
+- Have simple, stateless LLM workflows -> Use **LangChain LCEL**
 - Don't need state persistence or complex orchestration
+</when-to-use-langgraph>
 
-## Decision Table: Choosing the Right Tool
-
+<choosing-the-right-tool>
 | Requirement | Use LangGraph | Use LangChain | Use Deep Agents |
 |------------|---------------|---------------|-----------------|
-| Quick prototyping | ❌ | ✅ | ✅ |
-| Custom orchestration logic | ✅ | ❌ | ⚠️ (limited) |
-| Durable execution | ✅ | ⚠️ (via LangGraph) | ✅ |
-| Human-in-the-loop | ✅ | ⚠️ (via LangGraph) | ✅ |
-| State persistence | ✅ | ❌ | ✅ |
-| Production deployment | ✅ | ⚠️ (use with LangGraph) | ✅ |
+| Quick prototyping | No | Yes | Yes |
+| Custom orchestration logic | Yes | No | Partial (limited) |
+| Durable execution | Yes | Partial (via LangGraph) | Yes |
+| Human-in-the-loop | Yes | Partial (via LangGraph) | Yes |
+| State persistence | Yes | No | Yes |
+| Production deployment | Yes | Partial (use with LangGraph) | Yes |
 | Learning curve | High | Low | Medium |
+</choosing-the-right-tool>
 
-## Key Concepts
-
+<key-concepts>
 ### 1. Graph-Based Execution Model
 
 LangGraph models agent workflows as **graphs** with three core components:
@@ -73,11 +67,9 @@ Inspired by Google's Pregel system:
 - Nodes execute in parallel within a super-step
 - Sequential nodes belong to separate super-steps
 - Graph terminates when all nodes are inactive
+</key-concepts>
 
-## Code Examples
-
-### Basic LangGraph Agent
-
+<ex-basic-langgraph-agent>
 ```python
 from langchain.tools import tool
 from langchain.chat_models import init_chat_model
@@ -154,9 +146,9 @@ messages = agent.invoke({"messages": [HumanMessage(content="What is 3 * 4?")]})
 for m in messages["messages"]:
     m.pretty_print()
 ```
+</ex-basic-langgraph-agent>
 
-### Agent with Persistence
-
+<ex-agent-with-persistence>
 ```python
 from langgraph.checkpoint.memory import InMemorySaver
 
@@ -187,9 +179,9 @@ agent.invoke(
     config
 )
 ```
+</ex-agent-with-persistence>
 
-### Streaming Agent Responses
-
+<ex-streaming-agent-responses>
 ```python
 # Stream state updates
 for chunk in agent.stream(
@@ -212,78 +204,76 @@ for mode, chunk in agent.stream(
 ):
     print(f"{mode}: {chunk}")
 ```
+</ex-streaming-agent-responses>
 
-## Boundaries
-
+<boundaries>
 ### What Agents CAN Configure/Control
 
-✅ **Node Logic**: Define any Python function as a node
-✅ **State Schema**: Customize state structure and reducers
-✅ **Control Flow**: Add conditional edges, loops, branching
-✅ **Persistence Layer**: Choose checkpointer (InMemory, SQLite, Postgres)
-✅ **Streaming Modes**: Configure what data to stream
-✅ **Interrupts**: Add human-in-the-loop at any point
-✅ **Recursion Limits**: Control maximum execution steps
-✅ **Tools and Models**: Use any LLM or tool provider
+* Node Logic**: Define any Python function as a node
+* State Schema**: Customize state structure and reducers
+* Control Flow**: Add conditional edges, loops, branching
+* Persistence Layer**: Choose checkpointer (InMemory, SQLite, Postgres)
+* Streaming Modes**: Configure what data to stream
+* Interrupts**: Add human-in-the-loop at any point
+* Recursion Limits**: Control maximum execution steps
+* Tools and Models**: Use any LLM or tool provider
 
 ### What Agents CANNOT Configure/Control
 
-❌ **Core Graph Execution Model**: Pregel-based runtime is fixed
-❌ **Super-step Behavior**: Cannot change how nodes are batched
-❌ **Message Passing Protocol**: Internal communication is predefined
-❌ **Checkpoint Schema**: Internal checkpoint format is fixed
-❌ **Graph Compilation**: Cannot modify compilation logic
+* Core Graph Execution Model**: Pregel-based runtime is fixed
+* Super-step Behavior**: Cannot change how nodes are batched
+* Message Passing Protocol**: Internal communication is predefined
+* Checkpoint Schema**: Internal checkpoint format is fixed
+* Graph Compilation**: Cannot modify compilation logic
+</boundaries>
 
-## Gotchas
-
-### 1. Thread IDs are Required for Persistence
-
+<fix-thread-ids-required-for-persistence>
 ```python
-# ❌ WRONG - No thread_id with checkpointer
+# WRONG: WRONG - No thread_id with checkpointer
 agent.invoke({"messages": [...]})  # State not persisted!
 
-# ✅ CORRECT - Always provide thread_id
+# CORRECT: CORRECT - Always provide thread_id
 agent.invoke(
     {"messages": [...]},
     {"configurable": {"thread_id": "user-123"}}
 )
 ```
+</fix-thread-ids-required-for-persistence>
 
-### 2. State Updates Require Proper Reducers
-
+<fix-state-updates-require-reducers>
 ```python
-# ❌ WRONG - Messages will be overwritten, not appended
+# WRONG: WRONG - Messages will be overwritten, not appended
 class State(TypedDict):
     messages: list  # No reducer!
 
-# ✅ CORRECT - Use reducer to append
+# CORRECT: CORRECT - Use reducer to append
 from typing import Annotated
 import operator
 
 class State(TypedDict):
     messages: Annotated[list, operator.add]  # Appends messages
 ```
+</fix-state-updates-require-reducers>
 
-### 3. Compile Before Using
-
+<fix-compile-before-using>
 ```python
-# ❌ WRONG - StateGraph is not executable
+# WRONG: WRONG - StateGraph is not executable
 builder = StateGraph(State).add_node("node", func)
 builder.invoke(...)  # Error!
 
-# ✅ CORRECT - Must compile first
+# CORRECT: CORRECT - Must compile first
 graph = builder.compile()
 graph.invoke(...)
 ```
+</fix-compile-before-using>
 
-### 4. Infinite Loops Need Termination
-
+<fix-infinite-loops-need-termination>
 ```python
-# ❌ WRONG - Loop without exit condition
+# WRONG: WRONG - Loop without exit condition
 builder.add_edge("node_a", "node_b")
 builder.add_edge("node_b", "node_a")  # Infinite loop!
 
-# ✅ CORRECT - Add conditional edge to END
+# CORRECT: CORRECT - Add conditional edge to END
 def should_continue(state):
     if state["count"] > 10:
         return END
@@ -291,9 +281,9 @@ def should_continue(state):
 
 builder.add_conditional_edges("node_a", should_continue)
 ```
+</fix-infinite-loops-need-termination>
 
-### 5. LangGraph vs LangChain Confusion
-
+<fix-langgraph-vs-langchain-confusion>
 ```python
 # LangChain (high-level, quick start)
 from langchain.agents import create_agent
@@ -303,9 +293,9 @@ agent = create_agent(model, tools=[...])  # Simple, opinionated
 from langgraph.graph import StateGraph
 graph = StateGraph(...).add_node(...).compile()  # More code, more control
 ```
+</fix-langgraph-vs-langchain-confusion>
 
-## Installation
-
+<installation>
 ```bash
 # Python
 pip install -U langgraph
@@ -316,12 +306,13 @@ pip install -U langchain
 # Production persistence
 pip install -U langgraph-checkpoint-postgres
 ```
+</installation>
 
-## Links
-
+<links>
 - [LangGraph Overview (Python)](https://docs.langchain.com/oss/python/langgraph/overview)
 - [LangGraph Quickstart](https://docs.langchain.com/oss/python/langgraph/quickstart)
 - [Graph API Reference](https://docs.langchain.com/oss/python/langgraph/graph-api)
 - [Persistence Guide](https://docs.langchain.com/oss/python/langgraph/persistence)
 - [Streaming Guide](https://docs.langchain.com/oss/python/langgraph/streaming)
 - [LangGraph v1 Release Notes](https://docs.langchain.com/oss/python/releases/langgraph-v1)
+</links>

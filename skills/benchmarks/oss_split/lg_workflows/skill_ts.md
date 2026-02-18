@@ -3,20 +3,16 @@ name: LangGraph Workflows (TypeScript)
 description: [LangGraph] Understanding workflows vs agents, predetermined vs dynamic patterns, and orchestrator-worker patterns using the Send API
 ---
 
-# langgraph-workflows (JavaScript/TypeScript)
-
-
-## Overview
-
+<overview>
 LangGraph supports both **workflows** (predetermined paths) and **agents** (dynamic decision-making). Understanding when to use each pattern is crucial for effective agent design.
 
 **Key Distinctions:**
 - **Workflows**: Predetermined code paths, operate in specific order
 - **Agents**: Dynamic, define their own processes and tool usage
 - **Hybrid**: Combine deterministic and agentic steps
+</overview>
 
-## Decision Table: Workflow vs Agent
-
+<decision-table>
 | Characteristic | Workflow | Agent | Hybrid |
 |----------------|----------|-------|--------|
 | **Control Flow** | Fixed, predetermined | Dynamic, model-driven | Mixed |
@@ -24,34 +20,32 @@ LangGraph supports both **workflows** (predetermined paths) and **agents** (dyna
 | **Complexity** | Simple | Complex | Variable |
 | **Use Case** | Sequential tasks | Open-ended problems | Structured flexibility |
 | **Examples** | ETL, validation | Research, QA | Review approval |
+</decision-table>
 
-## Key Patterns
-
-### 1. Predetermined Workflows
+<key-patterns>
+**1. Predetermined Workflows**
 
 Sequential execution with fixed paths:
 - Data processing pipelines
 - Validation workflows
 - Multi-step transformations
 
-### 2. Dynamic Agents
+**2. Dynamic Agents**
 
 Model decides next steps:
 - ReAct agents (reasoning + acting)
 - Tool-calling loops
 - Autonomous task completion
 
-### 3. Orchestrator-Worker Pattern
+**3. Orchestrator-Worker Pattern**
 
 One coordinator delegates to multiple workers:
 - Map-reduce operations
 - Parallel processing
 - Multi-agent collaboration
+</key-patterns>
 
-## Code Examples
-
-### Basic Workflow (Predetermined)
-
+<ex-basic-workflow>
 ```typescript
 import { StateGraph, StateSchema, START, END } from "@langchain/langgraph";
 import { z } from "zod";
@@ -86,9 +80,9 @@ const workflow = new StateGraph(WorkflowState)
 const result = await workflow.invoke({ data: "hello" });
 console.log(result);  // { data: 'HELLO', validated: true, processed: true }
 ```
+</ex-basic-workflow>
 
-### Dynamic Agent (Model-Driven)
-
+<ex-dynamic-agent>
 ```typescript
 import { ChatAnthropic } from "@langchain/anthropic";
 import { tool } from "@langchain/core/tools";
@@ -159,9 +153,9 @@ const agent = new StateGraph(AgentState)
   .addEdge("tools", "agent")
   .compile();
 ```
+</ex-dynamic-agent>
 
-### Orchestrator-Worker Pattern
-
+<ex-orchestrator-worker>
 ```typescript
 import { StateGraph, StateSchema, Send, ReducedValue, START, END } from "@langchain/langgraph";
 import { z } from "zod";
@@ -203,9 +197,9 @@ const result = await graph.invoke({
 });
 console.log(result.summary);  // "Processed 3 tasks"
 ```
+</ex-orchestrator-worker>
 
-### Hybrid: Workflow with Agent Step
-
+<ex-hybrid>
 ```typescript
 import { StateGraph, StateSchema, START, END } from "@langchain/langgraph";
 import { z } from "zod";
@@ -242,9 +236,9 @@ const hybrid = new StateGraph(HybridState)
   .addEdge("finalize", END)
   .compile();
 ```
+</ex-hybrid>
 
-### Map-Reduce Example
-
+<ex-map-reduce>
 ```typescript
 import { StateGraph, StateSchema, Send, ReducedValue, START, END } from "@langchain/langgraph";
 import { z } from "zod";
@@ -284,9 +278,9 @@ const result = await graph.invoke({
   documents: ["Doc 1 content...", "Doc 2 content...", "Doc 3 content..."],
 });
 ```
+</ex-map-reduce>
 
-### Parallel Knowledge Base Router
-
+<ex-parallel-router>
 ```typescript
 import { StateGraph, StateSchema, Send, ReducedValue, START, END } from "@langchain/langgraph";
 import { z } from "zod";
@@ -346,51 +340,49 @@ const graph = new StateGraph(RouterState)
   .addEdge("synthesize", END)
   .compile();
 ```
+</ex-parallel-router>
 
-## Boundaries
+<boundaries>
+**What You CAN Configure**
 
-### What You CAN Configure
+- Choose workflow vs agent pattern
+- Mix deterministic and agentic steps
+- Use Send API for parallel execution
+- Define custom orchestrator logic
+- Control worker node behavior
+- Aggregate results with reducers
 
-✅ Choose workflow vs agent pattern
-✅ Mix deterministic and agentic steps
-✅ Use Send API for parallel execution
-✅ Define custom orchestrator logic
-✅ Control worker node behavior
-✅ Aggregate results with reducers
+**What You CANNOT Configure**
 
-### What You CANNOT Configure
+- Change Send API message-passing model
+- Bypass worker state isolation
+- Modify parallel execution mechanism
+- Override reducer behavior at runtime
+</boundaries>
 
-❌ Change Send API message-passing model
-❌ Bypass worker state isolation
-❌ Modify parallel execution mechanism
-❌ Override reducer behavior at runtime
-
-## Gotchas
-
-### 1. Send Requires Worker State Isolation
-
+<fix-send-worker-state-isolation>
 ```typescript
-// ❌ WRONG - Workers share state, causing conflicts
+// WRONG - Workers share state, causing conflicts
 const State = new StateSchema({
   sharedCounter: z.number(),  // All workers modify same counter!
 });
 
-// ✅ CORRECT - Each worker gets isolated input
+// CORRECT - Each worker gets isolated input
 const worker = async (state: { task: string }) => {
   // state is isolated to this worker
   return { results: [process(state.task)] };
 };
 ```
+</fix-send-worker-state-isolation>
 
-### 2. Send Needs Accumulator Reducer
-
+<fix-send-accumulator-reducer>
 ```typescript
-// ❌ WRONG - Last worker overwrites all others
+// WRONG - Last worker overwrites all others
 const State = new StateSchema({
   results: z.array(z.string()),  // No reducer!
 });
 
-// ✅ CORRECT - Use ReducedValue
+// CORRECT - Use ReducedValue
 import { ReducedValue } from "@langchain/langgraph";
 
 const State = new StateSchema({
@@ -400,14 +392,14 @@ const State = new StateSchema({
   ),
 });
 ```
+</fix-send-accumulator-reducer>
 
-### 3. Workflows Can Become Too Rigid
-
+<fix-rigid-workflows>
 ```typescript
-// ❌ ANTI-PATTERN - Overly rigid workflow
+// ANTI-PATTERN - Overly rigid workflow
 .addEdge("validate", "process")  // Always proceeds, no error handling
 
-// ✅ BETTER - Add conditional logic
+// BETTER - Add conditional logic
 const routeAfterValidate = (state) => {
   if (!state.validated) return "errorHandler";
   return "process";
@@ -415,21 +407,22 @@ const routeAfterValidate = (state) => {
 
 .addConditionalEdges("validate", routeAfterValidate, ["process", "errorHandler"]);
 ```
+</fix-rigid-workflows>
 
-### 4. Always Await Async Nodes
-
+<fix-await-async-nodes>
 ```typescript
-// ❌ WRONG - Forgetting await
+// WRONG - Forgetting await
 const result = graph.invoke({ data: "test" });
 console.log(result.output);  // undefined!
 
-// ✅ CORRECT
+// CORRECT
 const result = await graph.invoke({ data: "test" });
 console.log(result.output);  // Works!
 ```
+</fix-await-async-nodes>
 
-## Links
-
+<documentation-links>
 - [Workflows and Agents (JavaScript)](https://docs.langchain.com/oss/javascript/langgraph/workflows-agents)
 - [Send API Guide](https://docs.langchain.com/oss/javascript/langgraph/use-graph-api#map-reduce-and-the-send-api)
 - [Map-Reduce Example](https://docs.langchain.com/oss/javascript/langgraph/use-graph-api#map-reduce-and-the-send-api)
+</documentation-links>

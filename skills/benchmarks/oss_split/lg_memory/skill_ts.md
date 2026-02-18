@@ -3,26 +3,20 @@ name: LangGraph Memory (TypeScript)
 description: "[LangGraph] Memory in LangGraph: short-term (thread-scoped) vs long-term (cross-thread) memory using checkpointers and stores"
 ---
 
-# langgraph-memory (JavaScript/TypeScript)
-
-
-## Overview
-
+<overview>
 LangGraph provides two types of memory for agents:
 - **Short-term memory**: Thread-scoped, managed via checkpointers
 - **Long-term memory**: Cross-thread, managed via stores
+</overview>
 
-## Decision Table: Memory Types
-
+<decision-table>
 | Type | Scope | Persistence | Use Case |
 |------|-------|-------------|----------|
 | Short-term | Single thread | Via checkpointer | Conversation history |
 | Long-term | Cross-thread | Via store | User preferences, facts |
+</decision-table>
 
-## Code Examples
-
-### Short-Term Memory (Thread-Scoped)
-
+<ex-short-term-memory>
 ```typescript
 import { MemorySaver, StateGraph, StateSchema, ReducedValue, START, END } from "@langchain/langgraph";
 import { z } from "zod";
@@ -56,9 +50,9 @@ await graph.invoke({ messages: ["Hello"] }, config);
 await graph.invoke({ messages: ["How are you?"] }, config);
 // Response: "I remember 3 messages" (Hello, response, How are you?)
 ```
+</ex-short-term-memory>
 
-### Long-Term Memory (Cross-Thread)
-
+<ex-long-term-memory>
 ```typescript
 import { InMemoryStore } from "@langchain/langgraph";
 
@@ -80,7 +74,7 @@ const getUserPrefs = async (state, config) => {
   const store = config.store;
   const userId = state.userId;
   const namespace = [userId, "preferences"];
-  
+
   const prefs = await store.get(namespace, "language");
   return { preferences: prefs };
 };
@@ -99,9 +93,9 @@ const thread2 = { configurable: { thread_id: "thread-2" } };
 await graph.invoke({ userId: "alice" }, thread1);  // Gets preferences
 await graph.invoke({ userId: "alice" }, thread2);  // Same preferences
 ```
+</ex-long-term-memory>
 
-### Store Operations
-
+<ex-store-operations>
 ```typescript
 import { InMemoryStore } from "@langchain/langgraph";
 
@@ -127,26 +121,26 @@ const results = await store.search(
 // Delete
 await store.delete(["user-123", "facts"], "location");
 ```
+</ex-store-operations>
 
-### Accessing Store in Nodes
-
+<ex-accessing-store-in-nodes>
 ```typescript
 import { BaseStore } from "@langchain/langgraph";
 
 const myNode = async (state, config: { store: BaseStore }) => {
   const store = config.store;
   const namespace = [state.userId, "memories"];
-  
+
   // Retrieve past memories
   const memories = await store.search(namespace, { query: "preferences" });
-  
+
   // Save new memory
   await store.put(
     namespace,
     "new_fact",
     { fact: "User likes TypeScript" }
   );
-  
+
   return { processed: true };
 };
 
@@ -155,23 +149,23 @@ const graph = builder.compile({
   store,
 });
 ```
+</ex-accessing-store-in-nodes>
 
-### Combining Short and Long-Term Memory
-
+<ex-combining-memory>
 ```typescript
 const smartNode = async (state, config) => {
   const store = config.store;
-  
+
   // Short-term: conversation context
   const recentMessages = state.messages.slice(-5);  // Last 5 messages
-  
+
   // Long-term: user profile
   const userId = state.userId;
   const profile = await store.get([userId, "profile"], "info");
-  
+
   // Use both for personalized response
   const response = await generateResponse(recentMessages, profile);
-  
+
   return { messages: [response] };
 };
 
@@ -181,9 +175,9 @@ const graph = new StateGraph(State)
   .addEdge("respond", END)
   .compile({ checkpointer, store });
 ```
+</ex-combining-memory>
 
-### Persistent Stores (Production)
-
+<ex-persistent-stores>
 ```typescript
 import { PostgresStore } from "@langchain/langgraph-checkpoint-postgres";
 
@@ -197,89 +191,88 @@ const graph = builder.compile({
   store,
 });
 ```
+</ex-persistent-stores>
 
-## Boundaries
+<boundaries>
+**What You CAN Configure**
 
-### What You CAN Configure
+- Use checkpointers for short-term memory
+- Use stores for long-term memory
+- Namespace organization
+- Search and filter memories
+- Access store in nodes via config
+- Choose store backend
 
-✅ Use checkpointers for short-term memory
-✅ Use stores for long-term memory
-✅ Namespace organization
-✅ Search and filter memories
-✅ Access store in nodes via config
-✅ Choose store backend
+**What You CANNOT Configure**
 
-### What You CANNOT Configure
+- Share short-term memory across threads
+- Modify memory serialization format
+- Store mechanism internals
+</boundaries>
 
-❌ Share short-term memory across threads
-❌ Modify memory serialization format
-❌ Store mechanism internals
-
-## Gotchas
-
-### 1. Short-Term Needs Checkpointer
-
+<fix-short-term-needs-checkpointer>
 ```typescript
-// ❌ WRONG - No checkpointer, no memory
+// WRONG - No checkpointer, no memory
 const graph = builder.compile();  // Messages lost!
 
-// ✅ CORRECT
+// CORRECT
 const checkpointer = new MemorySaver();
 const graph = builder.compile({ checkpointer });
 ```
+</fix-short-term-needs-checkpointer>
 
-### 2. Long-Term Needs Store
-
+<fix-long-term-needs-store>
 ```typescript
-// ❌ WRONG - Trying to share data without store
+// WRONG - Trying to share data without store
 // Can't access data from other threads with checkpointer alone!
 
-// ✅ CORRECT - Use store
+// CORRECT - Use store
 const store = new InMemoryStore();
 const graph = builder.compile({ checkpointer, store });
 ```
+</fix-long-term-needs-store>
 
-### 3. Store Accessed via Config
-
+<fix-store-accessed-via-config>
 ```typescript
-// ❌ WRONG - Store not available
+// WRONG - Store not available
 const myNode = async (state) => {
   store.put(...);  // ReferenceError!
 };
 
-// ✅ CORRECT - Access via config
+// CORRECT - Access via config
 const myNode = async (state, config) => {
   const store = config.store;
   await store.put(...);
 };
 ```
+</fix-store-accessed-via-config>
 
-### 4. InMemoryStore Not for Production
-
+<fix-inmemorystore-not-for-production>
 ```typescript
-// ❌ WRONG - Data lost on restart
+// WRONG - Data lost on restart
 const store = new InMemoryStore();  // Memory only!
 
-// ✅ CORRECT - Use persistent backend
+// CORRECT - Use persistent backend
 import { PostgresStore } from "@langchain/langgraph-checkpoint-postgres";
 const store = await PostgresStore.fromConnString("postgresql://...");
 ```
+</fix-inmemorystore-not-for-production>
 
-### 5. Always Await Store Operations
-
+<fix-always-await-store-operations>
 ```typescript
-// ❌ WRONG
+// WRONG
 const item = store.get(namespace, key);
 console.log(item);  // Promise!
 
-// ✅ CORRECT
+// CORRECT
 const item = await store.get(namespace, key);
 console.log(item);
 ```
+</fix-always-await-store-operations>
 
-## Links
-
+<documentation-links>
 - [Memory Overview](https://docs.langchain.com/oss/javascript/concepts/memory)
 - [Short-Term Memory](https://docs.langchain.com/oss/javascript/langchain/short-term-memory)
 - [Long-Term Memory](https://docs.langchain.com/oss/javascript/langchain/long-term-memory)
 - [Store Reference](https://docs.langchain.com/oss/javascript/langgraph/persistence#memory-store)
+</documentation-links>

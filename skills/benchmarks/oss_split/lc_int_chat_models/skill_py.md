@@ -3,10 +3,7 @@ name: LangChain Chat Models Integration (Python)
 description: [LangChain] Guide to using chat model integrations in LangChain including OpenAI, Anthropic, Google, Azure, and Bedrock
 ---
 
-# langchain-chat-models (Python)
-
-## Overview
-
+<overview>
 Chat models in LangChain provide a unified interface for interacting with various LLM providers. They take a sequence of messages as input and return AI-generated messages as output. Chat models support features like tool calling, structured output, and streaming.
 
 ### Key Concepts
@@ -16,9 +13,9 @@ Chat models in LangChain provide a unified interface for interacting with variou
 - **Tool Calling**: Models can invoke functions/tools based on user queries
 - **Streaming**: Real-time token-by-token response generation
 - **Structured Output**: Models can return responses in specific formats (JSON, Pydantic models)
+</overview>
 
-## Provider Selection Decision Table
-
+<provider-selection>
 | Provider | Best For | Model Examples | Package | Key Features |
 |----------|----------|----------------|---------|--------------|
 | **OpenAI** | General purpose, function calling | gpt-4, gpt-4-turbo, gpt-3.5-turbo | `langchain-openai` | Strong function calling, vision, fast |
@@ -27,9 +24,9 @@ Chat models in LangChain provide a unified interface for interacting with variou
 | **Azure OpenAI** | Enterprise, compliance | gpt-4, gpt-35-turbo (Azure deployed) | `langchain-openai` | Enterprise SLAs, data residency |
 | **AWS Bedrock** | AWS ecosystem, variety | claude, llama, titan models | `langchain-aws` | Multiple models, AWS integration |
 | **Google Vertex AI** | GCP ecosystem, enterprise | gemini-pro, palm models | `langchain-google-vertexai` | Enterprise features, GCP integration |
+</provider-selection>
 
-### When to Choose Each Provider
-
+<when-to-choose-provider>
 **Choose OpenAI if:**
 - You need strong function/tool calling capabilities
 - You want fast response times
@@ -54,11 +51,9 @@ Chat models in LangChain provide a unified interface for interacting with variou
 - You need strong multimodal capabilities
 - You're in the GCP ecosystem
 - You want access to Gemini models
+</when-to-choose-provider>
 
-## Code Examples
-
-### OpenAI Chat Model
-
+<ex-openai-chat-model>
 ```python
 from langchain_openai import ChatOpenAI
 import os
@@ -82,9 +77,9 @@ print(response.content)
 for chunk in model.stream("Tell me a story"):
     print(chunk.content, end="", flush=True)
 ```
+</ex-openai-chat-model>
 
-### Anthropic Chat Model
-
+<ex-anthropic-chat-model>
 ```python
 from langchain_anthropic import ChatAnthropic
 import os
@@ -112,9 +107,9 @@ def get_weather(location: str) -> str:
 model_with_tools = model.bind_tools([get_weather])
 response = model_with_tools.invoke("What's the weather in SF?")
 ```
+</ex-anthropic-chat-model>
 
-### Azure OpenAI Chat Model
-
+<ex-azure-openai-chat-model>
 ```python
 from langchain_openai import AzureChatOpenAI
 import os
@@ -130,9 +125,9 @@ model = AzureChatOpenAI(
 response = model.invoke("Hello, how are you?")
 print(response.content)
 ```
+</ex-azure-openai-chat-model>
 
-### AWS Bedrock Chat Model
-
+<ex-aws-bedrock-chat-model>
 ```python
 from langchain_aws import ChatBedrock
 import boto3
@@ -146,9 +141,9 @@ model = ChatBedrock(
 response = model.invoke("What is AWS Bedrock?")
 print(response.content)
 ```
+</ex-aws-bedrock-chat-model>
 
-### Google Generative AI
-
+<ex-google-generative-ai>
 ```python
 from langchain_google_genai import ChatGoogleGenerativeAI
 import os
@@ -162,9 +157,9 @@ model = ChatGoogleGenerativeAI(
 response = model.invoke("Explain quantum computing")
 print(response.content)
 ```
+</ex-google-generative-ai>
 
-### Using init_chat_model (Recommended)
-
+<ex-init-chat-model>
 ```python
 from langchain.chat_models import init_chat_model
 
@@ -181,9 +176,9 @@ bedrock_model = init_chat_model(
     model_provider="bedrock",
 )
 ```
+</ex-init-chat-model>
 
-### Tool Calling Example
-
+<ex-tool-calling>
 ```python
 from langchain_openai import ChatOpenAI
 from langchain_core.tools import tool
@@ -193,11 +188,11 @@ from pydantic import BaseModel, Field
 @tool
 def get_weather(location: str) -> str:
     """Get the current weather for a location.
-    
+
     Args:
         location: The city name
     """
-    return f"The weather in {location} is sunny and 72°F"
+    return f"The weather in {location} is sunny and 72F"
 
 # Or define with Pydantic
 class WeatherInput(BaseModel):
@@ -206,7 +201,7 @@ class WeatherInput(BaseModel):
 @tool("get_weather", args_schema=WeatherInput)
 def get_weather_pydantic(location: str) -> str:
     """Get the current weather for a location."""
-    return f"The weather in {location} is sunny and 72°F"
+    return f"The weather in {location} is sunny and 72F"
 
 # Bind tools to model
 model = ChatOpenAI(model="gpt-4")
@@ -215,9 +210,9 @@ model_with_tools = model.bind_tools([get_weather])
 response = model_with_tools.invoke("What's the weather in San Francisco?")
 print(response.tool_calls)  # Model will suggest calling the weather tool
 ```
+</ex-tool-calling>
 
-### Structured Output Example
-
+<ex-structured-output>
 ```python
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
@@ -237,99 +232,93 @@ response = structured_model.invoke(
 print(response)  # Returns Person object
 print(f"Name: {response.name}, Age: {response.age}")
 ```
+</ex-structured-output>
 
-## Boundaries
-
+<boundaries>
 ### What Agents CAN Do
 
-✅ **Initialize any supported chat model provider**
+* Initialize any supported chat model provider**
 - Install required packages (`langchain-openai`, `langchain-anthropic`, etc.)
 - Configure models with API keys and parameters
 
-✅ **Configure model parameters**
+* Configure model parameters**
 - Set temperature, max_tokens, top_p, frequency_penalty
 - Configure streaming, timeout, and retry settings
 
-✅ **Use models for text generation**
+* Use models for text generation**
 - Send messages and receive responses
 - Stream responses token-by-token
 - Use system prompts and multi-turn conversations
 
-✅ **Implement tool/function calling**
+* Implement tool/function calling**
 - Bind tools to models that support it
 - Parse tool call responses
 - Execute tools and return results
 
-✅ **Generate structured output**
+* Generate structured output**
 - Use Pydantic models for type-safe responses
 - Extract structured data from text
 
-✅ **Switch between providers**
+* Switch between providers**
 - Use init_chat_model for provider-agnostic code
 - Change providers by updating configuration
 
 ### What Agents CANNOT Do
 
-❌ **Create new model providers**
+* Create new model providers**
 - Cannot add support for unlisted LLM providers
 - Must use existing LangChain integrations
 
-❌ **Bypass provider requirements**
+* Bypass provider requirements**
 - Cannot use Azure OpenAI without deployment names
 - Cannot skip required authentication credentials
 
-❌ **Modify model capabilities**
+* Modify model capabilities**
 - Cannot add tool calling to models that don't support it
 - Cannot extend context windows beyond provider limits
 
-❌ **Access models without proper setup**
+* Access models without proper setup**
 - Cannot use providers without valid API keys
 - Cannot bypass billing/quota limits
+</boundaries>
 
-## Gotchas
-
-### 1. **API Keys and Environment Variables**
-
+<fix-api-keys-and-environment-variables>
 ```python
-# ❌ BAD: Hardcoding API keys
+# WRONG: BAD: Hardcoding API keys
 model = ChatOpenAI(
     api_key="sk-..."  # Never commit this!
 )
 
-# ✅ GOOD: Use environment variables
+# CORRECT: GOOD: Use environment variables
 import os
 model = ChatOpenAI(
     api_key=os.getenv("OPENAI_API_KEY")
 )
 
-# ✅ BETTER: Let LangChain auto-detect from environment
+# CORRECT: BETTER: Let LangChain auto-detect from environment
 model = ChatOpenAI()  # Reads OPENAI_API_KEY automatically
 ```
+</fix-api-keys-and-environment-variables>
 
-**Fix**: Always use environment variables or secure key management systems.
-
-### 2. **Azure OpenAI Configuration Changes**
-
+<fix-azure-openai-configuration>
 ```python
-# ❌ OLD WAY (deprecated)
+# WRONG: OLD WAY (deprecated)
 from langchain_openai import AzureChatOpenAI
 model = AzureChatOpenAI(
     deployment_name="gpt-4",
     openai_api_base="https://my-instance.openai.azure.com/",
 )
 
-# ✅ NEW WAY
+# CORRECT: NEW WAY
 model = AzureChatOpenAI(
     azure_endpoint="https://my-instance.openai.azure.com/",
     azure_deployment="gpt-4",
     api_version="2024-02-01",
 )
 ```
+</fix-azure-openai-configuration>
 
-**Fix**: Use `azure_endpoint` and `azure_deployment` instead of older parameters.
-
-### 3. **Message Format Variations**
-
+<fix-message-format-variations>
 ```python
 # Different message formats that all work
 from langchain_core.messages import HumanMessage, SystemMessage
@@ -349,60 +338,52 @@ messages = [
 # Both work!
 response = model.invoke(messages)
 ```
+</fix-message-format-variations>
 
-**Fix**: Use whichever format is clearer for your use case. Message classes provide type safety.
-
-### 4. **Tool Calling Support**
-
+<fix-tool-calling-support>
 ```python
-# ❌ Not all models support tool calling
+# WRONG: Not all models support tool calling
 model = ChatOpenAI(model="gpt-3.5-turbo-instruct")
 # This older model doesn't support tools!
 
-# ✅ Use models with tool support
+# CORRECT: Use models with tool support
 model = ChatOpenAI(model="gpt-4")
 model_with_tools = model.bind_tools([my_tool])
 ```
+</fix-tool-calling-support>
 
-**Fix**: Verify model supports function/tool calling before binding tools. GPT-4, GPT-3.5-turbo, Claude 3, and Gemini Pro all support tools.
-
-### 5. **Import Errors - Wrong Package**
-
+<fix-import-errors>
 ```python
-# ❌ WRONG: Using old community package
+# WRONG: WRONG: Using old community package
 from langchain.chat_models import ChatOpenAI  # Deprecated!
 
-# ✅ CORRECT: Use provider-specific package
+# CORRECT: CORRECT: Use provider-specific package
 from langchain_openai import ChatOpenAI
 ```
+</fix-import-errors>
 
-**Fix**: Use provider-specific packages (`langchain-openai`, `langchain-anthropic`, etc.) instead of `langchain-community`.
-
-### 6. **Context Window Limits**
-
+<fix-context-window-limits>
 ```python
-# ❌ Exceeding context limits
+# WRONG: Exceeding context limits
 model = ChatOpenAI(model="gpt-3.5-turbo")  # 4k context
 long_text = "..." * 10000
 model.invoke(long_text)  # Will fail!
 
-# ✅ Use appropriate models for long context
+# CORRECT: Use appropriate models for long context
 model = ChatOpenAI(model="gpt-4-turbo")  # 128k context
 # OR
 from langchain_anthropic import ChatAnthropic
 model = ChatAnthropic(model="claude-3-opus-20240229")  # 200k context
 ```
+</fix-context-window-limits>
 
-**Fix**: Choose models with appropriate context windows for your use case.
-
-### 7. **Streaming Confusion**
-
+<fix-streaming-confusion>
 ```python
-# ❌ Wrong: Treating stream like regular response
+# WRONG: Wrong: Treating stream like regular response
 response = model.stream("Hello")
 print(response.content)  # AttributeError!
 
-# ✅ Correct: Iterate over stream
+# CORRECT: Correct: Iterate over stream
 for chunk in model.stream("Hello"):
     print(chunk.content, end="", flush=True)
 
@@ -410,57 +391,35 @@ for chunk in model.stream("Hello"):
 response = model.invoke("Hello")
 print(response.content)
 ```
+</fix-streaming-confusion>
 
-**Fix**: Use `invoke()` for complete responses, `stream()` for token-by-token.
-
-### 8. **AWS Bedrock Model IDs**
-
+<fix-aws-bedrock-model-ids>
 ```python
-# ❌ Wrong model ID format
+# WRONG: Wrong model ID format
 model = ChatBedrock(model_id="claude-3-sonnet")  # Won't work!
 
-# ✅ Correct: Full Bedrock model ID
+# CORRECT: Correct: Full Bedrock model ID
 model = ChatBedrock(
     model_id="anthropic.claude-3-sonnet-20240229-v1:0"
 )
 ```
+</fix-aws-bedrock-model-ids>
 
-**Fix**: Use complete Bedrock model identifiers from AWS documentation.
-
-### 9. **Pydantic Version Compatibility**
-
+<fix-pydantic-version>
 ```python
 # Some LangChain versions require Pydantic v2
-# ❌ May cause errors with Pydantic v1
+# WRONG: May cause errors with Pydantic v1
 from pydantic import BaseModel
 
 class Output(BaseModel):
     name: str
 
-# ✅ Ensure Pydantic v2 is installed
+# CORRECT: Ensure Pydantic v2 is installed
 # pip install "pydantic>=2.0"
 ```
+</fix-pydantic-version>
 
-**Fix**: Use Pydantic v2 for best compatibility with LangChain.
-
-## Links and Resources
-
-### Official Documentation
-- [LangChain Python Chat Models Overview](https://python.langchain.com/docs/integrations/chat/)
-- [OpenAI Integration](https://python.langchain.com/docs/integrations/chat/openai)
-- [Anthropic Integration](https://python.langchain.com/docs/integrations/chat/anthropic)
-- [Azure OpenAI Integration](https://python.langchain.com/docs/integrations/chat/azure_chat_openai)
-- [AWS Bedrock Integration](https://python.langchain.com/docs/integrations/chat/bedrock)
-- [Google GenAI Integration](https://python.langchain.com/docs/integrations/chat/google_generative_ai)
-
-### Provider Documentation
-- [OpenAI API Docs](https://platform.openai.com/docs/introduction)
-- [Anthropic API Docs](https://docs.anthropic.com/)
-- [Azure OpenAI Service](https://learn.microsoft.com/en-us/azure/ai-services/openai/)
-- [AWS Bedrock](https://docs.aws.amazon.com/bedrock/)
-- [Google AI Studio](https://ai.google.dev/)
-
-### Package Installation
+<installation>
 ```bash
 # OpenAI
 pip install langchain-openai
@@ -475,3 +434,13 @@ pip install langchain-aws
 pip install langchain-google-genai
 pip install langchain-google-vertexai
 ```
+</installation>
+
+<links>
+- [LangChain Python Chat Models Overview](https://python.langchain.com/docs/integrations/chat/)
+- [OpenAI Integration](https://python.langchain.com/docs/integrations/chat/openai)
+- [Anthropic Integration](https://python.langchain.com/docs/integrations/chat/anthropic)
+- [Azure OpenAI Integration](https://python.langchain.com/docs/integrations/chat/azure_chat_openai)
+- [AWS Bedrock Integration](https://python.langchain.com/docs/integrations/chat/bedrock)
+- [Google GenAI Integration](https://python.langchain.com/docs/integrations/chat/google_generative_ai)
+</links>

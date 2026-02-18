@@ -3,11 +3,7 @@ name: LangGraph State (Python)
 description: "[LangGraph] Managing state in LangGraph: schemas, reducers, channels, and message passing for coordinating agent execution"
 ---
 
-# langgraph-state (Python)
-
-
-## Overview
-
+<overview>
 State is the central data structure in LangGraph that persists throughout graph execution. Proper state management is crucial for building reliable agents.
 
 **Key Concepts:**
@@ -15,18 +11,18 @@ State is the central data structure in LangGraph that persists throughout graph 
 - **Reducers**: Control how state updates are applied
 - **Channels**: Low-level state management primitives
 - **Message Passing**: How nodes communicate via state updates
+</overview>
 
-## Decision Table: State Update Strategies
-
+<state-update-strategies>
 | Need | Solution | Use Case |
 |------|----------|----------|
 | Overwrite value | No reducer (default) | Simple fields like counters |
 | Append to list | `operator.add` | Message history, logs |
 | Custom logic | Custom reducer | Complex merging, validation |
 | Messages | `Annotated[list, add_messages]` | Chat applications |
+</state-update-strategies>
 
-## Key Concepts
-
+<key-concepts>
 ### 1. State Schema with TypedDict
 
 ```python
@@ -49,10 +45,10 @@ import operator
 class State(TypedDict):
     # Default: overwrites
     name: str
-    
+
     # Reducer: appends to list
     messages: Annotated[list, operator.add]
-    
+
     # Reducer: sums integers
     total: Annotated[int, operator.add]
 ```
@@ -67,11 +63,9 @@ For advanced state control:
 | `BinaryOperatorAggregate` | Combines with reducer |
 | `Topic` | Collects all values |
 | `EphemeralValue` | Resets between supersteps |
+</key-concepts>
 
-## Code Examples
-
-### Basic State Management
-
+<ex-basic-state-management>
 ```python
 from langgraph.graph import StateGraph, START, END
 from typing_extensions import TypedDict
@@ -98,9 +92,9 @@ graph = (
 result = graph.invoke({"input": "hello", "count": 0})
 print(result)  # {'input': 'hello', 'processed': 'HELLO', 'count': 1}
 ```
+</ex-basic-state-management>
 
-### Messages with Reducer
-
+<ex-messages-with-reducer>
 ```python
 from typing import Annotated
 import operator
@@ -126,9 +120,9 @@ result = graph.invoke({
 })
 print(len(result["messages"]))  # 2 (original + response)
 ```
+</ex-messages-with-reducer>
 
-### Custom Reducer
-
+<ex-custom-reducer>
 ```python
 from typing import Annotated
 
@@ -157,9 +151,9 @@ result = graph.invoke({
 })
 # metadata is merged: {"user": "alice", "timestamp": "2024-01-01"}
 ```
+</ex-custom-reducer>
 
-### Bypassing Reducers with Overwrite
-
+<ex-bypassing-reducers-with-overwrite>
 ```python
 from langgraph.types import Overwrite
 
@@ -181,9 +175,9 @@ graph = (
 result = graph.invoke({"items": ["old1", "old2"]})
 print(result["items"])  # ['new_item'] (not appended)
 ```
+</ex-bypassing-reducers-with-overwrite>
 
-### Using Channels API
-
+<ex-using-channels-api>
 ```python
 from langgraph.channels import LastValue, BinaryOperatorAggregate
 
@@ -210,9 +204,9 @@ graph = (
     .compile()
 )
 ```
+</ex-using-channels-api>
 
-### Partial State Updates
-
+<ex-partial-state-updates>
 ```python
 class State(TypedDict):
     field1: str
@@ -244,32 +238,30 @@ result = graph.invoke({
 })
 # field1: "updated", field2: "also updated", field3: "original3"
 ```
+</ex-partial-state-updates>
 
-## Boundaries
-
+<boundaries>
 ### What You CAN Configure
 
-✅ Define custom state schemas
-✅ Add reducers to fields
-✅ Create custom reducer functions
-✅ Use built-in channels
-✅ Bypass reducers with Overwrite
-✅ Partial state updates
-✅ Nested state structures
+- Define custom state schemas
+- Add reducers to fields
+- Create custom reducer functions
+- Use built-in channels
+- Bypass reducers with Overwrite
+- Partial state updates
+- Nested state structures
 
 ### What You CANNOT Configure
 
-❌ Change state after graph compilation
-❌ Access state outside node functions
-❌ Modify state directly (must return updates)
-❌ Share state between separate graphs
+- Change state after graph compilation
+- Access state outside node functions
+- Modify state directly (must return updates)
+- Share state between separate graphs
+</boundaries>
 
-## Gotchas
-
-### 1. Forgot Reducer for List
-
+<fix-forgot-reducer-for-list>
 ```python
-# ❌ WRONG - List will be overwritten
+# WRONG: WRONG - List will be overwritten
 class State(TypedDict):
     items: list  # No reducer!
 
@@ -277,7 +269,7 @@ class State(TypedDict):
 # Node 2 returns: {"items": ["B"]}
 # Final state: {"items": ["B"]}  # A is lost!
 
-# ✅ CORRECT
+# CORRECT: CORRECT
 from typing import Annotated
 import operator
 
@@ -285,52 +277,53 @@ class State(TypedDict):
     items: Annotated[list, operator.add]
 # Final state: {"items": ["A", "B"]}
 ```
+</fix-forgot-reducer-for-list>
 
-### 2. State Must Return Dict
-
+<fix-state-must-return-dict>
 ```python
-# ❌ WRONG - Returning entire state object
+# WRONG: WRONG - Returning entire state object
 def my_node(state: State) -> State:
     state["field"] = "updated"
     return state  # Don't do this!
 
-# ✅ CORRECT - Return dict with updates
+# CORRECT: CORRECT - Return dict with updates
 def my_node(state: State) -> dict:
     return {"field": "updated"}
 ```
+</fix-state-must-return-dict>
 
-### 3. Default Values
-
+<fix-default-values>
 ```python
-# ❌ RISKY - No default, may cause errors
+# WRONG: RISKY - No default, may cause errors
 class State(TypedDict):
     count: int  # What if not initialized?
 
 def increment(state: State) -> dict:
     return {"count": state["count"] + 1}  # KeyError!
 
-# ✅ BETTER - Use .get() with default
+# CORRECT: BETTER - Use .get() with default
 def increment(state: State) -> dict:
     return {"count": state.get("count", 0) + 1}
 ```
+</fix-default-values>
 
-### 4. Reducer Type Mismatch
-
+<fix-reducer-type-mismatch>
 ```python
-# ❌ WRONG - Reducer expects list, but receives string
+# WRONG: WRONG - Reducer expects list, but receives string
 class State(TypedDict):
     items: Annotated[list, operator.add]
 
 def bad_update(state: State) -> dict:
     return {"items": "not a list"}  # Type error!
 
-# ✅ CORRECT
+# CORRECT: CORRECT
 def good_update(state: State) -> dict:
     return {"items": ["item"]}
 ```
+</fix-reducer-type-mismatch>
 
-## Links
-
+<links>
 - [State Management Guide](https://docs.langchain.com/oss/python/langgraph/use-graph-api#process-state-updates-with-reducers)
 - [Channels API](https://docs.langchain.com/oss/python/langgraph/use-graph-api#channels-api)
 - [Schema Reference](https://docs.langchain.com/oss/python/langgraph/graph-api#schema)
+</links>

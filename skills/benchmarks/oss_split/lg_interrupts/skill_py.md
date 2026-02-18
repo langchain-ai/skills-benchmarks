@@ -3,29 +3,23 @@ name: LangGraph Interrupts (Python)
 description: "[LangGraph] Human-in-the-loop with dynamic interrupts and breakpoints: pausing execution for human review and resuming with Command"
 ---
 
-# langgraph-interrupts (Python)
-
-
-## Overview
-
+<overview>
 Interrupts enable human-in-the-loop patterns by pausing graph execution for external input. LangGraph saves state and waits indefinitely until you resume execution.
 
 **Key Types:**
 - **Dynamic Interrupts**: `interrupt()` function called in nodes
 - **Static Breakpoints**: `interrupt_before`/`interrupt_after` at compile time
+</overview>
 
-## Decision Table: Interrupt Types
-
+<interrupt-type-selection>
 | Type | When Set | Use Case |
 |------|----------|----------|
 | Dynamic (`interrupt()`) | Inside node code | Conditional pausing based on logic |
 | Static (`interrupt_before`) | At compile time | Debug/test before specific nodes |
 | Static (`interrupt_after`) | At compile time | Review output after specific nodes |
+</interrupt-type-selection>
 
-## Code Examples
-
-### Dynamic Interrupt
-
+<ex-dynamic-interrupt>
 ```python
 from langgraph.types import interrupt, Command
 from langgraph.checkpoint.memory import InMemorySaver
@@ -39,11 +33,11 @@ def review_node(state):
             "data": state["draft"],
             "question": "Approve this draft?"
         })
-        
+
         # user_response comes from Command(resume=...)
         if user_response == "reject":
             return {"status": "rejected"}
-    
+
     return {"status": "approved"}
 
 checkpointer = InMemorySaver()
@@ -71,9 +65,9 @@ result = graph.invoke(
     config
 )
 ```
+</ex-dynamic-interrupt>
 
-### Static Breakpoints
-
+<ex-static-breakpoints>
 ```python
 checkpointer = InMemorySaver()
 
@@ -104,15 +98,15 @@ graph.invoke(None, config)  # None = resume
 # Resume again
 graph.invoke(None, config)
 ```
+</ex-static-breakpoints>
 
-### Tool Review Pattern
-
+<ex-tool-review-pattern>
 ```python
 from langgraph.types import interrupt, Command
 
 def tool_executor(state):
     tool_calls = state["messages"][-1].tool_calls
-    
+
     for tool_call in tool_calls:
         # Pause for each tool call
         user_decision = interrupt({
@@ -120,7 +114,7 @@ def tool_executor(state):
             "args": tool_call["args"],
             "question": "Execute this tool?"
         })
-        
+
         if user_decision["type"] == "approve":
             # Execute tool
             result = execute_tool(tool_call)
@@ -129,10 +123,10 @@ def tool_executor(state):
             result = execute_tool(user_decision["args"])
         else:  # reject
             result = "Tool execution rejected"
-        
+
         # Store result
         results.append(ToolMessage(content=result, tool_call_id=tool_call["id"]))
-    
+
     return {"messages": results}
 
 # Usage
@@ -150,9 +144,9 @@ graph.invoke(
 # Or reject
 graph.invoke(Command(resume={"type": "reject"}), config)
 ```
+</ex-tool-review-pattern>
 
-### Editing State During Interrupt
-
+<ex-editing-state-during-interrupt>
 ```python
 config = {"configurable": {"thread_id": "1"}}
 
@@ -165,9 +159,9 @@ graph.update_state(config, {"data": "manually edited"})
 # Resume with edited state
 graph.invoke(None, config)
 ```
+</ex-editing-state-during-interrupt>
 
-### Stream with Interrupts
-
+<ex-stream-with-interrupts>
 ```python
 async for mode, chunk in graph.astream(
     {"query": "test"},
@@ -179,79 +173,78 @@ async for mode, chunk in graph.astream(
             # Handle interrupt
             interrupt_info = chunk["__interrupt__"][0].value
             user_input = get_user_input(interrupt_info)
-            
+
             # Resume
             initial_input = Command(resume=user_input)
             break
 ```
+</ex-stream-with-interrupts>
 
-## Boundaries
-
+<boundaries>
 ### What You CAN Configure
 
-✅ Call `interrupt()` anywhere in nodes
-✅ Set compile-time breakpoints
-✅ Resume with `Command(resume=...)`
-✅ Edit state during interrupts
-✅ Stream while handling interrupts
-✅ Conditional interrupt logic
+- Call `interrupt()` anywhere in nodes
+- Set compile-time breakpoints
+- Resume with `Command(resume=...)`
+- Edit state during interrupts
+- Stream while handling interrupts
+- Conditional interrupt logic
 
 ### What You CANNOT Configure
 
-❌ Interrupt without checkpointer
-❌ Modify interrupt mechanism
-❌ Resume without thread_id
+- Interrupt without checkpointer
+- Modify interrupt mechanism
+- Resume without thread_id
+</boundaries>
 
-## Gotchas
-
-### 1. Checkpointer Required
-
+<fix-checkpointer-required>
 ```python
-# ❌ WRONG - No checkpointer
+# WRONG: WRONG - No checkpointer
 graph = builder.compile()  # No persistence!
 graph.invoke(...)  # Interrupt won't work
 
-# ✅ CORRECT
+# CORRECT: CORRECT
 checkpointer = InMemorySaver()
 graph = builder.compile(checkpointer=checkpointer)
 ```
+</fix-checkpointer-required>
 
-### 2. Thread ID Required
-
+<fix-thread-id-required>
 ```python
-# ❌ WRONG - No thread_id
+# WRONG: WRONG - No thread_id
 graph.invoke({"data": "test"})  # Can't resume!
 
-# ✅ CORRECT
+# CORRECT: CORRECT
 config = {"configurable": {"thread_id": "session-1"}}
 graph.invoke({"data": "test"}, config)
 ```
+</fix-thread-id-required>
 
-### 3. Resume with Command, Not Dict
-
+<fix-resume-with-command>
 ```python
-# ❌ WRONG - Passing regular dict
+# WRONG: WRONG - Passing regular dict
 graph.invoke({"resume_data": "approve"}, config)  # Restarts!
 
-# ✅ CORRECT - Use Command
+# CORRECT: CORRECT - Use Command
 from langgraph.types import Command
 graph.invoke(Command(resume="approve"), config)
 ```
+</fix-resume-with-command>
 
-### 4. Static Breakpoints Not Recommended for HITL
-
+<fix-dynamic-over-static-breakpoints>
 ```python
-# ❌ ANTI-PATTERN - Static breakpoints for all users
+# WRONG: ANTI-PATTERN - Static breakpoints for all users
 compile(interrupt_before=["action"])  # Pauses for everyone!
 
-# ✅ BETTER - Dynamic interrupts with logic
+# CORRECT: BETTER - Dynamic interrupts with logic
 def node(state):
     if state["requires_approval"]:  # Conditional
         interrupt({"action": "approve?"})
 ```
+</fix-dynamic-over-static-breakpoints>
 
-## Links
-
+<links>
 - [Interrupts Guide](https://docs.langchain.com/oss/python/langgraph/interrupts)
 - [Human-in-the-Loop](https://docs.langchain.com/oss/python/langchain/human-in-the-loop)
 - [Command API](https://docs.langchain.com/oss/python/langgraph/use-graph-api#combine-control-flow-and-state-updates-with-command)
+</links>

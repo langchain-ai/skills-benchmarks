@@ -3,30 +3,25 @@ name: Deep Agents Human-in-the-Loop (Python)
 description: [Deep Agents] Implementing human-in-the-loop approval workflows with interrupt_on parameter for sensitive tool operations in Deep Agents.
 ---
 
-# deepagents-hitl (Python)
-
-## Overview
-
+<overview>
 Human-in-the-Loop (HITL) middleware adds human oversight to tool calls. When the agent proposes a sensitive action, execution pauses for human decision:
 - **approve**: Execute as-is
 - **edit**: Modify before executing
 - **reject**: Cancel with feedback
 
 Requires LangGraph's persistence (checkpointer) to save state during interrupts.
+</overview>
 
-## When to Use HITL
-
+<when-to-use-hitl>
 | Use HITL When | Skip HITL When |
 |--------------|---------------|
 | High-stakes operations (DB writes, deployments) | Read-only operations |
 | Compliance requires human oversight | Fully automated workflows |
 | Expensive API calls need verification | Low-cost operations |
 | Learning agent behavior | Trusted, tested operations |
+</when-to-use-hitl>
 
-## Basic Setup
-
-### Configure interrupts in create_deep_agent
-
+<ex-basic-setup>
 ```python
 from deepagents import create_deep_agent
 from langgraph.checkpoint.memory import MemorySaver
@@ -40,9 +35,9 @@ agent = create_deep_agent(
     checkpointer=MemorySaver()  # REQUIRED for interrupts
 )
 ```
+</ex-basic-setup>
 
-### Using HumanInTheLoopMiddleware Directly
-
+<ex-human-in-the-loop-middleware-directly>
 ```python
 from langchain.agents import create_agent
 from langchain.agents.middleware import HumanInTheLoopMiddleware
@@ -64,20 +59,18 @@ agent = create_agent(
     checkpointer=MemorySaver(),
 )
 ```
+</ex-human-in-the-loop-middleware-directly>
 
-## Decision Table: Interrupt Strategies
-
+<interrupt-strategies>
 | Tool Type | Interrupt Config | Allowed Decisions | Use Case |
 |-----------|-----------------|------------------|----------|
 | Destructive | `True` | approve, edit, reject | write_file, delete_record |
 | Critical | `{"allowed_decisions": ["approve", "reject"]}` | approve, reject only | deploy_code, execute_sql |
 | Safe | `False` | none | read_file, get_weather |
 | Expensive | `True` | approve, edit, reject | call_paid_api |
+</interrupt-strategies>
 
-## Code Examples
-
-### Example 1: Basic Approval Workflow
-
+<ex-basic-approval-workflow>
 ```python
 from deepagents import create_deep_agent
 from langgraph.checkpoint.memory import MemorySaver
@@ -99,9 +92,9 @@ if state.next:  # Has interrupts
     for interrupt in state.tasks:
         print(f"Interrupt: {interrupt}")
 ```
+</ex-basic-approval-workflow>
 
-### Example 2: Approve Interrupt
-
+<ex-approve-interrupt>
 ```python
 from deepagents import create_deep_agent
 from langgraph.checkpoint.memory import MemorySaver
@@ -140,9 +133,9 @@ agent.update_state(
 # Step 4: Continue execution
 result = agent.invoke(None, config=config)
 ```
+</ex-approve-interrupt>
 
-### Example 3: Edit Before Execution
-
+<ex-edit-before-execution>
 ```python
 from deepagents import create_deep_agent
 from langgraph.checkpoint.memory import MemorySaver
@@ -187,9 +180,9 @@ agent.update_state(
 # Continue with edited query
 result = agent.invoke(None, config=config)
 ```
+</ex-edit-before-execution>
 
-### Example 4: Reject with Feedback
-
+<ex-reject-with-feedback>
 ```python
 from deepagents import create_deep_agent
 from langgraph.checkpoint.memory import MemorySaver
@@ -226,9 +219,9 @@ agent.update_state(
 # Agent receives rejection feedback and can try alternative approach
 result = agent.invoke(None, config=config)
 ```
+</ex-reject-with-feedback>
 
-### Example 5: Custom Interrupt Messages
-
+<ex-custom-interrupt-messages>
 ```python
 from langchain.agents import create_agent
 from langchain.agents.middleware import HumanInTheLoopMiddleware
@@ -242,10 +235,10 @@ agent = create_agent(
             interrupt_on={
                 "deploy_to_prod": {
                     "allowed_decisions": ["approve", "reject"],
-                    "description": "🚨 PRODUCTION DEPLOYMENT requires approval"
+                    "description": "PRODUCTION DEPLOYMENT requires approval"
                 },
                 "send_email": {
-                    "description": "📧 Email draft ready for review"
+                    "description": "Email draft ready for review"
                 },
             },
         ),
@@ -253,56 +246,54 @@ agent = create_agent(
     checkpointer=MemorySaver(),
 )
 ```
+</ex-custom-interrupt-messages>
 
-## Boundaries
-
+<boundaries>
 ### What Agents CAN Configure
 
-✅ Which tools require approval
-✅ Allowed decision types per tool
-✅ Custom interrupt descriptions
-✅ Checkpointer implementation
-✅ Interrupt handling logic
+- Which tools require approval
+- Allowed decision types per tool
+- Custom interrupt descriptions
+- Checkpointer implementation
+- Interrupt handling logic
 
 ### What Agents CANNOT Configure
 
-❌ The HITL protocol (approve/edit/reject structure)
-❌ Skip checkpointer requirement
-❌ Interrupt without saving state
-❌ Have subagents interrupt without main checkpointer
+- The HITL protocol (approve/edit/reject structure)
+- Skip checkpointer requirement
+- Interrupt without saving state
+- Have subagents interrupt without main checkpointer
+</boundaries>
 
-## Gotchas
-
-### 1. Checkpointer is REQUIRED
-
+<fix-checkpointer-required>
 ```python
-# ❌ This will error
+# WRONG: This will error
 agent = create_deep_agent(
     interrupt_on={"write_file": True}
 )
 
-# ✅ Must provide checkpointer
+# CORRECT: Must provide checkpointer
 agent = create_deep_agent(
     interrupt_on={"write_file": True},
     checkpointer=MemorySaver()
 )
 ```
+</fix-checkpointer-required>
 
-### 2. Thread ID Required for Resumption
-
+<fix-thread-id-required-for-resumption>
 ```python
-# ❌ Can't resume without thread_id
+# WRONG: Can't resume without thread_id
 agent.invoke({"messages": [...]})
 agent.update_state(...)  # Which thread?
 
-# ✅ Use consistent thread_id
+# CORRECT: Use consistent thread_id
 config = {"configurable": {"thread_id": "session-1"}}
 agent.invoke({...}, config=config)
 agent.update_state(config, ...)
 ```
+</fix-thread-id-required-for-resumption>
 
-### 3. Interrupt Checks Between Invocations
-
+<fix-interrupt-checks-between-invocations>
 ```python
 # Interrupts don't happen mid-invoke()
 # They happen between invoke() calls
@@ -319,11 +310,11 @@ if state.next:  # Has interrupts
 agent.update_state(config, {...})
 result = agent.invoke(None, config=config)
 ```
+</fix-interrupt-checks-between-invocations>
 
-### 4. Edit Must Match Tool Schema
-
+<fix-edit-must-match-tool-schema>
 ```python
-# ❌ Edited args must match tool schema
+# WRONG: Edited args must match tool schema
 agent.update_state(config, {
     "messages": [Command(resume={
         "decisions": [{
@@ -333,11 +324,12 @@ agent.update_state(config, {
     })]
 })
 
-# ✅ Use correct parameter names from tool schema
+# CORRECT: Use correct parameter names from tool schema
 ```
+</fix-edit-must-match-tool-schema>
 
-## Full Documentation
-
+<links>
 - [Human-in-the-Loop Guide](https://docs.langchain.com/oss/python/langchain/human-in-the-loop)
 - [HITL Middleware](https://docs.langchain.com/oss/python/langchain/middleware/built-in#human-in-the-loop)
 - [Deep Agents HITL](https://docs.langchain.com/oss/python/deepagents/human-in-the-loop)
+</links>

@@ -3,15 +3,11 @@ name: LangGraph Streaming (Python)
 description: "[LangGraph] Streaming real-time updates from LangGraph: stream modes (values, updates, messages, custom, debug) for responsive UX"
 ---
 
-# langgraph-streaming (Python)
-
-
-## Overview
-
+<overview>
 LangGraph's streaming system surfaces real-time updates during graph execution, crucial for responsive LLM applications. Stream graph state, LLM tokens, or custom data as it's generated.
+</overview>
 
-## Decision Table: Stream Modes
-
+<stream-mode-selection>
 | Mode | What it Streams | Use Case |
 |------|----------------|----------|
 | `values` | Full state after each step | Monitor complete state changes |
@@ -19,11 +15,9 @@ LangGraph's streaming system surfaces real-time updates during graph execution, 
 | `messages` | LLM tokens + metadata | Chat UIs, token streaming |
 | `custom` | User-defined data | Progress indicators, logs |
 | `debug` | All execution details | Debugging, detailed tracing |
+</stream-mode-selection>
 
-## Code Examples
-
-### Stream State Values
-
+<ex-stream-state-values>
 ```python
 from langgraph.graph import StateGraph, START, END
 
@@ -39,9 +33,9 @@ for chunk in graph.stream(
 ):
     print(chunk)  # {'count': 0}, then {'count': 1}
 ```
+</ex-stream-state-values>
 
-### Stream State Updates (Deltas)
-
+<ex-stream-state-updates>
 ```python
 # Stream only the changes
 for chunk in graph.stream(
@@ -50,9 +44,9 @@ for chunk in graph.stream(
 ):
     print(chunk)  # {"process": {"count": 1}}
 ```
+</ex-stream-state-updates>
 
-### Stream LLM Tokens
-
+<ex-stream-llm-tokens>
 ```python
 from langchain.chat_models import init_chat_model
 
@@ -73,22 +67,22 @@ for chunk in graph.stream(
     if hasattr(token, "content"):
         print(token.content, end="", flush=True)
 ```
+</ex-stream-llm-tokens>
 
-### Stream Custom Data
-
+<ex-stream-custom-data>
 ```python
 from langgraph.config import get_stream_writer
 
 def my_node(state):
     writer = get_stream_writer()
-    
+
     # Emit custom updates
     writer("Processing step 1...")
     # Do work
     writer("Processing step 2...")
     # More work
     writer("Complete!")
-    
+
     return {"result": "done"}
 
 graph = StateGraph(State).add_node("work", my_node).compile()
@@ -99,9 +93,9 @@ for chunk in graph.stream(
 ):
     print(chunk)  # "Processing step 1...", etc.
 ```
+</ex-stream-custom-data>
 
-### Multiple Stream Modes
-
+<ex-multiple-stream-modes>
 ```python
 # Stream multiple modes simultaneously
 for mode, chunk in graph.stream(
@@ -110,9 +104,9 @@ for mode, chunk in graph.stream(
 ):
     print(f"{mode}: {chunk}")
 ```
+</ex-multiple-stream-modes>
 
-### Async Streaming
-
+<ex-async-streaming>
 ```python
 async for chunk in graph.astream(
     {"count": 0},
@@ -120,9 +114,9 @@ async for chunk in graph.astream(
 ):
     print(chunk)
 ```
+</ex-async-streaming>
 
-### Stream with Subgraphs
-
+<ex-stream-with-subgraphs>
 ```python
 # Include subgraph outputs
 for chunk in graph.stream(
@@ -132,9 +126,9 @@ for chunk in graph.stream(
 ):
     print(chunk)
 ```
+</ex-stream-with-subgraphs>
 
-### Stream with Interrupts
-
+<ex-stream-with-interrupts>
 ```python
 async for metadata, mode, chunk in graph.astream(
     {"query": "test"},
@@ -147,7 +141,7 @@ async for metadata, mode, chunk in graph.astream(
         msg, _ = chunk
         if hasattr(msg, "content"):
             print(msg.content, end="")
-    
+
     elif mode == "updates":
         # Check for interrupts
         if "__interrupt__" in chunk:
@@ -157,50 +151,48 @@ async for metadata, mode, chunk in graph.astream(
             # Resume
             break
 ```
+</ex-stream-with-interrupts>
 
-## Boundaries
-
+<boundaries>
 ### What You CAN Configure
 
-✅ Choose stream modes
-✅ Stream multiple modes simultaneously
-✅ Emit custom data from nodes
-✅ Stream from subgraphs
-✅ Combine streaming with interrupts
+- Choose stream modes
+- Stream multiple modes simultaneously
+- Emit custom data from nodes
+- Stream from subgraphs
+- Combine streaming with interrupts
 
 ### What You CANNOT Configure
 
-❌ Modify streaming protocol
-❌ Change when checkpoints are created
-❌ Alter token streaming format
+- Modify streaming protocol
+- Change when checkpoints are created
+- Alter token streaming format
+</boundaries>
 
-## Gotchas
-
-### 1. Messages Mode Requires LLM Invocation
-
+<fix-messages-mode-requires-llm-invocation>
 ```python
-# ❌ WRONG - No LLM called, nothing streamed
+# WRONG: WRONG - No LLM called, nothing streamed
 def node(state):
     return {"output": "static text"}
 
 for chunk in graph.stream({}, stream_mode="messages"):
     print(chunk)  # Nothing!
 
-# ✅ CORRECT - LLM invoked
+# CORRECT: CORRECT - LLM invoked
 def node(state):
     response = model.invoke(state["messages"])  # LLM call
     return {"messages": [response]}
 ```
+</fix-messages-mode-requires-llm-invocation>
 
-### 2. Custom Mode Needs Stream Writer
-
+<fix-custom-mode-needs-stream-writer>
 ```python
-# ❌ WRONG - No writer, nothing streamed
+# WRONG: WRONG - No writer, nothing streamed
 def node(state):
     print("Processing...")  # Not streamed!
     return {"data": "done"}
 
-# ✅ CORRECT
+# CORRECT: CORRECT
 from langgraph.config import get_stream_writer
 
 def node(state):
@@ -208,31 +200,32 @@ def node(state):
     writer("Processing...")  # Streamed!
     return {"data": "done"}
 ```
+</fix-custom-mode-needs-stream-writer>
 
-### 3. Stream Modes Are Lists
-
+<fix-stream-modes-are-lists>
 ```python
-# ❌ WRONG - Single string
+# WRONG: WRONG - Single string
 graph.stream({}, stream_mode="updates, messages")
 
-# ✅ CORRECT - List
+# CORRECT: CORRECT - List
 graph.stream({}, stream_mode=["updates", "messages"])
 ```
+</fix-stream-modes-are-lists>
 
-### 4. Async Stream Requires Await
-
+<fix-async-stream-requires-await>
 ```python
-# ❌ WRONG
+# WRONG: WRONG
 for chunk in graph.astream({}):  # SyntaxError!
     print(chunk)
 
-# ✅ CORRECT
+# CORRECT: CORRECT
 async for chunk in graph.astream({}):
     print(chunk)
 ```
+</fix-async-stream-requires-await>
 
-## Links
-
+<links>
 - [Streaming Guide](https://docs.langchain.com/oss/python/langgraph/streaming)
 - [Stream Modes](https://docs.langchain.com/oss/python/langgraph/streaming#supported-stream-modes)
 - [Custom Streaming](https://docs.langchain.com/oss/python/langgraph/streaming)
+</links>

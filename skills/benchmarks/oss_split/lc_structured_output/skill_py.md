@@ -3,10 +3,7 @@ name: LangChain Structured Output (Python)
 description: [LangChain] Get structured, validated output from LangChain agents and models using Pydantic schemas, type-safe responses, and automatic validation
 ---
 
-# langchain-structured-output (Python)
-
-## Overview
-
+<overview>
 Structured output transforms unstructured model responses into validated, typed data. Instead of parsing free text, you get Python objects conforming to your schema - perfect for extracting data, building forms, or integrating with downstream systems.
 
 **Key Concepts:**
@@ -14,33 +11,29 @@ Structured output transforms unstructured model responses into validated, typed 
 - **Pydantic Validation**: Type-safe schemas with automatic validation
 - **with_structured_output()**: Model method for direct structured output
 - **Tool Strategy**: Uses tool calling under the hood for models without native support
+</overview>
 
-## Decision Tables
-
-### When to Use Structured Output
-
+<when-to-use-structured-output>
 | Use Case | Use Structured Output? | Why |
 |----------|----------------------|-----|
-| Extract contact info, dates, etc. | ✅ Yes | Reliable data extraction |
-| Form filling | ✅ Yes | Validate all required fields |
-| API integration | ✅ Yes | Type-safe responses |
-| Classification tasks | ✅ Yes | Enum validation |
-| Open-ended Q&A | ❌ No | Free-form text is fine |
-| Creative writing | ❌ No | Don't constrain creativity |
+| Extract contact info, dates, etc. | Yes | Reliable data extraction |
+| Form filling | Yes | Validate all required fields |
+| API integration | Yes | Type-safe responses |
+| Classification tasks | Yes | Enum validation |
+| Open-ended Q&A | No | Free-form text is fine |
+| Creative writing | No | Don't constrain creativity |
+</when-to-use-structured-output>
 
-### Schema Options
-
+<schema-options>
 | Schema Type | When to Use | Example |
 |-------------|-------------|---------|
 | Pydantic model | Python projects (recommended) | `class Model(BaseModel):` |
 | TypedDict | Simpler typing | `class Data(TypedDict):` |
 | JSON Schema | Interoperability | `{"type": "object", ...}` |
 | Union types | Multiple possible formats | `Union[Schema1, Schema2]` |
+</schema-options>
 
-## Code Examples
-
-### Basic Structured Output with Agent
-
+<ex-basic-structured-output-with-agent>
 ```python
 from langchain.agents import create_agent
 from pydantic import BaseModel, Field
@@ -65,9 +58,9 @@ result = agent.invoke({
 print(result["structured_response"])
 # ContactInfo(name='John Doe', email='john@example.com', phone='(555) 123-4567')
 ```
+</ex-basic-structured-output-with-agent>
 
-### Model Direct Structured Output
-
+<ex-model-direct-structured-output>
 ```python
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
@@ -86,9 +79,9 @@ response = structured_model.invoke("Tell me about Inception")
 print(response)
 # Movie(title="Inception", year=2010, director="Christopher Nolan", rating=8.8)
 ```
+</ex-model-direct-structured-output>
 
-### Complex Nested Schema
-
+<ex-complex-nested-schema>
 ```python
 from pydantic import BaseModel, Field
 from typing import List
@@ -111,9 +104,9 @@ agent = create_agent(
     response_format=Person,
 )
 ```
+</ex-complex-nested-schema>
 
-### Enum and Literal Types
-
+<ex-enum-and-literal-types>
 ```python
 from pydantic import BaseModel, Field
 from typing import Literal
@@ -136,9 +129,9 @@ result = agent.invoke({
 })
 # Classification(category="urgent", sentiment="positive", confidence=0.95)
 ```
+</ex-enum-and-literal-types>
 
-### Optional Fields and Defaults
-
+<ex-optional-fields-and-defaults>
 ```python
 from pydantic import BaseModel, Field
 from typing import Optional, List
@@ -150,9 +143,9 @@ class Event(BaseModel):
     attendees: List[str] = Field(default_factory=list)
     confirmed: bool = False
 ```
+</ex-optional-fields-and-defaults>
 
-### Union Types (Multiple Schemas)
-
+<ex-union-types>
 ```python
 from pydantic import BaseModel
 from typing import Union, Literal
@@ -175,9 +168,9 @@ agent = create_agent(
 )
 # Model chooses which schema based on input
 ```
+</ex-union-types>
 
-### Array Extraction
-
+<ex-array-extraction>
 ```python
 from pydantic import BaseModel
 from typing import List, Optional, Literal
@@ -202,9 +195,9 @@ result = agent.invoke({
     }]
 })
 ```
+</ex-array-extraction>
 
-### Include Raw AIMessage
-
+<ex-include-raw-aimessage>
 ```python
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel
@@ -223,9 +216,9 @@ print(response)
 #   "parsed": Person(name="Alice", age=30)
 # }
 ```
+</ex-include-raw-aimessage>
 
-### TypedDict Alternative
-
+<ex-typeddict-alternative>
 ```python
 from typing_extensions import TypedDict, Annotated
 from langchain.agents import create_agent
@@ -245,9 +238,9 @@ result = agent.invoke({"messages": [{"role": "user", "content": "..."}]})
 # Returns dict, not Pydantic model
 print(type(result["structured_response"]))  # <class 'dict'>
 ```
+</ex-typeddict-alternative>
 
-### Error Handling
-
+<ex-error-handling>
 ```python
 from langchain.agents import create_agent
 from pydantic import BaseModel, Field, ValidationError
@@ -268,67 +261,65 @@ try:
 except ValidationError as e:
     print(f"Validation failed: {e}")
 ```
+</ex-error-handling>
 
-## Boundaries
-
+<boundaries>
 ### What You CAN Configure
 
-✅ **Schema structure**: Any valid Pydantic model
-✅ **Field validation**: Types, ranges, regex, etc.
-✅ **Optional vs required**: Control field presence
-✅ **Nested objects**: Complex hierarchies
-✅ **Arrays**: Lists of items
-✅ **Enums**: Restricted values with Literal
+* Schema structure**: Any valid Pydantic model
+* Field validation**: Types, ranges, regex, etc.
+* Optional vs required**: Control field presence
+* Nested objects**: Complex hierarchies
+* Arrays**: Lists of items
+* Enums**: Restricted values with Literal
 
 ### What You CANNOT Configure
 
-❌ **Model reasoning**: Can't control how model generates data
-❌ **Guarantee 100% accuracy**: Model may still make mistakes
-❌ **Force valid data if context lacks it**: Model can't invent missing info
+* Model reasoning**: Can't control how model generates data
+* Guarantee 100% accuracy**: Model may still make mistakes
+* Force valid data if context lacks it**: Model can't invent missing info
+</boundaries>
 
-## Gotchas
-
-### 1. Accessing Response Wrong
-
+<fix-accessing-response-wrong>
 ```python
-# ❌ Problem: Accessing wrong key
+# WRONG: Problem: Accessing wrong key
 result = agent.invoke(input)
 print(result["response"])  # KeyError!
 
-# ✅ Solution: Use structured_response
+# CORRECT: Solution: Use structured_response
 print(result["structured_response"])
 ```
+</fix-accessing-response-wrong>
 
-### 2. Missing Descriptions
-
+<fix-missing-descriptions>
 ```python
-# ❌ Problem: No field descriptions
+# WRONG: Problem: No field descriptions
 class Data(BaseModel):
     date: str  # What format?
     amount: float  # What unit?
 
-# ✅ Solution: Add descriptions via Field
+# CORRECT: Solution: Add descriptions via Field
 class Data(BaseModel):
     date: str = Field(description="Date in YYYY-MM-DD format")
     amount: float = Field(description="Amount in USD")
 ```
+</fix-missing-descriptions>
 
-### 3. Over-constraining
-
+<fix-over-constraining>
 ```python
 import re
 
-# ❌ Problem: Too strict for model
+# WRONG: Problem: Too strict for model
 class Data(BaseModel):
     code: str = Field(pattern=r"^[A-Z]{2}-\d{4}-[A-Z]{3}$")  # Very specific!
 
-# ✅ Solution: Use looser validation or describe format
+# CORRECT: Solution: Use looser validation or describe format
 class Data(BaseModel):
     code: str = Field(description="Format: XX-0000-XXX (letters and numbers)")
 ```
+</fix-over-constraining>
 
-### 4. Pydantic v1 vs v2
-
+<fix-pydantic-v1-vs-v2>
 ```python
 # Pydantic v2 (current)
 from pydantic import BaseModel, Field
@@ -341,28 +332,29 @@ from pydantic import BaseModel, Field
 
 class Data(BaseModel):
     value: int = Field(..., ge=0, le=100)  # Note the ...
-    
+
     class Config:
         # v1 config
         pass
 ```
+</fix-pydantic-v1-vs-v2>
 
-### 5. Not Using Correct Type Hints
-
+<fix-not-using-correct-type-hints>
 ```python
-# ❌ Problem: Missing type hints
+# WRONG: Problem: Missing type hints
 class Data(BaseModel):
     items = []  # No type hint!
 
-# ✅ Solution: Always use type hints
+# CORRECT: Solution: Always use type hints
 from typing import List
 
 class Data(BaseModel):
     items: List[str] = Field(default_factory=list)
 ```
+</fix-not-using-correct-type-hints>
 
-## Links to Documentation
-
+<links>
 - [Structured Output Overview](https://docs.langchain.com/oss/python/langchain/structured-output)
 - [Model Structured Output](https://docs.langchain.com/oss/python/langchain/models)
 - [Agent Structured Output](https://docs.langchain.com/oss/python/langchain/agents)
+</links>

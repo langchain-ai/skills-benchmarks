@@ -245,3 +245,76 @@ export function skillConfig(
 ): SkillConfig {
   return { sections, scriptsDir, scriptFilter };
 }
+
+/**
+ * Strip language-specific XML tags from skill content.
+ *
+ * Removes <python> and/or <typescript> tagged sections from content.
+ * Tags may have attributes like <python tag="section-name">.
+ *
+ * @example
+ * // Remove Python examples, keep TypeScript
+ * const tsOnly = stripLangTags(content, ["python"]);
+ *
+ * // Remove TypeScript examples, keep Python
+ * const pyOnly = stripLangTags(content, ["typescript"]);
+ */
+export function stripLangTags(
+  content: string,
+  exclude?: string[],
+): string {
+  if (!exclude || exclude.length === 0) {
+    return content;
+  }
+
+  let result = content;
+  for (const lang of exclude) {
+    // Match tags with optional attributes: <python> or <python tag="...">
+    const pattern = new RegExp(`<${lang}(?:\\s+[^>]*)?>[\\s\\S]*?</${lang}>`, "g");
+    result = result.replace(pattern, "");
+  }
+
+  // Clean up excessive blank lines left after removal
+  result = result.replace(/\n{3,}/g, "\n\n");
+
+  return result;
+}
+
+/**
+ * Strip content blocks by their tag attribute value.
+ *
+ * Removes <python tag="name"> or <typescript tag="name"> blocks where
+ * the tag attribute matches one of the excluded names.
+ *
+ * @example
+ * // Remove specific gotchas by tag name
+ * const filtered = stripByTags(content, ["faiss-deserialize", "import-packages"]);
+ *
+ * // Works with any tag attribute value
+ * const filtered = stripByTags(content, ["basic-setup", "advanced-config"]);
+ */
+export function stripByTags(
+  content: string,
+  exclude?: string[],
+): string {
+  if (!exclude || exclude.length === 0) {
+    return content;
+  }
+
+  let result = content;
+  for (const tagName of exclude) {
+    // Match <python tag="name">...</python> or <typescript tag="name">...</typescript>
+    // The tag attribute value must match exactly
+    const escapedTagName = tagName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const pattern = new RegExp(
+      `<(python|typescript)\\s+tag="${escapedTagName}"[^>]*>[\\s\\S]*?</\\1>`,
+      "g",
+    );
+    result = result.replace(pattern, "");
+  }
+
+  // Clean up excessive blank lines left after removal
+  result = result.replace(/\n{3,}/g, "\n\n");
+
+  return result;
+}

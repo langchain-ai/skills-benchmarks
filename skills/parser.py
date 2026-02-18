@@ -306,3 +306,76 @@ def skill_config(sections: list[str], scripts_dir: Path = None, script_filter: s
         )
     """
     return {"sections": sections, "scripts_dir": scripts_dir, "script_filter": script_filter}
+
+
+def strip_lang_tags(content: str, exclude: list[str] | None = None) -> str:
+    """Strip language-specific XML tags from skill content.
+
+    Removes <python> and/or <typescript> tagged sections from content.
+    Tags may have attributes like <python tag="section-name">.
+
+    Args:
+        content: Skill markdown content
+        exclude: List of languages to exclude ("python", "typescript").
+                 If None, returns content unchanged.
+
+    Returns:
+        Content with specified language sections removed
+
+    Example:
+        # Remove Python examples, keep TypeScript
+        ts_only = strip_lang_tags(content, exclude=["python"])
+
+        # Remove TypeScript examples, keep Python
+        py_only = strip_lang_tags(content, exclude=["typescript"])
+    """
+    if not exclude:
+        return content
+
+    result = content
+    for lang in exclude:
+        # Match tags with optional attributes: <python> or <python tag="...">
+        pattern = rf"<{lang}(?:\s+[^>]*)?>.*?</{lang}>"
+        result = re.sub(pattern, "", result, flags=re.DOTALL)
+
+    # Clean up excessive blank lines left after removal
+    result = re.sub(r"\n{3,}", "\n\n", result)
+
+    return result
+
+
+def strip_by_tags(content: str, exclude: list[str] | None = None) -> str:
+    """Strip content blocks by their tag attribute value.
+
+    Removes <python tag="name"> or <typescript tag="name"> blocks where
+    the tag attribute matches one of the excluded names.
+
+    Args:
+        content: Skill markdown content
+        exclude: List of tag attribute values to exclude.
+                 If None, returns content unchanged.
+
+    Returns:
+        Content with specified tagged sections removed
+
+    Example:
+        # Remove specific gotchas by tag name
+        filtered = strip_by_tags(content, exclude=["faiss-deserialize", "import-packages"])
+
+        # Works with any tag attribute value
+        filtered = strip_by_tags(content, exclude=["basic-setup", "advanced-config"])
+    """
+    if not exclude:
+        return content
+
+    result = content
+    for tag_name in exclude:
+        # Match <python tag="name">...</python> or <typescript tag="name">...</typescript>
+        # The tag attribute value must match exactly
+        pattern = rf'<(python|typescript)\s+tag="{re.escape(tag_name)}"[^>]*>.*?</\1>'
+        result = re.sub(pattern, "", result, flags=re.DOTALL)
+
+    # Clean up excessive blank lines left after removal
+    result = re.sub(r"\n{3,}", "\n\n", result)
+
+    return result

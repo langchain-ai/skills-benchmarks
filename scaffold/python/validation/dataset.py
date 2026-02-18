@@ -119,7 +119,9 @@ def _has_io(ex: dict, required_fields: list[str]) -> bool:
         return False
     # Support both 'inputs'/'input' and 'outputs'/'output'
     has_input = any(f in ex or f.rstrip("s") in ex for f in required_fields if "input" in f.lower())
-    has_output = any(f in ex or f.rstrip("s") in ex for f in required_fields if "output" in f.lower())
+    has_output = any(
+        f in ex or f.rstrip("s") in ex for f in required_fields if "output" in f.lower()
+    )
     return has_input and has_output
 
 
@@ -232,7 +234,9 @@ def validate_trajectory_accuracy(
     expected_data, error = read_json_file(data_dir / expected_filename)
     if error:
         return ["Accuracy: skipped (no ground truth)"], []
-    expected_examples = expected_data.get("examples", []) if isinstance(expected_data, dict) else expected_data
+    expected_examples = (
+        expected_data.get("examples", []) if isinstance(expected_data, dict) else expected_data
+    )
 
     if not expected_examples:
         return ["Accuracy: skipped (empty ground truth)"], []
@@ -241,7 +245,9 @@ def validate_trajectory_accuracy(
     trace_id_map = outputs.get("trace_id_map", {}) if outputs else {}
 
     # Compare trajectories
-    matches, mismatches, missing = _compare_datasets(actual_examples, expected_examples, trace_id_map)
+    matches, mismatches, missing = _compare_datasets(
+        actual_examples, expected_examples, trace_id_map
+    )
     total_expected = len(expected_examples)
 
     if matches == total_expected:

@@ -44,6 +44,7 @@ def build_noise_tasks(noise_task_names: list[str]) -> list[NoiseTask]:
             )
     return noise_tasks
 
+
 # Timeouts
 CLAUDE_TIMEOUT = 600  # 10 minutes for Claude to complete task
 PYTEST_TIMEOUT = 900  # 15 minutes total including setup/teardown

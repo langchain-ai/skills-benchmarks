@@ -116,12 +116,16 @@ def validate_typescript_tracing(
     content = path.read_text()
 
     # Check imports
-    if re.search(r'import\s+\{[^}]*traceable[^}]*\}\s+from\s+["\']langsmith/traceable["\']', content):
+    if re.search(
+        r'import\s+\{[^}]*traceable[^}]*\}\s+from\s+["\']langsmith/traceable["\']', content
+    ):
         passed.append("TypeScript: imports traceable")
     else:
         failed.append("TypeScript: missing 'import { traceable } from \"langsmith/traceable\"'")
 
-    if re.search(r'import\s+\{[^}]*wrapOpenAI[^}]*\}\s+from\s+["\']langsmith/wrappers["\']', content):
+    if re.search(
+        r'import\s+\{[^}]*wrapOpenAI[^}]*\}\s+from\s+["\']langsmith/wrappers["\']', content
+    ):
         passed.append("TypeScript: imports wrapOpenAI")
     else:
         failed.append("TypeScript: missing 'import { wrapOpenAI } from \"langsmith/wrappers\"'")

@@ -4,7 +4,7 @@ description: Use this skill for ANY LangSmith/LangChain observability question. 
 ---
 
 <oneliner>
-Two main topics: **adding tracing** to your application, and **querying traces** for debugging and analysis. Python and Javascript are supported, and should be used depending on what matches project context.
+Two main topics: **adding tracing** to your application, and **querying traces** for debugging and analysis. Python and Javascript implementations are both supported.
 </oneliner>
 
 <setup>
@@ -45,7 +45,7 @@ Optional variables:
 <trace_other_frameworks>
 For non-LangChain apps, use the traceable decorator/wrapper and wrap your LLM client.
 
-### Python
+### For Python applications, see below
 
 ```python
 from langsmith import traceable
@@ -77,7 +77,7 @@ def generate_answer(question: str, docs: list[str]) -> str:
     return client.chat.completions.create(...)
 ```
 
-### TypeScript
+### For TypeScript applications, see below
 
 ```typescript
 import { traceable } from "langsmith/traceable";
@@ -154,7 +154,10 @@ query_traces.py / query_traces.ts
 </command_structure>
 
 <querying_traces>
-### Python
+Python and Typescript scripts are both provided, and identical in usage.
+You should use whichever script matches your current project context. 
+
+### Python Script Usage
 
 ```bash
 # List recent traces (most common operation)
@@ -184,7 +187,7 @@ python query_traces.py traces list --error --last-n-minutes 60     # Failed trac
 python query_traces.py runs list --run-type llm --limit 20
 ```
 
-### TypeScript
+### TypeScript Script Usage
 
 ```bash
 # List recent traces (most common operation)

@@ -195,7 +195,9 @@ def validate_evaluator_patterns(
     passed, failed = [], []
 
     # Python patterns
-    PY_FUNC_SIGNATURE = re.compile(r"def\s+\w+\s*\(\s*run\s*(:\s*\w+)?\s*,\s*example\s*(:\s*\w+)?\s*\)")
+    PY_FUNC_SIGNATURE = re.compile(
+        r"def\s+\w+\s*\(\s*run\s*(:\s*\w+)?\s*,\s*example\s*(:\s*\w+)?\s*\)"
+    )
     PY_RETURN_SCORE = re.compile(r"return\s*\{[^}]*['\"]?\w+['\"]?\s*:")
 
     py_path = find_evaluator_file(test_dir, python_dir, ["py"])
@@ -221,14 +223,22 @@ def validate_evaluator_patterns(
             failed.append("Python: missing run outputs access")
 
         # Check for example outputs access
-        if 'example["outputs"]' in content or "example['outputs']" in content or "example.outputs" in content:
+        if (
+            'example["outputs"]' in content
+            or "example['outputs']" in content
+            or "example.outputs" in content
+        ):
             passed.append("Python: accesses example outputs")
         else:
             failed.append("Python: missing example outputs access")
 
     # JavaScript patterns
-    JS_FUNC_SIGNATURE = re.compile(r"function\s+\w+\s*\(\s*run\s*(:\s*\w+)?\s*,\s*example\s*(:\s*\w+)?\s*\)")
-    JS_ARROW_SIGNATURE = re.compile(r"=\s*\(\s*run\s*(:\s*\w+)?\s*,\s*example\s*(:\s*\w+)?\s*\)\s*=>")
+    JS_FUNC_SIGNATURE = re.compile(
+        r"function\s+\w+\s*\(\s*run\s*(:\s*\w+)?\s*,\s*example\s*(:\s*\w+)?\s*\)"
+    )
+    JS_ARROW_SIGNATURE = re.compile(
+        r"=\s*\(\s*run\s*(:\s*\w+)?\s*,\s*example\s*(:\s*\w+)?\s*\)\s*=>"
+    )
     JS_RETURN_SCORE = re.compile(r"return\s*\{[^}]*\w+\s*:")
 
     js_path = find_evaluator_file(test_dir, javascript_dir, ["ts", "js"])
@@ -345,7 +355,9 @@ def _test_python_evaluator(
     try:
         module_name = path.name.replace(".py", "")
         args = [module_name, func_name, test_cases_filename]
-        success, output = run_python_fn(test_dir, f"{path.parent.name}/_eval_runner.py", timeout=60, args=args)
+        success, output = run_python_fn(
+            test_dir, f"{path.parent.name}/_eval_runner.py", timeout=60, args=args
+        )
         return _parse_evaluator_results(output, success, "Python")
     except Exception as e:
         return [], [f"Python logic: {str(e)[:50]}"]
@@ -374,7 +386,7 @@ def _test_js_evaluator(
     test_cases = json.loads(test_cases_path.read_text())
 
     # Create test harness script
-    test_script = f'''
+    test_script = f"""
 const fs = require('fs');
 const evaluatorCode = fs.readFileSync('{path.name}', 'utf8');
 eval(evaluatorCode);
@@ -425,12 +437,14 @@ const results = testCases.map(tc => {{
 }});
 
 console.log("EVALUATOR_RESULTS:" + JSON.stringify(results));
-'''
+"""
 
     test_file = path.parent / "_test_evaluator.js"
     try:
         test_file.write_text(test_script)
-        success, output = run_node_fn(test_dir, f"{path.parent.name}/_test_evaluator.js", timeout=60)
+        success, output = run_node_fn(
+            test_dir, f"{path.parent.name}/_test_evaluator.js", timeout=60
+        )
         return _parse_evaluator_results(output, success, "JavaScript")
     except Exception as e:
         return [], [f"JavaScript logic: {str(e)[:50]}"]

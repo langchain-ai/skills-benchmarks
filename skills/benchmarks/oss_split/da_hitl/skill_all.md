@@ -3,29 +3,29 @@ name: Deep Agents Human-in-the-Loop
 description: [Deep Agents] Implementing human-in-the-loop approval workflows with interrupt_on parameter for sensitive tool operations in Deep Agents.
 ---
 
-## Overview
-
+<overview>
 Human-in-the-Loop (HITL) middleware adds human oversight to tool calls. When the agent proposes a sensitive action, execution pauses for human decision:
 - **approve**: Execute as-is
 - **edit**: Modify before executing
 - **reject**: Cancel with feedback
 
 Requires LangGraph's persistence (checkpointer) to save state during interrupts.
+</overview>
 
-## When to Use HITL
-
+<when-to-use>
 | Use HITL When | Skip HITL When |
 |--------------|---------------|
 | High-stakes operations (DB writes, deployments) | Read-only operations |
 | Compliance requires human oversight | Fully automated workflows |
 | Expensive API calls need verification | Low-cost operations |
 | Learning agent behavior | Trusted, tested operations |
+</when-to-use>
 
-## Basic Setup
+<setup>
+<python>
+### Configure interrupts in create_deep_agent
 
-### Python
-
-#### Configure interrupts in create_deep_agent
+Configure which tools require approval:
 
 ```python
 from deepagents import create_deep_agent
@@ -41,7 +41,9 @@ agent = create_deep_agent(
 )
 ```
 
-#### Using HumanInTheLoopMiddleware Directly
+### Using HumanInTheLoopMiddleware Directly
+
+Use middleware directly for custom agents:
 
 ```python
 from langchain.agents import create_agent
@@ -64,8 +66,10 @@ agent = create_agent(
     checkpointer=MemorySaver(),
 )
 ```
+</python>
 
-### TypeScript
+<typescript>
+Configure which tools require approval:
 
 ```typescript
 import { createDeepAgent } from "deepagents";
@@ -80,21 +84,21 @@ const agent = await createDeepAgent({
   checkpointer: new MemorySaver()  // REQUIRED
 });
 ```
+</typescript>
+</setup>
 
-## Decision Table: Interrupt Strategies
-
+<decision-table>
 | Tool Type | Interrupt Config | Allowed Decisions | Use Case |
 |-----------|-----------------|------------------|----------|
 | Destructive | `True` / `true` | approve, edit, reject | write_file, delete_record |
 | Critical | `{"allowed_decisions": ["approve", "reject"]}` | approve, reject only | deploy_code, execute_sql |
 | Safe | `False` / `false` | none | read_file, get_weather |
 | Expensive | `True` / `true` | approve, edit, reject | call_paid_api |
+</decision-table>
 
-## Code Examples
-
-### Example 1: Basic Approval Workflow
-
-#### Python
+<ex-basic-approval>
+<python>
+Invoke and check for interrupts:
 
 ```python
 from deepagents import create_deep_agent
@@ -117,8 +121,10 @@ if state.next:  # Has interrupts
     for interrupt in state.tasks:
         print(f"Interrupt: {interrupt}")
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Invoke and check for interrupts:
 
 ```typescript
 import { createDeepAgent } from "deepagents";
@@ -158,8 +164,12 @@ await agent.updateState(config, {
 // Step 4: Continue
 result = await agent.invoke(null, config);
 ```
+</typescript>
+</ex-basic-approval>
 
-### Example 2: Approve Interrupt (Python)
+<ex-approve>
+<python>
+Approve a pending tool call:
 
 ```python
 from deepagents import create_deep_agent
@@ -199,10 +209,12 @@ agent.update_state(
 # Step 4: Continue execution
 result = agent.invoke(None, config=config)
 ```
+</python>
+</ex-approve>
 
-### Example 3: Edit Before Execution
-
-#### Python
+<ex-edit>
+<python>
+Modify tool arguments before executing:
 
 ```python
 from deepagents import create_deep_agent
@@ -248,8 +260,10 @@ agent.update_state(
 # Continue with edited query
 result = agent.invoke(None, config=config)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Modify tool arguments before executing:
 
 ```typescript
 const agent = await createDeepAgent({
@@ -283,10 +297,12 @@ await agent.updateState(config, {
 // Continue
 await agent.invoke(null, config);
 ```
+</typescript>
+</ex-edit>
 
-### Example 4: Reject with Feedback
-
-#### Python
+<ex-reject>
+<python>
+Reject and provide feedback to agent:
 
 ```python
 from deepagents import create_deep_agent
@@ -324,8 +340,10 @@ agent.update_state(
 # Agent receives rejection feedback and can try alternative approach
 result = agent.invoke(None, config=config)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Reject and provide feedback to agent:
 
 ```typescript
 const agent = await createDeepAgent({
@@ -355,10 +373,12 @@ await agent.updateState(config, {
 
 await agent.invoke(null, config);
 ```
+</typescript>
+</ex-reject>
 
-### Example 5: Custom Interrupt Messages
-
-#### Python
+<ex-custom-messages>
+<python>
+Add custom descriptions per tool:
 
 ```python
 from langchain.agents import create_agent
@@ -384,8 +404,10 @@ agent = create_agent(
     checkpointer=MemorySaver(),
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Add custom descriptions per tool:
 
 ```typescript
 import { createAgent, humanInTheLoopMiddleware } from "langchain";
@@ -410,29 +432,27 @@ const agent = createAgent({
   checkpointer: new MemorySaver(),
 });
 ```
+</typescript>
+</ex-custom-messages>
 
-## Boundaries
-
-### What Agents CAN Configure
-
+<boundaries>
+**What Agents CAN Configure:**
 - Which tools require approval
 - Allowed decision types per tool
 - Custom interrupt descriptions
 - Checkpointer implementation
 - Interrupt handling logic
 
-### What Agents CANNOT Configure
-
+**What Agents CANNOT Configure:**
 - The HITL protocol (approve/edit/reject structure)
 - Skip checkpointer requirement
 - Interrupt without saving state
 - Have subagents interrupt without main checkpointer
+</boundaries>
 
-## Gotchas
-
-### 1. Checkpointer is REQUIRED
-
-#### Python
+<fix-checkpointer-required>
+<python>
+Provide checkpointer for interrupt state:
 
 ```python
 # This will error
@@ -446,8 +466,10 @@ agent = create_deep_agent(
     checkpointer=MemorySaver()
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Provide checkpointer for interrupt state:
 
 ```typescript
 // Error
@@ -459,10 +481,12 @@ await createDeepAgent({
   checkpointer: new MemorySaver()
 });
 ```
+</typescript>
+</fix-checkpointer-required>
 
-### 2. Thread ID Required for Resumption
-
-#### Python
+<fix-thread-id-required>
+<python>
+Use consistent thread_id to resume:
 
 ```python
 # Can't resume without thread_id
@@ -474,8 +498,10 @@ config = {"configurable": {"thread_id": "session-1"}}
 agent.invoke({...}, config=config)
 agent.update_state(config, ...)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Use consistent thread_id to resume:
 
 ```typescript
 // Can't resume without thread_id
@@ -487,10 +513,12 @@ const config = { configurable: { thread_id: "session-1" } };
 await agent.invoke({...}, config);
 await agent.updateState(config, ...);
 ```
+</typescript>
+</fix-thread-id-required>
 
-### 3. Interrupt Checks Between Invocations
-
-#### Python
+<fix-interrupt-between-invocations>
+<python>
+Interrupts occur between invoke calls:
 
 ```python
 # Interrupts don't happen mid-invoke()
@@ -508,8 +536,10 @@ if state.next:  # Has interrupts
 agent.update_state(config, {...})
 result = agent.invoke(None, config=config)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Interrupts occur between invoke calls:
 
 ```typescript
 // Interrupts happen between invoke() calls
@@ -527,8 +557,12 @@ if (state.next) {
 await agent.updateState(config, {...});
 await agent.invoke(null, config);
 ```
+</typescript>
+</fix-interrupt-between-invocations>
 
-### 4. Edit Must Match Tool Schema (Python)
+<fix-edit-match-tool-schema>
+<python>
+Use correct parameter names from schema:
 
 ```python
 # Edited args must match tool schema
@@ -543,15 +577,17 @@ agent.update_state(config, {
 
 # Use correct parameter names from tool schema
 ```
+</python>
+</fix-edit-match-tool-schema>
 
-## Links to Documentation
-
-### Python
+<links>
+**Python:**
 - [Human-in-the-Loop Guide](https://docs.langchain.com/oss/python/langchain/human-in-the-loop)
 - [HITL Middleware](https://docs.langchain.com/oss/python/langchain/middleware/built-in#human-in-the-loop)
 - [Deep Agents HITL](https://docs.langchain.com/oss/python/deepagents/human-in-the-loop)
 
-### TypeScript
+**TypeScript:**
 - [Human-in-the-Loop Guide](https://docs.langchain.com/oss/javascript/langchain/human-in-the-loop)
 - [HITL Middleware](https://docs.langchain.com/oss/javascript/langchain/middleware/built-in#human-in-the-loop)
 - [Deep Agents HITL](https://docs.langchain.com/oss/javascript/deepagents/human-in-the-loop)
+</links>

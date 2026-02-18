@@ -3,18 +3,19 @@ name: LangChain Human-in-the-Loop
 description: "[LangChain] Add human oversight to LangChain agents using HITL middleware - includes interrupts, approval workflows, edit/reject decisions, and checkpoints"
 ---
 
-## Overview
+<oneliner>
+Human-in-the-Loop (HITL) lets you add human oversight to agent tool calls, pausing execution for approval, editing, or rejection of sensitive actions.
+</oneliner>
 
-Human-in-the-Loop (HITL) lets you add human oversight to agent tool calls. When agents propose sensitive actions (like database writes or sending emails), execution pauses for human approval, editing, or rejection.
-
-**Key Concepts:**
+<overview>
+Key Concepts:
 - **human_in_the_loop_middleware / humanInTheLoopMiddleware**: Pauses execution for human decisions
 - **Interrupts**: Checkpoint where agent waits for human input
 - **Decisions**: approve, edit, or reject tool calls
 - **Checkpointer**: Required for persistence across interruptions
+</overview>
 
-## When to Use HITL
-
+<when-to-use>
 | Scenario | Use HITL? | Why |
 |----------|-----------|-----|
 | Database writes | Yes | Prevent data corruption |
@@ -23,20 +24,20 @@ Human-in-the-Loop (HITL) lets you add human oversight to agent tool calls. When 
 | Deleting data | Yes | Prevent accidental loss |
 | Read-only operations | No | Low risk |
 | Internal calculations | No | No external impact |
+</when-to-use>
 
-## Decision Types
-
+<decision-types>
 | Decision | Effect | When to Use |
 |----------|--------|-------------|
 | `approve` | Execute tool as-is | Tool call looks correct |
 | `edit` | Modify args then execute | Need to change parameters |
 | `reject` | Don't execute, provide feedback | Tool call is wrong |
+</decision-types>
 
-## Code Examples
+<ex-setup>
+<python>
 
-### Basic HITL Setup
-
-#### Python
+Create agent with HITL middleware.
 
 ```python
 from langchain.agents import create_agent, human_in_the_loop_middleware
@@ -62,7 +63,11 @@ agent = create_agent(
 )
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+
+Create agent with HITL middleware.
 
 ```typescript
 import { createAgent, humanInTheLoopMiddleware, tool } from "langchain";
@@ -92,9 +97,13 @@ const agent = createAgent({
 });
 ```
 
-### Running with Interrupts
+</typescript>
+</ex-setup>
 
-#### Python
+<ex-interrupts>
+<python>
+
+Invoke agent, check interrupt, then approve.
 
 ```python
 from langgraph.types import Command
@@ -116,7 +125,11 @@ result2 = agent.invoke(Command(resume={"decisions": [{"type": "approve"}]}), con
 print(result2["messages"][-1].content)
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+
+Invoke agent, check interrupt, then approve.
 
 ```typescript
 import { Command } from "@langchain/langgraph";
@@ -141,9 +154,13 @@ const result2 = await agent.invoke(
 console.log(result2.messages[result2.messages.length - 1].content);
 ```
 
-### Editing Tool Arguments
+</typescript>
+</ex-interrupts>
 
-#### Python
+<ex-edit>
+<python>
+
+Edit tool arguments before execution.
 
 ```python
 result2 = agent.invoke(
@@ -157,7 +174,11 @@ result2 = agent.invoke(
 )
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+
+Edit tool arguments before execution.
 
 ```typescript
 const result2 = await agent.invoke(
@@ -170,9 +191,13 @@ const result2 = await agent.invoke(
 );
 ```
 
-### Rejecting with Feedback
+</typescript>
+</ex-edit>
 
-#### Python
+<ex-reject>
+<python>
+
+Reject tool call with feedback.
 
 ```python
 result2 = agent.invoke(
@@ -183,7 +208,11 @@ result2 = agent.invoke(
 )
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+
+Reject tool call with feedback.
 
 ```typescript
 const result2 = await agent.invoke(
@@ -194,9 +223,13 @@ const result2 = await agent.invoke(
 );
 ```
 
-### Multiple Tools with Different Policies
+</typescript>
+</ex-reject>
 
-#### Python
+<ex-policies>
+<python>
+
+Per-tool HITL policy configuration.
 
 ```python
 agent = create_agent(
@@ -215,7 +248,11 @@ agent = create_agent(
 )
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+
+Per-tool HITL policy configuration.
 
 ```typescript
 const agent = createAgent({
@@ -234,9 +271,13 @@ const agent = createAgent({
 });
 ```
 
-### Streaming with HITL
+</typescript>
+</ex-policies>
 
-#### Python
+<ex-streaming>
+<python>
+
+Stream responses with interrupt handling.
 
 ```python
 # Stream until interrupt
@@ -264,7 +305,11 @@ for mode, chunk in agent.stream(
     pass
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+
+Stream responses with interrupt handling.
 
 ```typescript
 const config = { configurable: { thread_id: "session-4" } };
@@ -296,7 +341,13 @@ for await (const [mode, chunk] of await agent.stream(
 }
 ```
 
-### Custom Interrupt Logic (TypeScript)
+</typescript>
+</ex-streaming>
+
+<ex-custom-logic>
+<typescript>
+
+Custom middleware with conditional interrupts.
 
 ```typescript
 import { createMiddleware } from "langchain";
@@ -330,41 +381,39 @@ const customHITL = createMiddleware({
   },
 });
 ```
+</typescript>
+</ex-custom-logic>
 
-## Boundaries
-
-### What You CAN Configure
-
+<boundaries>
+What You CAN Configure:
 - **Which tools require approval**: Per-tool policies
 - **Allowed decision types**: approve, edit, reject
 - **Custom interrupt logic**: Conditional interrupts
 - **Feedback messages**: Explain rejections
 - **Modified arguments**: Edit tool parameters
 
-### What You CANNOT Configure
-
+What You CANNOT Configure:
 - **Skip checkpointer**: HITL requires persistence
 - **Interrupt after execution**: Must interrupt before
 - **Force model to not call tool**: HITL responds after model decides
 - **Modify model's decision-making**: Only tool execution
+</boundaries>
 
-## Gotchas
-
-### 1. Missing Checkpointer
-
+<fix-missing-checkpointer>
+<python>
 HITL requires a checkpointer - always add `MemorySaver()` or another persistence backend.
 
-#### Python
+Add checkpointer to enable HITL.
 
 ```python
-# ❌ Problem: No checkpointer
+# Problem: No checkpointer
 agent = create_agent(
     model="gpt-4.1",
     tools=[send_email],
     middleware=[human_in_the_loop_middleware({...})],  # Error!
 )
 
-# ✅ Solution: Always add checkpointer
+# Solution: Always add checkpointer
 from langgraph.checkpoint.memory import MemorySaver
 
 agent = create_agent(
@@ -374,18 +423,21 @@ agent = create_agent(
     middleware=[human_in_the_loop_middleware({...})],
 )
 ```
+</python>
+<typescript>
+HITL requires a checkpointer - always add `MemorySaver()` or another persistence backend.
 
-#### TypeScript
+Add checkpointer to enable HITL.
 
 ```typescript
-// ❌ Problem: No checkpointer
+// Problem: No checkpointer
 const agent = createAgent({
   model: "gpt-4.1",
   tools: [sendEmail],
   middleware: [humanInTheLoopMiddleware({...})],  // Error!
 });
 
-// ✅ Solution: Always add checkpointer
+// Solution: Always add checkpointer
 import { MemorySaver } from "@langchain/langgraph";
 
 const agent = createAgent({
@@ -395,44 +447,51 @@ const agent = createAgent({
   middleware: [humanInTheLoopMiddleware({...})],
 });
 ```
+</typescript>
+</fix-missing-checkpointer>
 
-### 2. No thread_id
-
+<fix-no-thread-id>
+<python>
 Always provide `thread_id` in config. Without it, the agent can't track state across invoke calls.
 
-#### Python
+Include thread_id in config.
 
 ```python
-# ❌ Problem: Missing thread_id
+# Problem: Missing thread_id
 agent.invoke(input)  # No config!
 
-# ✅ Solution: Always provide thread_id
+# Solution: Always provide thread_id
 agent.invoke(input, config={"configurable": {"thread_id": "user-123"}})
 ```
+</python>
+<typescript>
+Always provide `thread_id` in config. Without it, the agent can't track state across invoke calls.
 
-#### TypeScript
+Include thread_id in config.
 
 ```typescript
-// ❌ Problem: Missing thread_id
+// Problem: Missing thread_id
 await agent.invoke(input);  // No config!
 
-// ✅ Solution: Always provide thread_id
+// Solution: Always provide thread_id
 await agent.invoke(input, {
   configurable: { thread_id: "user-123" }
 });
 ```
+</typescript>
+</fix-no-thread-id>
 
-### 3. Wrong Resume Syntax
-
+<fix-wrong-resume-syntax>
+<python>
 Use `Command(resume={...})` (Python) or `new Command({ resume: {...} })` (TypeScript), not a plain dict/object.
 
-#### Python
+Use Command class to resume.
 
 ```python
-# ❌ Problem: Wrong resume format
+# Problem: Wrong resume format
 agent.invoke({"resume": {"decisions": [...]}})  # Wrong!
 
-# ✅ Solution: Use Command
+# Solution: Use Command
 from langgraph.types import Command
 
 agent.invoke(
@@ -440,16 +499,19 @@ agent.invoke(
     config=config
 )
 ```
+</python>
+<typescript>
+Use `Command(resume={...})` (Python) or `new Command({ resume: {...} })` (TypeScript), not a plain dict/object.
 
-#### TypeScript
+Use Command class to resume.
 
 ```typescript
-// ❌ Problem: Wrong resume format
+// Problem: Wrong resume format
 await agent.invoke({
   resume: { decisions: [...] }  // Wrong!
 });
 
-// ✅ Solution: Use Command
+// Solution: Use Command
 import { Command } from "@langchain/langgraph";
 
 await agent.invoke(
@@ -459,19 +521,21 @@ await agent.invoke(
   config
 );
 ```
+</typescript>
+</fix-wrong-resume-syntax>
 
-### 4. Not Checking for Interrupts
-
+<fix-not-checking-interrupts>
+<python>
 Check for `"__interrupt__"` in the result before assuming the agent completed.
 
-#### Python
+Check for interrupt before processing result.
 
 ```python
-# ❌ Problem: Not detecting interrupt
+# Problem: Not detecting interrupt
 result = agent.invoke(input, config=config)
 print(result["messages"])  # May not have completed!
 
-# ✅ Solution: Check for __interrupt__
+# Solution: Check for __interrupt__
 if "__interrupt__" in result:
     # Handle human decision
     pass
@@ -479,23 +543,28 @@ else:
     # Agent completed
     pass
 ```
+</python>
+<typescript>
+Check for `"__interrupt__"` in the result before assuming the agent completed.
 
-#### TypeScript
+Check for interrupt before processing result.
 
 ```typescript
-// ❌ Problem: Not detecting interrupt
+// Problem: Not detecting interrupt
 const result = await agent.invoke(input, config);
 console.log(result.messages);  // May not have completed!
 
-// ✅ Solution: Check for __interrupt__
+// Solution: Check for __interrupt__
 if ("__interrupt__" in result) {
   // Handle human decision
 } else {
   // Agent completed
 }
 ```
+</typescript>
+</fix-not-checking-interrupts>
 
-## Links to Documentation
-
+<links>
 - Python: [Human-in-the-Loop Guide](https://docs.langchain.com/oss/python/langchain/human-in-the-loop) | [Interrupts](https://docs.langchain.com/oss/python/langgraph/interrupts)
 - TypeScript: [Human-in-the-Loop Guide](https://docs.langchain.com/oss/javascript/langchain/human-in-the-loop) | [Interrupts](https://docs.langchain.com/oss/javascript/langgraph/interrupts)
+</links>

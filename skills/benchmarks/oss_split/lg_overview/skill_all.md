@@ -3,9 +3,7 @@ name: LangGraph Overview
 description: "[LangGraph] Understanding LangGraph: A low-level orchestration framework for building stateful, long-running agents with durable execution, streaming, and human-in-the-loop capabilities"
 ---
 
-
-## Overview
-
+<overview>
 LangGraph is a low-level orchestration framework and runtime for building, managing, and deploying long-running, stateful agents. It is trusted by companies like Klarna, Replit, and Elastic for production agent workloads.
 
 **Key Characteristics:**
@@ -13,8 +11,10 @@ LangGraph is a low-level orchestration framework and runtime for building, manag
 - **Stateful execution**: Built-in state management and persistence
 - **Production-ready**: Durable execution, streaming, human-in-the-loop, and fault-tolerance
 - **Framework agnostic**: Works standalone or with LangChain components
+</overview>
 
-### When to Use LangGraph
+<when-to-use>
+**When to Use LangGraph**
 
 LangGraph is ideal when you need:
 - Fine-grained control over agent orchestration
@@ -24,16 +24,16 @@ LangGraph is ideal when you need:
 - Human-in-the-loop workflows
 - Persistent state across multiple interactions
 
-### When NOT to Use LangGraph
+**When NOT to Use LangGraph**
 
 Consider alternatives when you:
 - Need a quick start with pre-built architectures -> Use **LangChain agents**
 - Want batteries-included features (automatic compression, virtual filesystem) -> Use **Deep Agents**
 - Have simple, stateless LLM workflows -> Use **LangChain LCEL**
 - Don't need state persistence or complex orchestration
+</when-to-use>
 
-## Decision Table: Choosing the Right Tool
-
+<decision-table>
 | Requirement | Use LangGraph | Use LangChain | Use Deep Agents |
 |------------|---------------|---------------|-----------------|
 | Quick prototyping | No | Yes | Yes |
@@ -43,10 +43,10 @@ Consider alternatives when you:
 | State persistence | Yes | No | Yes |
 | Production deployment | Yes | Use with LangGraph | Yes |
 | Learning curve | High | Low | Medium |
+</decision-table>
 
-## Key Concepts
-
-### 1. Graph-Based Execution Model
+<key-concepts>
+**1. Graph-Based Execution Model**
 
 LangGraph models agent workflows as **graphs** with three core components:
 
@@ -54,7 +54,7 @@ LangGraph models agent workflows as **graphs** with three core components:
 - **Nodes**: Functions that encode agent logic and update state
 - **Edges**: Determine which node executes next (can be conditional or fixed)
 
-### 2. Core Capabilities
+**2. Core Capabilities**
 
 | Capability | Description |
 |-----------|-------------|
@@ -64,19 +64,19 @@ LangGraph models agent workflows as **graphs** with three core components:
 | **Persistence** | Thread-level and cross-thread state management |
 | **Time Travel** | Resume from any checkpoint in execution history |
 
-### 3. Message Passing Model
+**3. Message Passing Model**
 
 Inspired by Google's Pregel system:
 - Execution proceeds in discrete "super-steps"
 - Nodes execute in parallel within a super-step
 - Sequential nodes belong to separate super-steps
 - Graph terminates when all nodes are inactive
+</key-concepts>
 
-## Code Examples
+<ex-basic-agent>
+<python>
+Tool-calling agent with routing:
 
-### Basic LangGraph Agent
-
-#### Python
 ```python
 from langchain.tools import tool
 from langchain.chat_models import init_chat_model
@@ -153,8 +153,11 @@ messages = agent.invoke({"messages": [HumanMessage(content="What is 3 * 4?")]})
 for m in messages["messages"]:
     m.pretty_print()
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Tool-calling agent with routing:
+
 ```typescript
 import { ChatAnthropic } from "@langchain/anthropic";
 import { tool } from "@langchain/core/tools";
@@ -260,10 +263,13 @@ for (const message of result.messages) {
   console.log(`[${message._getType()}]: ${message.content}`);
 }
 ```
+</typescript>
+</ex-basic-agent>
 
-### Agent with Persistence
+<ex-persistence>
+<python>
+Enable state persistence with checkpointer:
 
-#### Python
 ```python
 from langgraph.checkpoint.memory import InMemorySaver
 
@@ -294,8 +300,11 @@ agent.invoke(
     config
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Enable state persistence with checkpointer:
+
 ```typescript
 import { MemorySaver } from "@langchain/langgraph";
 
@@ -324,10 +333,13 @@ await agent.invoke(
   config
 );
 ```
+</typescript>
+</ex-persistence>
 
-### Streaming Agent Responses
+<ex-streaming>
+<python>
+Stream state updates and tokens:
 
-#### Python
 ```python
 # Stream state updates
 for chunk in agent.stream(
@@ -350,8 +362,11 @@ for mode, chunk in agent.stream(
 ):
     print(f"{mode}: {chunk}")
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Stream state updates and tokens:
+
 ```typescript
 // Stream state updates
 for await (const chunk of await agent.stream(
@@ -377,10 +392,11 @@ for await (const [mode, chunk] of await agent.stream(
   console.log(`${mode}:`, chunk);
 }
 ```
+</typescript>
+</ex-streaming>
 
-## Boundaries
-
-### What Agents CAN Configure/Control
+<boundaries>
+**What Agents CAN Configure/Control**
 
 - **Node Logic**: Define any function as a node
 - **State Schema**: Customize state structure and reducers
@@ -391,19 +407,19 @@ for await (const [mode, chunk] of await agent.stream(
 - **Recursion Limits**: Control maximum execution steps
 - **Tools and Models**: Use any LLM or tool provider
 
-### What Agents CANNOT Configure/Control
+**What Agents CANNOT Configure/Control**
 
 - **Core Graph Execution Model**: Pregel-based runtime is fixed
 - **Super-step Behavior**: Cannot change how nodes are batched
 - **Message Passing Protocol**: Internal communication is predefined
 - **Checkpoint Schema**: Internal checkpoint format is fixed
 - **Graph Compilation**: Cannot modify compilation logic
+</boundaries>
 
-## Gotchas
+<fix-thread-id-required>
+<python>
+Provide thread_id for persistence:
 
-### 1. Thread IDs are Required for Persistence
-
-#### Python
 ```python
 # WRONG - No thread_id with checkpointer
 agent.invoke({"messages": [...]})  # State not persisted!
@@ -414,8 +430,10 @@ agent.invoke(
     {"configurable": {"thread_id": "user-123"}}
 )
 ```
+</python>
+<typescript>
+Provide thread_id for persistence:
 
-#### TypeScript
 ```typescript
 // WRONG - No thread_id with checkpointer
 await agent.invoke({ messages: [...] });  // State not persisted!
@@ -426,10 +444,13 @@ await agent.invoke(
   { configurable: { thread_id: "user-123" } }
 );
 ```
+</typescript>
+</fix-thread-id-required>
 
-### 2. State Updates Require Proper Reducers
+<fix-state-reducers>
+<python>
+Use reducers for list accumulation:
 
-#### Python
 ```python
 # WRONG - Messages will be overwritten, not appended
 class State(TypedDict):
@@ -442,8 +463,10 @@ import operator
 class State(TypedDict):
     messages: Annotated[list, operator.add]  # Appends messages
 ```
+</python>
+<typescript>
+Use MessagesValue for message handling:
 
-#### TypeScript
 ```typescript
 // WRONG - Messages will be overwritten, not appended
 const BadState = new StateSchema({
@@ -457,10 +480,13 @@ const GoodState = new StateSchema({
   messages: MessagesValue,  // Handles message updates correctly
 });
 ```
+</typescript>
+</fix-state-reducers>
 
-### 3. Compile Before Using
+<fix-compile-before-using>
+<python>
+Compile graph before invoking:
 
-#### Python
 ```python
 # WRONG - StateGraph is not executable
 builder = StateGraph(State).add_node("node", func)
@@ -470,8 +496,10 @@ builder.invoke(...)  # Error!
 graph = builder.compile()
 graph.invoke(...)
 ```
+</python>
+<typescript>
+Compile graph before invoking:
 
-#### TypeScript
 ```typescript
 // WRONG - StateGraph is not executable
 const builder = new StateGraph(State).addNode("node", func);
@@ -481,10 +509,13 @@ await builder.invoke(...);  // Error!
 const graph = builder.compile();
 await graph.invoke(...);
 ```
+</typescript>
+</fix-compile-before-using>
 
-### 4. Infinite Loops Need Termination
+<fix-infinite-loops>
+<python>
+Add conditional exit to loops:
 
-#### Python
 ```python
 # WRONG - Loop without exit condition
 builder.add_edge("node_a", "node_b")
@@ -498,8 +529,10 @@ def should_continue(state):
 
 builder.add_conditional_edges("node_a", should_continue)
 ```
+</python>
+<typescript>
+Add conditional exit to loops:
 
-#### TypeScript
 ```typescript
 // WRONG - Loop without exit condition
 builder
@@ -516,8 +549,12 @@ const shouldContinue = (state) => {
 
 builder.addConditionalEdges("nodeA", shouldContinue);
 ```
+</typescript>
+</fix-infinite-loops>
 
-### 5. LangGraph vs LangChain Confusion (Python)
+<fix-langgraph-vs-langchain>
+<python>
+LangGraph for control, LangChain for simplicity:
 
 ```python
 # LangChain (high-level, quick start)
@@ -528,8 +565,12 @@ agent = create_agent(model, tools=[...])  # Simple, opinionated
 from langgraph.graph import StateGraph
 graph = StateGraph(...).add_node(...).compile()  # More code, more control
 ```
+</python>
+</fix-langgraph-vs-langchain>
 
-### 6. Async/Await Required (TypeScript)
+<fix-async-await>
+<typescript>
+Always await async invocations:
 
 ```typescript
 // WRONG - Forgetting await
@@ -540,10 +581,14 @@ console.log(result.messages);  // undefined
 const result = await agent.invoke(...);
 console.log(result.messages);  // Works!
 ```
+</typescript>
+</fix-async-await>
 
-## Installation
+<installation>
+**Python**
 
-### Python
+Install LangGraph and dependencies:
+
 ```bash
 # Python
 pip install -U langgraph
@@ -555,7 +600,10 @@ pip install -U langchain
 pip install -U langgraph-checkpoint-postgres
 ```
 
-### TypeScript
+**TypeScript**
+
+Install LangGraph and dependencies:
+
 ```bash
 # npm
 npm install @langchain/langgraph
@@ -572,10 +620,10 @@ npm install @langchain/core
 # Production persistence
 npm install @langchain/langgraph-checkpoint-postgres
 ```
+</installation>
 
-## Links
-
-### Python
+<links>
+**Python**
 - [LangGraph Overview (Python)](https://docs.langchain.com/oss/python/langgraph/overview)
 - [LangGraph Quickstart](https://docs.langchain.com/oss/python/langgraph/quickstart)
 - [Graph API Reference](https://docs.langchain.com/oss/python/langgraph/graph-api)
@@ -583,10 +631,11 @@ npm install @langchain/langgraph-checkpoint-postgres
 - [Streaming Guide](https://docs.langchain.com/oss/python/langgraph/streaming)
 - [LangGraph v1 Release Notes](https://docs.langchain.com/oss/python/releases/langgraph-v1)
 
-### TypeScript
+**TypeScript**
 - [LangGraph Overview (JavaScript)](https://docs.langchain.com/oss/javascript/langgraph/overview)
 - [LangGraph Quickstart](https://docs.langchain.com/oss/javascript/langgraph/quickstart)
 - [Graph API Reference](https://docs.langchain.com/oss/javascript/langgraph/graph-api)
 - [Persistence Guide](https://docs.langchain.com/oss/javascript/langgraph/persistence)
 - [Streaming Guide](https://docs.langchain.com/oss/javascript/langgraph/streaming)
 - [LangGraph v1 Release Notes](https://docs.langchain.com/oss/javascript/releases/langgraph-v1)
+</links>

@@ -3,46 +3,46 @@ name: LangChain RAG
 description: "[LangChain] Build Retrieval Augmented Generation (RAG) systems with LangChain - includes embeddings, vector stores, retrievers, document loaders, and text splitting"
 ---
 
-## Overview
+<oneliner>
+Build Retrieval Augmented Generation (RAG) systems with LangChain - includes embeddings, vector stores, retrievers, document loaders, and text splitting.
+</oneliner>
 
+<overview>
 Retrieval Augmented Generation (RAG) enhances LLM responses by fetching relevant context from external knowledge sources. Instead of relying solely on training data, RAG systems retrieve documents at query time and use them to ground responses.
 
-**Key Concepts:**
+Key Concepts:
 - **Document Loaders**: Ingest data from files, web, databases
 - **Text Splitters**: Break documents into chunks
 - **Embeddings**: Convert text to vectors
 - **Vector Stores**: Store and search embeddings
 - **Retrievers**: Fetch relevant documents for queries
 
-**RAG Pipeline:**
-1. **Index**: Load → Split → Embed → Store
-2. **Retrieve**: Query → Embed → Search → Return docs
-3. **Generate**: Docs + Query → LLM → Response
+RAG Pipeline:
+1. **Index**: Load -> Split -> Embed -> Store
+2. **Retrieve**: Query -> Embed -> Search -> Return docs
+3. **Generate**: Docs + Query -> LLM -> Response
+</overview>
 
-## Decision Tables
-
-### Vector Store Selection
-
+<vector-store-selection>
 | Store | When to Use | Why |
 |-------|-------------|-----|
 | InMemory/MemoryVectorStore | Development, testing | In-memory, fast, ephemeral |
 | Chroma | Local production | Persistent, open-source |
 | Pinecone | Cloud, scale | Managed, fast, scalable |
 | Faiss | High performance | Fast similarity search |
+</vector-store-selection>
 
-### Embedding Model Selection
-
+<embedding-model-selection>
 | Model | When to Use | Dimension |
 |-------|-------------|-----------|
 | text-embedding-3-small | Cost-effective | 1536 |
 | text-embedding-3-large | Best quality | 3072 |
 | text-embedding-ada-002 | Legacy | 1536 |
+</embedding-model-selection>
 
-## Code Examples
-
-### Basic RAG Setup
-
-#### Python
+<ex-basic-rag>
+<python>
+Complete RAG pipeline:
 
 ```python
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
@@ -79,8 +79,10 @@ response = model.invoke([
 ])
 print(response.content)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Complete RAG pipeline:
 
 ```typescript
 import { ChatOpenAI, OpenAIEmbeddings } from "@langchain/openai";
@@ -116,10 +118,12 @@ const response = await model.invoke([
 ]);
 console.log(response.content);
 ```
+</typescript>
+</ex-basic-rag>
 
-### Loading Web Pages
-
-#### Python
+<ex-web-loader>
+<python>
+Load documents from a URL:
 
 ```python
 from langchain_community.document_loaders import WebBaseLoader
@@ -128,8 +132,10 @@ loader = WebBaseLoader("https://docs.langchain.com/oss/python/langchain/agents")
 docs = loader.load()
 print(f"Loaded {len(docs)} documents")
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Load documents from a URL:
 
 ```typescript
 import { CheerioWebBaseLoader } from "@langchain/community/document_loaders/web/cheerio";
@@ -138,10 +144,12 @@ const loader = new CheerioWebBaseLoader("https://docs.langchain.com/oss/javascri
 const docs = await loader.load();
 console.log(`Loaded ${docs.length} documents`);
 ```
+</typescript>
+</ex-web-loader>
 
-### Loading PDF Files
-
-#### Python
+<ex-pdf-loader>
+<python>
+Load documents from PDF:
 
 ```python
 from langchain_community.document_loaders import PyPDFLoader
@@ -149,8 +157,10 @@ from langchain_community.document_loaders import PyPDFLoader
 loader = PyPDFLoader("./document.pdf")
 docs = loader.load()
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Load documents from PDF:
 
 ```typescript
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
@@ -158,10 +168,12 @@ import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 const loader = new PDFLoader("./document.pdf");
 const docs = await loader.load();
 ```
+</typescript>
+</ex-pdf-loader>
 
-### Advanced Text Splitting
-
-#### Python
+<ex-text-split>
+<python>
+Split documents into chunks:
 
 ```python
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -173,8 +185,10 @@ splitter = RecursiveCharacterTextSplitter(
 )
 splits = splitter.split_documents(docs)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Split documents into chunks:
 
 ```typescript
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
@@ -186,10 +200,12 @@ const splitter = new RecursiveCharacterTextSplitter({
 });
 const splits = await splitter.splitDocuments(docs);
 ```
+</typescript>
+</ex-text-split>
 
-### Using Chroma (Persistent)
-
-#### Python
+<ex-chroma>
+<python>
+Persistent vector store with Chroma:
 
 ```python
 from langchain_community.vectorstores import Chroma
@@ -212,8 +228,10 @@ vectorstore2 = Chroma(
     persist_directory="./chroma_db",
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Persistent vector store with Chroma:
 
 ```typescript
 import { Chroma } from "@langchain/community/vectorstores/chroma";
@@ -227,10 +245,12 @@ const vectorStore = await Chroma.fromDocuments(splits, embeddings, { collectionN
 // Later: Load existing
 const vectorStore2 = await Chroma.fromExistingCollection(embeddings, { collectionName: "my-docs" });
 ```
+</typescript>
+</ex-chroma>
 
-### Advanced Retrieval
-
-#### Python
+<ex-retrieval>
+<python>
+Similarity search and MMR retrieval:
 
 ```python
 # Similarity search with scores
@@ -244,8 +264,10 @@ retriever = vectorstore.as_retriever(
     search_kwargs={"fetch_k": 20, "lambda_mult": 0.5, "k": 5},
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Similarity search and MMR retrieval:
 
 ```typescript
 // Similarity search with scores
@@ -261,10 +283,12 @@ const retriever = vectorStore.asRetriever({
   k: 5,
 });
 ```
+</typescript>
+</ex-retrieval>
 
-### Metadata Filtering
-
-#### Python
+<ex-metadata>
+<python>
+Filter search by metadata:
 
 ```python
 from langchain.schema import Document
@@ -277,8 +301,10 @@ docs = [
 # Search with filter
 results = vectorstore.similarity_search("programming", k=5, filter={"language": "python"})
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Filter search by metadata:
 
 ```typescript
 const docs = [
@@ -289,10 +315,12 @@ const docs = [
 // Search with filter
 const results = await vectorStore.similaritySearch("programming", 5, { language: "python" });
 ```
+</typescript>
+</ex-metadata>
 
-### Using FAISS for Performance
-
-#### Python
+<ex-faiss>
+<python>
+High-performance FAISS vector store:
 
 ```python
 from langchain_community.vectorstores import FAISS
@@ -305,10 +333,12 @@ vectorstore = FAISS.from_documents(splits, embeddings)
 vectorstore.save_local("faiss_index")
 vectorstore2 = FAISS.load_local("faiss_index", embeddings)
 ```
+</python>
+</ex-faiss>
 
-### RAG with Agent
-
-#### Python
+<ex-agent>
+<python>
+RAG-enabled agent with retriever tool:
 
 ```python
 from langchain.agents import create_agent
@@ -329,8 +359,10 @@ result = agent.invoke({
     "messages": [{"role": "user", "content": "How do I create an agent?"}]
 })
 ```
+</python>
 
-#### TypeScript
+<typescript>
+RAG-enabled agent with retriever tool:
 
 ```typescript
 import { createAgent, tool } from "langchain";
@@ -357,10 +389,12 @@ const result = await agent.invoke({
   messages: [{ role: "user", content: "How do I create an agent?" }],
 });
 ```
+</typescript>
+</ex-agent>
 
-### Customizing Embeddings
-
-#### Python
+<ex-embeddings>
+<python>
+Configure embedding models:
 
 ```python
 from langchain_openai import OpenAIEmbeddings
@@ -375,8 +409,10 @@ custom_embeddings = OpenAIEmbeddings(
     dimensions=1024  # Reduce from 3072 to save space
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Configure embedding models:
 
 ```typescript
 import { OpenAIEmbeddings } from "@langchain/openai";
@@ -391,10 +427,12 @@ const customEmbeddings = new OpenAIEmbeddings({
   dimensions: 1024,  // Reduce from 3072 to save space
 });
 ```
+</typescript>
+</ex-embeddings>
 
-### Hybrid Search (Keywords + Semantic)
-
-#### TypeScript
+<ex-hybrid>
+<typescript>
+Combine keyword and vector search:
 
 ```typescript
 // Combine keyword and vector search
@@ -416,28 +454,28 @@ async function hybridSearch(query: string, k: number = 5) {
   return unique.slice(0, k);
 }
 ```
+</typescript>
+</ex-hybrid>
 
-## Boundaries
-
-### What You CAN Configure
-
+<boundaries>
+What You CAN Configure:
 - **Chunk size/overlap**: Control document splitting
 - **Embedding model**: Choose quality vs cost
 - **Number of results**: Top-k retrieval
 - **Metadata filters**: Filter by document properties
 - **Search algorithms**: Similarity, MMR, hybrid
 
-### What You CANNOT Configure
-
+What You CANNOT Configure:
 - **Embedding dimensions** (per model): Fixed by model
 - **Perfect retrieval**: Semantic search has limits
 - **Real-time document updates**: Re-indexing needed
+</boundaries>
 
-## Gotchas
+<fix-split-documents>
+<python>
+Large documents exceed embedding limits. Always split first:
 
-### 1. Forgetting to Split Documents
-
-#### Python
+Split before adding to vector store:
 
 ```python
 # BAD: Entire documents are too large
@@ -447,8 +485,11 @@ vectorstore.add_documents(large_docs)
 splits = splitter.split_documents(large_docs)
 vectorstore.add_documents(splits)
 ```
+</python>
+<typescript>
+Large documents exceed embedding limits. Always split first:
 
-#### TypeScript
+Split before adding to vector store:
 
 ```typescript
 // BAD: Entire documents are too large
@@ -458,8 +499,14 @@ await vectorStore.addDocuments(largeDocs);
 const splits = await splitter.splitDocuments(largeDocs);
 await vectorStore.addDocuments(splits);
 ```
+</typescript>
+</fix-split-documents>
 
-### 2. Chunk Size Too Small/Large
+<fix-chunk-size>
+<python>
+Too small loses context, too large hits limits. Use 500-1500 characters:
+
+Optimal chunk size configuration:
 
 ```python
 # BAD: Too small - loses context
@@ -471,18 +518,42 @@ splitter = RecursiveCharacterTextSplitter(chunk_size=10000)
 # GOOD: Balance (500-1500 typically)
 splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
 ```
+</python>
+<typescript>
+Too small loses context, too large hits limits. Use 500-1500 characters:
 
-### 3. No Overlap Between Chunks
+Optimal chunk size configuration:
 
+```typescript
+// BAD: Too small - loses context
+const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 50 });
+
+// BAD: Too large - hits limits
+const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 10000 });
+
+// GOOD: Balance (500-1500 typically)
+const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 1000, chunkOverlap: 200 });
+```
+</typescript>
+</fix-chunk-size>
+
+<fix-chunk-overlap>
+<python>
 Use 10-20% overlap of chunk size to maintain context across boundaries.
+</python>
+</fix-chunk-overlap>
 
-### 4. Not Persisting Vector Store
-
+<fix-persist-vectorstore>
+<python>
 Use Chroma or FAISS with persistence for production - InMemory/MemoryVectorStore is lost on restart.
+</python>
+</fix-persist-vectorstore>
 
-### 5. Mixing Embedding Models
+<fix-consistent-embeddings>
+<python>
+Never mix embedding models between indexing and querying:
 
-#### Python
+Same model for indexing and querying:
 
 ```python
 # BAD: Different embeddings for index and query
@@ -495,8 +566,27 @@ embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 vectorstore = Chroma.from_documents(docs, embeddings)
 retriever = vectorstore.as_retriever()  # Uses same embeddings
 ```
+</python>
+<typescript>
+Never mix embedding models between indexing and querying:
 
-## Links to Documentation
+Same model for indexing and querying:
 
+```typescript
+// BAD: Different embeddings for index and query
+const vectorStore = await Chroma.fromDocuments(docs, new OpenAIEmbeddings({ model: "text-embedding-3-small" }));
+// Later with different model - incompatible!
+const retriever = vectorStore.asRetriever({ embeddings: new OpenAIEmbeddings({ model: "text-embedding-3-large" }) });
+
+// GOOD: Use same embedding model
+const embeddings = new OpenAIEmbeddings({ model: "text-embedding-3-small" });
+const vectorStore = await Chroma.fromDocuments(docs, embeddings);
+const retriever = vectorStore.asRetriever();  // Uses same embeddings
+```
+</typescript>
+</fix-consistent-embeddings>
+
+<documentation-links>
 - Python: [RAG Tutorial](https://docs.langchain.com/oss/python/langchain/rag) | [Document Loaders](https://docs.langchain.com/oss/python/integrations/document_loaders/index) | [Vector Stores](https://docs.langchain.com/oss/python/integrations/vectorstores/index)
 - TypeScript: [RAG Tutorial](https://docs.langchain.com/oss/javascript/langchain/rag) | [Document Loaders](https://docs.langchain.com/oss/javascript/integrations/document_loaders/index) | [Vector Stores](https://docs.langchain.com/oss/javascript/integrations/vectorstores/index)
+</documentation-links>

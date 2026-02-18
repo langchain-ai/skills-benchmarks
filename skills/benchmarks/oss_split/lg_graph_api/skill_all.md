@@ -3,9 +3,7 @@ name: LangGraph Graph API
 description: [LangGraph] Building graphs with StateGraph, nodes, edges, START/END nodes, and the Command API for combining control flow with state updates
 ---
 
-
-## Overview
-
+<overview>
 The LangGraph Graph API allows you to define agent workflows as directed graphs composed of **nodes** (functions) and **edges** (control flow). This provides fine-grained control over agent orchestration.
 
 **Core Components:**
@@ -14,19 +12,19 @@ The LangGraph Graph API allows you to define agent workflows as directed graphs 
 - **Edges**: Define execution order (static or conditional)
 - **START/END**: Special nodes marking graph entry and exit points
 - **Command**: Combine state updates with dynamic routing
+</overview>
 
-## Decision Table: Edge Types
-
+<decision-table>
 | Need | Edge Type | When to Use |
 |------|-----------|-------------|
 | Always go to same node | `add_edge()` / `addEdge()` | Fixed, deterministic flow |
 | Route based on state | `add_conditional_edges()` / `addConditionalEdges()` | Dynamic branching logic |
 | Fan-out to multiple nodes | `Send` API | Map-reduce, parallel execution |
 | Update state AND route | `Command` | Combine logic in single node |
+</decision-table>
 
-## Key Concepts
-
-### 1. Graph Execution Model
+<key-concepts>
+**1. Graph Execution Model**
 
 LangGraph uses a **message-passing** model inspired by Google's Pregel:
 - Execution proceeds in **super-steps** (discrete iterations)
@@ -34,29 +32,35 @@ LangGraph uses a **message-passing** model inspired by Google's Pregel:
 - Sequential nodes belong to separate super-steps
 - Graph ends when all nodes are inactive and no messages in transit
 
-### 2. Nodes
+**2. Nodes**
 
 **Nodes** are functions that:
 - Receive the current state as input
 - Perform computation or side effects
 - Return state updates (partial or full)
 
-#### Python
+<python>
+Simple node returning state update:
+
 ```python
 def my_node(state: State) -> dict:
     """Nodes are just functions!"""
     return {"key": "updated_value"}
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Async node returning state update:
+
 ```typescript
 const myNode = async (state: State): Promise<Partial<State>> => {
   // Nodes are just async functions!
   return { key: "updated_value" };
 };
 ```
+</typescript>
 
-### 3. Edges
+**3. Edges**
 
 | Edge Type | Description | Python Example | TypeScript Example |
 |-----------|-------------|----------------|-------------------|
@@ -65,16 +69,16 @@ const myNode = async (state: State): Promise<Partial<State>> => {
 | **Dynamic (Send)** | Fan-out to multiple nodes | `Send("worker", {...})` | `new Send("worker", {...})` |
 | **Command** | State update + routing | `return Command(goto="B")` | `new Command({ goto: "B" })` |
 
-### 4. Special Nodes
+**4. Special Nodes**
 
 - **START**: Entry point of the graph (virtual node)
 - **END**: Terminal node (graph halts)
+</key-concepts>
 
-## Code Examples
+<ex-basic>
+<python>
+Basic graph with static edges:
 
-### Basic Graph with Static Edges
-
-#### Python
 ```python
 from langgraph.graph import StateGraph, START, END
 from typing_extensions import TypedDict
@@ -106,8 +110,11 @@ graph = (
 result = graph.invoke({"input": "hello"})
 print(result["output"])  # "PROCESSED: HELLO"
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Basic graph with static edges:
+
 ```typescript
 import { StateGraph, StateSchema, START, END } from "@langchain/langgraph";
 import { z } from "zod";
@@ -140,10 +147,13 @@ const graph = new StateGraph(State)
 const result = await graph.invoke({ input: "hello" });
 console.log(result.output);  // "PROCESSED: HELLO"
 ```
+</typescript>
+</ex-basic>
 
-### Conditional Edges (Branching)
+<ex-conditional>
+<python>
+Router with conditional branching:
 
-#### Python
 ```python
 from typing import Literal
 from langgraph.graph import StateGraph, START, END
@@ -188,8 +198,11 @@ graph = (
 
 result = graph.invoke({"query": "What's the weather?"})
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Router with conditional branching:
+
 ```typescript
 import { StateGraph, StateSchema, ConditionalEdgeRouter, START, END } from "@langchain/langgraph";
 import { z } from "zod";
@@ -237,10 +250,13 @@ const graph = new StateGraph(State)
 
 const result = await graph.invoke({ query: "What's the weather?" });
 ```
+</typescript>
+</ex-conditional>
 
-### Using Command for State + Routing
+<ex-command>
+<python>
+Command combining state and routing:
 
-#### Python
 ```python
 from langgraph.types import Command
 from typing import Literal
@@ -289,8 +305,11 @@ print(result["result"])  # "B executed, count=1"
 result = graph.invoke({"count": 5})
 print(result["result"])  # "C executed, count=6"
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Command combining state and routing:
+
 ```typescript
 import { StateGraph, StateSchema, Command, START, END } from "@langchain/langgraph";
 import { z } from "zod";
@@ -341,10 +360,13 @@ console.log(result1.result);  // "B executed, count=1"
 const result2 = await graph.invoke({ count: 5 });
 console.log(result2.result);  // "C executed, count=6"
 ```
+</typescript>
+</ex-command>
 
-### Map-Reduce with Send API
+<ex-map-reduce>
+<python>
+Fan-out with Send API:
 
-#### Python
 ```python
 from langgraph.types import Send
 from typing import Annotated
@@ -383,8 +405,11 @@ graph = (
 result = graph.invoke({"items": ["A", "B", "C"]})
 print(result["final"])  # "Processed: A, Processed: B, Processed: C"
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Fan-out with Send API:
+
 ```typescript
 import { StateGraph, StateSchema, Send, ReducedValue, START, END } from "@langchain/langgraph";
 import { z } from "zod";
@@ -426,10 +451,13 @@ const graph = new StateGraph(State)
 const result = await graph.invoke({ items: ["A", "B", "C"] });
 console.log(result.final);  // "Processed: A, Processed: B, Processed: C"
 ```
+</typescript>
+</ex-map-reduce>
 
-### Graph with Loops
+<ex-loops>
+<python>
+Loop with conditional exit:
 
-#### Python
 ```python
 from langgraph.graph import StateGraph, START, END
 
@@ -457,8 +485,11 @@ graph = (
 result = graph.invoke({"count": 0, "max_iterations": 5})
 print(result["count"])  # 5
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Loop with conditional exit:
+
 ```typescript
 import { StateGraph, StateSchema, ConditionalEdgeRouter, START, END } from "@langchain/langgraph";
 import { z } from "zod";
@@ -488,10 +519,13 @@ const graph = new StateGraph(State)
 const result = await graph.invoke({ count: 0, maxIterations: 5 });
 console.log(result.count);  // 5
 ```
+</typescript>
+</ex-loops>
 
-### Compiling with Options
+<ex-compile>
+<python>
+Compile with checkpointer and breakpoints:
 
-#### Python
 ```python
 from langgraph.checkpoint.memory import InMemorySaver
 
@@ -509,8 +543,11 @@ graph = (
     )
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Compile with checkpointer and breakpoints:
+
 ```typescript
 import { MemorySaver } from "@langchain/langgraph";
 
@@ -526,10 +563,11 @@ const graph = new StateGraph(State)
     interruptAfter: ["nodeA"],       // Breakpoint after node
   });
 ```
+</typescript>
+</ex-compile>
 
-## Boundaries
-
-### What Agents CAN Configure
+<boundaries>
+**What Agents CAN Configure**
 
 - Define custom nodes (any function)
 - Add static edges between nodes
@@ -541,19 +579,19 @@ const graph = new StateGraph(State)
 - Customize state schema
 - Specify checkpointer for persistence
 
-### What Agents CANNOT Configure
+**What Agents CANNOT Configure**
 
 - Modify START/END node behavior
 - Change super-step execution model
 - Alter message-passing protocol
 - Override graph compilation logic
 - Bypass state update mechanism
+</boundaries>
 
-## Gotchas
+<fix-compile-before-invoke>
+<python>
+Compile before invoking graph:
 
-### 1. Must Compile Before Execution
-
-#### Python
 ```python
 # WRONG
 builder = StateGraph(State).add_node("node", func)
@@ -563,8 +601,10 @@ builder.invoke({"input": "test"})  # AttributeError!
 graph = builder.compile()
 graph.invoke({"input": "test"})
 ```
+</python>
+<typescript>
+Compile before invoking graph:
 
-#### TypeScript
 ```typescript
 // WRONG
 const builder = new StateGraph(State).addNode("node", func);
@@ -574,10 +614,13 @@ await builder.invoke({ input: "test" });  // Error!
 const graph = builder.compile();
 await graph.invoke({ input: "test" });
 ```
+</typescript>
+</fix-compile-before-invoke>
 
-### 2. Conditional Edge Destinations Must Exist
+<fix-conditional-edge-destinations>
+<python>
+Add nodes before routing to them:
 
-#### Python
 ```python
 # WRONG - "missing_node" not added to graph
 def router(state):
@@ -589,8 +632,10 @@ builder.add_conditional_edges("node_a", router, ["missing_node"])
 builder.add_node("missing_node", func)
 builder.add_conditional_edges("node_a", router, ["missing_node"])
 ```
+</python>
+<typescript>
+Add nodes before routing to them:
 
-#### TypeScript
 ```typescript
 // WRONG - "missingNode" not added to graph
 const router = (state) => "missingNode";
@@ -601,10 +646,13 @@ builder.addConditionalEdges("nodeA", router, ["missingNode"]);
 builder.addNode("missingNode", func);
 builder.addConditionalEdges("nodeA", router, ["missingNode"]);
 ```
+</typescript>
+</fix-conditional-edge-destinations>
 
-### 3. Command Requires Type Annotation / ends Parameter
+<fix-command-type-annotation>
+<python>
+Specify destinations in type hint:
 
-#### Python
 ```python
 # WRONG - No type hint for routing
 def node_a(state) -> Command:
@@ -616,8 +664,10 @@ from typing import Literal
 def node_a(state) -> Command[Literal["node_b", "node_c"]]:
     return Command(goto="node_b")
 ```
+</python>
+<typescript>
+Specify destinations with ends option:
 
-#### TypeScript
 ```typescript
 // WRONG - No ends specified
 const nodeA = async (state) => {
@@ -629,10 +679,13 @@ builder.addNode("nodeA", nodeA);  // Error when using Command!
 // CORRECT - Specify possible destinations
 builder.addNode("nodeA", nodeA, { ends: ["nodeB", "nodeC"] });
 ```
+</typescript>
+</fix-command-type-annotation>
 
-### 4. Loops Need Exit Condition
+<fix-loop-exit-condition>
+<python>
+Add exit condition to loops:
 
-#### Python
 ```python
 # WRONG - Infinite loop
 builder.add_edge("node_a", "node_b")
@@ -646,8 +699,10 @@ def should_continue(state):
 
 builder.add_conditional_edges("node_a", should_continue)
 ```
+</python>
+<typescript>
+Add exit condition to loops:
 
-#### TypeScript
 ```typescript
 // WRONG - Infinite loop
 builder
@@ -662,10 +717,13 @@ const shouldContinue = (state) => {
 
 builder.addConditionalEdges("nodeA", shouldContinue, ["nodeB", END]);
 ```
+</typescript>
+</fix-loop-exit-condition>
 
-### 5. Send API Requires Accumulator/Reducer
+<fix-send-api-reducer>
+<python>
+Use reducer for parallel results:
 
-#### Python
 ```python
 # WRONG - Results will be overwritten
 class State(TypedDict):
@@ -678,8 +736,10 @@ import operator
 class State(TypedDict):
     results: Annotated[list, operator.add]  # Accumulates results
 ```
+</python>
+<typescript>
+Use ReducedValue for parallel results:
 
-#### TypeScript
 ```typescript
 // WRONG - Results will be overwritten
 const State = new StateSchema({
@@ -696,10 +756,13 @@ const State = new StateSchema({
   ),
 });
 ```
+</typescript>
+</fix-send-api-reducer>
 
-### 6. START is Virtual, Cannot Be a Destination
+<fix-start-not-destination>
+<python>
+Use named entry node instead:
 
-#### Python
 ```python
 # WRONG - Cannot route back to START
 builder.add_edge("node_a", START)  # Error!
@@ -709,8 +772,10 @@ builder.add_node("entry", entry_func)
 builder.add_edge(START, "entry")
 builder.add_edge("node_a", "entry")  # OK
 ```
+</python>
+<typescript>
+Use named entry node instead:
 
-#### TypeScript
 ```typescript
 // WRONG - Cannot route back to START
 builder.addEdge("nodeA", START);  // Error!
@@ -720,8 +785,12 @@ builder.addNode("entry", entryFunc);
 builder.addEdge(START, "entry");
 builder.addEdge("nodeA", "entry");  // OK
 ```
+</typescript>
+</fix-start-not-destination>
 
-### 7. Always Use Await (TypeScript)
+<fix-await-invoke>
+<typescript>
+Await async graph invocations:
 
 ```typescript
 // WRONG - Forgetting await
@@ -732,19 +801,21 @@ console.log(result.output);  // undefined (Promise!)
 const result = await graph.invoke({ input: "test" });
 console.log(result.output);  // Works!
 ```
+</typescript>
+</fix-await-invoke>
 
-## Links
-
-### Python
+<links>
+**Python**
 - [Graph API Reference (Python)](https://docs.langchain.com/oss/python/langgraph/graph-api)
 - [Using the Graph API](https://docs.langchain.com/oss/python/langgraph/use-graph-api)
 - [Command Documentation](https://docs.langchain.com/oss/python/langgraph/use-graph-api#combine-control-flow-and-state-updates-with-command)
 - [Send API Guide](https://docs.langchain.com/oss/python/langgraph/use-graph-api#map-reduce-and-the-send-api)
 - [Conditional Branching](https://docs.langchain.com/oss/python/langgraph/use-graph-api#conditional-branching)
 
-### TypeScript
+**TypeScript**
 - [Graph API Reference (JavaScript)](https://docs.langchain.com/oss/javascript/langgraph/graph-api)
 - [Using the Graph API](https://docs.langchain.com/oss/javascript/langgraph/use-graph-api)
 - [Command Documentation](https://docs.langchain.com/oss/javascript/langgraph/use-graph-api#combine-control-flow-and-state-updates-with-command)
 - [Send API Guide](https://docs.langchain.com/oss/javascript/langgraph/use-graph-api#map-reduce-and-the-send-api)
 - [Conditional Branching](https://docs.langchain.com/oss/javascript/langgraph/use-graph-api#create-and-control-loops)
+</links>

@@ -3,30 +3,28 @@ name: LangGraph Persistence
 description: "[LangGraph] Implementing persistence and checkpointing in LangGraph: saving state, resuming execution, thread IDs, and checkpointer libraries"
 ---
 
-
-## Overview
-
+<overview>
 LangGraph's persistence layer enables durable execution by checkpointing graph state at every super-step. This unlocks human-in-the-loop, memory, time travel, and fault-tolerance capabilities.
 
 **Key Components:**
 - **Checkpointer**: Saves/loads graph state
 - **Thread ID**: Identifier for checkpoint sequences
 - **Checkpoints**: Snapshots of state at each step
+</overview>
 
-## Decision Table: Checkpointer Selection
-
+<decision-table>
 | Checkpointer | Use Case | Persistence | Production Ready |
 |--------------|----------|-------------|------------------|
 | `InMemorySaver` / `MemorySaver` | Testing, development | In-memory only | No |
 | `SqliteSaver` | Local development | SQLite file | Single-user only |
 | `PostgresSaver` | Production | PostgreSQL | Yes |
 | `AsyncPostgresSaver` (Python) | Async production | PostgreSQL | Yes |
+</decision-table>
 
-## Code Examples
+<ex-basic>
+<python>
+In-memory checkpointer for development:
 
-### Basic Persistence with InMemorySaver / MemorySaver
-
-#### Python
 ```python
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import StateGraph, START, END
@@ -60,8 +58,11 @@ print(len(result1["messages"]))  # 2
 result2 = graph.invoke({"messages": ["How are you?"]}, config)
 print(len(result2["messages"]))  # 4 (previous + new)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+In-memory checkpointer for development:
+
 ```typescript
 import { MemorySaver, StateGraph, StateSchema, START, END } from "@langchain/langgraph";
 import { z } from "zod";
@@ -93,10 +94,13 @@ console.log(result1.messages.length);  // 2
 const result2 = await graph.invoke({ messages: ["How are you?"] }, config);
 console.log(result2.messages.length);  // 4 (previous + new)
 ```
+</typescript>
+</ex-basic>
 
-### SQLite Persistence
+<ex-sqlite>
+<python>
+File-based persistence for local development:
 
-#### Python
 ```python
 from langgraph.checkpoint.sqlite import SqliteSaver
 
@@ -115,8 +119,11 @@ graph = (
 config = {"configurable": {"thread_id": "user-123"}}
 result = graph.invoke({"data": "test"}, config)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+File-based persistence for local development:
+
 ```typescript
 import { SqliteSaver } from "@langchain/langgraph-checkpoint-sqlite";
 
@@ -133,10 +140,13 @@ const graph = new StateGraph(State)
 const config = { configurable: { thread_id: "user-123" } };
 const result = await graph.invoke({ data: "test" }, config);
 ```
+</typescript>
+</ex-sqlite>
 
-### PostgreSQL Persistence
+<ex-postgres>
+<python>
+Production-ready async persistence:
 
-#### Python
 ```python
 from langgraph.checkpoint.postgres import AsyncPostgresSaver
 
@@ -156,8 +166,11 @@ async def main():
         config = {"configurable": {"thread_id": "thread-1"}}
         result = await graph.ainvoke({"data": "test"}, config)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Production-ready persistence:
+
 ```typescript
 import { PostgresSaver } from "@langchain/langgraph-checkpoint-postgres";
 
@@ -175,10 +188,13 @@ const graph = new StateGraph(State)
 const config = { configurable: { thread_id: "thread-1" } };
 const result = await graph.invoke({ data: "test" }, config);
 ```
+</typescript>
+</ex-postgres>
 
-### Retrieving State
+<ex-get-state>
+<python>
+Get current state and history:
 
-#### Python
 ```python
 # Get current state
 config = {"configurable": {"thread_id": "conversation-1"}}
@@ -190,8 +206,11 @@ print(current_state.next)    # Next nodes to execute
 for state in graph.get_state_history(config):
     print(f"Step: {state.values}")
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Get current state and history:
+
 ```typescript
 // Get current state
 const config = { configurable: { thread_id: "conversation-1" } };
@@ -205,10 +224,13 @@ for await (const state of history) {
   console.log("Step:", state.values);
 }
 ```
+</typescript>
+</ex-get-state>
 
-### Resuming from Checkpoint
+<ex-resume>
+<python>
+Resume from breakpoint with checkpointer:
 
-#### Python
 ```python
 from langgraph.checkpoint.memory import InMemorySaver
 
@@ -241,8 +263,11 @@ result = graph.invoke({"data": "start"}, config)
 # Resume execution
 result = graph.invoke(None, config)  # None continues from checkpoint
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Resume from breakpoint with checkpointer:
+
 ```typescript
 import { MemorySaver, StateGraph, START, END } from "@langchain/langgraph";
 
@@ -270,10 +295,13 @@ await graph.invoke({ data: "start" }, config);
 // Resume execution
 await graph.invoke(null, config);  // null continues from checkpoint
 ```
+</typescript>
+</ex-resume>
 
-### Update State
+<ex-update-state>
+<python>
+Modify state before resuming:
 
-#### Python
 ```python
 # Modify state before resuming
 config = {"configurable": {"thread_id": "1"}}
@@ -287,8 +315,11 @@ graph.update_state(
 # Resume with updated state
 result = graph.invoke(None, config)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Modify state before resuming:
+
 ```typescript
 // Modify state before resuming
 const config = { configurable: { thread_id: "1" } };
@@ -299,10 +330,13 @@ await graph.updateState(config, { data: "manually_updated" });
 // Resume with updated state
 await graph.invoke(null, config);
 ```
+</typescript>
+</ex-update-state>
 
-### Thread Management
+<ex-threads>
+<python>
+Isolated state per thread:
 
-#### Python
 ```python
 # Different threads maintain separate state
 thread1_config = {"configurable": {"thread_id": "user-alice"}}
@@ -316,8 +350,11 @@ graph.invoke({"messages": ["Hi from Bob"]}, thread2_config)
 
 # Alice's state is isolated from Bob's
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Isolated state per thread:
+
 ```typescript
 // Different threads maintain separate state
 const thread1Config = { configurable: { thread_id: "user-alice" } };
@@ -331,10 +368,13 @@ await graph.invoke({ messages: ["Hi from Bob"] }, thread2Config);
 
 // Alice's state is isolated from Bob's
 ```
+</typescript>
+</ex-threads>
 
-### Checkpointer in Subgraphs
+<ex-subgraphs>
+<python>
+Parent checkpointer propagates to subgraphs:
 
-#### Python
 ```python
 from langgraph.graph import StateGraph, START
 
@@ -359,8 +399,11 @@ parent = (
     .compile(checkpointer=checkpointer)  # Propagates to subgraph
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Parent checkpointer propagates to subgraphs:
+
 ```typescript
 import { MemorySaver, StateGraph, START } from "@langchain/langgraph";
 
@@ -380,10 +423,11 @@ const parent = new StateGraph(State)
   .addEdge(START, "subgraph")
   .compile({ checkpointer });  // Propagates to subgraph
 ```
+</typescript>
+</ex-subgraphs>
 
-## Boundaries
-
-### What You CAN Configure
+<boundaries>
+**What You CAN Configure**
 
 - Choose checkpointer implementation
 - Specify thread IDs
@@ -393,17 +437,17 @@ const parent = new StateGraph(State)
 - Access state history
 - Resume from any checkpoint
 
-### What You CANNOT Configure
+**What You CANNOT Configure**
 
 - Checkpoint format/schema (internal)
 - Checkpoint timing (every super-step)
 - Thread ID structure (arbitrary strings only)
+</boundaries>
 
-## Gotchas
+<fix-thread-id-required>
+<python>
+Provide thread_id for persistence:
 
-### 1. Thread ID Required for Persistence
-
-#### Python
 ```python
 # WRONG - No thread_id, state not saved
 graph.invoke({"data": "test"})  # Lost after execution!
@@ -412,8 +456,11 @@ graph.invoke({"data": "test"})  # Lost after execution!
 config = {"configurable": {"thread_id": "session-1"}}
 graph.invoke({"data": "test"}, config)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Provide thread_id for persistence:
+
 ```typescript
 // WRONG - No thread_id, state not saved
 await graph.invoke({ data: "test" });  // Lost after execution!
@@ -422,10 +469,13 @@ await graph.invoke({ data: "test" });  // Lost after execution!
 const config = { configurable: { thread_id: "session-1" } };
 await graph.invoke({ data: "test" }, config);
 ```
+</typescript>
+</fix-thread-id-required>
 
-### 2. InMemorySaver / MemorySaver Not for Production
+<fix-memory-saver-not-for-production>
+<python>
+Use persistent storage in production:
 
-#### Python
 ```python
 # WRONG - Data lost on restart
 checkpointer = InMemorySaver()  # In-memory only!
@@ -434,8 +484,11 @@ checkpointer = InMemorySaver()  # In-memory only!
 from langgraph.checkpoint.postgres import PostgresSaver
 checkpointer = PostgresSaver.from_conn_string("postgresql://...")
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Use persistent storage in production:
+
 ```typescript
 // WRONG - Data lost on restart
 const checkpointer = new MemorySaver();  // In-memory only!
@@ -444,10 +497,13 @@ const checkpointer = new MemorySaver();  // In-memory only!
 import { PostgresSaver } from "@langchain/langgraph-checkpoint-postgres";
 const checkpointer = await PostgresSaver.fromConnString("postgresql://...");
 ```
+</typescript>
+</fix-memory-saver-not-for-production>
 
-### 3. Resuming Requires None/null Input
+<fix-resume-requires-null>
+<python>
+Use None to resume from checkpoint:
 
-#### Python
 ```python
 # WRONG - Providing input restarts
 graph.invoke({"new": "data"}, config)  # Restarts from beginning
@@ -455,8 +511,11 @@ graph.invoke({"new": "data"}, config)  # Restarts from beginning
 # CORRECT - Use None to resume
 graph.invoke(None, config)  # Resumes from checkpoint
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Use null to resume from checkpoint:
+
 ```typescript
 // WRONG - Providing input restarts
 await graph.invoke({ new: "data" }, config);  // Restarts from beginning
@@ -464,8 +523,12 @@ await graph.invoke({ new: "data" }, config);  // Restarts from beginning
 // CORRECT - Use null to resume
 await graph.invoke(null, config);  // Resumes from checkpoint
 ```
+</typescript>
+</fix-resume-requires-null>
 
-### 4. Update State Respects Reducers (Python)
+<fix-update-state-respects-reducers>
+<python>
+Updates pass through reducers:
 
 ```python
 from typing import Annotated
@@ -485,10 +548,13 @@ from langgraph.types import Overwrite
 graph.update_state(config, {"items": Overwrite(["C"])})
 # Result: {"items": ["C"]}  # Replaced
 ```
+</python>
+</fix-update-state-respects-reducers>
 
-### 5. Checkpointer Must Be Passed to Compile
+<fix-checkpointer-at-compile>
+<python>
+Pass checkpointer during compile:
 
-#### Python
 ```python
 # WRONG - Checkpointer after compile
 graph = builder.compile()
@@ -497,8 +563,11 @@ graph.checkpointer = checkpointer  # Too late!
 # CORRECT - Pass during compile
 graph = builder.compile(checkpointer=checkpointer)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Pass checkpointer during compile:
+
 ```typescript
 // WRONG - Checkpointer after compile
 const graph = builder.compile();
@@ -507,8 +576,12 @@ graph.checkpointer = checkpointer;  // Too late!
 // CORRECT - Pass during compile
 const graph = builder.compile({ checkpointer });
 ```
+</typescript>
+</fix-checkpointer-at-compile>
 
-### 6. Always Await Async Operations (TypeScript)
+<fix-await-async-operations>
+<typescript>
+Await all async operations:
 
 ```typescript
 // WRONG - Forgetting await
@@ -519,16 +592,18 @@ console.log(result.values);  // undefined!
 const result = await graph.invoke({ data: "test" }, config);
 console.log(result.values);  // Works!
 ```
+</typescript>
+</fix-await-async-operations>
 
-## Links
-
-### Python
+<links>
+**Python**
 - [Persistence Guide](https://docs.langchain.com/oss/python/langgraph/persistence)
 - [Checkpointer Libraries](https://docs.langchain.com/oss/python/langgraph/persistence#checkpointer-libraries)
 - [Thread Management](https://docs.langchain.com/oss/python/langgraph/persistence#threads)
 - [Time Travel](https://docs.langchain.com/langsmith/human-in-the-loop-time-travel)
 
-### TypeScript
+**TypeScript**
 - [Persistence Guide](https://docs.langchain.com/oss/javascript/langgraph/persistence)
 - [Checkpointer Libraries](https://docs.langchain.com/oss/javascript/langgraph/persistence#checkpointer-libraries)
 - [Thread Management](https://docs.langchain.com/oss/javascript/langgraph/persistence#threads)
+</links>

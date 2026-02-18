@@ -3,21 +3,22 @@ name: LangChain Structured Output
 description: "[LangChain] Get structured, validated output from LangChain agents and models using Pydantic/Zod schemas, type-safe responses, and automatic validation"
 ---
 
-## Overview
+<oneliner>
+Get structured, validated output from LangChain agents and models using Pydantic/Zod schemas, type-safe responses, and automatic validation.
+</oneliner>
 
+<overview>
 Structured output transforms unstructured model responses into validated, typed data. Instead of parsing free text, you get Python objects or JSON conforming to your schema - perfect for extracting data, building forms, or integrating with downstream systems.
 
-**Key Concepts:**
+Key Concepts:
 - **response_format / responseFormat**: Define expected output schema
 - **Pydantic Validation (Python)**: Type-safe schemas with automatic validation
 - **Zod Validation (TypeScript)**: Type-safe schemas with automatic validation
 - **with_structured_output() / withStructuredOutput()**: Model method for direct structured output
 - **Tool Strategy**: Uses tool calling under the hood for models without native support
+</overview>
 
-## Decision Tables
-
-### When to Use Structured Output
-
+<when-to-use>
 | Use Case | Use Structured Output? | Why |
 |----------|----------------------|-----|
 | Extract contact info, dates, etc. | Yes | Reliable data extraction |
@@ -26,9 +27,9 @@ Structured output transforms unstructured model responses into validated, typed 
 | Classification tasks | Yes | Enum validation |
 | Open-ended Q&A | No | Free-form text is fine |
 | Creative writing | No | Don't constrain creativity |
+</when-to-use>
 
-### Schema Options
-
+<schema-options>
 | Schema Type | Language | When to Use | Example |
 |-------------|----------|-------------|---------|
 | Pydantic model | Python | Python projects (recommended) | `class Model(BaseModel):` |
@@ -36,12 +37,11 @@ Structured output transforms unstructured model responses into validated, typed 
 | TypedDict | Python | Simpler typing | `class Data(TypedDict):` |
 | JSON Schema | Both | Interoperability | `{"type": "object", ...}` |
 | Union types | Both | Multiple possible formats | `Union[Schema1, Schema2]` / `z.union([...])` |
+</schema-options>
 
-## Code Examples
-
-### Basic Structured Output with Agent
-
-#### Python
+<ex-basic-agent>
+<python>
+Extract contact info with Pydantic validation.
 
 ```python
 from langchain.agents import create_agent
@@ -67,8 +67,10 @@ result = agent.invoke({
 print(result["structured_response"])
 # ContactInfo(name='John Doe', email='john@example.com', phone='(555) 123-4567')
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Extract contact info with Zod validation.
 
 ```typescript
 import { createAgent } from "langchain";
@@ -95,10 +97,12 @@ const result = await agent.invoke({
 console.log(result.structuredResponse);
 // { name: 'John Doe', email: 'john@example.com', phone: '(555) 123-4567' }
 ```
+</typescript>
+</ex-basic-agent>
 
-### Model Direct Structured Output
-
-#### Python
+<ex-model-direct>
+<python>
+Use with_structured_output on model directly.
 
 ```python
 from langchain_openai import ChatOpenAI
@@ -118,8 +122,10 @@ response = structured_model.invoke("Tell me about Inception")
 print(response)
 # Movie(title="Inception", year=2010, director="Christopher Nolan", rating=8.8)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Use withStructuredOutput on model directly.
 
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
@@ -139,10 +145,12 @@ const response = await structuredModel.invoke("Tell me about Inception");
 console.log(response);
 // { title: "Inception", year: 2010, director: "Christopher Nolan", rating: 8.8 }
 ```
+</typescript>
+</ex-model-direct>
 
-### Complex Nested Schema
-
-#### Python
+<ex-nested-schema>
+<python>
+Define nested Pydantic models for complex data.
 
 ```python
 from pydantic import BaseModel, Field
@@ -166,8 +174,10 @@ agent = create_agent(
     response_format=Person,
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Define nested Zod schemas for complex data.
 
 ```typescript
 import { z } from "zod";
@@ -192,10 +202,12 @@ const agent = createAgent({
   responseFormat: PersonSchema,
 });
 ```
+</typescript>
+</ex-nested-schema>
 
-### Enum and Literal Types
-
-#### Python
+<ex-enum-literal>
+<python>
+Classify with Literal types for enums.
 
 ```python
 from pydantic import BaseModel, Field
@@ -219,8 +231,10 @@ result = agent.invoke({
 })
 # Classification(category="urgent", sentiment="positive", confidence=0.95)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Classify with z.enum for restricted values.
 
 ```typescript
 import { z } from "zod";
@@ -244,10 +258,12 @@ const result = await agent.invoke({
 });
 // { category: "urgent", sentiment: "positive", confidence: 0.95 }
 ```
+</typescript>
+</ex-enum-literal>
 
-### Optional Fields and Defaults
-
-#### Python
+<ex-optional-defaults>
+<python>
+Optional fields and default values.
 
 ```python
 from pydantic import BaseModel, Field
@@ -260,8 +276,10 @@ class Event(BaseModel):
     attendees: List[str] = Field(default_factory=list)
     confirmed: bool = False
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Optional fields and default values.
 
 ```typescript
 import { z } from "zod";
@@ -274,10 +292,12 @@ const EventSchema = z.object({
   confirmed: z.boolean().default(false),
 });
 ```
+</typescript>
+</ex-optional-defaults>
 
-### Union Types (Multiple Schemas)
-
-#### Python
+<ex-union-types>
+<python>
+Union types for multiple possible schemas.
 
 ```python
 from pydantic import BaseModel
@@ -301,8 +321,10 @@ agent = create_agent(
 )
 # Model chooses which schema based on input
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Union types for multiple possible schemas.
 
 ```typescript
 import { z } from "zod";
@@ -327,10 +349,12 @@ const agent = createAgent({
 });
 // Model chooses which schema based on input
 ```
+</typescript>
+</ex-union-types>
 
-### Array Extraction
-
-#### Python
+<ex-array-extraction>
+<python>
+Extract lists of items from text.
 
 ```python
 from pydantic import BaseModel
@@ -356,8 +380,10 @@ result = agent.invoke({
     }]
 })
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Extract lists of items from text.
 
 ```typescript
 import { z } from "zod";
@@ -382,10 +408,12 @@ const result = await agent.invoke({
   }],
 });
 ```
+</typescript>
+</ex-array-extraction>
 
-### Include Raw AIMessage
-
-#### Python
+<ex-include-raw>
+<python>
+Get both raw message and parsed output.
 
 ```python
 from langchain_openai import ChatOpenAI
@@ -405,8 +433,10 @@ print(response)
 #   "parsed": Person(name="Alice", age=30)
 # }
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Get both raw message and parsed output.
 
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
@@ -426,8 +456,12 @@ console.log(response);
 //   parsed: { name: "Alice", age: 30 }
 // }
 ```
+</typescript>
+</ex-include-raw>
 
-### TypedDict Alternative (Python)
+<ex-typeddict>
+<python>
+Use TypedDict for simpler dict output.
 
 ```python
 from typing_extensions import TypedDict, Annotated
@@ -448,10 +482,12 @@ result = agent.invoke({"messages": [{"role": "user", "content": "..."}]})
 # Returns dict, not Pydantic model
 print(type(result["structured_response"]))  # <class 'dict'>
 ```
+</python>
+</ex-typeddict>
 
-### Error Handling
-
-#### Python
+<ex-error-handling>
+<python>
+Handle validation errors with try/except.
 
 ```python
 from langchain.agents import create_agent
@@ -473,8 +509,10 @@ try:
 except ValidationError as e:
     print(f"Validation failed: {e}")
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Handle validation errors with try/catch.
 
 ```typescript
 import { createAgent } from "langchain";
@@ -499,11 +537,11 @@ try {
   // Model will retry or return error
 }
 ```
+</typescript>
+</ex-error-handling>
 
-## Boundaries
-
-### What You CAN Configure
-
+<boundaries>
+What You CAN Configure:
 - **Schema structure**: Any valid Pydantic model or Zod schema
 - **Field validation**: Types, ranges, regex, etc.
 - **Optional vs required**: Control field presence
@@ -511,101 +549,113 @@ try {
 - **Arrays**: Lists of items
 - **Enums**: Restricted values with Literal/z.enum
 
-### What You CANNOT Configure
-
+What You CANNOT Configure:
 - **Model reasoning**: Can't control how model generates data
 - **Guarantee 100% accuracy**: Model may still make mistakes
 - **Force valid data if context lacks it**: Model can't invent missing info
+</boundaries>
 
-## Gotchas
-
-### 1. Accessing Response Wrong
-
-#### Python
+<fix-accessing-response-wrong>
+<python>
+Access structured_response, not response.
 
 ```python
-# ❌ Problem: Accessing wrong key
+# Problem: Accessing wrong key
 result = agent.invoke(input)
 print(result["response"])  # KeyError!
 
-# ✅ Solution: Use structured_response
+# Solution: Use structured_response
 print(result["structured_response"])
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Access structuredResponse, not response.
 
 ```typescript
-// ❌ Problem: Accessing wrong property
+// Problem: Accessing wrong property
 const result = await agent.invoke(input);
 console.log(result.response);  // undefined!
 
-// ✅ Solution: Use structuredResponse
+// Solution: Use structuredResponse
 console.log(result.structuredResponse);
 ```
+</typescript>
+</fix-accessing-response-wrong>
 
-### 2. Missing Descriptions
-
-#### Python
+<fix-missing-descriptions>
+<python>
+Add Field descriptions for clarity.
 
 ```python
-# ❌ Problem: No field descriptions
+# Problem: No field descriptions
 class Data(BaseModel):
     date: str  # What format?
     amount: float  # What unit?
 
-# ✅ Solution: Add descriptions via Field
+# Solution: Add descriptions via Field
 class Data(BaseModel):
     date: str = Field(description="Date in YYYY-MM-DD format")
     amount: float = Field(description="Amount in USD")
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Add describe() calls for clarity.
 
 ```typescript
-// ❌ Problem: No field descriptions
+// Problem: No field descriptions
 const schema = z.object({
   date: z.string(),  // What format?
   amount: z.number(),  // What unit?
 });
 
-// ✅ Solution: Add descriptions
+// Solution: Add descriptions
 const schema = z.object({
   date: z.string().describe("Date in YYYY-MM-DD format"),
   amount: z.number().describe("Amount in USD"),
 });
 ```
+</typescript>
+</fix-missing-descriptions>
 
-### 3. Over-constraining
-
-#### Python
+<fix-over-constraining>
+<python>
+Avoid overly strict regex patterns.
 
 ```python
 import re
 
-# ❌ Problem: Too strict for model
+# Problem: Too strict for model
 class Data(BaseModel):
     code: str = Field(pattern=r"^[A-Z]{2}-\d{4}-[A-Z]{3}$")  # Very specific!
 
-# ✅ Solution: Use looser validation or describe format
+# Solution: Use looser validation or describe format
 class Data(BaseModel):
     code: str = Field(description="Format: XX-0000-XXX (letters and numbers)")
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Avoid overly strict regex patterns.
 
 ```typescript
-// ❌ Problem: Too strict for model
+// Problem: Too strict for model
 const schema = z.object({
   code: z.string().regex(/^[A-Z]{2}-\d{4}-[A-Z]{3}$/),  // Very specific!
 });
 
-// ✅ Solution: Validate post-processing or use looser schema
+// Solution: Validate post-processing or use looser schema
 const schema = z.object({
   code: z.string().describe("Format: XX-0000-XXX (letters and numbers)"),
 });
 ```
+</typescript>
+</fix-over-constraining>
 
-### 4. Pydantic v1 vs v2 (Python)
+<fix-pydantic-v1-v2>
+<python>
+Pydantic v2 vs v1 syntax differences.
 
 ```python
 # Pydantic v2 (current)
@@ -624,29 +674,37 @@ class Data(BaseModel):
         # v1 config
         pass
 ```
+</python>
+</fix-pydantic-v1-v2>
 
-### 5. Not Using Correct Type Hints (Python)
+<fix-type-hints>
+<python>
+Always use type hints for fields.
 
 ```python
-# ❌ Problem: Missing type hints
+# Problem: Missing type hints
 class Data(BaseModel):
     items = []  # No type hint!
 
-# ✅ Solution: Always use type hints
+# Solution: Always use type hints
 from typing import List
 
 class Data(BaseModel):
     items: List[str] = Field(default_factory=list)
 ```
+</python>
+</fix-type-hints>
 
-### 6. Not Handling Validation Errors (TypeScript)
+<fix-validation-errors>
+<typescript>
+Always wrap invoke in try/catch.
 
 ```typescript
-// ❌ Problem: No error handling
+// Problem: No error handling
 const result = await agent.invoke(input);
 const data = result.structuredResponse;  // May throw!
 
-// ✅ Solution: Try/catch or check for errors
+// Solution: Try/catch or check for errors
 try {
   const result = await agent.invoke(input);
   const data = result.structuredResponse;
@@ -654,11 +712,15 @@ try {
   console.error("Failed to get structured output:", error);
 }
 ```
+</typescript>
+</fix-validation-errors>
 
-### 7. Confusing responseFormat with tools (TypeScript)
+<fix-responseformat-tools>
+<typescript>
+responseFormat extracts from final response only.
 
 ```typescript
-// ❌ Problem: Using responseFormat with tools incorrectly
+// Problem: Using responseFormat with tools incorrectly
 const agent = createAgent({
   model: "gpt-4.1",
   tools: [searchTool],
@@ -666,18 +728,20 @@ const agent = createAgent({
 });
 // Tools run first, then schema extracted from final response
 
-// ✅ This is correct if you want tools + structured final output
+// This is correct if you want tools + structured final output
 // Just understand the flow
 ```
+</typescript>
+</fix-responseformat-tools>
 
-## Links to Documentation
-
-### Python
+<documentation-links>
+Python:
 - [Structured Output Overview](https://docs.langchain.com/oss/python/langchain/structured-output)
 - [Model Structured Output](https://docs.langchain.com/oss/python/langchain/models)
 - [Agent Structured Output](https://docs.langchain.com/oss/python/langchain/agents)
 
-### TypeScript
+TypeScript:
 - [Structured Output Overview](https://docs.langchain.com/oss/javascript/langchain/structured-output)
 - [Model Structured Output](https://docs.langchain.com/oss/javascript/langchain/models)
 - [Agent Structured Output](https://docs.langchain.com/oss/javascript/langchain/agents)
+</documentation-links>

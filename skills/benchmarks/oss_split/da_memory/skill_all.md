@@ -3,28 +3,28 @@ name: Deep Agents Memory
 description: [Deep Agents] Implementing long-term memory in Deep Agents with cross-session storage using StoreBackend, CompositeBackend, and InMemoryStore for persistent data.
 ---
 
-## Overview
-
+<overview>
 Deep agents support two types of memory:
 
 **Short-term (StateBackend)**: Persists within a single thread, lost when thread ends
 **Long-term (StoreBackend)**: Persists across threads and sessions
 
 Use **CompositeBackend** for hybrid storage: mix ephemeral and persistent files.
+</overview>
 
-## Memory Types Comparison
-
+<memory-types-comparison>
 | Type | Backend | Persistence | Use Case |
 |------|---------|------------|----------|
 | Short-term | StateBackend | Single thread | Temporary working files |
 | Long-term | StoreBackend | Across threads | User preferences, learned patterns |
 | Hybrid | CompositeBackend | Mix both | Some persistent, some temporary |
+</memory-types-comparison>
 
-## Long-term Memory Setup
-
+<setup>
 ### Using CompositeBackend
 
-#### Python
+<python>
+Configure CompositeBackend with routes:
 
 ```python
 from deepagents import create_deep_agent
@@ -48,8 +48,10 @@ agent = create_deep_agent(
 # Files with /memories/ prefix persist across threads
 # Other files are ephemeral
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Configure CompositeBackend with routes:
 
 ```typescript
 import { createDeepAgent, CompositeBackend, StateBackend, StoreBackend } from "deepagents";
@@ -68,8 +70,12 @@ const agent = await createDeepAgent({
 // /memories/* files persist across threads
 // Other files are ephemeral
 ```
+</typescript>
 
-### Path Routing (Python)
+### Path Routing
+
+<python>
+Route files by path prefix:
 
 ```python
 # Ephemeral (StateBackend) - lost after thread ends
@@ -82,12 +88,12 @@ await agent.invoke({
     "messages": [{"role": "user", "content": "Save preferences to /memories/prefs.txt"}]
 })
 ```
+</python>
+</setup>
 
-## Code Examples
-
-### Example 1: User Preferences Across Sessions
-
-#### Python
+<ex-user-prefs>
+<python>
+Save and access preferences across threads:
 
 ```python
 from deepagents import create_deep_agent
@@ -123,8 +129,10 @@ agent.invoke({
 }, config=config2)
 # Agent reads /memories/style.txt and applies preferences
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Save and access preferences across threads:
 
 ```typescript
 import { createDeepAgent, CompositeBackend, StateBackend, StoreBackend } from "deepagents";
@@ -159,8 +167,12 @@ await agent.invoke({
 }, config2);
 // Agent reads /memories/style.txt
 ```
+</typescript>
+</ex-user-prefs>
 
-### Example 2: Learning from Feedback (Python)
+<ex-feedback>
+<python>
+Store feedback for later sessions:
 
 ```python
 from deepagents import create_deep_agent
@@ -197,10 +209,12 @@ agent.invoke({
 }, config=config2)
 # Agent reads preferences and uses FastAPI
 ```
+</python>
+</ex-feedback>
 
-### Example 3: Project Knowledge Base
-
-#### Python
+<ex-knowledge-base>
+<python>
+Build persistent knowledge across sessions:
 
 ```python
 from deepagents import create_deep_agent
@@ -240,8 +254,10 @@ agent.invoke({
 }, config=config2)
 # Agent reads /memories/db-schema.md for context
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Build persistent knowledge across sessions:
 
 ```typescript
 const agent = await createDeepAgent({
@@ -271,10 +287,12 @@ await agent.invoke({
   }]
 }, { configurable: { thread_id: "thread-2" } });
 ```
+</typescript>
+</ex-knowledge-base>
 
-### Example 4: Using Store Directly in Tools
-
-#### Python
+<ex-store-tools>
+<python>
+Access store in custom tools:
 
 ```python
 from langchain.tools import tool, ToolRuntime
@@ -313,8 +331,10 @@ agent.invoke({
     "messages": [{"role": "user", "content": "What UI theme do I prefer?"}]
 })
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Access store in custom tools:
 
 ```typescript
 import { tool } from "langchain";
@@ -364,36 +384,36 @@ await agent.invoke({
   messages: [{ role: "user", content: "What UI theme do I prefer?" }]
 });
 ```
+</typescript>
+</ex-store-tools>
 
-## Decision Table: Memory Storage Patterns
-
+<decision-table>
 | Pattern | Backend Setup | Use Case |
 |---------|--------------|----------|
 | All ephemeral | StateBackend | Single-session tasks |
 | All persistent | StoreBackend | Everything remembered |
 | Hybrid | CompositeBackend | `/memories/` persistent, rest ephemeral |
 | Custom routing | CompositeBackend with multiple routes | Complex storage needs |
+</decision-table>
 
-## Boundaries
-
-### What Agents CAN Do
+<boundaries>
+**What Agents CAN Do:**
 - Save files to persistent storage (/memories/)
 - Access persisted files across threads
 - Organize memory with custom paths
 - Mix ephemeral and persistent storage
 - Use Store namespace/key pattern directly
 
-### What Agents CANNOT Do
+**What Agents CANNOT Do:**
 - Access memory without proper Store setup
 - Share memory across different agents (without shared Store)
 - Persist files without StoreBackend configuration
 - Access StateBackend files across threads
+</boundaries>
 
-## Gotchas
-
-### 1. StoreBackend Requires Store Instance
-
-#### Python
+<fix-store-backend-requires-store>
+<python>
+Provide store when using StoreBackend:
 
 ```python
 # Missing store
@@ -407,8 +427,10 @@ agent = create_deep_agent(
     store=InMemoryStore()
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Provide store when using StoreBackend:
 
 ```typescript
 // Missing store
@@ -422,10 +444,12 @@ await createDeepAgent({
   store: new InMemoryStore()
 });
 ```
+</typescript>
+</fix-store-backend-requires-store>
 
-### 2. Path Prefix Matters for Routing
-
-#### Python
+<fix-path-prefix-routing>
+<python>
+Use correct path prefix for persistence:
 
 ```python
 # Won't be persistent (wrong path)
@@ -438,8 +462,10 @@ agent.invoke({
     "messages": [{"role": "user", "content": "Save to /memories/prefs.txt"}]
 })
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Use correct path prefix for persistence:
 
 ```typescript
 // Not persistent (wrong path)
@@ -452,10 +478,12 @@ await agent.invoke({
   messages: [{ role: "user", content: "Save to /memories/prefs.txt" }]
 });
 ```
+</typescript>
+</fix-path-prefix-routing>
 
-### 3. InMemoryStore Not Persistent Across Process Restarts
-
-#### Python
+<fix-inmemorystore-not-persistent>
+<python>
+Use PostgresStore for production:
 
 ```python
 # InMemoryStore lost on restart
@@ -466,8 +494,10 @@ store = InMemoryStore()  # Lost when process ends
 from langgraph.store.postgres import PostgresStore
 store = PostgresStore(connection_string="postgresql://...")
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Use PostgresStore for production:
 
 ```typescript
 // Lost on restart
@@ -477,10 +507,12 @@ const store = new InMemoryStore();
 import { PostgresStore } from "@langchain/langgraph";
 const store = new PostgresStore({ connectionString: "postgresql://..." });
 ```
+</typescript>
+</fix-inmemorystore-not-persistent>
 
-### 4. CompositeBackend Routes Use Longest Prefix Match
-
-#### Python
+<fix-composite-backend-longest-prefix>
+<python>
+Longer prefixes take precedence:
 
 ```python
 # Routes are matched by longest prefix
@@ -496,8 +528,10 @@ backend = CompositeBackend(
 # /mem/temp/file.txt -> StateBackend (longer match)
 # /workspace/file.txt -> StateBackend (default)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Longer prefixes take precedence:
 
 ```typescript
 const backend = (config) => new CompositeBackend(
@@ -511,17 +545,19 @@ const backend = (config) => new CompositeBackend(
 // /mem/file.txt -> StoreBackend
 // /mem/temp/file.txt -> StateBackend (longer match)
 ```
+</typescript>
+</fix-composite-backend-longest-prefix>
 
-## Links to Documentation
-
-### Python
+<links>
+**Python:**
 - [Long-term Memory Guide](https://docs.langchain.com/oss/python/deepagents/long-term-memory)
 - [Backends](https://docs.langchain.com/oss/python/deepagents/backends)
 - [Memory Overview](https://docs.langchain.com/oss/python/concepts/memory)
 - [LangGraph Store](https://docs.langchain.com/oss/python/langgraph/add-memory)
 
-### TypeScript
+**TypeScript:**
 - [Long-term Memory](https://docs.langchain.com/oss/javascript/deepagents/long-term-memory)
 - [Backends](https://docs.langchain.com/oss/javascript/deepagents/backends)
 - [Memory Overview](https://docs.langchain.com/oss/javascript/concepts/memory)
 - [LangGraph Store](https://docs.langchain.com/oss/javascript/langgraph/add-memory)
+</links>

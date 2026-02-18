@@ -3,9 +3,7 @@ name: LangGraph State
 description: "[LangGraph] Managing state in LangGraph: schemas, reducers, channels, and message passing for coordinating agent execution"
 ---
 
-
-## Overview
-
+<overview>
 State is the central data structure in LangGraph that persists throughout graph execution. Proper state management is crucial for building reliable agents.
 
 **Key Concepts:**
@@ -13,21 +11,23 @@ State is the central data structure in LangGraph that persists throughout graph 
 - **Reducers**: Control how state updates are applied
 - **Channels**: Low-level state management primitives
 - **Message Passing**: How nodes communicate via state updates
+</overview>
 
-## Decision Table: State Update Strategies
-
+<decision-table>
 | Need | Python Solution | TypeScript Solution | Use Case |
 |------|-----------------|---------------------|----------|
 | Overwrite value | No reducer (default) | Plain Zod schema | Simple fields like strings |
 | Append to list | `operator.add` | `ReducedValue` with concat | Message history, logs |
 | Custom logic | Custom reducer function | Custom reducer function | Complex merging, validation |
 | Messages | `Annotated[list, add_messages]` | `MessagesValue` | Chat applications |
+</decision-table>
 
-## Key Concepts
+<key-concepts>
+**1. State Schema**
 
-### 1. State Schema
+<python>
+Define state with TypedDict:
 
-#### Python
 ```python
 from typing_extensions import TypedDict
 
@@ -36,8 +36,11 @@ class State(TypedDict):
     output: str
     count: int
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Define state with StateSchema and Zod:
+
 ```typescript
 import { StateSchema } from "@langchain/langgraph";
 import { z } from "zod";
@@ -48,12 +51,15 @@ const State = new StateSchema({
   count: z.number(),
 });
 ```
+</typescript>
 
-### 2. Reducers
+**2. Reducers**
 
 Reducers determine how updates are merged with existing state.
 
-#### Python
+<python>
+State with reducers:
+
 ```python
 from typing import Annotated
 import operator
@@ -68,8 +74,11 @@ class State(TypedDict):
     # Reducer: sums integers
     total: Annotated[int, operator.add]
 ```
+</python>
 
-#### TypeScript
+<typescript>
+State with ReducedValue:
+
 ```typescript
 import { StateSchema, ReducedValue } from "@langchain/langgraph";
 import { z } from "zod";
@@ -91,8 +100,9 @@ const State = new StateSchema({
   ),
 });
 ```
+</typescript>
 
-### 3. Channels API
+**3. Channels API**
 
 For advanced state control:
 
@@ -102,12 +112,12 @@ For advanced state control:
 | `BinaryOperatorAggregate` | Combines with reducer |
 | `Topic` | Collects all values |
 | `EphemeralValue` | Resets between supersteps |
+</key-concepts>
 
-## Code Examples
+<ex-basic>
+<python>
+Simple state with partial updates:
 
-### Basic State Management
-
-#### Python
 ```python
 from langgraph.graph import StateGraph, START, END
 from typing_extensions import TypedDict
@@ -134,8 +144,11 @@ graph = (
 result = graph.invoke({"input": "hello", "count": 0})
 print(result)  # {'input': 'hello', 'processed': 'HELLO', 'count': 1}
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Simple state with partial updates:
+
 ```typescript
 import { StateGraph, StateSchema, START, END } from "@langchain/langgraph";
 import { z } from "zod";
@@ -162,10 +175,13 @@ const graph = new StateGraph(State)
 const result = await graph.invoke({ input: "hello", count: 0 });
 console.log(result);  // { input: 'hello', processed: 'HELLO', count: 1 }
 ```
+</typescript>
+</ex-basic>
 
-### Messages with Reducer
+<ex-messages>
+<python>
+Accumulate messages with operator.add:
 
-#### Python
 ```python
 from typing import Annotated
 import operator
@@ -191,8 +207,11 @@ result = graph.invoke({
 })
 print(len(result["messages"]))  # 2 (original + response)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Accumulate messages with MessagesValue:
+
 ```typescript
 import { StateSchema, MessagesValue, StateGraph, START, END } from "@langchain/langgraph";
 import { HumanMessage, AIMessage } from "@langchain/core/messages";
@@ -220,10 +239,13 @@ const result = await graph.invoke({
 });
 console.log(result.messages.length);  // 2 (original + response)
 ```
+</typescript>
+</ex-messages>
 
-### Custom Reducer
+<ex-custom-reducer>
+<python>
+Custom function to merge dictionaries:
 
-#### Python
 ```python
 from typing import Annotated
 
@@ -252,8 +274,11 @@ result = graph.invoke({
 })
 # metadata is merged: {"user": "alice", "timestamp": "2024-01-01"}
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Custom reducer to merge objects:
+
 ```typescript
 import { StateSchema, ReducedValue, START, END, StateGraph } from "@langchain/langgraph";
 import { z } from "zod";
@@ -285,10 +310,13 @@ const result = await graph.invoke({
 });
 // metadata is merged: { user: "alice", timestamp: "2024-01-01" }
 ```
+</typescript>
+</ex-custom-reducer>
 
-### List Accumulation with Reducer
+<ex-list>
+<python>
+Append items with operator.add:
 
-#### Python
 ```python
 from typing import Annotated
 import operator
@@ -310,8 +338,11 @@ graph = (
 result = graph.invoke({"items": ["old1", "old2"]})
 print(result["items"])  # ['old1', 'old2', 'new_item']
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Append items with concat reducer:
+
 ```typescript
 import { StateSchema, ReducedValue } from "@langchain/langgraph";
 import { z } from "zod";
@@ -339,8 +370,12 @@ const graph = new StateGraph(State)
 const result = await graph.invoke({ items: ["old1", "old2"] });
 console.log(result.items);  // ['old1', 'old2', 'new_item']
 ```
+</typescript>
+</ex-list>
 
-### Bypassing Reducers with Overwrite (Python)
+<ex-overwrite>
+<python>
+Bypass reducer with Overwrite:
 
 ```python
 from langgraph.types import Overwrite
@@ -363,10 +398,13 @@ graph = (
 result = graph.invoke({"items": ["old1", "old2"]})
 print(result["items"])  # ['new_item'] (not appended)
 ```
+</python>
+</ex-overwrite>
 
-### Using Channels API
+<ex-channels>
+<python>
+Low-level channel configuration:
 
-#### Python
 ```python
 from langgraph.channels import LastValue, BinaryOperatorAggregate
 
@@ -393,8 +431,11 @@ graph = (
     .compile()
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Low-level channel configuration:
+
 ```typescript
 import { StateGraph, LastValue, BinaryOperatorAggregate } from "@langchain/langgraph";
 
@@ -416,10 +457,13 @@ const graph = new StateGraph<State>({
   },
 });
 ```
+</typescript>
+</ex-channels>
 
-### Partial State Updates
+<ex-partial>
+<python>
+Update only specific fields:
 
-#### Python
 ```python
 class State(TypedDict):
     field1: str
@@ -451,8 +495,11 @@ result = graph.invoke({
 })
 # field1: "updated", field2: "also updated", field3: "original3"
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Update only specific fields:
+
 ```typescript
 import { StateSchema, StateGraph, START, END } from "@langchain/langgraph";
 import { z } from "zod";
@@ -488,10 +535,11 @@ const result = await graph.invoke({
 });
 // field1: "updated", field2: "also updated", field3: "original3"
 ```
+</typescript>
+</ex-partial>
 
-## Boundaries
-
-### What You CAN Configure
+<boundaries>
+**What You CAN Configure**
 
 - Define custom state schemas
 - Add reducers to fields
@@ -502,18 +550,18 @@ const result = await graph.invoke({
 - Nested state structures
 - Use MessagesValue for chat (TypeScript)
 
-### What You CANNOT Configure
+**What You CANNOT Configure**
 
 - Change state after graph compilation
 - Access state outside node functions
 - Modify state directly (must return updates)
 - Share state between separate graphs
+</boundaries>
 
-## Gotchas
+<fix-list-reducer>
+<python>
+Add reducer for list accumulation:
 
-### 1. Forgot Reducer for List/Array
-
-#### Python
 ```python
 # WRONG - List will be overwritten
 class State(TypedDict):
@@ -531,8 +579,11 @@ class State(TypedDict):
     items: Annotated[list, operator.add]
 # Final state: {"items": ["A", "B"]}
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Add ReducedValue for array accumulation:
+
 ```typescript
 // WRONG - Array will be overwritten
 const State = new StateSchema({
@@ -554,10 +605,13 @@ const State = new StateSchema({
 });
 // Final state: { items: ["A", "B"] }
 ```
+</typescript>
+</fix-list-reducer>
 
-### 2. State Must Return Dict/Partial
+<fix-return-partial>
+<python>
+Return partial updates only:
 
-#### Python
 ```python
 # WRONG - Returning entire state object
 def my_node(state: State) -> State:
@@ -568,8 +622,11 @@ def my_node(state: State) -> State:
 def my_node(state: State) -> dict:
     return {"field": "updated"}
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Return partial updates only:
+
 ```typescript
 // WRONG - Returning entire state object
 const myNode = async (state: typeof State.State) => {
@@ -582,10 +639,13 @@ const myNode = async (state: typeof State.State) => {
   return { field: "updated" };
 };
 ```
+</typescript>
+</fix-return-partial>
 
-### 3. Default Values
+<fix-default-values>
+<python>
+Handle missing values safely:
 
-#### Python
 ```python
 # RISKY - No default, may cause errors
 class State(TypedDict):
@@ -598,8 +658,11 @@ def increment(state: State) -> dict:
 def increment(state: State) -> dict:
     return {"count": state.get("count", 0) + 1}
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Use defaults in schema:
+
 ```typescript
 // RISKY - No default handling
 const State = new StateSchema({
@@ -615,8 +678,12 @@ const State = new StateSchema({
   count: z.number().default(0),
 });
 ```
+</typescript>
+</fix-default-values>
 
-### 4. Reducer Type Mismatch (Python)
+<fix-reducer-type-mismatch>
+<python>
+Return correct type for reducer:
 
 ```python
 # WRONG - Reducer expects list, but receives string
@@ -630,8 +697,12 @@ def bad_update(state: State) -> dict:
 def good_update(state: State) -> dict:
     return {"items": ["item"]}
 ```
+</python>
+</fix-reducer-type-mismatch>
 
-### 5. Always Await Nodes (TypeScript)
+<fix-await-nodes>
+<typescript>
+Await async invocations:
 
 ```typescript
 // WRONG - Forgetting await
@@ -642,15 +713,17 @@ console.log(result.output);  // undefined (Promise!)
 const result = await graph.invoke({ input: "test" });
 console.log(result.output);  // Works!
 ```
+</typescript>
+</fix-await-nodes>
 
-## Links
-
-### Python
+<links>
+**Python**
 - [State Management Guide](https://docs.langchain.com/oss/python/langgraph/use-graph-api#process-state-updates-with-reducers)
 - [Channels API](https://docs.langchain.com/oss/python/langgraph/use-graph-api#channels-api)
 - [Schema Reference](https://docs.langchain.com/oss/python/langgraph/graph-api#schema)
 
-### TypeScript
+**TypeScript**
 - [StateSchema Guide](https://docs.langchain.com/oss/javascript/langgraph/graph-api#schema)
 - [Channels API](https://docs.langchain.com/oss/javascript/langgraph/use-graph-api#channels-api)
 - [ReducedValue](https://docs.langchain.com/oss/javascript/releases/changelog#standard-json-schema-support)
+</links>

@@ -3,28 +3,26 @@ name: LangGraph Interrupts
 description: "[LangGraph] Human-in-the-loop with dynamic interrupts and breakpoints: pausing execution for human review and resuming with Command"
 ---
 
-
-## Overview
-
+<overview>
 Interrupts enable human-in-the-loop patterns by pausing graph execution for external input. LangGraph saves state and waits indefinitely until you resume execution.
 
 **Key Types:**
 - **Dynamic Interrupts**: `interrupt()` function called in nodes
 - **Static Breakpoints**: `interrupt_before`/`interrupt_after` (Python) or `interruptBefore`/`interruptAfter` (TypeScript) at compile time
+</overview>
 
-## Decision Table: Interrupt Types
-
+<decision-table>
 | Type | When Set | Use Case |
 |------|----------|----------|
 | Dynamic (`interrupt()`) | Inside node code | Conditional pausing based on logic |
 | Static (`interrupt_before` / `interruptBefore`) | At compile time | Debug/test before specific nodes |
 | Static (`interrupt_after` / `interruptAfter`) | At compile time | Review output after specific nodes |
+</decision-table>
 
-## Code Examples
+<ex-dynamic>
+<python>
+Pause for human review:
 
-### Dynamic Interrupt
-
-#### Python
 ```python
 from langgraph.types import interrupt, Command
 from langgraph.checkpoint.memory import InMemorySaver
@@ -70,8 +68,10 @@ result = graph.invoke(
     config
 )
 ```
+</python>
+<typescript>
+Pause for human review:
 
-#### TypeScript
 ```typescript
 import { interrupt, Command } from "@langchain/langgraph";
 import { MemorySaver } from "@langchain/langgraph";
@@ -121,10 +121,13 @@ const finalResult = await graph.invoke(
   config
 );
 ```
+</typescript>
+</ex-dynamic>
 
-### Static Breakpoints
+<ex-static>
+<python>
+Compile-time breakpoints:
 
-#### Python
 ```python
 checkpointer = InMemorySaver()
 
@@ -155,8 +158,10 @@ graph.invoke(None, config)  # None = resume
 # Resume again
 graph.invoke(None, config)
 ```
+</python>
+<typescript>
+Compile-time breakpoints:
 
-#### TypeScript
 ```typescript
 const checkpointer = new MemorySaver();
 
@@ -185,10 +190,13 @@ await graph.invoke(null, config);  // null = resume
 // Resume again
 await graph.invoke(null, config);
 ```
+</typescript>
+</ex-static>
 
-### Tool Review Pattern
+<ex-tool-review>
+<python>
+Human approval for tool calls:
 
-#### Python
 ```python
 from langgraph.types import interrupt, Command
 
@@ -232,8 +240,10 @@ graph.invoke(
 # Or reject
 graph.invoke(Command(resume={"type": "reject"}), config)
 ```
+</python>
+<typescript>
+Human approval for tool calls:
 
-#### TypeScript
 ```typescript
 import { interrupt, Command } from "@langchain/langgraph";
 
@@ -285,10 +295,13 @@ await graph.invoke(
 // Or reject
 await graph.invoke(new Command({ resume: { type: "reject" } }), config);
 ```
+</typescript>
+</ex-tool-review>
 
-### Editing State During Interrupt
+<ex-edit-state>
+<python>
+Modify state before resuming:
 
-#### Python
 ```python
 config = {"configurable": {"thread_id": "1"}}
 
@@ -301,8 +314,10 @@ graph.update_state(config, {"data": "manually edited"})
 # Resume with edited state
 graph.invoke(None, config)
 ```
+</python>
+<typescript>
+Modify state before resuming:
 
-#### TypeScript
 ```typescript
 const config = { configurable: { thread_id: "1" } };
 
@@ -315,10 +330,13 @@ await graph.updateState(config, { data: "manually edited" });
 // Resume with edited state
 await graph.invoke(null, config);
 ```
+</typescript>
+</ex-edit-state>
 
-### Stream with Interrupts
+<ex-stream>
+<python>
+Handle interrupts while streaming:
 
-#### Python
 ```python
 async for mode, chunk in graph.astream(
     {"query": "test"},
@@ -335,8 +353,10 @@ async for mode, chunk in graph.astream(
             initial_input = Command(resume=user_input)
             break
 ```
+</python>
+<typescript>
+Handle interrupts while streaming:
 
-#### TypeScript
 ```typescript
 const config = {
   configurable: { thread_id: "1" },
@@ -357,10 +377,11 @@ for await (const [mode, chunk] of await graph.stream({ query: "test" }, config))
   }
 }
 ```
+</typescript>
+</ex-stream>
 
-## Boundaries
-
-### What You CAN Configure
+<boundaries>
+**What You CAN Configure**
 
 - Call `interrupt()` anywhere in nodes
 - Set compile-time breakpoints
@@ -369,17 +390,17 @@ for await (const [mode, chunk] of await graph.stream({ query: "test" }, config))
 - Stream while handling interrupts
 - Conditional interrupt logic
 
-### What You CANNOT Configure
+**What You CANNOT Configure**
 
 - Interrupt without checkpointer
 - Modify interrupt mechanism
 - Resume without thread_id
+</boundaries>
 
-## Gotchas
+<fix-checkpointer-required>
+<python>
+Enable persistence for interrupts:
 
-### 1. Checkpointer Required
-
-#### Python
 ```python
 # WRONG - No checkpointer
 graph = builder.compile()  # No persistence!
@@ -389,8 +410,10 @@ graph.invoke(...)  # Interrupt won't work
 checkpointer = InMemorySaver()
 graph = builder.compile(checkpointer=checkpointer)
 ```
+</python>
+<typescript>
+Enable persistence for interrupts:
 
-#### TypeScript
 ```typescript
 // WRONG - No checkpointer
 const graph = builder.compile();  // No persistence!
@@ -400,10 +423,13 @@ await graph.invoke(...);  // Interrupt won't work
 const checkpointer = new MemorySaver();
 const graph = builder.compile({ checkpointer });
 ```
+</typescript>
+</fix-checkpointer-required>
 
-### 2. Thread ID Required
+<fix-thread-id-required>
+<python>
+Provide thread_id for resuming:
 
-#### Python
 ```python
 # WRONG - No thread_id
 graph.invoke({"data": "test"})  # Can't resume!
@@ -412,8 +438,10 @@ graph.invoke({"data": "test"})  # Can't resume!
 config = {"configurable": {"thread_id": "session-1"}}
 graph.invoke({"data": "test"}, config)
 ```
+</python>
+<typescript>
+Provide thread_id for resuming:
 
-#### TypeScript
 ```typescript
 // WRONG - No thread_id
 await graph.invoke({ data: "test" });  // Can't resume!
@@ -422,10 +450,13 @@ await graph.invoke({ data: "test" });  // Can't resume!
 const config = { configurable: { thread_id: "session-1" } };
 await graph.invoke({ data: "test" }, config);
 ```
+</typescript>
+</fix-thread-id-required>
 
-### 3. Resume with Command, Not Dict/Object
+<fix-resume-with-command>
+<python>
+Use Command to resume:
 
-#### Python
 ```python
 # WRONG - Passing regular dict
 graph.invoke({"resume_data": "approve"}, config)  # Restarts!
@@ -434,8 +465,10 @@ graph.invoke({"resume_data": "approve"}, config)  # Restarts!
 from langgraph.types import Command
 graph.invoke(Command(resume="approve"), config)
 ```
+</python>
+<typescript>
+Use Command to resume:
 
-#### TypeScript
 ```typescript
 // WRONG - Passing regular object
 await graph.invoke({ resumeData: "approve" }, config);  // Restarts!
@@ -444,8 +477,12 @@ await graph.invoke({ resumeData: "approve" }, config);  // Restarts!
 import { Command } from "@langchain/langgraph";
 await graph.invoke(new Command({ resume: "approve" }), config);
 ```
+</typescript>
+</fix-resume-with-command>
 
-### 4. Static Breakpoints Not Recommended for HITL (Python)
+<fix-static-breakpoints-hitl>
+<python>
+Use dynamic interrupts instead:
 
 ```python
 # ANTI-PATTERN - Static breakpoints for all users
@@ -456,8 +493,12 @@ def node(state):
     if state["requires_approval"]:  # Conditional
         interrupt({"action": "approve?"})
 ```
+</python>
+</fix-static-breakpoints-hitl>
 
-### 5. Always Await (TypeScript)
+<fix-always-await>
+<typescript>
+Await async invocations:
 
 ```typescript
 // WRONG
@@ -468,15 +509,17 @@ console.log(result);  // Promise!
 const result = await graph.invoke({}, config);
 console.log(result);
 ```
+</typescript>
+</fix-always-await>
 
-## Links
-
-### Python
+<links>
+**Python**
 - [Interrupts Guide](https://docs.langchain.com/oss/python/langgraph/interrupts)
 - [Human-in-the-Loop](https://docs.langchain.com/oss/python/langchain/human-in-the-loop)
 - [Command API](https://docs.langchain.com/oss/python/langgraph/use-graph-api#combine-control-flow-and-state-updates-with-command)
 
-### TypeScript
+**TypeScript**
 - [Interrupts Guide](https://docs.langchain.com/oss/javascript/langgraph/interrupts)
 - [Human-in-the-Loop](https://docs.langchain.com/oss/javascript/langchain/human-in-the-loop)
 - [Command API](https://docs.langchain.com/oss/javascript/langgraph/graph-api#command)
+</links>

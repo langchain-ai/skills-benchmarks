@@ -3,26 +3,25 @@ name: Deep Agents Skills
 description: [Deep Agents] Creating and using custom skills with progressive disclosure, SKILL.md format, and the Agent Skills protocol in Deep Agents.
 ---
 
-## Overview
-
+<overview>
 Skills are reusable agent capabilities that provide specialized workflows and domain knowledge. They use **progressive disclosure**: agents only load skill content when it's relevant to the task.
 
 **How it works:**
 1. **Match**: Agent sees skill descriptions in system prompt
 2. **Read**: If relevant, agent reads full SKILL.md using read_file
 3. **Execute**: Agent follows instructions and accesses supporting files
+</overview>
 
-## Skills vs Memory
-
+<skills-vs-memory>
 | Skills | Memory (AGENTS.md) |
 |--------|-------------------|
 | On-demand loading | Always loaded at startup |
 | Task-specific instructions | General preferences |
 | Large documentation | Compact context |
 | SKILL.md in directories | Single AGENTS.md file |
+</skills-vs-memory>
 
-## Creating Skills
-
+<creating-skills>
 ### Skill Directory Structure
 
 ```
@@ -54,12 +53,11 @@ Use this skill when the user asks about LangGraph features, APIs, or usage.
 - examples.py: Common usage patterns
 - templates/graph.py: Graph template
 ```
+</creating-skills>
 
-## Using Skills in Agents
-
-### With FilesystemBackend
-
-#### Python
+<using-skills-filesystembackend>
+<python>
+Configure agent with local skills:
 
 ```python
 from deepagents import create_deep_agent
@@ -79,8 +77,10 @@ result = agent.invoke({
     }]
 })
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Configure agent with local skills:
 
 ```typescript
 import { createDeepAgent, FilesystemBackend } from "deepagents";
@@ -99,10 +99,12 @@ const result = await agent.invoke({
   }]
 });
 ```
+</typescript>
+</using-skills-filesystembackend>
 
-### With StoreBackend
-
-#### Python
+<using-skills-storebackend>
+<python>
+Load skills from URL into store:
 
 ```python
 from urllib.request import urlopen
@@ -138,8 +140,10 @@ result = agent.invoke({
     }]
 })
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Load skills from URL into store:
 
 ```typescript
 import { createDeepAgent, StoreBackend, type FileData } from "deepagents";
@@ -172,10 +176,12 @@ const agent = await createDeepAgent({
   skills: ["/skills/"]
 });
 ```
+</typescript>
+</using-skills-storebackend>
 
-### With StateBackend (In-State Files)
-
-#### Python
+<using-skills-statebackend>
+<python>
+Seed state with skill files:
 
 ```python
 from deepagents import create_deep_agent
@@ -207,8 +213,10 @@ result = agent.invoke({
     "files": skills_files  # Seed state with skill files
 })
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Seed state with skill files:
 
 ```typescript
 import { createDeepAgent, type FileData } from "deepagents";
@@ -240,9 +248,10 @@ await agent.invoke({
   files: skillsFiles
 });
 ```
+</typescript>
+</using-skills-statebackend>
 
-## Decision Table: When to Create Skills
-
+<decision-table>
 | Create a Skill When | Use Memory Instead |
 |--------------------|--------------------|
 | Instructions are task-specific | Context always relevant |
@@ -250,10 +259,10 @@ await agent.invoke({
 | Only needed occasionally | Needed every session |
 | Multiple supporting files | Single preference |
 | Domain-specific expertise | General preferences |
+</decision-table>
 
-## Example Skills
-
-### Example 1: API Documentation Skill
+<ex-api-docs>
+API documentation skill example:
 
 ```markdown
 
@@ -274,8 +283,11 @@ Use Pydantic models for request/response validation.
 ## Supporting Files
 See endpoints.py for complete examples.
 ```
+</ex-api-docs>
 
-### Example 2: Testing Skill (Python)
+<ex-testing>
+<python>
+Pytest patterns for fixtures and mocking:
 
 ```markdown
 
@@ -293,8 +305,9 @@ async def db_session():
 ## Mocking
 Use pytest-mock for external dependencies.
 ```
-
-### Example 3: Testing Skill (TypeScript)
+</python>
+<typescript>
+Jest testing patterns for TypeScript:
 
 ```markdown
 
@@ -312,27 +325,27 @@ app.get("/users/:id", async (req, res) => {
 });
 \`\`\`
 ```
+</typescript>
+</ex-testing>
 
-## Boundaries
-
-### What Agents CAN Do
+<boundaries>
+**What Agents CAN Do:**
 - Load skills on-demand when relevant
 - Read SKILL.md and supporting files
 - Follow skill instructions
 - Update skills (if permitted)
 - Create new skills
 
-### What Agents CANNOT Do
+**What Agents CANNOT Do:**
 - Load all skills at startup (only descriptions)
 - Change the SKILL.md frontmatter format
 - Access skills outside configured directories
 - Share skills across agents without proper backend
+</boundaries>
 
-## Gotchas
-
-### 1. Skills Require Backend Setup
-
-#### Python
+<fix-backend-setup>
+<python>
+Provide backend for skill loading:
 
 ```python
 # Skills won't load without backend
@@ -346,8 +359,9 @@ agent = create_deep_agent(
     skills=["./skills/"]
 )
 ```
-
-#### TypeScript
+</python>
+<typescript>
+Provide backend for skill loading:
 
 ```typescript
 // No backend
@@ -359,8 +373,12 @@ await createDeepAgent({
   skills: ["./skills/"]
 });
 ```
+</typescript>
+</fix-backend-setup>
 
-### 2. Frontmatter is Required
+<fix-frontmatter-required>
+<python>
+Include YAML frontmatter in SKILL.md:
 
 ```markdown
 # Missing frontmatter - WON'T WORK
@@ -370,8 +388,24 @@ This is my skill...
 # Include frontmatter - CORRECT
 # My Skill
 ```
+</python>
+<typescript>
+Include YAML frontmatter in SKILL.md:
 
-### 3. Skill Descriptions Drive Discovery
+```markdown
+# Missing frontmatter - WON'T WORK
+# My Skill
+This is my skill...
+
+# Include frontmatter - CORRECT
+# My Skill
+```
+</typescript>
+</fix-frontmatter-required>
+
+<fix-skill-descriptions>
+<python>
+Write specific descriptions for matching:
 
 ```markdown
 # Vague description - BAD
@@ -380,10 +414,23 @@ description: Helpful skill
 # Specific description - GOOD
 description: Python testing best practices with pytest fixtures and mocking
 ```
+</python>
+<typescript>
+Write specific descriptions for matching:
 
-### 4. Custom Subagents Don't Inherit Skills
+```markdown
+# Vague description - BAD
+description: Helpful skill
 
-#### Python
+# Specific description - GOOD
+description: Python testing best practices with pytest fixtures and mocking
+```
+</typescript>
+</fix-skill-descriptions>
+
+<fix-subagent-skills>
+<python>
+Provide skills to subagents explicitly:
 
 ```python
 # Main agent skills NOT inherited by custom subagents
@@ -402,8 +449,9 @@ agent = create_deep_agent(
     }]
 )
 ```
-
-#### TypeScript
+</python>
+<typescript>
+Provide skills to subagents explicitly:
 
 ```typescript
 // No inherited skills
@@ -422,14 +470,16 @@ await createDeepAgent({
   }]
 });
 ```
+</typescript>
+</fix-subagent-skills>
 
-## Links to Documentation
-
-### Python
+<links>
+**Python:**
 - [Skills Guide](https://docs.langchain.com/oss/python/deepagents/skills)
 - [Agent Skills Protocol](https://docs.langchain.com/oss/python/langchain/multi-agent/skills)
 - [Progressive Disclosure](https://docs.langchain.com/oss/python/langchain/multi-agent/skills-sql-assistant)
 
-### TypeScript
+**TypeScript:**
 - [Skills Guide](https://docs.langchain.com/oss/javascript/deepagents/skills)
 - [Agent Skills Protocol](https://docs.langchain.com/oss/javascript/langchain/multi-agent/skills)
+</links>

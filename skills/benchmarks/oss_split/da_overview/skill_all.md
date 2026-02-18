@@ -3,8 +3,7 @@ name: Deep Agents Overview
 description: [Deep Agents] Understanding Deep Agents framework - what they are, how to create them with create_deep_agent/createDeepAgent, and the agent harness architecture with built-in middleware for planning, filesystems, and subagents.
 ---
 
-## What are Deep Agents?
-
+<overview>
 Deep Agents are an opinionated agent framework built on top of LangChain and LangGraph, designed for complex, multi-step tasks. They come "batteries included" with built-in capabilities:
 
 - **Task Planning**: TodoListMiddleware for breaking down complex tasks
@@ -14,9 +13,9 @@ Deep Agents are an opinionated agent framework built on top of LangChain and Lan
 - **Human-in-the-loop**: Approval workflows for sensitive operations
 
 Deep Agents use an "agent harness" architecture - the same core tool-calling loop as other frameworks, but with pre-configured middleware and tools.
+</overview>
 
-## When to Use Deep Agents
-
+<when-to-use>
 | Use Deep Agents When | Use LangChain's create_agent/createAgent When |
 |---------------------|-----------------------------------|
 | Multi-step tasks requiring planning | Simple, single-purpose tasks |
@@ -24,12 +23,11 @@ Deep Agents use an "agent harness" architecture - the same core tool-calling loo
 | Need for specialized subagents | Single agent is sufficient |
 | Persistent memory across sessions | Ephemeral, single-session work |
 | CLI or coding assistant use cases | Simple API or chat applications |
+</when-to-use>
 
-## Creating a Deep Agent
-
-### Basic Agent Creation
-
-#### Python
+<ex-basic-agent>
+<python>
+Create minimal agent with defaults:
 
 ```python
 from deepagents import create_deep_agent
@@ -44,8 +42,10 @@ result = agent.invoke({
     ]
 })
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Create minimal agent with defaults:
 
 ```typescript
 import { createDeepAgent } from "deepagents";
@@ -60,10 +60,12 @@ const result = await agent.invoke({
   ]
 });
 ```
+</typescript>
+</ex-basic-agent>
 
-### Agent with Custom Tools
-
-#### Python
+<ex-custom-tools>
+<python>
+Add custom tools to agent:
 
 ```python
 from deepagents import create_deep_agent
@@ -85,8 +87,10 @@ result = agent.invoke({
     ]
 })
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Add custom tools to agent:
 
 ```typescript
 import { createDeepAgent } from "deepagents";
@@ -115,10 +119,12 @@ const result = await agent.invoke({
   ]
 });
 ```
+</typescript>
+</ex-custom-tools>
 
-### Agent with Custom Model
-
-#### Python
+<ex-custom-model>
+<python>
+Specify model by string or instance:
 
 ```python
 from deepagents import create_deep_agent
@@ -135,8 +141,10 @@ agent = create_deep_agent(
     model=model
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Specify model by string or instance:
 
 ```typescript
 import { createDeepAgent } from "deepagents";
@@ -153,12 +161,14 @@ const agent2 = await createDeepAgent({
   model
 });
 ```
+</typescript>
+</ex-custom-model>
 
-## The Agent Harness Architecture
+<ex-harness-architecture>
+<python>
+Deep Agents automatically attach middleware when created.
 
-Deep Agents automatically attach middleware when created:
-
-#### Python
+Built-in middleware and tools included:
 
 ```python
 from deepagents import create_deep_agent
@@ -173,7 +183,19 @@ from deepagents import create_deep_agent
 agent = create_deep_agent()
 ```
 
-#### TypeScript
+### Built-in Tools
+
+Every deep agent has access to:
+
+1. **Planning Tool**: `write_todos` - Track multi-step tasks
+2. **Filesystem Tools**: `ls`, `read_file`, `write_file`, `edit_file`, `glob`, `grep`
+3. **Subagent Tool**: `task` - Delegate work to specialized agents
+</python>
+
+<typescript>
+Deep Agents automatically attach middleware when created.
+
+Built-in middleware and tools included:
 
 ```typescript
 import { createDeepAgent } from "deepagents";
@@ -195,10 +217,12 @@ Every deep agent has access to:
 1. **Planning Tool**: `write_todos` - Track multi-step tasks
 2. **Filesystem Tools**: `ls`, `read_file`, `write_file`, `edit_file`, `glob`, `grep`
 3. **Subagent Tool**: `task` - Delegate work to specialized agents
+</typescript>
+</ex-harness-architecture>
 
-## Configuration Options
-
-#### Python
+<ex-config-options>
+<python>
+Full configuration with all options:
 
 ```python
 from deepagents import create_deep_agent
@@ -218,8 +242,10 @@ agent = create_deep_agent(
     store=InMemoryStore()          # For long-term memory
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Full configuration with all options:
 
 ```typescript
 import { createDeepAgent, FilesystemBackend } from "deepagents";
@@ -239,9 +265,10 @@ const agent = await createDeepAgent({
   store: new InMemoryStore()        // For long-term memory
 });
 ```
+</typescript>
+</ex-config-options>
 
-## Decision Table: Which Middleware to Customize
-
+<decision-table>
 | If you need to... | Use this middleware | When to customize |
 |------------------|-------------------|------------------|
 | Track complex multi-step tasks | TodoListMiddleware / todoListMiddleware | Default works; customize prompt if needed |
@@ -252,11 +279,10 @@ const agent = await createDeepAgent({
 | Add human approval | HumanInTheLoopMiddleware / humanInTheLoopMiddleware | Configure which tools require approval |
 | Load skills on-demand | SkillsMiddleware / skillsMiddleware | Provide skill directories |
 | Access persistent memory | MemoryMiddleware / memoryMiddleware | Provide a Store instance |
+</decision-table>
 
-## Boundaries
-
-### What Agents CAN Configure
-
+<boundaries>
+**What Agents CAN Configure:**
 - Model selection and parameters
 - Additional custom tools
 - System prompt customization
@@ -266,19 +292,17 @@ const agent = await createDeepAgent({
 - Skill directories and content
 - Middleware order and configuration
 
-### What Agents CANNOT Configure
-
+**What Agents CANNOT Configure:**
 - Core middleware removal (TodoList, Filesystem, SubAgent are always present)
 - The write_todos, task, or filesystem tool names
 - The fundamental tool-calling loop
 - LangGraph's runtime execution model
 - The Agent Skills protocol format
+</boundaries>
 
-## Gotchas
-
-### 1. Checkpointer Required for Interrupts
-
-#### Python
+<ex-gotcha-checkpointer>
+<python>
+Provide checkpointer when using HITL:
 
 ```python
 # This will error if interrupt_on is set
@@ -294,8 +318,10 @@ agent = create_deep_agent(
     checkpointer=MemorySaver()
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Provide checkpointer when using HITL:
 
 ```typescript
 // This will error if interruptOn is set
@@ -311,10 +337,12 @@ const agent = await createDeepAgent({
   checkpointer: new MemorySaver()
 });
 ```
+</typescript>
+</ex-gotcha-checkpointer>
 
-### 2. Store Required for Persistent Memory
-
-#### Python
+<ex-gotcha-store>
+<python>
+Provide store when using StoreBackend:
 
 ```python
 # StoreBackend needs a Store
@@ -332,8 +360,10 @@ agent = create_deep_agent(
     store=InMemoryStore()
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Provide store when using StoreBackend:
 
 ```typescript
 // StoreBackend needs a Store
@@ -351,10 +381,12 @@ const agent = await createDeepAgent({
   store: new InMemoryStore()
 });
 ```
+</typescript>
+</ex-gotcha-store>
 
-### 3. Skills Require Backend Setup
-
-#### Python
+<ex-gotcha-skills-backend>
+<python>
+Use FilesystemBackend for local skills:
 
 ```python
 # Skills won't load without proper backend
@@ -370,8 +402,10 @@ agent = create_deep_agent(
     skills=["./skills/"]
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Use FilesystemBackend for local skills:
 
 ```typescript
 // Skills won't load without proper backend
@@ -387,10 +421,12 @@ const agent = await createDeepAgent({
   skills: ["./skills/"]
 });
 ```
+</typescript>
+</ex-gotcha-skills-backend>
 
-### 4. Thread ID Required for Stateful Conversations
-
-#### Python
+<ex-gotcha-thread-id>
+<python>
+Use thread_id for conversation continuity:
 
 ```python
 # Each invocation is isolated without thread_id
@@ -402,8 +438,10 @@ config = {"configurable": {"thread_id": "user-123"}}
 agent.invoke({"messages": [{"role": "user", "content": "Hi"}]}, config=config)
 agent.invoke({"messages": [{"role": "user", "content": "What did I say?"}]}, config=config)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Use thread_id for conversation continuity:
 
 ```typescript
 // Each invocation is isolated without thread_id
@@ -415,10 +453,12 @@ const config = { configurable: { thread_id: "user-123" } };
 await agent.invoke({ messages: [{ role: "user", content: "Hi" }] }, config);
 await agent.invoke({ messages: [{ role: "user", content: "What did I say?" }] }, config);
 ```
+</typescript>
+</ex-gotcha-thread-id>
 
-### 5. Default Model is Anthropic Claude
-
-#### Python
+<ex-gotcha-default-model>
+<python>
+Set API key for default model:
 
 ```python
 # Uses claude-sonnet-4-5-20250929 by default
@@ -429,8 +469,10 @@ agent = create_deep_agent()
 import os
 os.environ["ANTHROPIC_API_KEY"] = "your-key"
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Set API key for default model:
 
 ```typescript
 // Uses claude-sonnet-4-5-20250929 by default
@@ -440,8 +482,12 @@ const agent = await createDeepAgent({});
 // Set OPENAI_API_KEY if using OpenAI models
 process.env.ANTHROPIC_API_KEY = "your-key";
 ```
+</typescript>
+</ex-gotcha-default-model>
 
-### 6. Await createDeepAgent (TypeScript)
+<ex-gotcha-await>
+<typescript>
+Always await the async function:
 
 ```typescript
 // Missing await
@@ -450,17 +496,19 @@ const agent = createDeepAgent({});
 // createDeepAgent is async
 const agent = await createDeepAgent({});
 ```
+</typescript>
+</ex-gotcha-await>
 
-## Links to Documentation
-
-### Python
+<links>
+**Python:**
 - [Deep Agents Overview](https://docs.langchain.com/oss/python/deepagents/overview)
 - [Agent Harness Capabilities](https://docs.langchain.com/oss/python/deepagents/harness)
 - [Customizing Deep Agents](https://docs.langchain.com/oss/python/deepagents/customization)
 - [Deep Agents Quickstart](https://docs.langchain.com/oss/python/deepagents/quickstart)
 
-### TypeScript
+**TypeScript:**
 - [Deep Agents Overview](https://docs.langchain.com/oss/javascript/deepagents/overview)
 - [Agent Harness Capabilities](https://docs.langchain.com/oss/javascript/deepagents/harness)
 - [Customizing Deep Agents](https://docs.langchain.com/oss/javascript/deepagents/customization)
 - [Deep Agents Quickstart](https://docs.langchain.com/oss/javascript/deepagents/quickstart)
+</links>

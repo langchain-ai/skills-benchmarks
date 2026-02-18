@@ -3,17 +3,20 @@ name: LangChain Agents
 description: "[LangChain] Create and use LangChain agents with create_agent - includes agent loops, ReAct pattern, tool execution, and state management"
 ---
 
-## Overview
+<oneliner>
+Agents combine language models with tools to create systems that can reason about tasks, decide which tools to use, and iteratively work towards solutions.
+</oneliner>
 
-Agents combine language models with tools to create systems that can reason about tasks, decide which tools to use, and iteratively work towards solutions. The `create_agent()`/`createAgent()` function provides a production-ready agent implementation built on LangGraph.
+<overview>
+The `create_agent()`/`createAgent()` function provides a production-ready agent implementation built on LangGraph.
 
-**Key Concepts:**
-- **Agent Loop**: The model decides → calls tools → observes results → repeats until done
+Key Concepts:
+- **Agent Loop**: The model decides, calls tools, observes results, repeats until done
 - **ReAct Pattern**: Reasoning and Acting - the agent reasons about what to do, then acts by calling tools
 - **Graph-based Runtime**: Agents run on a LangGraph graph with nodes (model, tools, middleware) and edges
+</overview>
 
-## When to Use Agents
-
+<when-to-use>
 | Scenario | Use Agent? | Why |
 |----------|-----------|-----|
 | Need to call external APIs/databases | Yes | Agents can dynamically choose which tools to call |
@@ -21,11 +24,9 @@ Agents combine language models with tools to create systems that can reason abou
 | Simple prompt-response | No | Use a chat model directly |
 | Predetermined workflow | No | Use LangGraph workflow instead |
 | Need tool calling without iteration | Maybe | Consider using model.bind_tools() directly |
+</when-to-use>
 
-## Decision Tables
-
-### Choosing Agent Configuration
-
+<choosing-agent-configuration>
 | Need | Configuration | Example |
 |------|---------------|---------|
 | Basic agent with tools | `create_agent(model, tools)` | Search, calculator, weather |
@@ -33,21 +34,20 @@ Agents combine language models with tools to create systems that can reason abou
 | Human approval for sensitive operations | Add human-in-the-loop middleware | Database writes, emails |
 | Persistence across sessions | Add `checkpointer` | Multi-turn conversations |
 | Structured output format | Add `response_format` | Extract contact info, parse forms |
+</choosing-agent-configuration>
 
-### Tool Strategy
-
+<tool-strategy>
 | Tool Type | When to Use | Example |
 |-----------|-------------|---------|
 | Static tools | Tools don't change during execution | Search, weather, calculator |
 | Dynamic tools | Tools depend on runtime state | User-specific APIs |
 | Built-in tools | Need common functionality | File system, code execution |
 | Custom tools | Domain-specific operations | Your business logic |
+</tool-strategy>
 
-## Code Examples
-
-### Basic Agent with Tools
-
-#### Python
+<ex-basic>
+<python>
+Basic agent with search and weather tools:
 
 ```python
 from langchain.agents import create_agent
@@ -79,7 +79,10 @@ result = agent.invoke({
 print(result["messages"][-1].content)
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+Basic agent with search and weather tools:
 
 ```typescript
 import { createAgent, tool } from "langchain";
@@ -111,9 +114,12 @@ const result = await agent.invoke({
 console.log(result.messages[result.messages.length - 1].content);
 ```
 
-### Agent with System Prompt
+</typescript>
+</ex-basic>
 
-#### Python
+<ex-system-prompt>
+<python>
+Agent with custom system prompt:
 
 ```python
 agent = create_agent(
@@ -125,7 +131,10 @@ Show your work when performing calculations.""",
 )
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+Agent with custom system prompt:
 
 ```typescript
 const agent = createAgent({
@@ -137,8 +146,10 @@ Show your work when performing calculations.`,
 });
 ```
 
-### Agent Loop Execution Flow
+</typescript>
+</ex-system-prompt>
 
+<ex-loop-flow>
 The agent runs in a loop:
 1. Model receives user message
 2. Model decides to call a tool (or finish)
@@ -146,7 +157,8 @@ The agent runs in a loop:
 4. Result goes back to model
 5. Repeat until model decides to finish
 
-#### Python
+<python>
+Agent loop handles multi-step tasks:
 
 ```python
 agent = create_agent(model="gpt-4.1", tools=[search, get_weather])
@@ -158,7 +170,10 @@ result = agent.invoke({
 # Agent automatically calls search → gets "Paris" → calls weather → responds
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+Agent loop handles multi-step tasks:
 
 ```typescript
 const agent = createAgent({ model: "gpt-4.1", tools: [searchTool, weatherTool] });
@@ -168,9 +183,12 @@ const result = await agent.invoke({
 });
 ```
 
-### Streaming Agent Progress
+</typescript>
+</ex-loop-flow>
 
-#### Python
+<ex-streaming>
+<python>
+Stream agent steps and tokens:
 
 ```python
 # Stream with updates mode to see each step
@@ -190,7 +208,10 @@ for mode, chunk in agent.stream(
         print(token.content, end="", flush=True)
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+Stream agent steps and tokens:
 
 ```typescript
 // Stream with updates mode to see each step
@@ -211,9 +232,12 @@ for await (const chunk of await agent.stream(
 }
 ```
 
-### Agent with Persistence
+</typescript>
+</ex-streaming>
 
-#### Python
+<ex-persistence>
+<python>
+Persist state across conversations:
 
 ```python
 from langgraph.checkpoint.memory import MemorySaver
@@ -229,7 +253,10 @@ result = agent.invoke({"messages": [{"role": "user", "content": "What's my name?
 # Response: "Your name is Alice"
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+Persist state across conversations:
 
 ```typescript
 import { MemorySaver } from "@langchain/langgraph";
@@ -245,9 +272,12 @@ await agent.invoke({ messages: [{ role: "user", content: "What's my name?" }] },
 // Response: "Your name is Alice"
 ```
 
-### Dynamic Tools (Runtime-Dependent)
+</typescript>
+</ex-persistence>
 
-#### Python
+<ex-dynamic-tools>
+<python>
+Tools that depend on runtime state:
 
 ```python
 def get_tools(state):
@@ -258,7 +288,10 @@ def get_tools(state):
 agent = create_agent(model="gpt-4.1", tools=get_tools)  # Pass function instead of list
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+Tools that depend on runtime state:
 
 ```typescript
 const agent = createAgent({
@@ -270,9 +303,12 @@ const agent = createAgent({
 });
 ```
 
-### Tool with Type Hints / Schema
+</typescript>
+</ex-dynamic-tools>
 
-#### Python
+<ex-tool-schema>
+<python>
+Tool with typed parameters:
 
 ```python
 from langchain.tools import tool
@@ -295,7 +331,10 @@ def calculate(
     return ops[operation]()
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+Tool with typed parameters:
 
 ```typescript
 const calculatorTool = tool(
@@ -317,9 +356,12 @@ const calculatorTool = tool(
 );
 ```
 
-### Multiple Tool Calls in Parallel
+</typescript>
+</ex-tool-schema>
 
-#### Python
+<ex-parallel>
+<python>
+Parallel tool calls in one step:
 
 ```python
 # Models can call multiple tools simultaneously
@@ -338,7 +380,10 @@ result = agent.invoke({
 # Agent may call both tools in parallel in a single step
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+Parallel tool calls in one step:
 
 ```typescript
 // Models can call multiple tools simultaneously
@@ -357,9 +402,12 @@ const result = await agent.invoke({
 // Agent may call both tools in parallel in a single step
 ```
 
-### Error Handling in Agents
+</typescript>
+</ex-parallel>
 
-#### Python
+<ex-error-handling>
+<python>
+Custom error handling middleware:
 
 ```python
 from langchain.agents import create_agent, wrap_tool_call
@@ -382,7 +430,10 @@ agent = create_agent(
 )
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+Custom error handling middleware:
 
 ```typescript
 import { createAgent, wrapToolCall } from "langchain";
@@ -409,10 +460,11 @@ const agent = createAgent({
 });
 ```
 
-## Boundaries
+</typescript>
+</ex-error-handling>
 
-### What Agents CAN Configure
-
+<boundaries>
+What Agents CAN Configure:
 - **Model**: Any chat model (OpenAI, Anthropic, Google, etc.)
 - **Tools**: Custom tools, built-in tools, dynamic tools
 - **System Prompt**: Instructions for agent behavior
@@ -421,45 +473,42 @@ const agent = createAgent({
 - **Response Format**: Structured output schemas
 - **Max Iterations**: Prevent infinite loops
 
-### What Agents CANNOT Configure
-
+What Agents CANNOT Configure:
 - **Direct Graph Structure**: Use LangGraph directly for custom flows
 - **Tool Execution Order**: Model decides which tools to call
 - **Interrupt Model Decision**: Can only interrupt before tool execution
 - **Multiple Models**: One agent = one model (use subagents for multiple)
+</boundaries>
 
-## Gotchas
-
-### 1. Agent Doesn't Stop (Infinite Loop)
-
-Set `max_iterations` to prevent runaway agents:
-
-#### Python
+<fix-infinite-loop>
+<python>
+Limit iterations to prevent runaway agents:
 
 ```python
 agent = create_agent(model="gpt-4.1", tools=[search], max_iterations=10)
 ```
-
-#### TypeScript
+</python>
+<typescript>
+Limit iterations to prevent runaway agents:
 
 ```typescript
 const agent = createAgent({ model: "gpt-4.1", tools: [searchTool], maxIterations: 10 });
 ```
+</typescript>
+</fix-infinite-loop>
 
-### 2. Tool Not Being Called
-
-Use clear, specific tool descriptions. Vague descriptions like "Does stuff" won't help the model decide when to use the tool.
-
-#### Python
+<fix-tool-not-called>
+<python>
+Vague vs clear tool descriptions:
 
 ```python
-# ❌ Problem: Vague tool description
+# Bad: Vague tool description
 @tool
 def bad_tool(input: str) -> str:
     """Does stuff."""  # Too vague!
     return "result"
 
-# ✅ Solution: Clear, specific descriptions
+# Good: Clear, specific descriptions
 @tool
 def web_search(query: str) -> str:
     """Search the web for current information about a topic.
@@ -471,11 +520,12 @@ def web_search(query: str) -> str:
     """
     return "result"
 ```
-
-#### TypeScript
+</python>
+<typescript>
+Vague vs clear tool descriptions:
 
 ```typescript
-// ❌ Problem: Vague tool description
+// Bad: Vague tool description
 const badTool = tool(
   async ({ input }: { input: string }) => "result",
   {
@@ -485,7 +535,7 @@ const badTool = tool(
   }
 );
 
-// ✅ Solution: Clear, specific descriptions
+// Good: Clear, specific descriptions
 const goodTool = tool(
   async ({ query }: { query: string }) => "result",
   {
@@ -497,15 +547,15 @@ const goodTool = tool(
   }
 );
 ```
+</typescript>
+</fix-tool-not-called>
 
-### 3. State Not Persisting
-
-Add a checkpointer and use `thread_id` in config. Without a checkpointer, each invoke is isolated.
-
-#### Python
+<fix-state-not-persisting>
+<python>
+Add checkpointer for conversation memory:
 
 ```python
-# ❌ Problem: No checkpointer
+# Problem: No checkpointer
 agent = create_agent(model="gpt-4.1", tools=[search])
 
 # Each invoke is isolated - no memory
@@ -513,7 +563,7 @@ agent.invoke({"messages": [{"role": "user", "content": "Hi, I'm Bob"}]})
 agent.invoke({"messages": [{"role": "user", "content": "What's my name?"}]})
 # Agent doesn't remember "Bob"
 
-# ✅ Solution: Add checkpointer and thread_id
+# Solution: Add checkpointer and thread_id
 from langgraph.checkpoint.memory import MemorySaver
 
 agent = create_agent(
@@ -527,11 +577,12 @@ agent.invoke({"messages": [{"role": "user", "content": "Hi, I'm Bob"}]}, config=
 agent.invoke({"messages": [{"role": "user", "content": "What's my name?"}]}, config=config)
 # Agent remembers: "Your name is Bob"
 ```
-
-#### TypeScript
+</python>
+<typescript>
+Add checkpointer for conversation memory:
 
 ```typescript
-// ❌ Problem: No checkpointer
+// Problem: No checkpointer
 const agent = createAgent({
   model: "gpt-4.1",
   tools: [searchTool],
@@ -542,7 +593,7 @@ await agent.invoke({ messages: [{ role: "user", content: "Hi, I'm Bob" }] });
 await agent.invoke({ messages: [{ role: "user", content: "What's my name?" }] });
 // Agent doesn't remember "Bob"
 
-// ✅ Solution: Add checkpointer and thread_id
+// Solution: Add checkpointer and thread_id
 import { MemorySaver } from "@langchain/langgraph";
 
 const agent = createAgent({
@@ -556,53 +607,55 @@ await agent.invoke({ messages: [{ role: "user", content: "Hi, I'm Bob" }] }, con
 await agent.invoke({ messages: [{ role: "user", content: "What's my name?" }] }, config);
 // Agent remembers: "Your name is Bob"
 ```
+</typescript>
+</fix-state-not-persisting>
 
-### 4. Messages vs State Confusion
-
-Access results correctly:
-
-#### Python
+<fix-messages-vs-state>
+<python>
+Access result messages correctly:
 
 ```python
 result = agent.invoke({"messages": [{"role": "user", "content": "Hello"}]})
 print(result["messages"])  # List of all messages - correct
 # print(result.content)    # KeyError! - wrong
 ```
-
-#### TypeScript
+</python>
+<typescript>
+Access result messages correctly:
 
 ```typescript
 const result = await agent.invoke({ messages: [{ role: "user", content: "Hello" }] });
 console.log(result.messages);  // Array of all messages - correct
 // console.log(result.content); // undefined! - wrong
 ```
+</typescript>
+</fix-messages-vs-state>
 
-### 5. Tool Results Must Be Serializable
-
-Return strings or JSON-serializable data from tools, not objects like `datetime` or custom classes.
-
-#### Python
+<fix-serializable-results>
+<python>
+Return JSON-serializable data from tools:
 
 ```python
 from datetime import datetime
 
-# ❌ Problem: Returning non-serializable objects
+# Problem: Returning non-serializable objects
 @tool
 def bad_get_time() -> datetime:
     """Get current time."""
     return datetime.now()  # datetime objects need special handling
 
-# ✅ Solution: Return serializable data
+# Solution: Return serializable data
 @tool
 def good_get_time() -> str:
     """Get current time."""
     return datetime.now().isoformat()  # String is serializable
 ```
-
-#### TypeScript
+</python>
+<typescript>
+Return JSON-serializable data from tools:
 
 ```typescript
-// ❌ Problem: Returning non-serializable objects
+// Problem: Returning non-serializable objects
 const badTool = tool(
   async () => {
     return new Date(); // Date objects aren't JSON-serializable by default
@@ -610,7 +663,7 @@ const badTool = tool(
   { name: "get_time", description: "Get current time" }
 );
 
-// ✅ Solution: Return serializable data
+// Solution: Return serializable data
 const goodTool = tool(
   async () => {
     return new Date().toISOString(); // String is serializable
@@ -618,19 +671,23 @@ const goodTool = tool(
   { name: "get_time", description: "Get current time" }
 );
 ```
+</typescript>
+</fix-serializable-results>
 
-### 6. Streaming Modes Matter
-
+<streaming-modes>
 - `"values"` - Full state after each step
 - `"updates"` - Only what changed in each step
 - `"messages"` - LLM token stream
+</streaming-modes>
 
-### 7. Async Tools Must Be Awaited Properly (Python)
+<fix-async-tools>
+<python>
+Define and use async tools:
 
 ```python
 from langchain.tools import tool
 
-# ✅ Async tool properly defined
+# Async tool properly defined
 @tool
 async def async_search(query: str) -> str:
     """Async search tool."""
@@ -649,8 +706,10 @@ result = await agent.ainvoke({
     "messages": [{"role": "user", "content": "Search something"}]
 })
 ```
+</python>
+</fix-async-tools>
 
-## Links to Documentation
-
+<links>
 - Python: [Agents Overview](https://docs.langchain.com/oss/python/langchain/agents) | [Tool Calling](https://docs.langchain.com/oss/python/langchain/tools) | [Streaming](https://docs.langchain.com/oss/python/langchain/streaming/overview)
 - TypeScript: [Agents Overview](https://docs.langchain.com/oss/javascript/langchain/agents) | [Tool Calling](https://docs.langchain.com/oss/javascript/langchain/tools) | [Streaming](https://docs.langchain.com/oss/javascript/langchain/streaming/overview)
+</links>

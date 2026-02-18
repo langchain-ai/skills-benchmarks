@@ -3,8 +3,7 @@ name: Deep Agents Todo List
 description: [Deep Agents] Using TodoListMiddleware for task planning and tracking progress with the write_todos tool in Deep Agents for complex multi-step workflows.
 ---
 
-## Overview
-
+<overview>
 TodoListMiddleware provides agents with task planning and progress tracking capabilities through the `write_todos` tool. It's automatically included in every deep agent and helps agents break down complex, multi-step tasks into manageable pieces.
 
 Planning is integral to solving complex problems. The middleware enables agents to:
@@ -12,18 +11,18 @@ Planning is integral to solving complex problems. The middleware enables agents 
 - Track progress as tasks are completed
 - Adapt plans dynamically as new information emerges
 - Provide visibility into long-running operations
+</overview>
 
-## When to Use TodoList Middleware
-
+<when-to-use>
 | Use TodoList When | Skip TodoList When |
 |------------------|-------------------|
 | Complex multi-step tasks requiring coordination | Simple, single-action tasks |
 | Long-running operations where progress visibility matters | Quick operations (< 3 steps) |
 | Tasks that may need plan adaptation | Fixed, predetermined workflows |
 | Multiple tools need to be orchestrated | Single tool invocation |
+</when-to-use>
 
-## How It Works
-
+<how-it-works>
 TodoListMiddleware is automatically included in `create_deep_agent()` / `createDeepAgent()`. The agent receives:
 
 1. A `write_todos` tool for managing the task list
@@ -35,12 +34,13 @@ TodoListMiddleware is automatically included in `create_deep_agent()` / `createD
 Each todo item has:
 - `content`: Description of the task
 - `status`: One of `"pending"`, `"in_progress"`, `"completed"`
+</how-it-works>
 
-## Basic Usage
-
+<basic-usage>
 ### Default Configuration (Included Automatically)
 
-#### Python
+<python>
+Agent uses write_todos for complex tasks:
 
 ```python
 from deepagents import create_deep_agent
@@ -56,8 +56,10 @@ result = agent.invoke({
     }]
 })
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Agent uses write_todos for complex tasks:
 
 ```typescript
 import { createDeepAgent } from "deepagents";
@@ -73,10 +75,12 @@ const result = await agent.invoke({
   }]
 });
 ```
+</typescript>
 
 ### Customizing TodoList Middleware
 
-#### Python
+<python>
+Customize system prompt and tool description:
 
 ```python
 from langchain.agents import create_agent
@@ -98,8 +102,10 @@ agent = create_agent(
     ],
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Customize system prompt and tool description:
 
 ```typescript
 import { createAgent, todoListMiddleware } from "langchain";
@@ -118,21 +124,21 @@ const agent = createAgent({
   ],
 });
 ```
+</typescript>
+</basic-usage>
 
-## Decision Table: Todo List Patterns
-
+<decision-table>
 | Task Type | Todo List Strategy | Example |
 |-----------|-------------------|---------|
 | Sequential steps | Create all todos upfront, complete in order | Build app: setup -> code -> test -> deploy |
 | Discovery-based | Add todos as you learn what's needed | Research: initial search -> follow-up -> synthesis |
 | Parallel work | Multiple "in_progress" items allowed | Data processing: extract + transform + load |
 | Iterative refinement | Update todo content as you refine approach | Debugging: reproduce -> isolate -> fix -> verify |
+</decision-table>
 
-## Code Examples
-
-### Example 1: Sequential Task Breakdown
-
-#### Python
+<ex-sequential>
+<python>
+Create todos upfront for multi-step task:
 
 ```python
 from deepagents import create_deep_agent
@@ -162,8 +168,10 @@ result = agent.invoke({
 #   {"content": "Generate OpenAPI documentation", "status": "pending"}
 # ]
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Create todos upfront for multi-step task:
 
 ```typescript
 import { createDeepAgent } from "deepagents";
@@ -192,8 +200,12 @@ const result = await agent.invoke({
 //   { content: "Generate OpenAPI documentation", status: "pending" }
 // ]
 ```
+</typescript>
+</ex-sequential>
 
-### Example 2: Adaptive Planning (Python)
+<ex-adaptive>
+<python>
+Update todos as requirements emerge:
 
 ```python
 from deepagents import create_deep_agent
@@ -225,10 +237,12 @@ result = agent.invoke({
 #   {"content": "Update deployment documentation", "status": "pending"}
 # ]
 ```
+</python>
+</ex-adaptive>
 
-### Example 3: Custom TodoList Instructions
-
-#### Python
+<ex-custom-instructions>
+<python>
+Add safety checks before deployment:
 
 ```python
 from langchain.agents import create_agent
@@ -266,8 +280,10 @@ result = agent.invoke({
     }]
 })
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Add safety checks before deployment:
 
 ```typescript
 import { createAgent, todoListMiddleware } from "langchain";
@@ -317,10 +333,12 @@ const result = await agent.invoke({
   }]
 });
 ```
+</typescript>
+</ex-custom-instructions>
 
-### Example 4: Accessing Todo State
-
-#### Python
+<ex-access-state>
+<python>
+Read todos from final state:
 
 ```python
 from deepagents import create_deep_agent
@@ -343,8 +361,10 @@ todos = result.get("todos", [])
 for todo in todos:
     print(f"[{todo['status']}] {todo['content']}")
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Read todos from final state:
 
 ```typescript
 import { createDeepAgent } from "deepagents";
@@ -367,11 +387,11 @@ for (const todo of todos) {
   console.log(`[${todo.status}] ${todo.content}`);
 }
 ```
+</typescript>
+</ex-access-state>
 
-## Boundaries
-
-### What Agents CAN Do with TodoLists
-
+<boundaries>
+**What Agents CAN Do with TodoLists:**
 - Create todo lists with custom content and structure
 - Update todo status (pending -> in_progress -> completed)
 - Add new todos as work progresses
@@ -379,19 +399,17 @@ for (const todo of todos) {
 - Reorganize or reprioritize todos
 - Use todos for any task complexity level
 
-### What Agents CANNOT Do
-
+**What Agents CANNOT Do:**
 - Change the tool name from `write_todos`
 - Use custom status values (must be pending/in_progress/completed)
 - Access todos from other threads without the thread_id
 - Disable TodoListMiddleware in create_deep_agent/createDeepAgent (it's always included)
 - Share todos across multiple agents (each agent has its own state)
+</boundaries>
 
-## Gotchas
-
-### 1. TodoList is Stateful - Requires Thread ID
-
-#### Python
+<fix-thread-id-required>
+<python>
+Use thread_id for persistence:
 
 ```python
 # Todo list won't persist without thread_id
@@ -403,8 +421,10 @@ config = {"configurable": {"thread_id": "user-session"}}
 agent.invoke({"messages": [{"role": "user", "content": "Task 1"}]}, config=config)
 agent.invoke({"messages": [{"role": "user", "content": "Task 2"}]}, config=config)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Use thread_id for persistence:
 
 ```typescript
 // Todo list won't persist without thread_id
@@ -416,10 +436,12 @@ const config = { configurable: { thread_id: "user-session" } };
 await agent.invoke({ messages: [{ role: "user", content: "Task 1" }] }, config);
 await agent.invoke({ messages: [{ role: "user", content: "Task 2" }] }, config);
 ```
+</typescript>
+</fix-thread-id-required>
 
-### 2. TodoList Middleware is Always Present
-
-#### Python
+<fix-middleware-always-present>
+<python>
+Use create_agent for full control:
 
 ```python
 # You cannot remove TodoListMiddleware from create_deep_agent
@@ -438,8 +460,10 @@ agent = create_agent(
     middleware=[]  # No middleware at all
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Use createAgent for full control:
 
 ```typescript
 // You cannot remove TodoListMiddleware from createDeepAgent
@@ -454,8 +478,12 @@ const agent2 = createAgent({
   middleware: []  // No middleware at all
 });
 ```
+</typescript>
+</fix-middleware-always-present>
 
-### 3. Todos Are Not Shared Across Agents (Python)
+<fix-todos-not-shared-across-agents>
+<python>
+Each agent has isolated state:
 
 ```python
 # Subagents have their own todo lists
@@ -471,10 +499,12 @@ result = main_agent.invoke({
 
 # The subagent's todos are separate and won't appear in main_agent's state
 ```
+</python>
+</fix-todos-not-shared-across-agents>
 
-### 4. TodoList is Optional for Simple Tasks
-
-#### Python
+<fix-optional-for-simple-tasks>
+<python>
+Agent skips planning for simple tasks:
 
 ```python
 # The agent won't always use write_todos
@@ -496,8 +526,10 @@ result = agent.invoke({
 })
 # Todos present in state
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Agent skips planning for simple tasks:
 
 ```typescript
 // The agent won't always use write_todos for simple tasks
@@ -514,15 +546,17 @@ const result2 = await agent.invoke({
 });
 // Todos present in state
 ```
+</typescript>
+</fix-optional-for-simple-tasks>
 
-## Links to Documentation
-
-### Python
+<links>
+**Python:**
 - [TodoList Middleware Guide](https://docs.langchain.com/oss/python/langchain/middleware/built-in)
 - [Agent Harness Capabilities](https://docs.langchain.com/oss/python/deepagents/harness)
 - [TodoListMiddleware API Reference](https://docs.langchain.com/oss/python/langchain/middleware/built-in#to-do-list)
 
-### TypeScript
+**TypeScript:**
 - [TodoList Middleware Guide](https://docs.langchain.com/oss/javascript/langchain/middleware/built-in)
 - [Agent Harness Capabilities](https://docs.langchain.com/oss/javascript/deepagents/harness)
 - [TodoListMiddleware Reference](https://docs.langchain.com/oss/javascript/langchain/middleware/built-in#to-do-list)
+</links>

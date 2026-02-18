@@ -3,20 +3,20 @@ name: LangChain Chat Models Integration
 description: "[LangChain] Guide to using chat model integrations in LangChain including OpenAI, Anthropic, Google, Azure, and Bedrock"
 ---
 
-## Overview
+<oneliner>
+Chat models provide a unified interface for interacting with various LLM providers, supporting features like tool calling, structured output, and streaming.
+</oneliner>
 
-Chat models in LangChain provide a unified interface for interacting with various LLM providers. They take a sequence of messages as input and return AI-generated messages as output. Chat models support features like tool calling, structured output, and streaming.
-
-### Key Concepts
-
+<overview>
+Key Concepts:
 - **Chat Models**: Accept messages (with roles: system, user, assistant) and return generated responses
 - **Providers**: Different AI companies offering LLM APIs (OpenAI, Anthropic, Google, Azure, Bedrock, etc.)
 - **Tool Calling**: Models can invoke functions/tools based on user queries
 - **Streaming**: Real-time token-by-token response generation
 - **Structured Output**: Models can return responses in specific formats (JSON, Pydantic/Zod schemas)
+</overview>
 
-## Provider Selection Decision Table
-
+<provider-selection>
 | Provider | Best For | Model Examples | Package (Python / TypeScript) | Key Features |
 |----------|----------|----------------|-------------------------------|--------------|
 | **OpenAI** | General purpose, function calling | gpt-4, gpt-4-turbo, gpt-3.5-turbo | `langchain-openai` / `@langchain/openai` | Strong function calling, vision, fast |
@@ -25,9 +25,9 @@ Chat models in LangChain provide a unified interface for interacting with variou
 | **Azure OpenAI** | Enterprise, compliance | gpt-4, gpt-35-turbo (Azure deployed) | `langchain-openai` / `@langchain/openai` | Enterprise SLAs, data residency |
 | **AWS Bedrock** | AWS ecosystem, variety | claude, llama, titan models | `langchain-aws` / `@langchain/aws` | Multiple models, AWS integration |
 | **Google Vertex AI** | GCP ecosystem, enterprise | gemini-pro, palm models | `langchain-google-vertexai` / `@langchain/google-vertexai` | Enterprise features, GCP integration |
+</provider-selection>
 
-### When to Choose Each Provider
-
+<when-to-choose-provider>
 **Choose OpenAI if:**
 - You need strong function/tool calling capabilities
 - You want fast response times
@@ -52,12 +52,12 @@ Chat models in LangChain provide a unified interface for interacting with variou
 - You need strong multimodal capabilities
 - You're in the GCP ecosystem
 - You want access to Gemini models
+</when-to-choose-provider>
 
-## Code Examples
+<ex-openai>
+<python>
 
-### OpenAI Chat Model
-
-#### Python
+Initialize OpenAI chat model and stream responses.
 
 ```python
 from langchain_openai import ChatOpenAI
@@ -83,7 +83,11 @@ for chunk in model.stream("Tell me a story"):
     print(chunk.content, end="", flush=True)
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+
+Initialize OpenAI chat model and stream responses.
 
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
@@ -110,9 +114,13 @@ for await (const chunk of stream) {
 }
 ```
 
-### Anthropic Chat Model
+</typescript>
+</ex-openai>
 
-#### Python
+<ex-anthropic>
+<python>
+
+Anthropic Claude with tool binding.
 
 ```python
 from langchain_anthropic import ChatAnthropic
@@ -142,7 +150,11 @@ model_with_tools = model.bind_tools([get_weather])
 response = model_with_tools.invoke("What's the weather in SF?")
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+
+Anthropic Claude with tool binding.
 
 ```typescript
 import { ChatAnthropic } from "@langchain/anthropic";
@@ -175,9 +187,13 @@ const modelWithTools = model.bindTools([
 ]);
 ```
 
-### Azure OpenAI Chat Model
+</typescript>
+</ex-anthropic>
 
-#### Python
+<ex-azure>
+<python>
+
+Configure Azure OpenAI with deployment settings.
 
 ```python
 from langchain_openai import AzureChatOpenAI
@@ -195,7 +211,11 @@ response = model.invoke("Hello, how are you?")
 print(response.content)
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+
+Configure Azure OpenAI with deployment settings.
 
 ```typescript
 import { AzureChatOpenAI } from "@langchain/openai";
@@ -211,9 +231,13 @@ const model = new AzureChatOpenAI({
 const response = await model.invoke("Hello, how are you?");
 ```
 
-### AWS Bedrock Chat Model
+</typescript>
+</ex-azure>
 
-#### Python
+<ex-bedrock>
+<python>
+
+Set up AWS Bedrock with Claude model.
 
 ```python
 from langchain_aws import ChatBedrock
@@ -229,7 +253,11 @@ response = model.invoke("What is AWS Bedrock?")
 print(response.content)
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+
+Set up AWS Bedrock with Claude model.
 
 ```typescript
 import { ChatBedrockConverse } from "@langchain/aws";
@@ -246,9 +274,13 @@ const model = new ChatBedrockConverse({
 const response = await model.invoke("What is AWS Bedrock?");
 ```
 
-### Google Generative AI
+</typescript>
+</ex-bedrock>
 
-#### Python
+<ex-google>
+<python>
+
+Initialize Google Gemini model.
 
 ```python
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -264,7 +296,11 @@ response = model.invoke("Explain quantum computing")
 print(response.content)
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+
+Initialize Google Gemini model.
 
 ```typescript
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
@@ -278,9 +314,13 @@ const model = new ChatGoogleGenerativeAI({
 const response = await model.invoke("Explain quantum computing");
 ```
 
-### Using init_chat_model / initChatModel (Recommended)
+</typescript>
+</ex-google>
 
-#### Python
+<ex-init>
+<python>
+
+Provider-agnostic model initialization.
 
 ```python
 from langchain.chat_models import init_chat_model
@@ -299,7 +339,11 @@ bedrock_model = init_chat_model(
 )
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+
+Provider-agnostic model initialization.
 
 ```typescript
 import { initChatModel } from "langchain/chat_models/universal";
@@ -317,9 +361,13 @@ const bedrockModel = await initChatModel(
 );
 ```
 
-### Tool Calling Example
+</typescript>
+</ex-init>
 
-#### Python
+<ex-tools>
+<python>
+
+Define and bind tools using decorators.
 
 ```python
 from langchain_openai import ChatOpenAI
@@ -353,7 +401,11 @@ response = model_with_tools.invoke("What's the weather in San Francisco?")
 print(response.tool_calls)  # Model will suggest calling the weather tool
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+
+Define and bind tools with Zod schemas.
 
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
@@ -383,7 +435,13 @@ const response = await model.invoke("What's the weather in San Francisco?");
 console.log(response.tool_calls); // Model will suggest calling the weather tool
 ```
 
-### Structured Output Example (Python)
+</typescript>
+</ex-tools>
+
+<ex-structured>
+<python>
+
+Generate structured output with Pydantic schema.
 
 ```python
 from langchain_openai import ChatOpenAI
@@ -404,11 +462,11 @@ response = structured_model.invoke(
 print(response)  # Returns Person object
 print(f"Name: {response.name}, Age: {response.age}")
 ```
+</python>
+</ex-structured>
 
-## Boundaries
-
-### What You CAN Do
-
+<boundaries>
+What You CAN Do:
 - **Initialize any supported chat model provider** - Install required packages and configure with API keys
 - **Configure model parameters** - Set temperature, max_tokens, top_p, frequency_penalty
 - **Use models for text generation** - Send messages, receive responses, stream tokens
@@ -416,78 +474,86 @@ print(f"Name: {response.name}, Age: {response.age}")
 - **Generate structured output** - Use Pydantic/Zod schemas for type-safe responses
 - **Switch between providers** - Use init_chat_model for provider-agnostic code
 
-### What You CANNOT Do
-
+What You CANNOT Do:
 - **Create new model providers** - Must use existing LangChain integrations
 - **Bypass provider requirements** - Cannot skip required authentication credentials
 - **Modify model capabilities** - Cannot add tool calling to models that don't support it
 - **Access models without proper setup** - Cannot use providers without valid API keys
+</boundaries>
 
-## Gotchas
+<fix-api-keys>
+<python>
 
-### 1. API Keys and Environment Variables
-
-#### Python
+Use environment variables for API keys.
 
 ```python
-# ❌ BAD: Hardcoding API keys
+# BAD: Hardcoding API keys
 model = ChatOpenAI(
     api_key="sk-..."  # Never commit this!
 )
 
-# ✅ GOOD: Use environment variables
+# GOOD: Use environment variables
 import os
 model = ChatOpenAI(
     api_key=os.getenv("OPENAI_API_KEY")
 )
 
-# ✅ BETTER: Let LangChain auto-detect from environment
+# BETTER: Let LangChain auto-detect from environment
 model = ChatOpenAI()  # Reads OPENAI_API_KEY automatically
 ```
+</python>
 
-#### TypeScript
+<typescript>
+
+Use environment variables for API keys.
 
 ```typescript
-// ❌ BAD: Hardcoding API keys
+// BAD: Hardcoding API keys
 const model = new ChatOpenAI({
   openAIApiKey: "sk-..."  // Never commit this!
 });
 
-// ✅ GOOD: Use environment variables
+// GOOD: Use environment variables
 const model = new ChatOpenAI({
   openAIApiKey: process.env.OPENAI_API_KEY
 });
 ```
+</typescript>
+</fix-api-keys>
 
-### 2. Azure OpenAI Configuration
+<fix-azure-configuration>
+<python>
 
-#### Python
+Updated Azure configuration syntax.
 
 ```python
-# ❌ OLD WAY (deprecated)
+# OLD WAY (deprecated)
 from langchain_openai import AzureChatOpenAI
 model = AzureChatOpenAI(
     deployment_name="gpt-4",
     openai_api_base="https://my-instance.openai.azure.com/",
 )
 
-# ✅ NEW WAY
+# NEW WAY
 model = AzureChatOpenAI(
     azure_endpoint="https://my-instance.openai.azure.com/",
     azure_deployment="gpt-4",
     api_version="2024-02-01",
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+
+Complete Azure configuration with all fields.
 
 ```typescript
-// ❌ INCOMPLETE: Missing required fields
+// INCOMPLETE: Missing required fields
 const model = new AzureChatOpenAI({
   azureOpenAIApiKey: process.env.AZURE_OPENAI_API_KEY,
 });
 
-// ✅ COMPLETE: All required fields
+// COMPLETE: All required fields
 const model = new AzureChatOpenAI({
   azureOpenAIApiKey: process.env.AZURE_OPENAI_API_KEY,
   azureOpenAIApiInstanceName: "my-instance",
@@ -495,8 +561,13 @@ const model = new AzureChatOpenAI({
   azureOpenAIApiVersion: "2024-02-01",
 });
 ```
+</typescript>
+</fix-azure-configuration>
 
-### 3. Message Format Variations (Python)
+<fix-message-formats>
+<python>
+
+Dict and message class formats both work.
 
 ```python
 # Different message formats that all work
@@ -517,86 +588,106 @@ messages = [
 # Both work!
 response = model.invoke(messages)
 ```
+</python>
+</fix-message-formats>
 
-### 4. Tool Calling Support
+<fix-tool-calling-support>
+<python>
 
-#### Python
+Check model supports tool calling.
 
 ```python
-# ❌ Not all models support tool calling
+# Not all models support tool calling
 model = ChatOpenAI(model="gpt-3.5-turbo-instruct")
 # This older model doesn't support tools!
 
-# ✅ Use models with tool support
+# Use models with tool support
 model = ChatOpenAI(model="gpt-4")
 model_with_tools = model.bind_tools([my_tool])
 ```
+</python>
 
-#### TypeScript
+<typescript>
+
+Check model supports tool calling.
 
 ```typescript
-// ❌ Not all models support tool calling
+// Not all models support tool calling
 const model = new ChatOpenAI({ modelName: "gpt-3.5-turbo-instruct" });
 // This older model doesn't support tools!
 
-// ✅ Use models with tool support
+// Use models with tool support
 const model = new ChatOpenAI({ modelName: "gpt-4" });
 const withTools = model.bindTools([myTool]);
 ```
+</typescript>
+</fix-tool-calling-support>
 
-### 5. Import Errors - Wrong Package (Python)
+<fix-import-errors>
+<python>
+
+Use provider-specific packages for imports.
 
 ```python
-# ❌ WRONG: Using old community package
+# WRONG: Using old community package
 from langchain.chat_models import ChatOpenAI  # Deprecated!
 
-# ✅ CORRECT: Use provider-specific package
+# CORRECT: Use provider-specific package
 from langchain_openai import ChatOpenAI
 ```
+</python>
+</fix-import-errors>
 
-### 6. Context Window Limits
+<fix-context-window-limits>
+<python>
 
-#### Python
+Choose models with sufficient context window.
 
 ```python
-# ❌ Exceeding context limits
+# Exceeding context limits
 model = ChatOpenAI(model="gpt-3.5-turbo")  # 4k context
 long_text = "..." * 10000
 model.invoke(long_text)  # Will fail!
 
-# ✅ Use appropriate models for long context
+# Use appropriate models for long context
 model = ChatOpenAI(model="gpt-4-turbo")  # 128k context
 # OR
 from langchain_anthropic import ChatAnthropic
 model = ChatAnthropic(model="claude-3-opus-20240229")  # 200k context
 ```
+</python>
 
-#### TypeScript
+<typescript>
+
+Choose models with sufficient context window.
 
 ```typescript
-// ❌ Exceeding context limits
+// Exceeding context limits
 const model = new ChatOpenAI({ modelName: "gpt-3.5-turbo" }); // 4k context
 const longText = "...".repeat(10000);
 await model.invoke(longText); // Will fail!
 
-// ✅ Use appropriate models for long context
+// Use appropriate models for long context
 const model = new ChatOpenAI({ modelName: "gpt-4-turbo" }); // 128k context
 // OR
 const model = new ChatAnthropic({
   modelName: "claude-3-opus-20240229" // 200k context
 });
 ```
+</typescript>
+</fix-context-window-limits>
 
-### 7. Streaming Confusion
+<fix-streaming-confusion>
+<python>
 
-#### Python
+Iterate over stream or use invoke.
 
 ```python
-# ❌ Wrong: Treating stream like regular response
+# Wrong: Treating stream like regular response
 response = model.stream("Hello")
 print(response.content)  # AttributeError!
 
-# ✅ Correct: Iterate over stream
+# Correct: Iterate over stream
 for chunk in model.stream("Hello"):
     print(chunk.content, end="", flush=True)
 
@@ -604,15 +695,18 @@ for chunk in model.stream("Hello"):
 response = model.invoke("Hello")
 print(response.content)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+
+Iterate over stream or use invoke.
 
 ```typescript
-// ❌ Mixing streaming and non-streaming incorrectly
+// Mixing streaming and non-streaming incorrectly
 const response = await model.stream("Hello");
 console.log(response.content); // Won't work! response is an async iterable
 
-// ✅ Handle streaming properly
+// Handle streaming properly
 const stream = await model.stream("Hello");
 for await (const chunk of stream) {
   console.log(chunk.content);
@@ -622,20 +716,30 @@ for await (const chunk of stream) {
 const response = await model.invoke("Hello");
 console.log(response.content);
 ```
+</typescript>
+</fix-streaming-confusion>
 
-### 8. AWS Bedrock Model IDs (Python)
+<fix-bedrock-model-ids>
+<python>
+
+Use full Bedrock model ID format.
 
 ```python
-# ❌ Wrong model ID format
+# Wrong model ID format
 model = ChatBedrock(model_id="claude-3-sonnet")  # Won't work!
 
-# ✅ Correct: Full Bedrock model ID
+# Correct: Full Bedrock model ID
 model = ChatBedrock(
     model_id="anthropic.claude-3-sonnet-20240229-v1:0"
 )
 ```
+</python>
+</fix-bedrock-model-ids>
 
-### 9. Model Name Variations (TypeScript)
+<fix-model-name-variations>
+<typescript>
+
+Provider-specific model naming conventions.
 
 ```typescript
 // Different providers have different model naming conventions
@@ -652,38 +756,49 @@ const anthropic = new ChatAnthropic({
   modelName: "claude-3-opus-20240229"
 });
 ```
+</typescript>
+</fix-model-name-variations>
 
-### 10. Rate Limits and Quotas (TypeScript)
+<fix-rate-limits>
+<typescript>
+
+Configure retries for rate limit handling.
 
 ```typescript
-// ❌ No retry logic
+// No retry logic
 const model = new ChatOpenAI();
 const response = await model.invoke("Hello"); // May fail on rate limit
 
-// ✅ Configure retries
+// Configure retries
 const model = new ChatOpenAI({
   maxRetries: 3,
   timeout: 30000, // 30 seconds
 });
 ```
+</typescript>
+</fix-rate-limits>
 
-### 11. Pydantic Version Compatibility (Python)
+<fix-pydantic-version>
+<python>
+
+Ensure Pydantic v2 is installed.
 
 ```python
 # Some LangChain versions require Pydantic v2
-# ❌ May cause errors with Pydantic v1
+# May cause errors with Pydantic v1
 from pydantic import BaseModel
 
 class Output(BaseModel):
     name: str
 
-# ✅ Ensure Pydantic v2 is installed
+# Ensure Pydantic v2 is installed
 # pip install "pydantic>=2.0"
 ```
+</python>
+</fix-pydantic-version>
 
-## Links to Documentation
-
-### Python
+<links>
+Python:
 - [Chat Models Overview](https://python.langchain.com/docs/integrations/chat/)
 - [OpenAI Integration](https://python.langchain.com/docs/integrations/chat/openai)
 - [Anthropic Integration](https://python.langchain.com/docs/integrations/chat/anthropic)
@@ -691,22 +806,23 @@ class Output(BaseModel):
 - [AWS Bedrock Integration](https://python.langchain.com/docs/integrations/chat/bedrock)
 - [Google GenAI Integration](https://python.langchain.com/docs/integrations/chat/google_generative_ai)
 
-### TypeScript
+TypeScript:
 - [Chat Models Overview](https://js.langchain.com/docs/integrations/chat/)
 - [OpenAI Integration](https://js.langchain.com/docs/integrations/chat/openai)
 - [Anthropic Integration](https://js.langchain.com/docs/integrations/chat/anthropic)
 - [Azure OpenAI Integration](https://js.langchain.com/docs/integrations/chat/azure)
 - [AWS Bedrock Integration](https://js.langchain.com/docs/integrations/chat/bedrock)
 - [Google GenAI Integration](https://js.langchain.com/docs/integrations/chat/google_generativeai)
+</links>
 
-### Package Installation
-
-**Python:**
+<installation>
+Python:
 ```bash
 pip install langchain-openai langchain-anthropic langchain-aws langchain-google-genai langchain-google-vertexai
 ```
 
-**TypeScript:**
+TypeScript:
 ```bash
 npm install @langchain/openai @langchain/anthropic @langchain/aws @langchain/google-genai @langchain/google-vertexai
 ```
+</installation>

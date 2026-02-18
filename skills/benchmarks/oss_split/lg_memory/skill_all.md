@@ -3,25 +3,23 @@ name: LangGraph Memory
 description: "[LangGraph] Memory in LangGraph: short-term (thread-scoped) vs long-term (cross-thread) memory using checkpointers and stores"
 ---
 
-
-## Overview
-
+<overview>
 LangGraph provides two types of memory for agents:
 - **Short-term memory**: Thread-scoped, managed via checkpointers
 - **Long-term memory**: Cross-thread, managed via stores
+</overview>
 
-## Decision Table: Memory Types
-
+<decision-table>
 | Type | Scope | Persistence | Use Case |
 |------|-------|-------------|----------|
 | Short-term | Single thread | Via checkpointer | Conversation history |
 | Long-term | Cross-thread | Via store | User preferences, facts |
+</decision-table>
 
-## Code Examples
+<ex-short-term>
+<python>
+Thread-scoped memory with checkpointer:
 
-### Short-Term Memory (Thread-Scoped)
-
-#### Python
 ```python
 from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import StateGraph, START, END
@@ -54,8 +52,11 @@ graph.invoke({"messages": ["Hello"]}, config)
 graph.invoke({"messages": ["How are you?"]}, config)
 # Response: "I remember 3 messages" (Hello, response, How are you?)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Thread-scoped memory with checkpointer:
+
 ```typescript
 import { MemorySaver, StateGraph, StateSchema, ReducedValue, START, END } from "@langchain/langgraph";
 import { z } from "zod";
@@ -89,10 +90,13 @@ await graph.invoke({ messages: ["Hello"] }, config);
 await graph.invoke({ messages: ["How are you?"] }, config);
 // Response: "I remember 3 messages" (Hello, response, How are you?)
 ```
+</typescript>
+</ex-short-term>
 
-### Long-Term Memory (Cross-Thread)
+<ex-long-term>
+<python>
+Cross-thread memory with store:
 
-#### Python
 ```python
 from langgraph.store.memory import InMemoryStore
 
@@ -132,8 +136,11 @@ thread2 = {"configurable": {"thread_id": "thread-2"}}
 graph.invoke({"user_id": "alice"}, thread1)  # Gets preferences
 graph.invoke({"user_id": "alice"}, thread2)  # Same preferences
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Cross-thread memory with store:
+
 ```typescript
 import { InMemoryStore } from "@langchain/langgraph";
 
@@ -174,10 +181,13 @@ const thread2 = { configurable: { thread_id: "thread-2" } };
 await graph.invoke({ userId: "alice" }, thread1);  // Gets preferences
 await graph.invoke({ userId: "alice" }, thread2);  // Same preferences
 ```
+</typescript>
+</ex-long-term>
 
-### Store Operations
+<ex-store-ops>
+<python>
+Basic store CRUD operations:
 
-#### Python
 ```python
 from langgraph.store.memory import InMemoryStore
 
@@ -203,8 +213,11 @@ results = store.search(
 # Delete
 store.delete(("user-123", "facts"), "location")
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Basic store CRUD operations:
+
 ```typescript
 import { InMemoryStore } from "@langchain/langgraph";
 
@@ -230,10 +243,13 @@ const results = await store.search(
 // Delete
 await store.delete(["user-123", "facts"], "location");
 ```
+</typescript>
+</ex-store-ops>
 
-### Accessing Store in Nodes
+<ex-store-nodes>
+<python>
+Inject store via parameter:
 
-#### Python
 ```python
 from langgraph.store.base import BaseStore
 
@@ -258,8 +274,11 @@ graph = builder.compile(
     store=store
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Access store via config:
+
 ```typescript
 import { BaseStore } from "@langchain/langgraph";
 
@@ -285,10 +304,13 @@ const graph = builder.compile({
   store,
 });
 ```
+</typescript>
+</ex-store-nodes>
 
-### Combining Short and Long-Term Memory
+<ex-combined>
+<python>
+Use both memory types together:
 
-#### Python
 ```python
 def smart_node(state, *, store):
     # Short-term: conversation context
@@ -311,8 +333,11 @@ graph = (
     .compile(checkpointer=checkpointer, store=store)
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Use both memory types together:
+
 ```typescript
 const smartNode = async (state, config) => {
   const store = config.store;
@@ -336,10 +361,13 @@ const graph = new StateGraph(State)
   .addEdge("respond", END)
   .compile({ checkpointer, store });
 ```
+</typescript>
+</ex-combined>
 
-### Persistent Stores (Production)
+<ex-persistent>
+<python>
+PostgreSQL for production:
 
-#### Python
 ```python
 from langgraph.store.postgres import PostgresStore
 
@@ -353,8 +381,11 @@ graph = builder.compile(
     store=store
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+PostgreSQL for production:
+
 ```typescript
 import { PostgresStore } from "@langchain/langgraph-checkpoint-postgres";
 
@@ -368,10 +399,11 @@ const graph = builder.compile({
   store,
 });
 ```
+</typescript>
+</ex-persistent>
 
-## Boundaries
-
-### What You CAN Configure
+<boundaries>
+**What You CAN Configure**
 
 - Use checkpointers for short-term memory
 - Use stores for long-term memory
@@ -380,17 +412,17 @@ const graph = builder.compile({
 - Inject store into nodes (Python) / Access store via config (TypeScript)
 - Choose store backend
 
-### What You CANNOT Configure
+**What You CANNOT Configure**
 
 - Share short-term memory across threads
 - Modify memory serialization format
 - Store mechanism internals
+</boundaries>
 
-## Gotchas
+<fix-short-term-needs-checkpointer>
+<python>
+Add checkpointer for short-term memory:
 
-### 1. Short-Term Needs Checkpointer
-
-#### Python
 ```python
 # WRONG - No checkpointer, no memory
 graph = builder.compile()  # Messages lost!
@@ -399,8 +431,11 @@ graph = builder.compile()  # Messages lost!
 checkpointer = InMemorySaver()
 graph = builder.compile(checkpointer=checkpointer)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Add checkpointer for short-term memory:
+
 ```typescript
 // WRONG - No checkpointer, no memory
 const graph = builder.compile();  // Messages lost!
@@ -409,10 +444,13 @@ const graph = builder.compile();  // Messages lost!
 const checkpointer = new MemorySaver();
 const graph = builder.compile({ checkpointer });
 ```
+</typescript>
+</fix-short-term-needs-checkpointer>
 
-### 2. Long-Term Needs Store
+<fix-long-term-needs-store>
+<python>
+Add store for cross-thread memory:
 
-#### Python
 ```python
 # WRONG - Trying to share data without store
 # Can't access data from other threads with checkpointer alone!
@@ -421,8 +459,11 @@ const graph = builder.compile({ checkpointer });
 store = InMemoryStore()
 graph = builder.compile(checkpointer=checkpointer, store=store)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Add store for cross-thread memory:
+
 ```typescript
 // WRONG - Trying to share data without store
 // Can't access data from other threads with checkpointer alone!
@@ -431,10 +472,13 @@ graph = builder.compile(checkpointer=checkpointer, store=store)
 const store = new InMemoryStore();
 const graph = builder.compile({ checkpointer, store });
 ```
+</typescript>
+</fix-long-term-needs-store>
 
-### 3. Store Must Be Injected / Accessed via Config
+<fix-store-injection>
+<python>
+Inject store via parameter:
 
-#### Python
 ```python
 # WRONG - Store not available
 def my_node(state):
@@ -444,8 +488,11 @@ def my_node(state):
 def my_node(state, *, store: BaseStore):
     store.put(...)  # Correct store instance
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Access store via config:
+
 ```typescript
 // WRONG - Store not available
 const myNode = async (state) => {
@@ -458,10 +505,13 @@ const myNode = async (state, config) => {
   await store.put(...);
 };
 ```
+</typescript>
+</fix-store-injection>
 
-### 4. InMemoryStore Not for Production
+<fix-inmemorystore-not-for-production>
+<python>
+Use persistent backend in production:
 
-#### Python
 ```python
 # WRONG - Data lost on restart
 store = InMemoryStore()  # Memory only!
@@ -470,8 +520,11 @@ store = InMemoryStore()  # Memory only!
 from langgraph.store.postgres import PostgresStore
 store = PostgresStore.from_conn_string("postgresql://...")
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Use persistent backend in production:
+
 ```typescript
 // WRONG - Data lost on restart
 const store = new InMemoryStore();  // Memory only!
@@ -480,8 +533,12 @@ const store = new InMemoryStore();  // Memory only!
 import { PostgresStore } from "@langchain/langgraph-checkpoint-postgres";
 const store = await PostgresStore.fromConnString("postgresql://...");
 ```
+</typescript>
+</fix-inmemorystore-not-for-production>
 
-### 5. Always Await Store Operations (TypeScript)
+<fix-await-store-operations>
+<typescript>
+Await async store operations:
 
 ```typescript
 // WRONG
@@ -492,17 +549,19 @@ console.log(item);  // Promise!
 const item = await store.get(namespace, key);
 console.log(item);
 ```
+</typescript>
+</fix-await-store-operations>
 
-## Links
-
-### Python
+<links>
+**Python**
 - [Memory Overview](https://docs.langchain.com/oss/python/concepts/memory)
 - [Short-Term Memory](https://docs.langchain.com/oss/python/langchain/short-term-memory)
 - [Long-Term Memory](https://docs.langchain.com/oss/python/langchain/long-term-memory)
 - [Store Reference](https://docs.langchain.com/oss/python/langgraph/persistence#memory-store)
 
-### TypeScript
+**TypeScript**
 - [Memory Overview](https://docs.langchain.com/oss/javascript/concepts/memory)
 - [Short-Term Memory](https://docs.langchain.com/oss/javascript/langchain/short-term-memory)
 - [Long-Term Memory](https://docs.langchain.com/oss/javascript/langchain/long-term-memory)
 - [Store Reference](https://docs.langchain.com/oss/javascript/langgraph/persistence#memory-store)
+</links>

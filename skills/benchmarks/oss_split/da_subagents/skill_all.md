@@ -3,8 +3,7 @@ name: Deep Agents Subagents
 description: [Deep Agents] Using SubAgentMiddleware to spawn subagents for task delegation, context isolation, and specialized work in Deep Agents.
 ---
 
-## Overview
-
+<overview>
 SubAgentMiddleware enables agents to delegate work to specialized subagents via the `task` tool. Subagents provide:
 - **Context isolation**: Subagent work doesn't clutter main agent's context
 - **Specialization**: Different tools/prompts for specific tasks
@@ -12,25 +11,26 @@ SubAgentMiddleware enables agents to delegate work to specialized subagents via 
 - **Parallel execution**: Multiple subagents can run concurrently
 
 **Default subagent**: "general-purpose" - automatically available with same tools/config as main agent.
+</overview>
 
-## When to Use Subagents
-
+<when-to-use>
 | Use Subagents When | Use Main Agent When |
 |-------------------|-------------------|
 | Task needs specialized tools | General-purpose tools sufficient |
 | Want to isolate complex multi-step work | Single-step operation |
 | Need clean context for main agent | Context bloat acceptable |
 | Task benefits from different model/prompt | Same config works |
+</when-to-use>
 
-## How It Works
-
+<how-it-works>
 Main agent has `task` tool -> creates fresh subagent -> subagent executes autonomously -> returns final report to main agent.
+</how-it-works>
 
-## Defining Subagents
-
+<defining-subagents>
 ### Dictionary-based Subagent
 
-#### Python
+<python>
+Define subagent with custom tools:
 
 ```python
 from deepagents import create_deep_agent
@@ -63,8 +63,10 @@ result = agent.invoke({
 })
 # Main agent calls: task(agent="research", instruction="Research recent papers on transformers")
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Define subagent with custom tools:
 
 ```typescript
 import { createDeepAgent } from "deepagents";
@@ -96,10 +98,12 @@ const result = await agent.invoke({
   messages: [{ role: "user", content: "Research recent papers on transformers" }]
 });
 ```
+</typescript>
 
 ### CompiledSubAgent (Custom LangGraph)
 
-#### Python
+<python>
+Use custom LangGraph as subagent:
 
 ```python
 from deepagents import create_deep_agent, CompiledSubAgent
@@ -122,8 +126,10 @@ agent = create_deep_agent(
     subagents=[weather_subagent]
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Use custom LangGraph as subagent:
 
 ```typescript
 import { createDeepAgent, CompiledSubAgent } from "deepagents";
@@ -140,21 +146,21 @@ const agent = await createDeepAgent({
   subagents: [weatherSubagent]
 });
 ```
+</typescript>
+</defining-subagents>
 
-## Decision Table: Subagent Patterns
-
+<decision-table>
 | Pattern | When to Use | Example |
 |---------|------------|---------|
 | Specialized tools | Task needs unique tools | code-reviewer with linting tools |
 | Different model | Cost/capability tradeoff | GPT-4 main, GPT-3.5 for simple subagents |
 | Context isolation | Keep main context clean | web-research dumps to files, returns summary |
 | Parallel work | Independent subtasks | analyze-data + generate-report simultaneously |
+</decision-table>
 
-## Code Examples
-
-### Example 1: Research Subagent
-
-#### Python
+<ex-research>
+<python>
+Chain researcher and analyst subagents:
 
 ```python
 from deepagents import create_deep_agent
@@ -195,8 +201,10 @@ result = agent.invoke({
 })
 # Main agent: task(agent="researcher", ...) -> task(agent="analyst", ...)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Define researcher subagent with search tool:
 
 ```typescript
 import { createDeepAgent } from "deepagents";
@@ -230,10 +238,12 @@ const result = await agent.invoke({
   }]
 });
 ```
+</typescript>
+</ex-research>
 
-### Example 2: Subagent with Human-in-the-Loop
-
-#### Python
+<ex-hitl>
+<python>
+Require approval for deployment subagent:
 
 ```python
 from deepagents import create_deep_agent
@@ -252,8 +262,10 @@ agent = create_deep_agent(
     checkpointer=MemorySaver()  # Required for interrupts
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Require approval for deployment subagent:
 
 ```typescript
 import { createDeepAgent } from "deepagents";
@@ -272,10 +284,12 @@ const agent = await createDeepAgent({
   checkpointer: new MemorySaver()  // Required
 });
 ```
+</typescript>
+</ex-hitl>
 
-### Example 3: Subagent with Custom Skills
-
-#### Python
+<ex-custom-skills>
+<python>
+Provide skills explicitly to subagent:
 
 ```python
 from deepagents import create_deep_agent
@@ -295,8 +309,10 @@ agent = create_deep_agent(
 # Note: Custom subagents DON'T inherit main agent's skills by default
 # General-purpose subagent DOES inherit main agent's skills
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Provide skills explicitly to subagent:
 
 ```typescript
 const agent = await createDeepAgent({
@@ -314,8 +330,12 @@ const agent = await createDeepAgent({
 // Custom subagents DON'T inherit main skills by default
 // General-purpose subagent DOES inherit main skills
 ```
+</typescript>
+</ex-custom-skills>
 
-### Example 4: Default General-Purpose Subagent (Python)
+<ex-default>
+<python>
+Use default subagent for context isolation:
 
 ```python
 from deepagents import create_deep_agent
@@ -332,11 +352,11 @@ result = agent.invoke({
 # Agent may call: task(instruction="Analyze dataset and summarize")
 # Uses general-purpose subagent with same tools/config as main
 ```
+</python>
+</ex-default>
 
-## Boundaries
-
-### What Agents CAN Configure
-
+<boundaries>
+**What Agents CAN Configure:**
 - Subagent name and description
 - Custom tools for subagents
 - Different models per subagent
@@ -344,19 +364,17 @@ result = agent.invoke({
 - Subagent middleware and skills
 - Human-in-the-loop for subagent tools
 
-### What Agents CANNOT Configure
-
+**What Agents CANNOT Configure:**
 - Change the `task` tool name
 - Make subagents stateful (they're ephemeral)
 - Share state directly between subagents
 - Remove the default general-purpose subagent
 - Have subagents call back to main agent
+</boundaries>
 
-## Gotchas
-
-### 1. Subagents Are Stateless
-
-#### Python
+<fix-subagents-stateless>
+<python>
+Each call creates fresh subagent:
 
 ```python
 # Subagents don't remember previous calls
@@ -366,8 +384,9 @@ agent.invoke({"messages": [{"role": "user", "content": "task(agent='research', i
 
 # Main agent maintains conversation memory, not subagents
 ```
-
-#### TypeScript
+</python>
+<typescript>
+Each call creates fresh subagent:
 
 ```typescript
 // Subagents don't remember previous calls
@@ -377,10 +396,12 @@ await agent.invoke({messages: [{role: "user", content: "What did you find?"}]});
 
 // Main agent maintains conversation memory
 ```
+</typescript>
+</fix-subagents-stateless>
 
-### 2. Custom Subagents Don't Inherit Skills
-
-#### Python
+<fix-subagents-no-skill-inheritance>
+<python>
+Provide skills to subagent explicitly:
 
 ```python
 # Subagent won't have main agent's skills
@@ -402,8 +423,9 @@ agent = create_deep_agent(
 # General-purpose subagent DOES inherit main skills
 # agent.invoke() -> task(instruction="...") uses general-purpose with main skills
 ```
-
-#### TypeScript
+</python>
+<typescript>
+Provide skills to subagent explicitly:
 
 ```typescript
 // Subagent won't have main skills
@@ -422,8 +444,12 @@ await createDeepAgent({
   }]
 });
 ```
+</typescript>
+</fix-subagents-no-skill-inheritance>
 
-### 3. Subagent Results Are Final (Python)
+<fix-subagent-results-final>
+<python>
+Provide complete instructions upfront:
 
 ```python
 # Subagents return a single final message
@@ -438,10 +464,12 @@ await createDeepAgent({
 # Provide complete instructions upfront
 # Main: "task(agent='research', instruction='Find data on AI, save to /research/, return summary')"
 ```
+</python>
+</fix-subagent-results-final>
 
-### 4. Subagent Interrupts Require Main Checkpointer
-
-#### Python
+<fix-subagent-interrupts-require-checkpointer>
+<python>
+Add checkpointer to main agent:
 
 ```python
 # Subagent HITL without checkpointer
@@ -461,8 +489,9 @@ agent = create_deep_agent(
     checkpointer=MemorySaver()  # On main agent
 )
 ```
-
-#### TypeScript
+</python>
+<typescript>
+Add checkpointer to main agent:
 
 ```typescript
 // Missing checkpointer
@@ -482,15 +511,17 @@ await createDeepAgent({
   checkpointer: new MemorySaver()
 });
 ```
+</typescript>
+</fix-subagent-interrupts-require-checkpointer>
 
-## Links to Documentation
-
-### Python
+<links>
+**Python:**
 - [Subagents Guide](https://docs.langchain.com/oss/python/deepagents/subagents)
 - [SubAgent Middleware](https://docs.langchain.com/oss/python/langchain/middleware/built-in#subagent)
 - [Task Delegation](https://docs.langchain.com/oss/python/deepagents/harness#task-delegation-subagents)
 
-### TypeScript
+**TypeScript:**
 - [Subagents Guide](https://docs.langchain.com/oss/javascript/deepagents/subagents)
 - [SubAgent Middleware](https://docs.langchain.com/oss/javascript/langchain/middleware/built-in#subagent)
 - [Task Delegation](https://docs.langchain.com/oss/javascript/deepagents/harness#task-delegation-subagents)
+</links>

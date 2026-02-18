@@ -3,19 +3,19 @@ name: LangChain Tools Integration
 description: "[LangChain] Guide to using tool integrations in LangChain including pre-built toolkits, Tavily, Wikipedia, and custom tools"
 ---
 
-## Overview
+<oneliner>
+Tools enable LLMs to interact with external systems, perform calculations, search the web, query databases, and extend model capabilities beyond text generation.
+</oneliner>
 
-Tools enable LLMs to interact with external systems, perform calculations, search the web, query databases, and more. They extend model capabilities beyond text generation, making agents truly actionable.
-
-### Key Concepts
-
+<overview>
+Key Concepts:
 - **Tools**: Functions that agents can call to perform specific tasks
 - **Tool Calling**: Models decide when and how to use tools based on user queries
 - **Toolkits**: Collections of related tools
 - **Tool Schema**: Describes tool parameters using Pydantic models (Python) or Zod/JSON Schema (TypeScript)
+</overview>
 
-## Tool Selection Decision Table
-
+<tool-selection>
 | Tool/Toolkit | Best For | Package (Python / TypeScript) | Key Features |
 |--------------|----------|-------------------------------|--------------|
 | **Tavily Search** | Web search | `langchain-community` / `@langchain/community` | AI-optimized search API |
@@ -25,9 +25,9 @@ Tools enable LLMs to interact with external systems, perform calculations, searc
 | **ArXiv** | Academic papers | `langchain-community` | Research paper search (Python) |
 | **Vector Store Tools** | Semantic search | Based on vector store | Query your data |
 | **Custom Tools** | Your specific needs | `langchain-core` / `@langchain/core/tools` | Define any function |
+</tool-selection>
 
-### When to Choose Each Tool
-
+<when-to-choose-tool>
 **Choose Tavily if:**
 - You need high-quality web search
 - You want AI-optimized results
@@ -42,12 +42,11 @@ Tools enable LLMs to interact with external systems, perform calculations, searc
 - You have specific business logic
 - You need to integrate proprietary systems
 - Built-in tools don't meet your needs
+</when-to-choose-tool>
 
-## Code Examples
-
-### Tavily Search Tool
-
-#### Python
+<ex-tavily>
+<python>
+Initialize Tavily search and use with agent.
 
 ```python
 from langchain_community.tools.tavily_search import TavilySearchResults
@@ -75,7 +74,10 @@ response = agent.invoke({
 })
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+Initialize Tavily search and use with agent.
 
 ```typescript
 import { TavilySearchResults } from "@langchain/community/tools/tavily_search";
@@ -105,9 +107,12 @@ const response = await agent.invoke({
 });
 ```
 
-### Wikipedia Tool
+</typescript>
+</ex-tavily>
 
-#### Python
+<ex-wikipedia>
+<python>
+Query Wikipedia for encyclopedic information.
 
 ```python
 from langchain_community.tools import WikipediaQueryRun
@@ -125,7 +130,10 @@ result = wikipedia.invoke("Artificial Intelligence")
 print(result)
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+Query Wikipedia for encyclopedic information.
 
 ```typescript
 import { WikipediaQueryRun } from "@langchain/community/tools/wikipedia_query_run";
@@ -140,7 +148,12 @@ const result = await wikipediaTool.invoke("Artificial Intelligence");
 console.log(result);
 ```
 
-### Calculator Tool (TypeScript)
+</typescript>
+</ex-wikipedia>
+
+<ex-calculator>
+<typescript>
+Evaluate math expressions with calculator tool.
 
 ```typescript
 import { Calculator } from "@langchain/community/tools/calculator";
@@ -157,10 +170,12 @@ const mathAgent = createReactAgent({
   tools: [calculator],
 });
 ```
+</typescript>
+</ex-calculator>
 
-### DuckDuckGo Search (No API Key)
-
-#### Python
+<ex-duckduckgo>
+<python>
+Search web without API key using DuckDuckGo.
 
 ```python
 from langchain_community.tools import DuckDuckGoSearchRun
@@ -177,7 +192,10 @@ search_tool = DuckDuckGoSearchResults(max_results=5)
 results = search_tool.invoke("Python programming")
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+Search web without API key using DuckDuckGo.
 
 ```typescript
 import { DuckDuckGoSearch } from "@langchain/community/tools/duckduckgo_search";
@@ -189,7 +207,12 @@ const searchTool = new DuckDuckGoSearch({
 const results = await searchTool.invoke("LangChain framework");
 ```
 
-### ArXiv Tool (Python)
+</typescript>
+</ex-duckduckgo>
+
+<ex-arxiv>
+<python>
+Search academic papers on ArXiv.
 
 ```python
 from langchain_community.tools import ArxivQueryRun
@@ -200,10 +223,12 @@ arxiv_tool = ArxivQueryRun()
 results = arxiv_tool.invoke("large language models")
 print(results)
 ```
+</python>
+</ex-arxiv>
 
-### Custom Tool with Decorator/Function
-
-#### Python
+<ex-custom-tool>
+<python>
+Define custom tool with @tool decorator.
 
 ```python
 from langchain_core.tools import tool
@@ -233,7 +258,10 @@ response = agent.invoke({
 })
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+Define custom tool with Zod schema validation.
 
 ```typescript
 import { tool } from "@langchain/core/tools";
@@ -267,7 +295,12 @@ const response = await agent.invoke({
 });
 ```
 
-### Custom Tool with Pydantic Schema (Python)
+</typescript>
+</ex-custom-tool>
+
+<ex-pydantic-schema>
+<python>
+Use Pydantic model for tool input validation.
 
 ```python
 from langchain_core.tools import tool
@@ -285,10 +318,12 @@ def get_weather(location: str, unit: str = "celsius") -> str:
 
 # Tool now has proper schema validation
 ```
+</python>
+</ex-pydantic-schema>
 
-### Custom Tool - Class-Based
-
-#### Python
+<ex-class-tool>
+<python>
+Create class-based tool extending BaseTool.
 
 ```python
 from langchain_core.tools import BaseTool
@@ -317,7 +352,10 @@ class DatabaseQueryTool(BaseTool):
 db_tool = DatabaseQueryTool()
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+Create class-based tool extending StructuredTool.
 
 ```typescript
 import { StructuredTool } from "@langchain/core/tools";
@@ -341,9 +379,12 @@ class DatabaseQueryTool extends StructuredTool {
 const dbTool = new DatabaseQueryTool();
 ```
 
-### Vector Store as Tool
+</typescript>
+</ex-class-tool>
 
-#### Python
+<ex-vector-store>
+<python>
+Convert vector store retriever to agent tool.
 
 ```python
 from langchain_core.tools import create_retriever_tool
@@ -369,7 +410,10 @@ from langgraph.prebuilt import create_react_agent
 agent = create_react_agent(model, [retriever_tool])
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+Convert vector store retriever to agent tool.
 
 ```typescript
 import { createRetrieverTool } from "langchain/tools/retriever";
@@ -399,9 +443,12 @@ const agent = createReactAgent({
 });
 ```
 
-### Multiple Tools Example
+</typescript>
+</ex-vector-store>
 
-#### Python
+<ex-multi-tools>
+<python>
+Combine multiple tools in one agent.
 
 ```python
 from langchain_openai import ChatOpenAI
@@ -450,7 +497,10 @@ response = agent.invoke({
 })
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+Combine multiple tools in one agent.
 
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
@@ -493,9 +543,12 @@ const response = await agent.invoke({
 });
 ```
 
-### Tool with Error Handling
+</typescript>
+</ex-multi-tools>
 
-#### Python
+<ex-error-handling>
+<python>
+Handle API errors gracefully in tools.
 
 ```python
 from langchain_core.tools import tool
@@ -518,7 +571,10 @@ def api_call(endpoint: str) -> str:
 # Error handling is critical for robust tools
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+Handle API errors gracefully in tools.
 
 ```typescript
 import { tool } from "@langchain/core/tools";
@@ -547,7 +603,12 @@ const apiTool = tool(
 );
 ```
 
-### Toolkits (Python)
+</typescript>
+</ex-error-handling>
+
+<ex-sql-toolkit>
+<python>
+Use SQL database toolkit for queries.
 
 ```python
 # SQL Database Toolkit
@@ -563,107 +624,109 @@ tools = toolkit.get_tools()
 # Use in agent
 agent = create_react_agent(model, tools)
 ```
+</python>
+</ex-sql-toolkit>
 
-## Boundaries
-
-### What Agents CAN Do
-
+<boundaries>
+What You CAN Do:
 - **Use pre-built tools** - Tavily search, Wikipedia, DuckDuckGo, ArXiv, calculators, web browsers, any tool from LangChain community
 - **Create custom tools** - Define functions with @tool decorator (Python) or tool() (TypeScript), implement class-based tools, convert retrievers to tools
 - **Combine multiple tools** - Give agents access to many tools, let models choose appropriate tools, chain tool calls
 - **Handle tool responses** - Parse tool output, use results in conversation, error handling
 
-### What Agents CANNOT Do
-
+What You CANNOT Do:
 - **Execute arbitrary code safely** - Cannot run untrusted code; need sandboxing for code execution
 - **Bypass authentication** - Tools need proper API keys; cannot access protected resources without credentials
 - **Guarantee tool selection** - Model decides which tool to use; cannot force specific tool usage (without prompting)
 - **Use tools model doesn't support** - Not all models support tool calling; need GPT-4, Claude 3, or similar
+</boundaries>
 
-## Gotchas
-
-### 1. Import from Correct Package (Python)
+<fix-import-path>
+<python>
+Use langchain_community for tool imports.
 
 ```python
-# ❌ OLD
+# OLD
 from langchain.tools import WikipediaQueryRun
 
-# ✅ NEW
+# NEW
 from langchain_community.tools import WikipediaQueryRun
 ```
+</python>
+</fix-import-path>
 
-**Fix**: Use `langchain-community` for tools.
-
-### 2. API Keys Required
-
-#### Python
+<fix-api-keys>
+<python>
+Provide API key via environment variable.
 
 ```python
-# ❌ Missing API key
+# Missing API key
 tool = TavilySearchResults()
 tool.invoke("query")  # Error!
 
-# ✅ Provide API key
+# Provide API key
 import os
 tool = TavilySearchResults(api_key=os.getenv("TAVILY_API_KEY"))
 ```
-
-#### TypeScript
+</python>
+<typescript>
+Provide API key via environment variable.
 
 ```typescript
-// ❌ Missing API key
+// Missing API key
 const tool = new TavilySearchResults();
 await tool.invoke("query"); // Error!
 
-// ✅ Provide API key
+// Provide API key
 const tool = new TavilySearchResults({
   apiKey: process.env.TAVILY_API_KEY,
 });
 ```
+</typescript>
+</fix-api-keys>
 
-**Fix**: Set required API keys in environment variables.
-
-### 3. Model Must Support Tools
-
-#### Python
+<fix-model-support>
+<python>
+Use GPT-4 or similar for tool calling.
 
 ```python
-# ❌ Model doesn't support tool calling
+# Model doesn't support tool calling
 model = ChatOpenAI(model="gpt-3.5-turbo-instruct")
 # This model doesn't support tools!
 
-# ✅ Use tool-capable model
+# Use tool-capable model
 model = ChatOpenAI(model="gpt-4")
 ```
-
-#### TypeScript
+</python>
+<typescript>
+Use GPT-4 or similar for tool calling.
 
 ```typescript
-// ❌ Model doesn't support tool calling
+// Model doesn't support tool calling
 import { ChatOpenAI } from "@langchain/openai";
 
 const model = new ChatOpenAI({ modelName: "gpt-3.5-turbo-instruct" });
 // This model doesn't support tools!
 
-// ✅ Use tool-capable model
+// Use tool-capable model
 const model = new ChatOpenAI({ modelName: "gpt-4" });
 const modelWithTools = model.bindTools([myTool]);
 ```
+</typescript>
+</fix-model-support>
 
-**Fix**: Use models that support function calling (GPT-4, Claude 3, etc.).
-
-### 4. Tool Description Matters
-
-#### Python
+<fix-tool-desc>
+<python>
+Write clear, specific tool descriptions.
 
 ```python
-# ❌ Poor description
+# Poor description
 @tool
 def tool1(x: int) -> int:
     """A tool"""  # Too vague!
     return x * 2
 
-# ✅ Clear, specific description
+# Clear, specific description
 @tool
 def double_number(number: int) -> int:
     """Multiply a number by 2. Use this when the user wants to double a value.
@@ -673,11 +736,12 @@ def double_number(number: int) -> int:
     """
     return number * 2
 ```
-
-#### TypeScript
+</python>
+<typescript>
+Write clear, specific tool descriptions.
 
 ```typescript
-// ❌ Poor description
+// Poor description
 const myTool = tool(
   async ({ x }) => x * 2,
   {
@@ -687,7 +751,7 @@ const myTool = tool(
   }
 );
 
-// ✅ Clear, specific description
+// Clear, specific description
 const myTool = tool(
   async ({ number }) => number * 2,
   {
@@ -699,18 +763,20 @@ const myTool = tool(
   }
 );
 ```
+</typescript>
+</fix-tool-desc>
 
-**Fix**: Write clear descriptions that help the model know when to use the tool.
-
-### 5. Type Hints Required (Python)
+<fix-type-hints>
+<python>
+Add type hints for proper schema generation.
 
 ```python
-# ❌ Missing type hints
+# Missing type hints
 @tool
 def my_tool(x):  # No type hints!
     return x
 
-# ✅ Include type hints
+# Include type hints
 @tool
 def my_tool(x: str) -> str:
     """Process input.
@@ -720,13 +786,15 @@ def my_tool(x: str) -> str:
     """
     return x.upper()
 ```
+</python>
+</fix-type-hints>
 
-**Fix**: Always include type hints for tool parameters.
-
-### 6. Schema Validation (TypeScript)
+<fix-schema-validation>
+<typescript>
+Use specific Zod types, not z.any().
 
 ```typescript
-// ❌ No schema validation
+// No schema validation
 const myTool = tool(
   async ({ location }) => {
     // Assumes location is a string, but no validation
@@ -739,7 +807,7 @@ const myTool = tool(
   }
 );
 
-// ✅ Proper schema
+// Proper schema
 const myTool = tool(
   async ({ location }) => {
     return location.toUpperCase();
@@ -753,25 +821,24 @@ const myTool = tool(
   }
 );
 ```
+</typescript>
+</fix-schema-validation>
 
-**Fix**: Use specific Zod schemas for type safety.
-
-## Links to Documentation
-
-### Python
+<links>
+Python:
 - [LangChain Python Tools](https://python.langchain.com/docs/integrations/tools/)
 - [Custom Tools Guide](https://python.langchain.com/docs/how_to/custom_tools/)
 
-### TypeScript
+TypeScript:
 - [LangChain JS Tools](https://js.langchain.com/docs/integrations/tools/)
 - [Custom Tools Guide](https://js.langchain.com/docs/how_to/custom_tools/)
 
-### External
+External:
 - [Tavily](https://docs.tavily.com/)
+</links>
 
-### Package Installation
-
-**Python:**
+<installation>
+Python:
 ```bash
 # Community tools
 pip install langchain-community
@@ -782,7 +849,7 @@ pip install wikipedia  # For Wikipedia
 pip install duckduckgo-search  # For DuckDuckGo
 ```
 
-**TypeScript:**
+TypeScript:
 ```bash
 # Community tools
 npm install @langchain/community
@@ -793,3 +860,4 @@ npm install @langchain/core
 # Specific integrations
 npm install @langchain/openai  # For OpenAI-based tools
 ```
+</installation>

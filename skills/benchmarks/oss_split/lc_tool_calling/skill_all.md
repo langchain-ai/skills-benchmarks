@@ -3,49 +3,49 @@ name: LangChain Tool Calling
 description: "[LangChain] How chat models call tools - includes bind_tools/bindTools, tool choice strategies, parallel tool calling, and tool message handling"
 ---
 
-## Overview
+<oneliner>
+How chat models call tools - includes bind_tools/bindTools, tool choice strategies, parallel tool calling, and tool message handling.
+</oneliner>
 
+<overview>
 Tool calling allows chat models to request execution of external functions. Models decide which tools to call based on user input, and the results are passed back to the model for further reasoning. This is the foundation of agentic behavior.
 
-**Key Concepts:**
+Key Concepts:
 - **bind_tools() / bindTools()**: Attach tools to a model
 - **Tool Calls**: Model requests to execute tools (in AIMessage.tool_calls)
 - **Tool Messages**: Results passed back to model (ToolMessage)
 - **Tool Choice**: Control which tools the model can use
+</overview>
 
-## When to Use Tool Calling
-
+<when-to-use>
 | Scenario | Use Tool Calling? | Why |
 |----------|------------------|-----|
 | Need external data (API, database) | Yes | Model can't access external data directly |
 | Multi-step reasoning with actions | Yes | Model decides next action based on results |
 | Simple Q&A | No | No tools needed |
 | Predetermined workflow | Maybe | Consider if model needs to decide steps |
+</when-to-use>
 
-## Decision Tables
-
-### Tool Choice Strategies
-
+<tool-choice-strategies>
 | Strategy | When to Use | Example |
 |----------|-------------|---------|
 | `"auto"` (default) | Model decides if/which tool to use | General purpose |
 | `"any"` | Force model to use at least one tool | Extraction, classification |
 | `"tool_name"` | Force specific tool | When you know which tool is needed |
 | `"none"` | Prevent tool use | After tools are executed |
+</tool-choice-strategies>
 
-### Handling Tool Calls
-
+<handling-tool-calls-patterns>
 | Pattern | When to Use | Example |
 |---------|-------------|---------|
 | Manual execution | Outside of agents | Testing, custom workflows |
 | Agent loop | Production use | create_agent handles automatically |
 | Parallel execution | Multiple independent tools | Weather + news queries |
+</handling-tool-calls-patterns>
 
-## Code Examples
-
-### Basic Tool Calling
-
-#### Python
+<ex-basic>
+<python>
+Define tool and bind to model.
 
 ```python
 from langchain_openai import ChatOpenAI
@@ -76,8 +76,10 @@ print(response.tool_calls)
 #   'id': 'call_abc123'
 # }]
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Define tool and bind to model.
 
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
@@ -115,10 +117,12 @@ console.log(response.tool_calls);
 //   id: "call_abc123"
 // }]
 ```
+</typescript>
+</ex-basic>
 
-### Executing Tool Calls Manually
-
-#### Python
+<ex-manual-execution>
+<python>
+Execute tools and pass results back.
 
 ```python
 from langchain_openai import ChatOpenAI
@@ -150,8 +154,10 @@ messages.extend(tool_results)  # Add tool results
 response2 = model_with_tools.invoke(messages)
 print(response2.content)  # Final answer using tool results
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Execute tools and pass results back.
 
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
@@ -188,10 +194,12 @@ messages.push(...toolResults); // Add tool results
 const response2 = await modelWithTools.invoke(messages);
 console.log(response2.content); // Final answer using tool results
 ```
+</typescript>
+</ex-manual-execution>
 
-### Tool Choice: Force Tool Use
-
-#### Python
+<ex-force-tool>
+<python>
+Force model to use a specific tool.
 
 ```python
 from langchain_openai import ChatOpenAI
@@ -226,8 +234,10 @@ response = model_with_tools.invoke("Contact: John Doe (john@example.com)")
 print(response.tool_calls[0]["args"])
 # {'name': 'John Doe', 'email': 'john@example.com'}
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Force model to use a specific tool.
 
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
@@ -260,10 +270,12 @@ const response = await modelWithTools.invoke(
 console.log(response.tool_calls[0].args);
 // { name: "John Doe", email: "john@example.com" }
 ```
+</typescript>
+</ex-force-tool>
 
-### Tool Choice: Force Any Tool
-
-#### Python
+<ex-force-any>
+<python>
+Force model to use any tool.
 
 ```python
 # Force model to use at least one tool (any of them)
@@ -275,8 +287,10 @@ model_with_tools = model.bind_tools(
 # Model must call at least one tool, can't respond with just text
 response = model_with_tools.invoke("Process this data")
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Force model to use any tool.
 
 ```typescript
 // Force model to use at least one tool (any of them)
@@ -288,10 +302,12 @@ const modelWithTools = model.bindTools(
 // Model must call at least one tool, can't respond with just text
 const response = await modelWithTools.invoke("Process this data");
 ```
+</typescript>
+</ex-force-any>
 
-### Parallel Tool Calling
-
-#### Python
+<ex-parallel>
+<python>
+Model calls multiple tools in parallel.
 
 ```python
 from langchain_openai import ChatOpenAI
@@ -319,8 +335,10 @@ print(response.tool_calls)
 #   {'name': 'get_news', 'args': {'topic': 'AI'}, 'id': 'call_2'}
 # ]
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Model calls multiple tools in parallel.
 
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
@@ -358,10 +376,12 @@ console.log(response.tool_calls);
 //   { name: "get_news", args: { topic: "AI" }, id: "call_2" }
 // ]
 ```
+</typescript>
+</ex-parallel>
 
-### Tool Message Structure
-
-#### Python
+<ex-tool-message>
+<python>
+Create ToolMessage with correct tool_call_id.
 
 ```python
 from langchain.schema.messages import ToolMessage
@@ -381,8 +401,10 @@ result = get_weather.invoke({
 })
 # result is a ToolMessage with proper structure
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Create ToolMessage with correct tool_call_id.
 
 ```typescript
 import { ToolMessage } from "langchain";
@@ -402,10 +424,12 @@ const result = await getTool.invoke({
 });
 // result is a ToolMessage with proper structure
 ```
+</typescript>
+</ex-tool-message>
 
-### Handling Tool Errors
-
-#### Python
+<ex-error-handling>
+<python>
+Handle tool errors gracefully.
 
 ```python
 from langchain_openai import ChatOpenAI
@@ -440,8 +464,10 @@ for tool_call in response.tool_calls:
             )
         )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Handle tool errors gracefully.
 
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
@@ -483,10 +509,12 @@ for (const toolCall of response.tool_calls || []) {
   }
 }
 ```
+</typescript>
+</ex-error-handling>
 
-### Provider-Specific Built-in Tools
-
-#### Python
+<ex-builtin-tools>
+<python>
+Use provider built-in tools.
 
 ```python
 from langchain_openai import ChatOpenAI
@@ -505,8 +533,10 @@ claude = ChatAnthropic(
     # Provider-specific parameters
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Use provider built-in tools.
 
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
@@ -526,10 +556,12 @@ const claude = new ChatAnthropic({
   // These are provider parameters, not bindTools()
 });
 ```
+</typescript>
+</ex-builtin-tools>
 
-### Conditional Tool Binding
-
-#### Python
+<ex-conditional-binding>
+<python>
+Bind different tools based on user role.
 
 ```python
 from langchain_openai import ChatOpenAI
@@ -548,8 +580,10 @@ def get_model_with_tools(user_role: str):
 admin_model = get_model_with_tools("admin")
 user_model = get_model_with_tools("user")
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Bind different tools based on user role.
 
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
@@ -570,10 +604,12 @@ function getModelWithTools(userRole: string) {
 const adminModel = getModelWithTools("admin");
 const userModel = getModelWithTools("user");
 ```
+</typescript>
+</ex-conditional-binding>
 
-### Tool Calling in Conversation
-
-#### Python
+<ex-conversation>
+<python>
+Multi-turn conversation with tool calls.
 
 ```python
 from langchain_openai import ChatOpenAI
@@ -611,8 +647,10 @@ messages.append({"role": "user", "content": "Tell me more"})
 response3 = model_with_tools.invoke(messages)
 # Model can call tools again if needed
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Multi-turn conversation with tool calls.
 
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
@@ -655,8 +693,12 @@ messages.push({ role: "user", content: "Tell me more" });
 const response3 = await modelWithTools.invoke(messages);
 // Model can call tools again if needed
 ```
+</typescript>
+</ex-conversation>
 
-### Async Tool Calling (Python)
+<ex-async-python>
+<python>
+Async tool execution with ainvoke.
 
 ```python
 from langchain_openai import ChatOpenAI
@@ -687,62 +729,64 @@ async def main():
 
 asyncio.run(main())
 ```
+</python>
+</ex-async-python>
 
-## Boundaries
-
-### What You CAN Configure
-
+<boundaries>
+What You CAN Configure:
 - **Which tools are available**: bind_tools([tool1, tool2]) / bindTools([tool1, tool2])
 - **Tool choice strategy**: auto, any, specific tool, none
 - **Tool execution logic**: Custom error handling, retries
 - **Tool parameters**: Via tool schema and type hints
 - **Multiple tool calls**: Models can call multiple tools
 
-### What You CANNOT Configure
-
+What You CANNOT Configure:
 - **Force model reasoning**: Can't control how model decides
 - **Tool call order**: Model decides (can call in parallel)
 - **Prevent all tool calls**: Use tool_choice or don't bind tools
 - **Modify tool call after model generates**: Tool calls are immutable
+</boundaries>
 
-## Gotchas
-
-### 1. Forgetting to Pass Tool Results Back
-
-#### Python
+<fix-forgetting-tool-results>
+<python>
+Always pass tool results back to model.
 
 ```python
-# ❌ Problem: Not passing tool results back to model
+# Problem: Not passing tool results back to model
 response1 = model_with_tools.invoke(messages)
 tool_result = tool.invoke(response1.tool_calls[0])
 # Missing: passing result back to model!
 
-# ✅ Solution: Always pass results back
+# Solution: Always pass results back
 messages.append(response1)  # AI message with tool calls
 messages.append(tool_result)  # Tool result
 response2 = model_with_tools.invoke(messages)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Always pass tool results back to model.
 
 ```typescript
-// ❌ Problem: Not passing tool results back to model
+// Problem: Not passing tool results back to model
 const response1 = await modelWithTools.invoke(messages);
 const toolResult = await tool.invoke(response1.tool_calls[0]);
 // Missing: passing result back to model!
 
-// ✅ Solution: Always pass results back
+// Solution: Always pass results back
 messages.push(response1); // AI message with tool calls
 messages.push(toolResult); // Tool result
 const response2 = await modelWithTools.invoke(messages);
 ```
+</typescript>
+</fix-forgetting-tool-results>
 
-### 2. Tool Call ID Mismatch
-
-#### Python
+<fix-tool-call-id-mismatch>
+<python>
+Match tool_call_id from the response.
 
 ```python
-# ❌ Problem: Wrong tool_call_id
+# Problem: Wrong tool_call_id
 response = model_with_tools.invoke("Get weather")
 tool_message = ToolMessage(
     content="Sunny",
@@ -750,7 +794,7 @@ tool_message = ToolMessage(
     name="get_weather",
 )
 
-# ✅ Solution: Use correct ID from tool call
+# Solution: Use correct ID from tool call
 tool_message = ToolMessage(
     content="Sunny",
     tool_call_id=response.tool_calls[0]["id"],  # Correct ID
@@ -760,11 +804,13 @@ tool_message = ToolMessage(
 # OR use tool.invoke() which handles this automatically
 tool_message = get_weather.invoke(response.tool_calls[0])
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Match tool_call_id from the response.
 
 ```typescript
-// ❌ Problem: Wrong tool_call_id
+// Problem: Wrong tool_call_id
 const response = await modelWithTools.invoke("Get weather");
 const toolMessage = new ToolMessage({
   content: "Sunny",
@@ -772,7 +818,7 @@ const toolMessage = new ToolMessage({
   name: "get_weather",
 });
 
-// ✅ Solution: Use correct ID from tool call
+// Solution: Use correct ID from tool call
 const toolMessage = new ToolMessage({
   content: "Sunny",
   tool_call_id: response.tool_calls[0].id, // Correct ID
@@ -782,17 +828,19 @@ const toolMessage = new ToolMessage({
 // OR use tool.invoke() which handles this automatically
 const toolMessage = await getTool.invoke(response.tool_calls[0]);
 ```
+</typescript>
+</fix-tool-call-id-mismatch>
 
-### 3. Not Checking for Tool Calls
-
-#### Python
+<fix-not-checking-for-tool-calls>
+<python>
+Check if tool_calls exist before using.
 
 ```python
-# ❌ Problem: Assuming model always calls tools
+# Problem: Assuming model always calls tools
 response = model_with_tools.invoke("Hello")
 tool.invoke(response.tool_calls[0])  # Error if no tool calls!
 
-# ✅ Solution: Check if tool calls exist
+# Solution: Check if tool calls exist
 if response.tool_calls:
     for tool_call in response.tool_calls:
         tool.invoke(tool_call)
@@ -800,15 +848,17 @@ else:
     # Model responded without calling tools
     print(response.content)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Check if tool_calls exist before using.
 
 ```typescript
-// ❌ Problem: Assuming model always calls tools
+// Problem: Assuming model always calls tools
 const response = await modelWithTools.invoke("Hello");
 await tool.invoke(response.tool_calls[0]); // Error if no tool calls!
 
-// ✅ Solution: Check if tool calls exist
+// Solution: Check if tool calls exist
 if (response.tool_calls && response.tool_calls.length > 0) {
   for (const toolCall of response.tool_calls) {
     await tool.invoke(toolCall);
@@ -818,43 +868,51 @@ if (response.tool_calls && response.tool_calls.length > 0) {
   console.log(response.content);
 }
 ```
+</typescript>
+</fix-not-checking-for-tool-calls>
 
-### 4. Binding Tools Multiple Times
-
-#### Python
+<fix-binding-tools-multiple-times>
+<python>
+Bind all tools at once, not sequentially.
 
 ```python
-# ❌ Problem: Binding tools overwrites previous binding
+# Problem: Binding tools overwrites previous binding
 model = ChatOpenAI(model="gpt-4.1")
 with_tool1 = model.bind_tools([tool1])
 with_tool2 = with_tool1.bind_tools([tool2])  # Only has tool2!
 
-# ✅ Solution: Bind all tools at once
+# Solution: Bind all tools at once
 with_both_tools = model.bind_tools([tool1, tool2])
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Bind all tools at once, not sequentially.
 
 ```typescript
-// ❌ Problem: Binding tools overwrites previous binding
+// Problem: Binding tools overwrites previous binding
 const model = new ChatOpenAI({ model: "gpt-4.1" });
 const withTool1 = model.bindTools([tool1]);
 const withTool2 = withTool1.bindTools([tool2]); // Only has tool2!
 
-// ✅ Solution: Bind all tools at once
+// Solution: Bind all tools at once
 const withBothTools = model.bindTools([tool1, tool2]);
 ```
+</typescript>
+</fix-binding-tools-multiple-times>
 
-### 5. Async Tool Execution Not Awaited (TypeScript)
+<fix-async-tool-execution-not-awaited>
+<typescript>
+Await async tools with Promise.all.
 
 ```typescript
-// ❌ Problem: Not awaiting async tool
+// Problem: Not awaiting async tool
 const toolResults = response.tool_calls.map(async (tc) => {
   return await tool.invoke(tc); // Returns Promise!
 });
 messages.push(...toolResults); // Pushing Promises, not results!
 
-// ✅ Solution: Use Promise.all or for...of
+// Solution: Use Promise.all or for...of
 const toolResults = await Promise.all(
   response.tool_calls.map(tc => tool.invoke(tc))
 );
@@ -867,16 +925,20 @@ for (const toolCall of response.tool_calls) {
   toolResults.push(result);
 }
 ```
+</typescript>
+</fix-async-tool-execution-not-awaited>
 
-### 6. List Comprehension with Async (Python)
+<fix-list-comprehension-with-async>
+<python>
+Use asyncio.gather for async list operations.
 
 ```python
-# ❌ Problem: List comprehension with async
+# Problem: List comprehension with async
 tool_results = [
     await tool.ainvoke(tc) for tc in response.tool_calls
 ]  # SyntaxError!
 
-# ✅ Solution: Use asyncio.gather
+# Solution: Use asyncio.gather
 tool_results = await asyncio.gather(
     *[tool.ainvoke(tc) for tc in response.tool_calls]
 )
@@ -887,38 +949,46 @@ for tool_call in response.tool_calls:
     result = await tool.ainvoke(tool_call)
     tool_results.append(result)
 ```
+</python>
+</fix-list-comprehension-with-async>
 
-### 7. Tool Choice Type Confusion
-
-#### Python
+<fix-tool-choice-type-confusion>
+<python>
+Use string values for tool_choice.
 
 ```python
-# ❌ Problem: Wrong type for tool_choice
+# Problem: Wrong type for tool_choice
 model.bind_tools([tool], tool_choice=True)  # Wrong!
 
-# ✅ Solution: Use string values
+# Solution: Use string values
 model.bind_tools([tool], tool_choice="any")  # Force any tool
 model.bind_tools([tool], tool_choice="tool_name")  # Force specific
 model.bind_tools([tool])  # tool_choice="auto" (default)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Use correct option format for tool_choice.
 
 ```typescript
-// ❌ Problem: Using wrong tool choice syntax
+// Problem: Using wrong tool choice syntax
 const model = new ChatOpenAI({ model: "gpt-4.1" });
 model.bindTools([tool], "required"); // Wrong!
 
-// ✅ Solution: Use correct option format
+// Solution: Use correct option format
 model.bindTools([tool], { tool_choice: "any" }); // Force any tool
 model.bindTools([tool], { tool_choice: "tool_name" }); // Force specific
 model.bindTools([tool]); // tool_choice: "auto" (default)
 ```
+</typescript>
+</fix-tool-choice-type-confusion>
 
-### 8. Tool Schema Mismatches (Python)
+<fix-tool-schema-mismatches>
+<python>
+Match parameter names exactly in schema.
 
 ```python
-# ❌ Problem: Args don't match function signature
+# Problem: Args don't match function signature
 @tool
 def get_weather(location: str, units: str = "celsius") -> str:
     """Get weather."""
@@ -926,7 +996,7 @@ def get_weather(location: str, units: str = "celsius") -> str:
 
 # Model calls: {"location": "NYC", "unit": "fahrenheit"}  # Wrong key!
 
-# ✅ Solution: Match parameter names exactly
+# Solution: Match parameter names exactly
 # Model will call: {"location": "NYC", "units": "fahrenheit"}
 # Or use Field() for better descriptions
 from pydantic import Field
@@ -939,17 +1009,19 @@ def get_weather(
     """Get weather for a location."""
     return f"Weather in {location} ({units})"
 ```
+</python>
+</fix-tool-schema-mismatches>
 
-## Links to Documentation
-
-### Python
+<documentation-links>
+Python:
 - [Tool Calling Overview](https://docs.langchain.com/oss/python/langchain/models)
 - [Tool Calls in Messages](https://docs.langchain.com/oss/python/langchain/messages)
 - [Tools Guide](https://docs.langchain.com/oss/python/langchain/tools)
 - [OpenAI Tool Calling](https://docs.langchain.com/oss/python/integrations/chat/openai)
 
-### TypeScript
+TypeScript:
 - [Tool Calling Overview](https://docs.langchain.com/oss/javascript/langchain/models)
 - [Tool Calls in Messages](https://docs.langchain.com/oss/javascript/langchain/messages)
 - [Tools Guide](https://docs.langchain.com/oss/javascript/langchain/tools)
 - [OpenAI Tool Calling](https://docs.langchain.com/oss/javascript/integrations/chat/openai)
+</documentation-links>

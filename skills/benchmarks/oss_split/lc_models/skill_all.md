@@ -3,18 +3,21 @@ name: LangChain Models
 description: "[LangChain] Initialize and use LangChain chat models - includes provider selection (OpenAI, Anthropic, Google), model configuration, and invocation patterns"
 ---
 
-## Overview
+<oneliner>
+Initialize and use LangChain chat models with providers like OpenAI, Anthropic, and Google - includes model configuration, invocation patterns, and error handling.
+</oneliner>
 
+<overview>
 Chat models are the core of LangChain applications. They take messages as input and return AI-generated messages as output. LangChain provides a unified interface across multiple providers (OpenAI, Anthropic, Google, etc.).
 
-**Key Concepts:**
+Key Concepts:
 - **init_chat_model() / initChatModel()**: Universal initialization for any provider
 - **Provider-specific classes**: Direct initialization (ChatOpenAI, ChatAnthropic, etc.)
 - **Messages**: Structured input/output format (HumanMessage, AIMessage, etc.)
 - **Invocation patterns**: invoke(), stream(), batch()
+</overview>
 
-## When to Use Each Provider
-
+<when-to-use>
 | Provider | Best For | Models | Strengths |
 |----------|----------|--------|-----------|
 | OpenAI | General purpose, reasoning | GPT-4.1, GPT-5 | Strong reasoning, large context |
@@ -22,11 +25,9 @@ Chat models are the core of LangChain applications. They take messages as input 
 | Google | Multimodal, speed | Gemini 2.5 | Fast, multimodal, cost-effective |
 | AWS Bedrock | Enterprise, compliance | Multiple providers | Security, compliance, variety |
 | Azure OpenAI | Enterprise OpenAI | GPT models | Enterprise features, SLAs |
+</when-to-use>
 
-## Decision Tables
-
-### Choosing a Model
-
+<choosing-a-model>
 | Use Case | Recommended Model | Why |
 |----------|------------------|-----|
 | Complex reasoning | GPT-5, Claude Opus | Best logical capabilities |
@@ -35,20 +36,19 @@ Chat models are the core of LangChain applications. They take messages as input 
 | Long context | Claude Opus, Gemini | 100k+ token windows |
 | Cost-effective | GPT-4.1-mini, Gemini Flash | Lower pricing |
 | Enterprise/compliance | Azure OpenAI, AWS Bedrock | Security features |
+</choosing-a-model>
 
-### Initialization Methods
-
+<initialization-methods>
 | Method | When to Use | Python Example | TypeScript Example |
 |--------|-------------|----------------|-------------------|
 | Universal init | Quick switching between providers | `init_chat_model("openai:gpt-4.1")` | `initChatModel("openai:gpt-4.1")` |
 | Provider class | Need provider-specific features | `ChatOpenAI(model="gpt-4.1")` | `new ChatOpenAI({ model: "gpt-4.1" })` |
 | With configuration | Custom parameters needed | Temperature, max tokens, etc. | Temperature, max tokens, etc. |
+</initialization-methods>
 
-## Code Examples
-
-### Basic Model Initialization
-
-#### Python
+<ex-basic-init>
+<python>
+Universal model initialization:
 
 ```python
 from langchain.chat_models import init_chat_model
@@ -64,8 +64,10 @@ import os
 os.environ["OPENAI_API_KEY"] = "your-api-key"
 model3 = init_chat_model("openai:gpt-4.1")
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Universal model initialization:
 
 ```typescript
 import { initChatModel } from "langchain";
@@ -80,10 +82,12 @@ const model2 = await initChatModel("gpt-4.1"); // Defaults to OpenAI
 process.env.OPENAI_API_KEY = "your-api-key";
 const model3 = await initChatModel("openai:gpt-4.1");
 ```
+</typescript>
+</ex-basic-init>
 
-### Provider-Specific Initialization
-
-#### Python
+<ex-providers>
+<python>
+Provider-specific class initialization:
 
 ```python
 from langchain_openai import ChatOpenAI
@@ -114,8 +118,10 @@ google = ChatGoogleGenerativeAI(
     google_api_key=os.getenv("GOOGLE_API_KEY"),
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Provider-specific class initialization:
 
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
@@ -145,10 +151,12 @@ const google = new ChatGoogleGenerativeAI({
   apiKey: process.env.GOOGLE_API_KEY,
 });
 ```
+</typescript>
+</ex-providers>
 
-### Simple Invocation
-
-#### Python
+<ex-invoke>
+<python>
+Basic invoke with string and messages:
 
 ```python
 from langchain.chat_models import init_chat_model
@@ -165,8 +173,10 @@ response2 = model.invoke([
 ])
 print(response2.content)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Basic invoke with string and messages:
 
 ```typescript
 import { initChatModel } from "langchain";
@@ -183,10 +193,12 @@ const response2 = await model.invoke([
 ]);
 console.log(response2.content);
 ```
+</typescript>
+</ex-invoke>
 
-### Streaming Responses
-
-#### Python
+<ex-streaming>
+<python>
+Stream tokens in real-time:
 
 ```python
 from langchain.chat_models import init_chat_model
@@ -197,8 +209,10 @@ model = init_chat_model("gpt-4.1")
 for chunk in model.stream("Explain quantum computing"):
     print(chunk.content, end="", flush=True)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Stream tokens in real-time:
 
 ```typescript
 import { initChatModel } from "langchain";
@@ -212,10 +226,12 @@ for await (const chunk of stream) {
   process.stdout.write(chunk.content);
 }
 ```
+</typescript>
+</ex-streaming>
 
-### Batch Processing
-
-#### Python
+<ex-batch>
+<python>
+Batch process multiple inputs:
 
 ```python
 from langchain.chat_models import init_chat_model
@@ -232,8 +248,10 @@ results = model.batch([
 for i, result in enumerate(results):
     print(f"Answer {i + 1}: {result.content}")
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Batch process multiple inputs:
 
 ```typescript
 import { initChatModel } from "langchain";
@@ -251,10 +269,12 @@ results.forEach((result, i) => {
   console.log(`Answer ${i + 1}:`, result.content);
 });
 ```
+</typescript>
+</ex-batch>
 
-### Multi-turn Conversation
-
-#### Python
+<ex-multi-turn>
+<python>
+Multi-turn conversation with history:
 
 ```python
 from langchain.chat_models import init_chat_model
@@ -276,8 +296,10 @@ response2 = model.invoke(messages)
 
 print(response2.content)  # Knows we're talking about Paris
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Multi-turn conversation with history:
 
 ```typescript
 import { initChatModel } from "langchain";
@@ -299,10 +321,12 @@ const response2 = await model.invoke(messages);
 
 console.log(response2.content); // Knows we're talking about Paris
 ```
+</typescript>
+</ex-multi-turn>
 
-### Model Configuration Options
-
-#### Python
+<ex-config>
+<python>
+Configure model parameters:
 
 ```python
 from langchain_openai import ChatOpenAI
@@ -333,8 +357,10 @@ model = ChatOpenAI(
     max_retries=3,
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Configure model parameters:
 
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
@@ -365,10 +391,12 @@ const model = new ChatOpenAI({
   maxRetries: 3,
 });
 ```
+</typescript>
+</ex-config>
 
-### Azure OpenAI
-
-#### Python
+<ex-azure>
+<python>
+Azure OpenAI setup:
 
 ```python
 from langchain_openai import AzureChatOpenAI
@@ -381,8 +409,10 @@ azure = AzureChatOpenAI(
     deployment_name="your-deployment-name",
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Azure OpenAI setup:
 
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
@@ -394,10 +424,12 @@ const azure = new ChatOpenAI({
   azureOpenAIApiVersion: "2024-02-15-preview",
 });
 ```
+</typescript>
+</ex-azure>
 
-### AWS Bedrock
-
-#### Python
+<ex-bedrock>
+<python>
+AWS Bedrock setup:
 
 ```python
 from langchain_aws import ChatBedrock
@@ -409,8 +441,10 @@ bedrock = ChatBedrock(
     # Credentials automatically loaded from environment
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+AWS Bedrock setup:
 
 ```typescript
 import { ChatBedrock } from "@langchain/aws";
@@ -425,10 +459,12 @@ const bedrock = new ChatBedrock({
   },
 });
 ```
+</typescript>
+</ex-bedrock>
 
-### Model Selection Helper
-
-#### Python
+<ex-model-select>
+<python>
+Dynamic model selection by task:
 
 ```python
 from langchain.chat_models import init_chat_model
@@ -448,8 +484,10 @@ def get_model(task: str):
 reasoning_model = get_model("reasoning")
 fast_model = get_model("fast")
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Dynamic model selection by task:
 
 ```typescript
 import { initChatModel } from "langchain";
@@ -470,10 +508,12 @@ function getModel(task: string) {
 const reasoningModel = await getModel("reasoning");
 const fastModel = await getModel("fast");
 ```
+</typescript>
+</ex-model-select>
 
-### Error Handling
-
-#### Python
+<ex-errors>
+<python>
+Handle API errors:
 
 ```python
 from langchain.chat_models import init_chat_model
@@ -491,8 +531,10 @@ except AuthenticationError:
 except Exception as e:
     print(f"Error: {e}")
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Handle API errors:
 
 ```typescript
 import { initChatModel } from "langchain";
@@ -512,8 +554,12 @@ try {
   }
 }
 ```
+</typescript>
+</ex-errors>
 
-### Async Invocation (Python)
+<ex-async>
+<python>
+Async invoke, stream, and batch:
 
 ```python
 from langchain.chat_models import init_chat_model
@@ -540,10 +586,12 @@ async def main():
 
 asyncio.run(main())
 ```
+</python>
+</ex-async>
 
-### Checking Model Capabilities
-
-#### Python
+<ex-capabilities>
+<python>
+Check model capabilities:
 
 ```python
 from langchain.chat_models import init_chat_model
@@ -555,8 +603,10 @@ print("Supports streaming:", hasattr(model, "stream"))
 print("Supports tool calling:", hasattr(model, "bind_tools"))
 print("Supports structured output:", hasattr(model, "with_structured_output"))
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Check model capabilities:
 
 ```typescript
 import { initChatModel } from "langchain";
@@ -568,11 +618,11 @@ console.log("Supports streaming:", typeof model.stream === "function");
 console.log("Supports tool calling:", typeof model.bindTools === "function");
 console.log("Supports structured output:", typeof model.withStructuredOutput === "function");
 ```
+</typescript>
+</ex-capabilities>
 
-## Boundaries
-
-### What You CAN Configure
-
+<boundaries>
+What You CAN Configure:
 - **Model Selection**: Any supported model from any provider
 - **Temperature**: Control randomness (0-1)
 - **Max Tokens**: Limit response length
@@ -581,26 +631,24 @@ console.log("Supports structured output:", typeof model.withStructuredOutput ===
 - **API Keys**: Per-model or from environment
 - **Provider-specific Options**: Each provider has unique features
 
-### What You CANNOT Configure
-
+What You CANNOT Configure:
 - **Model Training Data**: Models are pre-trained
 - **Model Architecture**: Can't modify internal structure
 - **Token Costs**: Set by provider
 - **Rate Limits**: Set by provider (can manage with queues)
 - **Model Capabilities**: Vision/tool support is model-specific
+</boundaries>
 
-## Gotchas
-
-### 1. API Key Not Found
-
-#### Python
+<fix-api-key-not-found>
+<python>
+Fix missing API key:
 
 ```python
-# ❌ Problem: Missing API key
+# Problem: Missing API key
 model = init_chat_model("openai:gpt-4.1")
 model.invoke("Hello")  # Error: API key not found
 
-# ✅ Solution: Set environment variable
+# Solution: Set environment variable
 import os
 os.environ["OPENAI_API_KEY"] = "sk-..."
 model = init_chat_model("openai:gpt-4.1")
@@ -612,15 +660,17 @@ model = ChatOpenAI(
     api_key="sk-...",
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Fix missing API key:
 
 ```typescript
-// ❌ Problem: Missing API key
+// Problem: Missing API key
 const model = await initChatModel("openai:gpt-4.1");
 await model.invoke("Hello"); // Error: API key not found
 
-// ✅ Solution: Set environment variable
+// Solution: Set environment variable
 process.env.OPENAI_API_KEY = "sk-...";
 const model = await initChatModel("openai:gpt-4.1");
 
@@ -631,127 +681,145 @@ const model = new ChatOpenAI({
   apiKey: "sk-...",
 });
 ```
+</typescript>
+</fix-api-key-not-found>
 
-### 2. Model Name Typos
-
-#### Python
+<fix-model-name-typos>
+<python>
+Fix model name format:
 
 ```python
-# ❌ Problem: Wrong model name
+# Problem: Wrong model name
 model = init_chat_model("gpt4")  # Error!
 
-# ✅ Solution: Use correct format
+# Solution: Use correct format
 model = init_chat_model("openai:gpt-4.1")
 # Or provider shorthand
 model2 = init_chat_model("gpt-4.1")
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Fix model name format:
 
 ```typescript
-// ❌ Problem: Wrong model name
+// Problem: Wrong model name
 const model = await initChatModel("gpt4"); // Error!
 
-// ✅ Solution: Use correct format
+// Solution: Use correct format
 const model = await initChatModel("openai:gpt-4.1");
 // Or provider shorthand
 const model2 = await initChatModel("gpt-4.1");
 ```
+</typescript>
+</fix-model-name-typos>
 
-### 3. Response Content Access
-
-#### Python
+<fix-response-content-access>
+<python>
+Access response content correctly:
 
 ```python
-# ❌ Problem: Wrong property access
+# Problem: Wrong property access
 response = model.invoke("Hello")
 print(response)  # AIMessage object, not string
 
-# ✅ Solution: Access .content property
+# Solution: Access .content property
 print(response.content)  # "Hello! How can I help you?"
 
 # Or convert to string
 print(str(response))
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Access response content correctly:
 
 ```typescript
-// ❌ Problem: Wrong property access
+// Problem: Wrong property access
 const response = await model.invoke("Hello");
 console.log(response); // AIMessage object, not string
 
-// ✅ Solution: Access .content property
+// Solution: Access .content property
 console.log(response.content); // "Hello! How can I help you?"
 
 // Or use .toString()
 console.log(response.toString());
 ```
+</typescript>
+</fix-response-content-access>
 
-### 4. Streaming Requires Iteration
-
-#### Python
+<fix-streaming-requires-iteration>
+<python>
+Iterate over stream correctly:
 
 ```python
-# ❌ Problem: Not iterating stream
+# Problem: Not iterating stream
 stream = model.stream("Hello")
 print(stream)  # Generator object, not chunks
 
-# ✅ Solution: Use for loop
+# Solution: Use for loop
 for chunk in model.stream("Hello"):
     print(chunk.content, end="", flush=True)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Iterate over stream correctly:
 
 ```typescript
-// ❌ Problem: Not awaiting stream
+// Problem: Not awaiting stream
 const stream = model.stream("Hello");
 console.log(stream); // Promise, not chunks
 
-// ✅ Solution: Use for await
+// Solution: Use for await
 const stream = await model.stream("Hello");
 for await (const chunk of stream) {
   console.log(chunk.content);
 }
 ```
+</typescript>
+</fix-streaming-requires-iteration>
 
-### 5. Temperature Confusion
-
-#### Python
+<fix-temperature-confusion>
+<python>
+Use correct temperature range:
 
 ```python
-# ❌ Problem: Wrong temperature range
+# Problem: Wrong temperature range
 model = ChatOpenAI(
     temperature=10,  # Too high! Should be 0-1
 )
 
-# ✅ Solution: Use 0-1 range
+# Solution: Use 0-1 range
 deterministic = ChatOpenAI(temperature=0)  # Always same
 balanced = ChatOpenAI(temperature=0.7)  # Default
 creative = ChatOpenAI(temperature=1)  # Maximum randomness
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Use correct temperature range:
 
 ```typescript
-// ❌ Problem: Wrong temperature range
+// Problem: Wrong temperature range
 const model = new ChatOpenAI({
   temperature: 10, // Too high! Should be 0-1
 });
 
-// ✅ Solution: Use 0-1 range
+// Solution: Use 0-1 range
 const deterministic = new ChatOpenAI({ temperature: 0 }); // Always same
 const balanced = new ChatOpenAI({ temperature: 0.7 }); // Default
 const creative = new ChatOpenAI({ temperature: 1 }); // Maximum randomness
 ```
+</typescript>
+</fix-temperature-confusion>
 
-### 6. Token Limits
-
-#### Python
+<fix-token-limits>
+<python>
+Handle context length limits:
 
 ```python
-# ❌ Problem: Input + output exceeds model limit
+# Problem: Input + output exceeds model limit
 long_text = "..." * 50000  # Very long text
 model = init_chat_model("gpt-4.1")  # 128k context
 model.invoke(long_text)  # May succeed
@@ -759,7 +827,7 @@ model.invoke(long_text)  # May succeed
 model2 = init_chat_model("gpt-4.1-mini")  # 16k context
 model2.invoke(long_text)  # Error: context too long
 
-# ✅ Solution: Check input length or use larger context model
+# Solution: Check input length or use larger context model
 import tiktoken
 
 enc = tiktoken.encoding_for_model("gpt-4.1")
@@ -770,11 +838,13 @@ if len(tokens) > 100000:
     # Use Claude with 200k context
     model = init_chat_model("anthropic:claude-opus-4")
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Handle context length limits:
 
 ```typescript
-// ❌ Problem: Input + output exceeds model limit
+// Problem: Input + output exceeds model limit
 const longText = "...50,000 words...";
 const model = await initChatModel("gpt-4.1"); // 128k context
 await model.invoke(longText); // May succeed
@@ -782,7 +852,7 @@ await model.invoke(longText); // May succeed
 const model2 = await initChatModel("gpt-4.1-mini"); // 16k context
 await model2.invoke(longText); // Error: context too long
 
-// ✅ Solution: Check input length or use larger context model
+// Solution: Check input length or use larger context model
 import { encoding_for_model } from "tiktoken";
 
 const enc = encoding_for_model("gpt-4.1");
@@ -794,16 +864,20 @@ if (tokens.length > 100000) {
   const model = await initChatModel("anthropic:claude-opus-4");
 }
 ```
+</typescript>
+</fix-token-limits>
 
-### 7. Sync vs Async Confusion (Python)
+<fix-sync-vs-async>
+<python>
+Use async methods in async context:
 
 ```python
-# ❌ Problem: Using sync in async context
+# Problem: Using sync in async context
 async def process():
     model = init_chat_model("gpt-4.1")
     response = model.invoke("Hello")  # Blocks async loop!
 
-# ✅ Solution: Use async methods
+# Solution: Use async methods
 async def process():
     model = init_chat_model("gpt-4.1")
     response = await model.ainvoke("Hello")  # Non-blocking
@@ -811,25 +885,30 @@ async def process():
     async for chunk in model.astream("Hello"):
         print(chunk.content)
 ```
+</python>
+</fix-sync-vs-async>
 
-### 8. Provider-Specific Features (TypeScript)
+<fix-provider-specific-features>
+<typescript>
+Check provider-specific feature compatibility:
 
 ```typescript
-// ❌ Problem: Using provider-specific feature with wrong model
+// Problem: Using provider-specific feature with wrong model
 const google = await initChatModel("google-genai:gemini-2.5-flash");
 google.bindTools([tool]); // May not work the same way
 
-// ✅ Solution: Check documentation for each provider
+// Solution: Check documentation for each provider
 // OpenAI has specific tool calling format
 // Anthropic has specific tool calling format
 // Google has specific tool calling format
 
 // Use initChatModel for portability, but be aware of differences
 ```
+</typescript>
+</fix-provider-specific-features>
 
-## Links to Documentation
-
-### Python
+<documentation-links>
+Python:
 - [Chat Models Overview](https://docs.langchain.com/oss/python/langchain/models)
 - [OpenAI Integration](https://docs.langchain.com/oss/python/integrations/chat/openai)
 - [Anthropic Integration](https://docs.langchain.com/oss/python/integrations/chat/anthropic)
@@ -837,10 +916,11 @@ google.bindTools([tool]); // May not work the same way
 - [All Chat Model Integrations](https://docs.langchain.com/oss/python/integrations/chat/index)
 - [Model Providers Overview](https://docs.langchain.com/oss/python/integrations/providers/all_providers)
 
-### TypeScript
+TypeScript:
 - [Chat Models Overview](https://docs.langchain.com/oss/javascript/langchain/models)
 - [OpenAI Integration](https://docs.langchain.com/oss/javascript/integrations/chat/openai)
 - [Anthropic Integration](https://docs.langchain.com/oss/javascript/integrations/chat/anthropic)
 - [Google Integration](https://docs.langchain.com/oss/javascript/integrations/chat/google_generative_ai)
 - [All Chat Model Integrations](https://docs.langchain.com/oss/javascript/integrations/chat/index)
 - [Model Providers Overview](https://docs.langchain.com/oss/javascript/integrations/providers/all_providers)
+</documentation-links>

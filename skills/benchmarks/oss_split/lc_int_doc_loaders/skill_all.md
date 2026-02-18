@@ -3,19 +3,19 @@ name: LangChain Document Loaders Integration
 description: "[LangChain] Guide to using document loader integrations in LangChain for PDFs, web pages, text files, and APIs"
 ---
 
-## Overview
+<oneliner>
+Document loaders extract data from various sources and formats into LangChain's standardized Document format, essential for building RAG systems.
+</oneliner>
 
-Document loaders extract data from various sources and formats into LangChain's standardized Document format. They're essential for building RAG systems, as they convert raw data into processable text chunks with metadata.
-
-### Key Concepts
-
+<overview>
+Key Concepts:
 - **Document**: Object with `page_content`/`pageContent` (text) and `metadata` (source info, page numbers, etc.)
 - **Loaders**: Classes that extract content from specific sources/formats
 - **Metadata**: Contextual information preserved during loading (URLs, file paths, page numbers)
 - **Lazy Loading**: Stream documents without loading everything into memory
+</overview>
 
-## Loader Selection Decision Table
-
+<loader-selection>
 | Loader Type | Best For | Package (Python / TypeScript) | Key Features |
 |-------------|----------|-------------------------------|--------------|
 | **PDF Loader** | PDF files | `langchain-community` / `@langchain/community` | Page-by-page extraction |
@@ -24,9 +24,9 @@ Document loaders extract data from various sources and formats into LangChain's 
 | **JSON Loader** | JSON files/APIs | `langchain-community` / `langchain` | Extract specific JSON fields |
 | **CSV Loader** | CSV files | `langchain-community` / `@langchain/community` | Tabular data |
 | **Directory Loader** | Multiple files | `langchain-community` / `langchain` | Bulk loading from directories |
+</loader-selection>
 
-### When to Choose Each Loader
-
+<when-to-choose-loader>
 **Choose PDF Loader if:**
 - You're processing standard PDF documents
 - You need page number metadata
@@ -41,12 +41,11 @@ Document loaders extract data from various sources and formats into LangChain's 
 - You have mixed document types
 - You need OCR for scanned documents
 - You want sophisticated parsing
+</when-to-choose-loader>
 
-## Code Examples
-
-### PDF Loader
-
-#### Python
+<ex-pdf>
+<python>
+Load PDF with lazy loading:
 
 ```python
 from langchain_community.document_loaders import PyPDFLoader
@@ -69,7 +68,10 @@ for doc in loader.lazy_load():
     print(f"Processing page {doc.metadata['page']}")
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+PDF with page metadata:
 
 ```typescript
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
@@ -88,9 +90,12 @@ docs.forEach((doc, i) => {
 // metadata includes: source, pdf.totalPages, loc.pageNumber
 ```
 
-### Web Scraping
+</typescript>
+</ex-pdf>
 
-#### Python
+<ex-web>
+<python>
+Web scraping with BeautifulSoup:
 
 ```python
 from langchain_community.document_loaders import WebBaseLoader
@@ -118,7 +123,10 @@ loader = WebBaseLoader([
 docs = loader.load()
 ```
 
-#### TypeScript (Static - Cheerio)
+</python>
+
+<typescript>
+Cheerio for static pages:
 
 ```typescript
 import { CheerioWebBaseLoader } from "@langchain/community/document_loaders/web/cheerio";
@@ -148,7 +156,10 @@ const loaderMultiple = new CheerioWebBaseLoader([
 const allDocs = await loaderMultiple.load();
 ```
 
-#### TypeScript (Dynamic - Playwright)
+</typescript>
+
+<typescript>
+Playwright for JS-rendered pages:
 
 ```typescript
 import { PlaywrightWebBaseLoader } from "@langchain/community/document_loaders/web/playwright";
@@ -170,9 +181,12 @@ const loader = new PlaywrightWebBaseLoader("https://spa-app.com", {
 const docs = await loader.load();
 ```
 
-### Text File Loader
+</typescript>
+</ex-web>
 
-#### Python
+<ex-text>
+<python>
+Simple text file loading:
 
 ```python
 from langchain_community.document_loaders import TextLoader
@@ -188,7 +202,10 @@ print(docs[0].metadata["source"])  # File path
 loader = TextLoader("file.txt", encoding="utf-8")
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+Text file with metadata:
 
 ```typescript
 import { TextLoader } from "langchain/document_loaders/fs/text";
@@ -201,9 +218,12 @@ console.log(docs[0].pageContent);
 console.log(docs[0].metadata.source); // File path
 ```
 
-### JSON Loader
+</typescript>
+</ex-text>
 
-#### Python
+<ex-json>
+<python>
+JSON with jq extraction:
 
 ```python
 from langchain_community.document_loaders import JSONLoader
@@ -235,7 +255,10 @@ loader = JSONLoader(
 )
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+JSON with JSONPointer extraction:
 
 ```typescript
 import { JSONLoader } from "langchain/document_loaders/fs/json";
@@ -252,9 +275,12 @@ const docs = await loader.load();
 // Each matching field becomes a document
 ```
 
-### CSV Loader
+</typescript>
+</ex-json>
 
-#### Python
+<ex-csv>
+<python>
+CSV rows as documents:
 
 ```python
 from langchain_community.document_loaders import CSVLoader
@@ -270,7 +296,10 @@ docs = loader.load()
 # All columns stored in metadata
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+CSV with column config:
 
 ```typescript
 import { CSVLoader } from "@langchain/community/document_loaders/fs/csv";
@@ -286,9 +315,12 @@ const docs = await loader.load();
 // Other columns stored in metadata
 ```
 
-### Directory Loader
+</typescript>
+</ex-csv>
 
-#### Python
+<ex-directory>
+<python>
+Bulk load from directory:
 
 ```python
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
@@ -314,7 +346,10 @@ def get_loader(file_path):
         return TextLoader(file_path)
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+Multi-format directory loader:
 
 ```typescript
 import { DirectoryLoader } from "langchain/document_loaders/fs/directory";
@@ -334,7 +369,12 @@ const docs = await loader.load();
 console.log(`Loaded ${docs.length} documents from directory`);
 ```
 
-### Unstructured Loader (Python - Advanced)
+</typescript>
+</ex-directory>
+
+<ex-unstructured>
+<python>
+Universal loader with OCR:
 
 ```python
 from langchain_community.document_loaders import UnstructuredFileLoader
@@ -356,8 +396,12 @@ from langchain_community.document_loaders import UnstructuredURLLoader
 loader = UnstructuredURLLoader(urls=["https://example.com"])
 docs = loader.load()
 ```
+</python>
+</ex-unstructured>
 
-### S3 Loader (Python - Cloud Storage)
+<ex-s3>
+<python>
+Load from S3 bucket:
 
 ```python
 from langchain_community.document_loaders import S3FileLoader
@@ -377,8 +421,12 @@ loader = S3DirectoryLoader(
 )
 docs = loader.load()
 ```
+</python>
+</ex-s3>
 
-### GitHub Loader (TypeScript)
+<ex-github>
+<typescript>
+Load GitHub repository:
 
 ```typescript
 import { GithubRepoLoader } from "@langchain/community/document_loaders/web/github";
@@ -396,10 +444,12 @@ const loader = new GithubRepoLoader(
 const docs = await loader.load();
 // Each file becomes a document
 ```
+</typescript>
+</ex-github>
 
-### Custom Metadata Example
-
-#### Python
+<ex-metadata>
+<python>
+Enrich with custom metadata:
 
 ```python
 from langchain_community.document_loaders import TextLoader
@@ -414,7 +464,10 @@ for doc in docs:
     doc.metadata["category"] = "research"
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+Add timestamp and category:
 
 ```typescript
 import { CheerioWebBaseLoader } from "@langchain/community/document_loaders/web/cheerio";
@@ -433,9 +486,12 @@ const enrichedDocs = docs.map(doc => ({
 }));
 ```
 
-### Lazy Loading (Memory Efficient)
+</typescript>
+</ex-metadata>
 
-#### Python
+<ex-lazy>
+<python>
+Stream large files:
 
 ```python
 from langchain_community.document_loaders import PyPDFLoader
@@ -448,7 +504,10 @@ for doc in loader.lazy_load():
     # Process without loading all pages into memory
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+Memory-efficient streaming:
 
 ```typescript
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
@@ -462,175 +521,208 @@ for await (const doc of loader.lazy()) {
 }
 ```
 
-## Boundaries
+</typescript>
+</ex-lazy>
 
-### What You CAN Do
-
+<boundaries>
+What You CAN Do:
 - **Load from various sources** - PDF, text, CSV, JSON, DOCX files, web pages, cloud storage
 - **Extract with metadata** - Preserve source information, add custom metadata
 - **Process efficiently** - Use lazy loading for large files, batch process directories
 - **Customize extraction** - Use jq/JSONPointer for JSON, CSS selectors for HTML
 
-### What You CANNOT Do
-
+What You CANNOT Do:
 - **Extract from encrypted/protected files** - Cannot bypass password-protected PDFs
 - **Process all formats automatically** - Scanned PDFs need OCR, proprietary formats need specific loaders
 - **Bypass rate limits** - Must respect website rate limiting
+</boundaries>
 
-## Gotchas
-
-### 1. Import from Correct Package (Python)
+<fix-import-community-package>
+<python>
+Updated import path:
 
 ```python
-# ❌ OLD: Using langchain imports
+# OLD: Using langchain imports
 from langchain.document_loaders import PyPDFLoader  # Deprecated!
 
-# ✅ NEW: Use community package
+# NEW: Use community package
 from langchain_community.document_loaders import PyPDFLoader
 ```
+</python>
+</fix-import-community-package>
 
-### 2. PDF Loader Dependencies
-
-#### Python
+<fix-pdf-loader-dependencies>
+<python>
+Use Unstructured for complex PDFs:
 
 ```python
-# ❌ PyPDF may not work for complex PDFs
+# PyPDF may not work for complex PDFs
 from langchain_community.document_loaders import PyPDFLoader
 loader = PyPDFLoader("complex.pdf")
 docs = loader.load()  # Poor extraction!
 
-# ✅ Use Unstructured for complex PDFs
+# Use Unstructured for complex PDFs
 from langchain_community.document_loaders import UnstructuredPDFLoader
 loader = UnstructuredPDFLoader("complex.pdf")
 docs = loader.load()  # Better extraction
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Install pdf-parse dependency:
 
 ```typescript
-// ❌ Will fail if pdf-parse not installed
+// Will fail if pdf-parse not installed
 import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 const loader = new PDFLoader("file.pdf");
 
-// ✅ Install dependencies first
+// Install dependencies first
 // npm install pdf-parse
 
 const loader = new PDFLoader("file.pdf");
 const docs = await loader.load(); // Works!
 ```
+</typescript>
+</fix-pdf-loader-dependencies>
 
-### 3. Web Scraping Dependencies (Python)
+<fix-web-scraping-dependencies>
+<python>
+Install bs4 and lxml:
 
 ```python
-# ❌ Missing dependencies
+# Missing dependencies
 from langchain_community.document_loaders import WebBaseLoader
 loader = WebBaseLoader("https://example.com")
 # ImportError: bs4 not found!
 
-# ✅ Install required packages
+# Install required packages
 # pip install beautifulsoup4 lxml
 ```
+</python>
+</fix-web-scraping-dependencies>
 
-### 4. Cheerio vs Playwright (TypeScript)
+<fix-cheerio-vs-playwright>
+<typescript>
+Use Playwright for SPAs:
 
 ```typescript
-// ❌ Using Cheerio for dynamic content
+// Using Cheerio for dynamic content
 const loader = new CheerioWebBaseLoader("https://react-app.com");
 const docs = await loader.load();
 // Content is empty or incomplete!
 
-// ✅ Use Playwright for JavaScript-rendered pages
+// Use Playwright for JavaScript-rendered pages
 const loader = new PlaywrightWebBaseLoader("https://react-app.com", {
   gotoOptions: { waitUntil: "networkidle" }
 });
 ```
+</typescript>
+</fix-cheerio-vs-playwright>
 
-### 5. Encoding Issues (Python)
+<fix-encoding-issues>
+<python>
+Specify UTF-8 encoding:
 
 ```python
-# ❌ Default encoding may fail
+# Default encoding may fail
 loader = TextLoader("file.txt")
 docs = loader.load()  # UnicodeDecodeError!
 
-# ✅ Specify encoding
+# Specify encoding
 loader = TextLoader("file.txt", encoding="utf-8")
 docs = loader.load()
 ```
+</python>
+</fix-encoding-issues>
 
-### 6. JSON Pointer Syntax (TypeScript)
+<fix-json-pointer-syntax>
+<typescript>
+JSONPointer starts with /:
 
 ```typescript
-// ❌ Wrong JSON pointer format
+// Wrong JSON pointer format
 const loader = new JSONLoader("data.json", ["texts.content"]);
 
-// ✅ Correct JSON pointer format (starts with /)
+// Correct JSON pointer format (starts with /)
 const loader = new JSONLoader("data.json", ["/texts/0/content"]);
 ```
+</typescript>
+</fix-json-pointer-syntax>
 
-### 7. Directory Loader File Extensions (TypeScript)
+<fix-directory-loader-extensions>
+<typescript>
+Include dot in extensions:
 
 ```typescript
-// ❌ Extensions don't match
+// Extensions don't match
 const loader = new DirectoryLoader("docs", {
   "txt": (path) => new TextLoader(path),  // Wrong!
 });
 
-// ✅ Include the dot
+// Include the dot
 const loader = new DirectoryLoader("docs", {
   ".txt": (path) => new TextLoader(path),
   ".pdf": (path) => new PDFLoader(path),
 });
 ```
+</typescript>
+</fix-directory-loader-extensions>
 
-### 8. Large Files and Memory
-
-#### Python
+<fix-large-files-memory>
+<python>
+Use lazy loading:
 
 ```python
-# ❌ Loading huge PDF into memory
+# Loading huge PDF into memory
 loader = PyPDFLoader("huge-book.pdf")
 docs = loader.load()  # May crash!
 
-# ✅ Use lazy loading
+# Use lazy loading
 for doc in loader.lazy_load():
     process_document(doc)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Stream instead of load all:
 
 ```typescript
-// ❌ Loading huge PDF into memory
+// Loading huge PDF into memory
 const loader = new PDFLoader("huge-book.pdf");
 const docs = await loader.load(); // May crash!
 
-// ✅ Use lazy loading
+// Use lazy loading
 for await (const doc of loader.lazy()) {
   processDocument(doc);
   // Only one page in memory at a time
 }
 ```
+</typescript>
+</fix-large-files-memory>
 
-## Links to Documentation
-
-### Python
+<links>
+Python:
 - [Document Loaders Overview](https://python.langchain.com/docs/integrations/document_loaders/)
 - [PDF Loaders](https://python.langchain.com/docs/integrations/document_loaders/#pdfs)
 - [Web Loaders](https://python.langchain.com/docs/integrations/document_loaders/#web)
 
-### TypeScript
+TypeScript:
 - [Document Loaders Overview](https://js.langchain.com/docs/integrations/document_loaders/)
 - [PDF Loader](https://js.langchain.com/docs/integrations/document_loaders/file_loaders/pdf)
 - [Web Loaders](https://js.langchain.com/docs/integrations/document_loaders/web_loaders/)
+</links>
 
-### Package Installation
+<installation>
+Python:
 
-**Python:**
 ```bash
 pip install langchain-community pypdf beautifulsoup4 lxml unstructured
 ```
 
-**TypeScript:**
+TypeScript:
+
 ```bash
 npm install @langchain/community pdf-parse playwright
 npx playwright install
 ```
+</installation>

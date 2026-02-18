@@ -3,20 +3,20 @@ name: LangChain Embeddings Integration
 description: "[LangChain] Guide to using embedding model integrations in LangChain including OpenAI, Azure, and local embeddings"
 ---
 
-## Overview
+<oneliner>
+Embedding models convert text into numerical vector representations that capture semantic meaning, enabling semantic search, similarity comparison, and RAG systems.
+</oneliner>
 
-Embedding models convert text into numerical vector representations that capture semantic meaning. These vectors enable semantic search, similarity comparison, and are essential for building RAG (Retrieval-Augmented Generation) systems with vector databases.
-
-### Key Concepts
-
+<overview>
+Key Concepts:
 - **Embeddings**: Dense vector representations of text that encode semantic meaning
 - **Vector Dimensions**: Different models produce vectors of different sizes (e.g., 1536 for OpenAI, 768 for some open-source models)
 - **Similarity Search**: Finding similar texts by comparing vector distances (cosine similarity, euclidean distance)
 - **Batch Processing**: Efficiently embedding multiple texts at once
 - **Use Cases**: Semantic search, document retrieval, clustering, recommendation systems
+</overview>
 
-## Provider Selection Decision Table
-
+<provider-selection>
 | Provider | Best For | Model Examples | Dimensions | Package (Python / TypeScript) | Key Features |
 |----------|----------|----------------|------------|-------------------------------|--------------|
 | **OpenAI** | General purpose, high quality | text-embedding-3-small, text-embedding-3-large, text-embedding-ada-002 | 1536, 3072 | `langchain-openai` / `@langchain/openai` | High quality, reliable, flexible dimensions |
@@ -25,9 +25,9 @@ Embedding models convert text into numerical vector representations that capture
 | **HuggingFace** | Open source, customizable | all-MiniLM-L6-v2, BGE models | Varies | `langchain-huggingface` / `@langchain/community` | Free, local inference, many models |
 | **Google** | GCP integration | textembedding-gecko | 768 | `langchain-google-genai` / `@langchain/google-genai` | GCP ecosystem, multimodal |
 | **Ollama** | Local, privacy | llama2, mistral, nomic-embed-text | Varies | `langchain-ollama` / `@langchain/ollama` | Fully local, no API costs, privacy |
+</provider-selection>
 
-### When to Choose Each Provider
-
+<when-to-choose-provider>
 **Choose OpenAI if:**
 - You need high-quality embeddings for production
 - You want reliable, fast API-based embeddings
@@ -52,12 +52,12 @@ Embedding models convert text into numerical vector representations that capture
 - Privacy is paramount (fully local)
 - You want zero API costs after setup
 - You have sufficient local compute resources
+</when-to-choose-provider>
 
-## Code Examples
+<ex-openai>
+<python>
 
-### OpenAI Embeddings
-
-#### Python
+Initialize OpenAI embeddings and embed texts.
 
 ```python
 from langchain_openai import OpenAIEmbeddings
@@ -92,7 +92,11 @@ small_embeddings = OpenAIEmbeddings(
 )
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+
+Initialize OpenAI embeddings and embed texts.
 
 ```typescript
 import { OpenAIEmbeddings } from "@langchain/openai";
@@ -126,9 +130,13 @@ const smallEmbeddings = new OpenAIEmbeddings({
 });
 ```
 
-### Azure OpenAI Embeddings
+</typescript>
+</ex-openai>
 
-#### Python
+<ex-azure>
+<python>
+
+Configure Azure OpenAI embeddings.
 
 ```python
 from langchain_openai import AzureOpenAIEmbeddings
@@ -145,7 +153,11 @@ embedding = embeddings.embed_query("Hello world")
 print(f"Embedding length: {len(embedding)}")
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+
+Configure Azure OpenAI embeddings.
 
 ```typescript
 import { AzureOpenAIEmbeddings } from "@langchain/openai";
@@ -160,9 +172,13 @@ const embeddings = new AzureOpenAIEmbeddings({
 const embedding = await embeddings.embedQuery("Hello world");
 ```
 
-### HuggingFace Embeddings (Local)
+</typescript>
+</ex-azure>
 
-#### Python
+<ex-huggingface>
+<python>
+
+Run local HuggingFace embeddings.
 
 ```python
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -183,7 +199,11 @@ embeddings = HuggingFaceEmbeddings(
 )
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+
+Run local HuggingFace embeddings.
 
 ```typescript
 import { HuggingFaceTransformersEmbeddings } from "@langchain/community/embeddings/hf_transformers";
@@ -196,9 +216,13 @@ const embeddings = new HuggingFaceTransformersEmbeddings({
 const embedding = await embeddings.embedQuery("This runs locally!");
 ```
 
-### Ollama Embeddings (Local)
+</typescript>
+</ex-huggingface>
 
-#### Python
+<ex-ollama>
+<python>
+
+Use Ollama for fully local embeddings.
 
 ```python
 from langchain_ollama import OllamaEmbeddings
@@ -212,7 +236,11 @@ embeddings = OllamaEmbeddings(
 embedding = embeddings.embed_query("Fully local embeddings")
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+
+Use Ollama for fully local embeddings.
 
 ```typescript
 import { OllamaEmbeddings } from "@langchain/ollama";
@@ -226,9 +254,13 @@ const embeddings = new OllamaEmbeddings({
 const embedding = await embeddings.embedQuery("Fully local embeddings");
 ```
 
-### Cohere Embeddings
+</typescript>
+</ex-ollama>
 
-#### Python
+<ex-cohere>
+<python>
+
+Use Cohere embeddings for multilingual support.
 
 ```python
 from langchain_cohere import CohereEmbeddings
@@ -243,7 +275,11 @@ query_embedding = embeddings.embed_query("Search query")
 doc_embeddings = embeddings.embed_documents(["doc1", "doc2"])
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+
+Use Cohere embeddings for multilingual support.
 
 ```typescript
 import { CohereEmbeddings } from "@langchain/cohere";
@@ -258,9 +294,13 @@ const queryEmbedding = await embeddings.embedQuery("Search query");
 const docEmbeddings = await embeddings.embedDocuments(["doc1", "doc2"]);
 ```
 
-### Computing Similarity
+</typescript>
+</ex-cohere>
 
-#### Python
+<ex-similarity>
+<python>
+
+Compute cosine similarity between embeddings.
 
 ```python
 from langchain_openai import OpenAIEmbeddings
@@ -291,7 +331,11 @@ most_similar_idx = np.argmax(similarities)
 print("Most similar doc:", docs[most_similar_idx])
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+
+Compute cosine similarity between embeddings.
 
 ```typescript
 import { OpenAIEmbeddings } from "@langchain/openai";
@@ -326,9 +370,13 @@ const mostSimilarIdx = similarities.indexOf(Math.max(...similarities));
 console.log("Most similar doc:", docs[mostSimilarIdx]);
 ```
 
-### Batch Processing for Efficiency
+</typescript>
+</ex-similarity>
 
-#### Python
+<ex-batch>
+<python>
+
+Batch process large document sets efficiently.
 
 ```python
 from langchain_openai import OpenAIEmbeddings
@@ -344,7 +392,11 @@ doc_embeddings = embeddings.embed_documents(large_doc_set)
 print(f"Embedded {len(doc_embeddings)} documents in batches")
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+
+Batch process large document sets efficiently.
 
 ```typescript
 import { OpenAIEmbeddings } from "@langchain/openai";
@@ -362,7 +414,13 @@ const docEmbeddings = await embeddings.embedDocuments(largeDocSet);
 console.log(`Embedded ${docEmbeddings.length} documents in batches`);
 ```
 
-### Using with Vector Stores (Python)
+</typescript>
+</ex-batch>
+
+<ex-vectorstore>
+<python>
+
+Create vector store and perform similarity search.
 
 ```python
 from langchain_openai import OpenAIEmbeddings
@@ -385,32 +443,31 @@ docs = vectorstore.similarity_search(query, k=2)
 for doc in docs:
     print(doc.page_content)
 ```
+</python>
+</ex-vectorstore>
 
-## Boundaries
-
-### What Agents CAN Do
-
+<boundaries>
+What You CAN Do:
 - **Initialize embedding models** - Set up OpenAI, Azure, Cohere, HuggingFace, or Ollama embeddings and configure API keys and model parameters
 - **Embed text content** - Embed single queries with `embed_query()`/`embedQuery()`, embed multiple documents with `embed_documents()`/`embedDocuments()`, and process large batches efficiently
 - **Use embeddings with vector stores** - Pass embeddings to vector store constructors and enable semantic search capabilities
 - **Choose appropriate models** - Select based on quality, cost, latency requirements and use local models for privacy concerns
 - **Optimize for use case** - Adjust batch sizes for efficiency and use smaller dimensions to reduce costs/storage
 
-### What Agents CANNOT Do
-
+What You CANNOT Do:
 - **Modify embedding dimensions arbitrarily** - Cannot change dimensions beyond what the model supports; text-embedding-3-* models support custom dimensions, older models don't
 - **Mix embeddings from different models** - Cannot compare embeddings from different models directly; must use same model for all embeddings in a similarity search
 - **Exceed API rate limits** - Cannot bypass provider rate limits; must implement rate limiting for large-scale operations
 - **Generate embeddings without proper authentication** - Cannot use cloud providers without valid API keys; cannot access models without proper credentials
+</boundaries>
 
-## Gotchas
+<fix-model-consistency>
+<python>
 
-### 1. Model Consistency is Critical
-
-#### Python
+Use consistent models across all embeddings.
 
 ```python
-# ❌ BAD: Using different models
+# BAD: Using different models
 embeddings1 = OpenAIEmbeddings(model="text-embedding-3-small")
 embeddings2 = OpenAIEmbeddings(model="text-embedding-ada-002")
 
@@ -418,17 +475,20 @@ query_vec = embeddings1.embed_query("query")
 doc_vec = embeddings2.embed_query("document")
 # Similarity comparison will be meaningless!
 
-# ✅ GOOD: Use same model for everything
+# GOOD: Use same model for everything
 embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 query_vec = embeddings.embed_query("query")
 doc_vec = embeddings.embed_query("document")
 # Now similarity makes sense
 ```
+</python>
 
-#### TypeScript
+<typescript>
+
+Use consistent models across all embeddings.
 
 ```typescript
-// ❌ BAD: Using different models
+// BAD: Using different models
 const embeddings1 = new OpenAIEmbeddings({
   modelName: "text-embedding-3-small"
 });
@@ -440,7 +500,7 @@ const queryVec = await embeddings1.embedQuery("query");
 const docVec = await embeddings2.embedQuery("document");
 // Similarity comparison will be meaningless!
 
-// ✅ GOOD: Use same model for everything
+// GOOD: Use same model for everything
 const embeddings = new OpenAIEmbeddings({
   modelName: "text-embedding-3-small"
 });
@@ -448,51 +508,58 @@ const queryVec = await embeddings.embedQuery("query");
 const docVec = await embeddings.embedQuery("document");
 // Now similarity makes sense
 ```
+</typescript>
+</fix-model-consistency>
 
-**Fix**: Always use the same embedding model for all texts you want to compare.
+<fix-import-packages>
+<python>
 
-### 2. Import from Correct Packages (Python)
+Use provider-specific package imports.
 
 ```python
-# ❌ OLD: Using deprecated community imports
+# OLD: Using deprecated community imports
 from langchain.embeddings import OpenAIEmbeddings  # Deprecated!
 
-# ✅ NEW: Use provider-specific packages
+# NEW: Use provider-specific packages
 from langchain_openai import OpenAIEmbeddings
 from langchain_cohere import CohereEmbeddings
 from langchain_huggingface import HuggingFaceEmbeddings
 ```
+</python>
+</fix-import-packages>
 
-**Fix**: Use provider-specific packages, not `langchain-community`.
+<fix-batch-size-limits>
+<typescript>
 
-### 3. Batch Size Limits (TypeScript)
+Configure batch size to avoid API limits.
 
 ```typescript
-// ❌ Potential API error with too many docs
+// Potential API error with too many docs
 const embeddings = new OpenAIEmbeddings();
 const hugeDocs = Array(5000).fill("text");
 await embeddings.embedDocuments(hugeDocs); // May fail!
 
-// ✅ Configure appropriate batch size
+// Configure appropriate batch size
 const embeddings = new OpenAIEmbeddings({
   batchSize: 512, // OpenAI limit is 2048, use smaller for safety
 });
 await embeddings.embedDocuments(hugeDocs); // Handles batching automatically
 ```
+</typescript>
+</fix-batch-size-limits>
 
-**Fix**: Set appropriate `batchSize` parameter for the provider.
+<fix-text-length-limits>
+<python>
 
-### 4. Text Length Limits
-
-#### Python
+Chunk long texts before embedding.
 
 ```python
-# ❌ Text too long
+# Text too long
 embeddings = OpenAIEmbeddings()
 very_long_text = "..." * 100000
 embeddings.embed_query(very_long_text)  # Will fail!
 
-# ✅ Chunk long texts first
+# Chunk long texts first
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 splitter = RecursiveCharacterTextSplitter(
@@ -502,16 +569,19 @@ splitter = RecursiveCharacterTextSplitter(
 chunks = splitter.split_text(very_long_text)
 chunk_embeddings = embeddings.embed_documents(chunks)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+
+Chunk long texts before embedding.
 
 ```typescript
-// ❌ Text too long
+// Text too long
 const embeddings = new OpenAIEmbeddings();
 const veryLongText = "...".repeat(100000);
 await embeddings.embedQuery(veryLongText); // Will fail!
 
-// ✅ Chunk long texts first
+// Chunk long texts first
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 
 const splitter = new RecursiveCharacterTextSplitter({
@@ -520,13 +590,16 @@ const splitter = new RecursiveCharacterTextSplitter({
 const chunks = await splitter.splitText(veryLongText);
 const embeddings = await embeddings.embedDocuments(chunks);
 ```
+</typescript>
+</fix-text-length-limits>
 
-**Fix**: Split long texts into chunks before embedding. Most models have 8k token limits.
+<fix-huggingface-model-download>
+<python>
 
-### 5. HuggingFace Model Download (Python)
+Handle HuggingFace model download on first run.
 
 ```python
-# ❌ First run may be slow (downloading model)
+# First run may be slow (downloading model)
 from langchain_huggingface import HuggingFaceEmbeddings
 
 embeddings = HuggingFaceEmbeddings(
@@ -534,24 +607,25 @@ embeddings = HuggingFaceEmbeddings(
 )
 # Downloads ~420MB on first run!
 
-# ✅ Be aware and cache models
+# Be aware and cache models
 # Models are cached in ~/.cache/huggingface/
 # Subsequent runs will be fast
 ```
+</python>
+</fix-huggingface-model-download>
 
-**Fix**: First run downloads the model. Plan for network and disk space.
+<fix-azure-configuration>
+<python>
 
-### 6. Azure Configuration Complexity
-
-#### Python
+Include all required Azure configuration fields.
 
 ```python
-# ❌ INCOMPLETE: Missing required fields
+# INCOMPLETE: Missing required fields
 embeddings = AzureOpenAIEmbeddings(
     api_key=os.getenv("AZURE_OPENAI_API_KEY"),
 )
 
-# ✅ COMPLETE: All required fields
+# COMPLETE: All required fields
 embeddings = AzureOpenAIEmbeddings(
     azure_endpoint="https://my-instance.openai.azure.com/",
     api_key=os.getenv("AZURE_OPENAI_API_KEY"),
@@ -559,16 +633,19 @@ embeddings = AzureOpenAIEmbeddings(
     api_version="2024-02-01",
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+
+Include all required Azure configuration fields.
 
 ```typescript
-// ❌ Missing required fields
+// Missing required fields
 const embeddings = new AzureOpenAIEmbeddings({
   azureOpenAIApiKey: process.env.AZURE_OPENAI_API_KEY,
 });
 
-// ✅ All required fields
+// All required fields
 const embeddings = new AzureOpenAIEmbeddings({
   azureOpenAIApiKey: process.env.AZURE_OPENAI_API_KEY,
   azureOpenAIApiInstanceName: "my-instance",
@@ -576,21 +653,22 @@ const embeddings = new AzureOpenAIEmbeddings({
   azureOpenAIApiVersion: "2024-02-01",
 });
 ```
+</typescript>
+</fix-azure-configuration>
 
-**Fix**: Azure requires endpoint/instance name, deployment name, and API version.
+<fix-ollama-service>
+<python>
 
-### 7. Ollama Service Must Be Running
-
-#### Python
+Ensure Ollama service is running.
 
 ```python
-# ❌ Ollama not running
+# Ollama not running
 from langchain_ollama import OllamaEmbeddings
 
 embeddings = OllamaEmbeddings(model="nomic-embed-text")
 embeddings.embed_query("test")  # Connection error!
 
-# ✅ Ensure Ollama is running and model is pulled
+# Ensure Ollama is running and model is pulled
 # Terminal:
 # ollama pull nomic-embed-text
 # ollama serve
@@ -598,16 +676,19 @@ embeddings.embed_query("test")  # Connection error!
 embeddings = OllamaEmbeddings(model="nomic-embed-text")
 embeddings.embed_query("test")  # Works!
 ```
+</python>
 
-#### TypeScript
+<typescript>
+
+Ensure Ollama service is running.
 
 ```typescript
-// ❌ Ollama not running
+// Ollama not running
 import { OllamaEmbeddings } from "@langchain/ollama";
 const embeddings = new OllamaEmbeddings({ model: "nomic-embed-text" });
 await embeddings.embedQuery("test"); // Connection error!
 
-// ✅ Ensure Ollama is running and model is pulled
+// Ensure Ollama is running and model is pulled
 // Terminal:
 // ollama pull nomic-embed-text
 // ollama serve
@@ -615,30 +696,34 @@ await embeddings.embedQuery("test"); // Connection error!
 const embeddings = new OllamaEmbeddings({ model: "nomic-embed-text" });
 await embeddings.embedQuery("test"); // Works!
 ```
+</typescript>
+</fix-ollama-service>
 
-**Fix**: Start Ollama service and pull the model first.
+<fix-batch-performance>
+<python>
 
-### 8. Batch Size for Performance (Python)
+Use batch processing instead of single calls.
 
 ```python
-# ❌ Inefficient: One API call per document
+# Inefficient: One API call per document
 embeddings = OpenAIEmbeddings()
 for doc in large_doc_list:
     emb = embeddings.embed_query(doc)  # Slow!
 
-# ✅ Efficient: Batch processing
+# Efficient: Batch processing
 embeddings = OpenAIEmbeddings(chunk_size=100)
 all_embeddings = embeddings.embed_documents(large_doc_list)  # Fast!
 ```
+</python>
+</fix-batch-performance>
 
-**Fix**: Use `embed_documents()` for batch processing instead of calling `embed_query()` in a loop.
+<fix-dimension-mismatch>
+<python>
 
-### 9. Dimension Mismatch
-
-#### Python
+Ensure consistent embedding dimensions.
 
 ```python
-# ❌ Vector store expecting 1536 dimensions, model produces 512
+# Vector store expecting 1536 dimensions, model produces 512
 embeddings = OpenAIEmbeddings(
     model="text-embedding-3-small",
     dimensions=512,
@@ -651,15 +736,18 @@ vectorstore = FAISS.from_texts(
 )
 # Adding with 512-dim embeddings will fail!
 
-# ✅ Consistent dimensions
+# Consistent dimensions
 embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 vectorstore = FAISS.from_texts(["text1"], embeddings)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+
+Ensure consistent embedding dimensions.
 
 ```typescript
-// ❌ Vector store expecting 1536 dimensions, model produces 512
+// Vector store expecting 1536 dimensions, model produces 512
 const embeddings = new OpenAIEmbeddings({
   modelName: "text-embedding-3-small",
   dimensions: 512,
@@ -671,88 +759,68 @@ const vectorStore = await MemoryVectorStore.fromTexts(
   embeddings, // Mismatch!
 );
 
-// ✅ Consistent dimensions
+// Consistent dimensions
 const embeddings = new OpenAIEmbeddings({
   modelName: "text-embedding-3-small",
   // Don't override dimensions, or ensure vector store matches
 });
 ```
+</typescript>
+</fix-dimension-mismatch>
 
-**Fix**: Ensure all embeddings use consistent dimensions throughout your application.
+<fix-api-keys>
+<typescript>
 
-### 10. API Keys in Environment (TypeScript)
+Use environment variables for API keys.
 
 ```typescript
-// ❌ Hardcoded API key
+// Hardcoded API key
 const embeddings = new OpenAIEmbeddings({
   openAIApiKey: "sk-...", // Never commit this!
 });
 
-// ✅ Use environment variables
+// Use environment variables
 const embeddings = new OpenAIEmbeddings({
   openAIApiKey: process.env.OPENAI_API_KEY,
 });
 
-// ✅ Even better: auto-detection
+// Even better: auto-detection
 const embeddings = new OpenAIEmbeddings();
 // Reads OPENAI_API_KEY from environment automatically
 ```
+</typescript>
+</fix-api-keys>
 
-**Fix**: Use environment variables for API keys.
-
-## Links to Documentation
-
-### Python
+<links>
+Python:
 - [LangChain Python Embeddings Overview](https://python.langchain.com/docs/integrations/text_embedding/)
 - [OpenAI Embeddings](https://python.langchain.com/docs/integrations/text_embedding/openai)
 - [Azure OpenAI Embeddings](https://python.langchain.com/docs/integrations/text_embedding/azureopenai)
 - [HuggingFace Embeddings](https://python.langchain.com/docs/integrations/text_embedding/huggingfacehub)
 - [Ollama Embeddings](https://python.langchain.com/docs/integrations/text_embedding/ollama)
 
-### TypeScript
+TypeScript:
 - [LangChain JS Embeddings Overview](https://js.langchain.com/docs/integrations/text_embedding/)
 - [OpenAI Embeddings](https://js.langchain.com/docs/integrations/text_embedding/openai)
 - [Azure OpenAI Embeddings](https://js.langchain.com/docs/integrations/text_embedding/azure_openai)
 - [HuggingFace Embeddings](https://js.langchain.com/docs/integrations/text_embedding/hugging_face)
 - [Ollama Embeddings](https://js.langchain.com/docs/integrations/text_embedding/ollama)
 
-### Provider Documentation
+Provider Documentation:
 - [OpenAI Embeddings Guide](https://platform.openai.com/docs/guides/embeddings)
 - [Cohere Embeddings](https://docs.cohere.com/docs/embeddings)
 - [HuggingFace Models](https://huggingface.co/models?pipeline_tag=feature-extraction)
 - [Ollama](https://ollama.ai/)
+</links>
 
-### Package Installation
-
-**Python:**
+<installation>
+Python:
 ```bash
-# OpenAI
-pip install langchain-openai
-
-# Cohere
-pip install langchain-cohere
-
-# HuggingFace
-pip install langchain-huggingface sentence-transformers
-
-# Ollama
-pip install langchain-ollama
-
-# Google
-pip install langchain-google-genai
+pip install langchain-openai langchain-cohere langchain-huggingface sentence-transformers langchain-ollama langchain-google-genai
 ```
 
-**TypeScript:**
+TypeScript:
 ```bash
-# OpenAI
-npm install @langchain/openai
-
-# Cohere
-npm install @langchain/cohere
-
-# Ollama
-npm install @langchain/ollama
-
-# Community (HuggingFace, etc.)
-npm install @langchain/community
+npm install @langchain/openai @langchain/cohere @langchain/ollama @langchain/community
 ```
+</installation>

@@ -3,18 +3,16 @@ name: LangGraph Workflows
 description: "[LangGraph] Understanding workflows vs agents, predetermined vs dynamic patterns, and orchestrator-worker patterns using the Send API"
 ---
 
-
-## Overview
-
+<overview>
 LangGraph supports both **workflows** (predetermined paths) and **agents** (dynamic decision-making). Understanding when to use each pattern is crucial for effective agent design.
 
 **Key Distinctions:**
 - **Workflows**: Predetermined code paths, operate in specific order
 - **Agents**: Dynamic, define their own processes and tool usage
 - **Hybrid**: Combine deterministic and agentic steps
+</overview>
 
-## Decision Table: Workflow vs Agent
-
+<decision-table>
 | Characteristic | Workflow | Agent | Hybrid |
 |----------------|----------|-------|--------|
 | **Control Flow** | Fixed, predetermined | Dynamic, model-driven | Mixed |
@@ -22,35 +20,35 @@ LangGraph supports both **workflows** (predetermined paths) and **agents** (dyna
 | **Complexity** | Simple | Complex | Variable |
 | **Use Case** | Sequential tasks | Open-ended problems | Structured flexibility |
 | **Examples** | ETL, validation | Research, QA | Review approval |
+</decision-table>
 
-## Key Patterns
-
-### 1. Predetermined Workflows
+<key-patterns>
+**1. Predetermined Workflows**
 
 Sequential execution with fixed paths:
 - Data processing pipelines
 - Validation workflows
 - Multi-step transformations
 
-### 2. Dynamic Agents
+**2. Dynamic Agents**
 
 Model decides next steps:
 - ReAct agents (reasoning + acting)
 - Tool-calling loops
 - Autonomous task completion
 
-### 3. Orchestrator-Worker Pattern
+**3. Orchestrator-Worker Pattern**
 
 One coordinator delegates to multiple workers:
 - Map-reduce operations
 - Parallel processing
 - Multi-agent collaboration
+</key-patterns>
 
-## Code Examples
+<ex-basic>
+<python>
+Fixed path workflow:
 
-### Basic Workflow (Predetermined)
-
-#### Python
 ```python
 from langgraph.graph import StateGraph, START, END
 from typing_extensions import TypedDict
@@ -86,8 +84,11 @@ workflow = (
 result = workflow.invoke({"data": "hello"})
 print(result)  # {'data': 'HELLO', 'validated': True, 'processed': True}
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Fixed path workflow:
+
 ```typescript
 import { StateGraph, StateSchema, START, END } from "@langchain/langgraph";
 import { z } from "zod";
@@ -122,10 +123,13 @@ const workflow = new StateGraph(WorkflowState)
 const result = await workflow.invoke({ data: "hello" });
 console.log(result);  // { data: 'HELLO', validated: true, processed: true }
 ```
+</typescript>
+</ex-basic>
 
-### Dynamic Agent (Model-Driven)
+<ex-agent>
+<python>
+Tool-calling agent with dynamic routing:
 
-#### Python
 ```python
 from langchain.tools import tool
 from langchain.chat_models import init_chat_model
@@ -140,9 +144,16 @@ def search(query: str) -> str:
     return f"Results for: {query}"
 
 @tool
-def calculate(expression: str) -> str:
-    """Calculate a mathematical expression."""
-    return str(eval(expression))
+def calculate(a: float, b: float, op: str) -> str:
+    """Calculate a mathematical expression.
+
+    Args:
+        a: First number
+        b: Second number
+        op: Operation (add, subtract, multiply, divide)
+    """
+    ops = {"add": a + b, "subtract": a - b, "multiply": a * b, "divide": a / b}
+    return str(ops.get(op, "Invalid operation"))
 
 class AgentState(TypedDict):
     messages: Annotated[list, operator.add]
@@ -185,8 +196,11 @@ agent = (
     .compile()
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Tool-calling agent with dynamic routing:
+
 ```typescript
 import { ChatAnthropic } from "@langchain/anthropic";
 import { tool } from "@langchain/core/tools";
@@ -200,10 +214,13 @@ const search = tool(async ({ query }) => `Results for: ${query}`, {
   schema: z.object({ query: z.string() }),
 });
 
-const calculate = tool(async ({ expression }) => eval(expression).toString(), {
+const calculate = tool(async ({ a, b, op }) => {
+  const ops: Record<string, number> = { add: a + b, subtract: a - b, multiply: a * b, divide: a / b };
+  return (ops[op] ?? "Invalid operation").toString();
+}, {
   name: "calculate",
   description: "Calculate a mathematical expression",
-  schema: z.object({ expression: z.string() }),
+  schema: z.object({ a: z.number(), b: z.number(), op: z.string() }),
 });
 
 const AgentState = new StateSchema({
@@ -254,10 +271,13 @@ const agent = new StateGraph(AgentState)
   .addEdge("tools", "agent")
   .compile();
 ```
+</typescript>
+</ex-agent>
 
-### Orchestrator-Worker Pattern
+<ex-orchestrator>
+<python>
+Fan-out with Send API:
 
-#### Python
 ```python
 from langgraph.types import Send
 from typing import Annotated
@@ -300,8 +320,11 @@ result = graph.invoke({
 })
 print(result["summary"])  # "Processed 3 tasks"
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Fan-out with Send API:
+
 ```typescript
 import { StateGraph, StateSchema, Send, ReducedValue, START, END } from "@langchain/langgraph";
 import { z } from "zod";
@@ -343,10 +366,13 @@ const result = await graph.invoke({
 });
 console.log(result.summary);  // "Processed 3 tasks"
 ```
+</typescript>
+</ex-orchestrator>
 
-### Hybrid: Workflow with Agent Step
+<ex-hybrid>
+<python>
+Mix deterministic and agentic steps:
 
-#### Python
 ```python
 class HybridState(TypedDict):
     input: str
@@ -381,8 +407,11 @@ hybrid = (
     .compile()
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Mix deterministic and agentic steps:
+
 ```typescript
 import { StateGraph, StateSchema, START, END } from "@langchain/langgraph";
 import { z } from "zod";
@@ -419,10 +448,13 @@ const hybrid = new StateGraph(HybridState)
   .addEdge("finalize", END)
   .compile();
 ```
+</typescript>
+</ex-hybrid>
 
-### Map-Reduce Example
+<ex-mapreduce>
+<python>
+Parallel processing with aggregation:
 
-#### Python
 ```python
 class MapReduceState(TypedDict):
     documents: list[str]
@@ -461,8 +493,11 @@ result = graph.invoke({
     "documents": ["Doc 1 content...", "Doc 2 content...", "Doc 3 content..."]
 })
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Parallel processing with aggregation:
+
 ```typescript
 import { StateGraph, StateSchema, Send, ReducedValue, START, END } from "@langchain/langgraph";
 import { z } from "zod";
@@ -502,10 +537,13 @@ const result = await graph.invoke({
   documents: ["Doc 1 content...", "Doc 2 content...", "Doc 3 content..."],
 });
 ```
+</typescript>
+</ex-mapreduce>
 
-### Parallel Knowledge Base Router
+<ex-router>
+<python>
+Route to multiple sources:
 
-#### Python
 ```python
 from langgraph.types import Send
 
@@ -563,8 +601,11 @@ graph = (
     .compile()
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Route to multiple sources:
+
 ```typescript
 import { StateGraph, StateSchema, Send, ReducedValue, START, END } from "@langchain/langgraph";
 import { z } from "zod";
@@ -624,10 +665,11 @@ const graph = new StateGraph(RouterState)
   .addEdge("synthesize", END)
   .compile();
 ```
+</typescript>
+</ex-router>
 
-## Boundaries
-
-### What You CAN Configure
+<boundaries>
+**What You CAN Configure**
 
 - Choose workflow vs agent pattern
 - Mix deterministic and agentic steps
@@ -636,18 +678,18 @@ const graph = new StateGraph(RouterState)
 - Control worker node behavior
 - Aggregate results with reducers
 
-### What You CANNOT Configure
+**What You CANNOT Configure**
 
 - Change Send API message-passing model
 - Bypass worker state isolation
 - Modify parallel execution mechanism
 - Override reducer behavior at runtime
+</boundaries>
 
-## Gotchas
+<fix-send-worker-state-isolation>
+<python>
+Workers receive isolated state:
 
-### 1. Send Requires Worker State Isolation
-
-#### Python
 ```python
 # WRONG - Workers share state, causing conflicts
 class State(TypedDict):
@@ -658,8 +700,11 @@ def worker(state: dict) -> dict:
     # state is isolated to this worker
     return {"results": [process(state["task"])]}
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Workers receive isolated state:
+
 ```typescript
 // WRONG - Workers share state, causing conflicts
 const State = new StateSchema({
@@ -672,10 +717,13 @@ const worker = async (state: { task: string }) => {
   return { results: [process(state.task)] };
 };
 ```
+</typescript>
+</fix-send-worker-state-isolation>
 
-### 2. Send Needs Accumulator Reducer
+<fix-send-accumulator-reducer>
+<python>
+Use reducer to collect worker results:
 
-#### Python
 ```python
 # WRONG - Last worker overwrites all others
 class State(TypedDict):
@@ -688,8 +736,11 @@ import operator
 class State(TypedDict):
     results: Annotated[list, operator.add]  # Accumulates
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Use ReducedValue to collect results:
+
 ```typescript
 // WRONG - Last worker overwrites all others
 const State = new StateSchema({
@@ -706,10 +757,13 @@ const State = new StateSchema({
   ),
 });
 ```
+</typescript>
+</fix-send-accumulator-reducer>
 
-### 3. Workflows Can Become Too Rigid
+<fix-rigid-workflows>
+<python>
+Add error handling paths:
 
-#### Python
 ```python
 # ANTI-PATTERN - Overly rigid workflow
 # What if validation fails? No recovery path!
@@ -723,8 +777,11 @@ def route_after_validate(state):
 
 .add_conditional_edges("validate", route_after_validate)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Add error handling paths:
+
 ```typescript
 // ANTI-PATTERN - Overly rigid workflow
 .addEdge("validate", "process")  // Always proceeds, no error handling
@@ -737,8 +794,12 @@ const routeAfterValidate = (state) => {
 
 .addConditionalEdges("validate", routeAfterValidate, ["process", "errorHandler"]);
 ```
+</typescript>
+</fix-rigid-workflows>
 
-### 4. Agents Can Become Unpredictable (Python)
+<fix-unpredictable-agents>
+<python>
+Add iteration limits as guardrails:
 
 ```python
 # RISKY - Pure agent, no guardrails
@@ -753,8 +814,12 @@ def should_continue(state):
         return "tools"
     return END
 ```
+</python>
+</fix-unpredictable-agents>
 
-### 5. Always Await Async Nodes (TypeScript)
+<fix-await-async-nodes>
+<typescript>
+Await async invocations:
 
 ```typescript
 // WRONG - Forgetting await
@@ -765,15 +830,17 @@ console.log(result.output);  // undefined!
 const result = await graph.invoke({ data: "test" });
 console.log(result.output);  // Works!
 ```
+</typescript>
+</fix-await-async-nodes>
 
-## Links
-
-### Python
+<links>
+**Python**
 - [Workflows and Agents (Python)](https://docs.langchain.com/oss/python/langgraph/workflows-agents)
 - [Send API Guide](https://docs.langchain.com/oss/python/langgraph/use-graph-api#map-reduce-and-the-send-api)
 - [Map-Reduce Example](https://docs.langchain.com/oss/python/langgraph/use-graph-api#map-reduce-and-the-send-api)
 
-### TypeScript
+**TypeScript**
 - [Workflows and Agents (JavaScript)](https://docs.langchain.com/oss/javascript/langgraph/workflows-agents)
 - [Send API Guide](https://docs.langchain.com/oss/javascript/langgraph/use-graph-api#map-reduce-and-the-send-api)
 - [Map-Reduce Example](https://docs.langchain.com/oss/javascript/langgraph/use-graph-api#map-reduce-and-the-send-api)
+</links>

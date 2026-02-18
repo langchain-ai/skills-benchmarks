@@ -3,18 +3,21 @@ name: LangChain Tools
 description: "[LangChain] Define and use tools in LangChain - includes @tool decorator, custom tools, built-in tools, and tool schemas"
 ---
 
-## Overview
+<oneliner>
+Define and use tools in LangChain - includes @tool decorator, custom tools, built-in tools, and tool schemas.
+</oneliner>
 
+<overview>
 Tools are functions that agents can execute to perform actions like fetching data, running code, or querying databases. Tools have schemas that describe their purpose and parameters, helping models understand when and how to use them.
 
-**Key Concepts:**
+Key Concepts:
 - **@tool / tool()**: Decorator/function to create tools
 - **Schema**: Pydantic models (Python) or Zod schemas (TypeScript) defining parameters
 - **Description**: Helps model understand when to use the tool
 - **Built-in Tools**: Pre-made tools for common tasks
+</overview>
 
-## When to Define Custom Tools
-
+<when-to-define-custom-tools>
 | Scenario | Create Custom Tool? | Why |
 |----------|---------------------|-----|
 | Domain-specific logic | Yes | Unique to your application |
@@ -22,21 +25,20 @@ Tools are functions that agents can execute to perform actions like fetching dat
 | Database queries | Yes | Your schema/data |
 | Common utilities (search, calc) | Maybe | Check for existing tools first |
 | File operations | Maybe | Built-in filesystem tools exist |
+</when-to-define-custom-tools>
 
-## Tool Definition Methods
-
+<tool-definition-methods>
 | Method | When to Use | Example |
 |--------|-------------|---------|
 | `@tool` / `tool()` | Simple functions | Basic transformations |
 | Schema-based | Complex parameters | Multiple typed fields |
 | `StructuredTool` | Full control | Custom error handling |
 | Built-in tools | Common operations | Search, code execution |
+</tool-definition-methods>
 
-## Code Examples
-
-### Basic Tool Definition
-
-#### Python
+<ex-basic-tool>
+<python>
+Calculator with @tool decorator:
 
 ```python
 from langchain.tools import tool
@@ -71,8 +73,10 @@ def calculator(
 result = calculator.invoke({"operation": "add", "a": 5, "b": 3})
 print(result)  # "8.0"
 ```
+</python>
 
-#### TypeScript
+<typescript>
+TypeScript equivalent with Zod schema:
 
 ```typescript
 import { tool } from "langchain";
@@ -100,10 +104,12 @@ const calculator = tool(
 const result = await calculator.invoke({ operation: "add", a: 5, b: 3 });
 console.log(result); // "8"
 ```
+</typescript>
+</ex-basic-tool>
 
-### Tool with Complex Schema
-
-#### Python
+<ex-complex-schema>
+<python>
+Tool with Pydantic schema:
 
 ```python
 from langchain.tools import tool
@@ -124,8 +130,10 @@ def search_database(query: str, limit: int = 10, filters: Optional[dict] = None)
     """Search the customer database for records matching criteria."""
     return f"Found {limit} results for: {query}"
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Nested Zod schema with optional fields:
 
 ```typescript
 const searchDatabase = tool(
@@ -146,10 +154,12 @@ const searchDatabase = tool(
   }
 );
 ```
+</typescript>
+</ex-complex-schema>
 
-### Async Tool
-
-#### Python
+<ex-async>
+<python>
+Async tool with aiohttp:
 
 ```python
 from langchain.tools import tool
@@ -167,8 +177,10 @@ async def fetch_weather(location: str) -> str:
             data = await response.json()
             return f"Temperature: {data['temp']}°F, Conditions: {data['conditions']}"
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Async tool with fetch API:
 
 ```typescript
 const fetchWeather = tool(
@@ -186,10 +198,12 @@ const fetchWeather = tool(
   }
 );
 ```
+</typescript>
+</ex-async>
 
-### Tool with Error Handling
-
-#### Python
+<ex-error-handling>
+<python>
+Raising exceptions in tools:
 
 ```python
 from langchain.tools import tool
@@ -208,8 +222,10 @@ def divide(numerator: float, denominator: float) -> float:
 
 # Error will be caught and returned as ToolMessage
 ```
+</python>
 
-#### TypeScript
+<typescript>
+TypeScript equivalent:
 
 ```typescript
 const divisionTool = tool(
@@ -229,10 +245,12 @@ const divisionTool = tool(
   }
 );
 ```
+</typescript>
+</ex-error-handling>
 
-### Tool with Side Effects
-
-#### Python
+<ex-side-effects>
+<python>
+Tool with filesystem side effects:
 
 ```python
 from langchain.tools import tool
@@ -251,8 +269,10 @@ def write_file(filepath: str, content: str) -> str:
     Path(filepath).write_text(content, encoding="utf-8")
     return f"Successfully wrote {len(content)} characters to {filepath}"
 ```
+</python>
 
-#### TypeScript
+<typescript>
+TypeScript with fs/promises:
 
 ```typescript
 import fs from "fs/promises";
@@ -272,10 +292,12 @@ const writeFile = tool(
   }
 );
 ```
+</typescript>
+</ex-side-effects>
 
-### Tool with External Dependencies
-
-#### Python
+<ex-external-deps>
+<python>
+Tool calling external API:
 
 ```python
 from langchain.tools import tool
@@ -302,8 +324,10 @@ def search_github(query: str, language: str = None) -> str:
     repos = response.json()["items"][:5]
     return "\n".join([f"{r['full_name']} (stars: {r['stargazers_count']})" for r in repos])
 ```
+</python>
 
-#### TypeScript
+<typescript>
+TypeScript with axios:
 
 ```typescript
 import axios from "axios";
@@ -328,10 +352,12 @@ const githubSearch = tool(
   }
 );
 ```
+</typescript>
+</ex-external-deps>
 
-### Tool with Complex Return Type
-
-#### Python
+<ex-complex-return>
+<python>
+Returning JSON-serialized data:
 
 ```python
 from langchain.tools import tool
@@ -355,8 +381,10 @@ def analyze_text(text: str) -> str:
 
     return json.dumps(stats)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+TypeScript equivalent:
 
 ```typescript
 const analyzeText = tool(
@@ -378,10 +406,12 @@ const analyzeText = tool(
   }
 );
 ```
+</typescript>
+</ex-complex-return>
 
-### Tool with Runtime Configuration (Factory Pattern)
-
-#### Python
+<ex-factory-pattern>
+<python>
+Factory function creating tools:
 
 ```python
 from langchain.tools import tool
@@ -405,8 +435,10 @@ def create_database_tool(connection_string: str):
 prod_db_tool = create_database_tool(os.getenv("PROD_DB_URL"))
 dev_db_tool = create_database_tool(os.getenv("DEV_DB_URL"))
 ```
+</python>
 
-#### TypeScript
+<typescript>
+TypeScript factory pattern:
 
 ```typescript
 function createDatabaseTool(connectionString: string) {
@@ -428,10 +460,12 @@ function createDatabaseTool(connectionString: string) {
 const prodDbTool = createDatabaseTool(process.env.PROD_DB_URL);
 const devDbTool = createDatabaseTool(process.env.DEV_DB_URL);
 ```
+</typescript>
+</ex-factory-pattern>
 
-### Multiple Related Tools (Toolkit Pattern)
-
-#### Python
+<ex-toolkit>
+<python>
+Related tools grouped as toolkit:
 
 ```python
 from langchain.tools import tool
@@ -462,8 +496,10 @@ email_tools = [send_email, read_emails]
 from langchain.agents import create_agent
 agent = create_agent(model="gpt-4.1", tools=email_tools)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+TypeScript toolkit object:
 
 ```typescript
 const emailTools = {
@@ -498,10 +534,12 @@ const agent = createAgent({
   tools: Object.values(emailTools),
 });
 ```
+</typescript>
+</ex-toolkit>
 
-### Tool with Streaming Updates
-
-#### Python
+<ex-streaming>
+<python>
+Streaming progress updates:
 
 ```python
 from langchain.tools import tool
@@ -524,8 +562,10 @@ async def process_large_file(filepath: str, runtime) -> str:
 
     return "Processing complete"
 ```
+</python>
 
-#### TypeScript
+<typescript>
+TypeScript with runtime context:
 
 ```typescript
 const processLargeFile = tool(
@@ -549,8 +589,12 @@ const processLargeFile = tool(
   }
 );
 ```
+</typescript>
+</ex-streaming>
 
-### Tool with StructuredTool (Python)
+<ex-structuredtool>
+<python>
+Using StructuredTool for full control:
 
 ```python
 from langchain.tools import StructuredTool
@@ -578,11 +622,11 @@ calculator_tool = StructuredTool.from_function(
     args_schema=CalculatorInput,
 )
 ```
+</python>
+</ex-structuredtool>
 
-## Boundaries
-
-### What You CAN Configure
-
+<boundaries>
+What You CAN Configure:
 - **Function logic**: Any Python/TypeScript code
 - **Parameters**: Via type hints/Pydantic (Python) or Zod schemas (TypeScript)
 - **Name and description**: Guide model's tool selection
@@ -590,18 +634,16 @@ calculator_tool = StructuredTool.from_function(
 - **Async operations**: Tools can be async
 - **Error handling**: Raise exceptions or return error messages
 
-### What You CANNOT Configure
-
+What You CANNOT Configure:
 - **When model calls tool**: Model decides based on context
 - **Tool call order**: Model determines execution flow
 - **Parameter values**: Model generates based on schema
 - **Response format from model**: Tool returns, model interprets
+</boundaries>
 
-## Gotchas
-
-### 1. Poor Tool Descriptions
-
-#### Python
+<fix-poor-descriptions>
+<python>
+BAD vs GOOD descriptions:
 
 ```python
 # BAD: Vague description
@@ -623,8 +665,9 @@ def search_customers(query: str) -> str:
     """
     return search_database(query)
 ```
-
-#### TypeScript
+</python>
+<typescript>
+TypeScript equivalent:
 
 ```typescript
 // BAD: Vague description
@@ -643,10 +686,12 @@ const goodTool = tool(
   }
 );
 ```
+</typescript>
+</fix-poor-descriptions>
 
-### 2. Missing Type Hints / Schema Descriptions
-
-#### Python
+<fix-missing-types>
+<python>
+Always use type hints:
 
 ```python
 # BAD: No type hints
@@ -666,8 +711,9 @@ def good_tool(query: str, limit: int = 10) -> str:
     """
     return "result"
 ```
-
-#### TypeScript
+</python>
+<typescript>
+Always describe schema fields:
 
 ```typescript
 // BAD: No field descriptions
@@ -679,10 +725,12 @@ const goodSchema = z.object({
   limit: z.number().describe("Maximum results to return (1-100)"),
 });
 ```
+</typescript>
+</fix-missing-types>
 
-### 3. Non-Serializable Return Values
-
-#### Python
+<fix-non-serializable>
+<python>
+Return serializable types:
 
 ```python
 from datetime import datetime
@@ -699,8 +747,9 @@ def good_get_time() -> str:
     """Get current time."""
     return datetime.now().isoformat()
 ```
-
-#### TypeScript
+</python>
+<typescript>
+TypeScript equivalent:
 
 ```typescript
 // BAD: Returning complex objects
@@ -709,8 +758,12 @@ const badTool = tool(async () => new Date(), { name: "get_time", description: "G
 // GOOD: Return strings or JSON
 const goodTool = tool(async () => new Date().toISOString(), { name: "get_time", description: "Get time", schema: z.object({}) });
 ```
+</typescript>
+</fix-non-serializable>
 
-### 4. Missing Docstrings (Python)
+<fix-missing-docstrings>
+<python>
+Always provide docstrings:
 
 ```python
 # BAD: No docstring
@@ -730,10 +783,12 @@ def good_tool(input: str) -> str:
     """
     return "result"
 ```
+</python>
+</fix-missing-docstrings>
 
-### 5. Forgetting Async / Not Awaiting
-
-#### Python
+<fix-async-await>
+<python>
+Use async libraries in async tools:
 
 ```python
 import requests
@@ -754,8 +809,9 @@ async def good_fetch(url: str) -> str:
         async with session.get(url) as response:
             return await response.text()
 ```
-
-#### TypeScript
+</python>
+<typescript>
+Always await async operations:
 
 ```typescript
 // BAD: Not awaiting async operations
@@ -773,8 +829,12 @@ const goodTool = tool(
   { name: "fetch_url", description: "Fetch URL content", schema: z.object({ url: z.string().url() }) }
 );
 ```
+</typescript>
+</fix-async-await>
 
-### 6. Tool Names with Spaces or Special Characters
+<fix-invalid-names>
+<python>
+Use snake_case tool names:
 
 ```python
 # BAD: Invalid tool name
@@ -787,8 +847,10 @@ def bad_tool() -> str:
 def good_tool() -> str:
     return "result"
 ```
+</python>
+</fix-invalid-names>
 
-## Links to Documentation
-
+<documentation-links>
 - Python: [Tools Overview](https://docs.langchain.com/oss/python/langchain/tools) | [Tool Integrations](https://docs.langchain.com/oss/python/integrations/tools/index)
 - TypeScript: [Tools Overview](https://docs.langchain.com/oss/javascript/langchain/tools) | [Tool Integrations](https://docs.langchain.com/oss/javascript/integrations/tools/index)
+</documentation-links>

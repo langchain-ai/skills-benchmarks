@@ -3,40 +3,40 @@ name: LangChain Multimodal
 description: "[LangChain] Work with multimodal inputs/outputs in LangChain - includes images, audio, video, content blocks, and vision capabilities"
 ---
 
-## Overview
+<oneliner>
+Work with multimodal inputs/outputs in LangChain including images, audio, video, content blocks, and vision capabilities with GPT-4V, Claude, and Gemini.
+</oneliner>
 
+<overview>
 Multimodal support lets you work with images, audio, video, and other non-text data. Models with multimodal capabilities can process and generate content across these different formats.
 
-**Key Concepts:**
+Key Concepts:
 - **Content Blocks**: Structured representation of multimodal data
 - **Vision**: Image understanding with GPT-4V, Claude, Gemini
 - **Audio/Video**: Emerging support in newer models
 - **Standard Format**: Cross-provider content block structure
+</overview>
 
-## Decision Tables
-
-### Model Selection for Multimodal
-
+<model-selection-for-multimodal>
 | Task | Recommended Model | Why |
 |------|------------------|-----|
 | Image understanding | GPT-4.1, Claude Sonnet, Gemini | Strong vision capabilities |
 | Image generation | DALL-E (via OpenAI) | Specialized for generation |
 | Document analysis (PDF) | Claude, GPT-4.1 | Handle complex layouts |
 | Audio transcription | Whisper (OpenAI) | Specialized for audio |
+</model-selection-for-multimodal>
 
-### Input Methods
-
+<input-methods>
 | Method | When to Use | Example |
 |--------|-------------|---------|
 | URL | Public images | `{ type: "image", url: "https://..." }` |
 | Base64 | Private/local images | `{ type: "image", data: "base64..." }` / `{ "type": "image", "base64": "..." }` |
 | File reference | Provider file APIs | `{ type: "image", fileId: "..." }` |
+</input-methods>
 
-## Code Examples
-
-### Basic Image Input (URL)
-
-#### Python
+<ex-image-url>
+<python>
+Send image URL to GPT-4.1 for analysis.
 
 ```python
 from langchain_openai import ChatOpenAI
@@ -52,8 +52,10 @@ message = HumanMessage(content_blocks=[
 response = model.invoke([message])
 print(response.content)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Send image URL to GPT-4.1 for analysis.
 
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
@@ -74,10 +76,12 @@ const message = new HumanMessage({
 const response = await model.invoke([message]);
 console.log(response.content);
 ```
+</typescript>
+</ex-image-url>
 
-### Base64 Image Input
-
-#### Python
+<ex-image-base64>
+<python>
+Load local image as base64 for GPT-4.1.
 
 ```python
 from langchain_openai import ChatOpenAI
@@ -101,8 +105,10 @@ message = HumanMessage(content_blocks=[
 
 response = model.invoke([message])
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Load local image as base64 for GPT-4.1.
 
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
@@ -128,10 +134,12 @@ const message = new HumanMessage({
 
 const response = await model.invoke([message]);
 ```
+</typescript>
+</ex-image-base64>
 
-### Multiple Images
-
-#### Python
+<ex-multiple-images>
+<python>
+Compare two images in one message.
 
 ```python
 message = HumanMessage(content_blocks=[
@@ -140,8 +148,10 @@ message = HumanMessage(content_blocks=[
     {"type": "image", "url": "https://example.com/image2.jpg"},
 ])
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Compare two images in one message.
 
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
@@ -159,10 +169,12 @@ const message = new HumanMessage({
 
 const response = await model.invoke([message]);
 ```
+</typescript>
+</ex-multiple-images>
 
-### PDF Document Analysis
-
-#### Python
+<ex-pdf-analysis>
+<python>
+Analyze PDF document with Claude.
 
 ```python
 from langchain_anthropic import ChatAnthropic
@@ -185,8 +197,10 @@ message = HumanMessage(content_blocks=[
 
 response = model.invoke([message])
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Analyze PDF document with Claude.
 
 ```typescript
 import { ChatAnthropic } from "@langchain/anthropic";
@@ -211,10 +225,12 @@ const message = new HumanMessage({
 
 const response = await model.invoke([message]);
 ```
+</typescript>
+</ex-pdf-analysis>
 
-### Audio Input (Emerging)
-
-#### TypeScript
+<ex-audio-input>
+<typescript>
+Send audio content for transcription.
 
 ```typescript
 // Example with hypothetical audio support
@@ -229,10 +245,12 @@ const message = new HumanMessage({
   ],
 });
 ```
+</typescript>
+</ex-audio-input>
 
-### Accessing Multimodal Output
-
-#### Python
+<ex-multimodal-output>
+<python>
+Handle text and image content blocks in response.
 
 ```python
 from langchain_openai import ChatOpenAI
@@ -249,8 +267,10 @@ for block in response.content_blocks:
         if "base64" in block:
             print(f"Image data: {block['base64'][:50]}...")
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Handle text and image content blocks in response.
 
 ```typescript
 import { ChatOpenAI } from "@langchain/openai";
@@ -269,10 +289,12 @@ for (const block of response.contentBlocks) {
   }
 }
 ```
+</typescript>
+</ex-multimodal-output>
 
-### Vision with Claude
-
-#### Python
+<ex-vision-claude>
+<python>
+Extract data from chart image with Claude.
 
 ```python
 from langchain_anthropic import ChatAnthropic
@@ -287,8 +309,10 @@ message = HumanMessage(content_blocks=[
 
 response = model.invoke([message])
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Extract data from chart image with Claude.
 
 ```typescript
 import { ChatAnthropic } from "@langchain/anthropic";
@@ -313,10 +337,12 @@ const message = new HumanMessage({
 
 const response = await model.invoke([message]);
 ```
+</typescript>
+</ex-vision-claude>
 
-### Vision with Gemini
-
-#### Python
+<ex-vision-gemini>
+<python>
+Identify objects in image with Gemini.
 
 ```python
 from langchain_google_genai import ChatGoogleGenerativeAI
@@ -331,8 +357,10 @@ message = HumanMessage(content_blocks=[
 
 response = model.invoke([message])
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Identify objects in image with Gemini.
 
 ```typescript
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
@@ -351,100 +379,108 @@ const message = new HumanMessage({
 
 const response = await model.invoke([message]);
 ```
+</typescript>
+</ex-vision-gemini>
 
-## Boundaries
-
-### What You CAN Do
-
+<boundaries>
+What You CAN Do:
 - **Image URLs**: Public images via HTTPS
 - **Base64 images**: Local or private images
 - **Multiple images**: Compare, analyze together
 - **PDF documents**: Text extraction, analysis
 - **Cross-provider format**: Standard content blocks
 
-### What You CANNOT Do (Yet)
-
+What You CANNOT Do (Yet):
 - **Image generation in all models**: Limited to specific models
 - **Video understanding**: Emerging, limited support
 - **Audio in all models**: Model-specific
 - **Modify images**: Models analyze, don't edit
+</boundaries>
 
-## Gotchas
-
-### 1. Model Doesn't Support Multimodal
-
-#### Python
+<fix-model-support>
+<python>
+Switch from text-only to vision-capable model.
 
 ```python
-# ❌ Problem: Using text-only model
+# Problem: Using text-only model
 model = ChatOpenAI(model="gpt-3.5-turbo")
 model.invoke([image_message])  # Error!
 
-# ✅ Solution: Use vision-capable model
+# Solution: Use vision-capable model
 model = ChatOpenAI(model="gpt-4.1")
 ```
-
-#### TypeScript
+</python>
+<typescript>
+Switch from text-only to vision-capable model.
 
 ```typescript
-// ❌ Problem: Using text-only model
+// Problem: Using text-only model
 const model = new ChatOpenAI({ model: "gpt-3.5-turbo" });
 await model.invoke([imageMessage]);  // Error!
 
-// ✅ Solution: Use vision-capable model
+// Solution: Use vision-capable model
 const model = new ChatOpenAI({ model: "gpt-4.1" });
 ```
+</typescript>
+</fix-model-support>
 
-### 2. Wrong Content Block Format (TypeScript)
+<fix-content-block-format>
+<typescript>
+Use standard contentBlocks instead of old format.
 
 ```typescript
-// ❌ Problem: Old format
+// Problem: Old format
 const message = new HumanMessage({
   content: [
     { type: "image_url", image_url: { url: "..." } }  // OpenAI-specific
   ]
 });
 
-// ✅ Solution: Use standard content blocks
+// Solution: Use standard content blocks
 const message = new HumanMessage({
   contentBlocks: [
     { type: "image", url: "..." }  // Cross-provider
   ]
 });
 ```
+</typescript>
+</fix-content-block-format>
 
-### 3. Missing MIME Type for Base64
-
-#### Python
+<fix-mime-type>
+<python>
+Always include mime_type with base64 data.
 
 ```python
-# ❌ Problem: No MIME type
+# Problem: No MIME type
 {"type": "image", "base64": base64_data}  # May fail
 
-# ✅ Solution: Always include MIME type
+# Solution: Always include MIME type
 {"type": "image", "base64": base64_data, "mime_type": "image/jpeg"}
 ```
-
-#### TypeScript
+</python>
+<typescript>
+Always include mimeType with base64 data.
 
 ```typescript
-// ❌ Problem: No MIME type
+// Problem: No MIME type
 { type: "image", data: base64Data }  // May fail
 
-// ✅ Solution: Always include MIME type
+// Solution: Always include MIME type
 { type: "image", data: base64Data, mimeType: "image/jpeg" }
 ```
+</typescript>
+</fix-mime-type>
 
-### 4. Image Too Large
-
-#### Python
+<fix-image-size>
+<python>
+Resize large images with PIL before sending.
 
 ```python
-# ❌ Problem: Image exceeds size limit
+# Problem: Image exceeds size limit
 with open("./10mb_image.jpg", "rb") as f:
     huge_image = f.read()  # Too large
 
-# ✅ Solution: Resize images first
+# Solution: Resize images first
 from PIL import Image
 import io
 
@@ -454,15 +490,16 @@ buffer = io.BytesIO()
 img.save(buffer, format="JPEG", quality=80)
 resized_data = base64.b64encode(buffer.getvalue()).decode()
 ```
-
-#### TypeScript
+</python>
+<typescript>
+Resize large images with sharp before sending.
 
 ```typescript
-// ❌ Problem: Image exceeds size limit
+// Problem: Image exceeds size limit
 const hugeImage = fs.readFileSync("./10mb_image.jpg");
 // Model may reject
 
-// ✅ Solution: Resize or compress images first
+// Solution: Resize or compress images first
 import sharp from "sharp";
 
 const resized = await sharp("./10mb_image.jpg")
@@ -470,15 +507,17 @@ const resized = await sharp("./10mb_image.jpg")
   .jpeg({ quality: 80 })
   .toBuffer();
 ```
+</typescript>
+</fix-image-size>
 
-## Links to Documentation
-
-### Python
+<documentation-links>
+Python:
 - [Multimodal Guide](https://docs.langchain.com/oss/python/langchain/models)
 - [Messages & Content Blocks](https://docs.langchain.com/oss/python/langchain/messages)
 
-### TypeScript
+TypeScript:
 - [Multimodal Guide](https://docs.langchain.com/oss/javascript/langchain/models)
 - [Messages & Content Blocks](https://docs.langchain.com/oss/javascript/langchain/messages)
 - [OpenAI Vision](https://docs.langchain.com/oss/javascript/integrations/chat/openai)
 - [Anthropic Vision](https://docs.langchain.com/oss/javascript/integrations/chat/anthropic)
+</documentation-links>

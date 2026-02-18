@@ -3,8 +3,7 @@ name: Deep Agents Filesystem
 description: [Deep Agents] Using FilesystemMiddleware with virtual filesystems, backends (State, Store, Filesystem, Composite), and context management for Deep Agents.
 ---
 
-## Overview
-
+<overview>
 FilesystemMiddleware solves context engineering challenges by providing file operations through a pluggable backend system. It allows agents to offload large context to filesystem storage, preventing context window overflow.
 
 **Built-in Filesystem Tools:**
@@ -14,23 +13,24 @@ FilesystemMiddleware solves context engineering challenges by providing file ope
 - `edit_file` - Edit existing files with exact string replacement
 - `glob` - Find files matching patterns
 - `grep` - Search for text across files
+</overview>
 
-## When to Use Filesystem Middleware
-
+<when-to-use>
 | Use Filesystem Tools When | Alternative Approach |
 |--------------------------|---------------------|
 | Tool results are variable-length (web_search, RAG) | Keep in message history (if small) |
 | Working with large documents or code | Use specialized tools |
 | Need persistent storage across turns | Use short-term message history |
 | Multiple files need coordination | Single-turn operations |
+</when-to-use>
 
-## Backend Types
-
+<backend-types>
 ### StateBackend (Default)
 
 Ephemeral storage in agent state - persists within a thread only.
 
-#### Python
+<python>
+Create agent with default backend:
 
 ```python
 from deepagents import create_deep_agent
@@ -43,8 +43,10 @@ result = agent.invoke({
 })
 # File exists only within this thread
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Create agent with default backend:
 
 ```typescript
 import { createDeepAgent } from "deepagents";
@@ -52,12 +54,14 @@ import { createDeepAgent } from "deepagents";
 const agent = await createDeepAgent({});
 // Default StateBackend - files exist only within thread
 ```
+</typescript>
 
 ### FilesystemBackend (Local Disk)
 
 Direct access to local filesystem.
 
-#### Python
+<python>
+Configure FilesystemBackend for local disk:
 
 ```python
 from deepagents import create_deep_agent
@@ -75,8 +79,10 @@ result = agent.invoke({
     "messages": [{"role": "user", "content": "Read the README.md file"}]
 })
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Configure FilesystemBackend for local disk:
 
 ```typescript
 import { createDeepAgent, FilesystemBackend } from "deepagents";
@@ -88,6 +94,7 @@ const agent = await createDeepAgent({
   })
 });
 ```
+</typescript>
 
 **Security Considerations:**
 - Use `virtual_mode=True` (Python) / `virtualMode: true` (TypeScript) to prevent `..`, `~`, and absolute path access
@@ -99,7 +106,8 @@ const agent = await createDeepAgent({
 
 Storage that persists across threads using LangGraph's Store.
 
-#### Python
+<python>
+Configure StoreBackend for cross-thread persistence:
 
 ```python
 from deepagents import create_deep_agent
@@ -115,8 +123,10 @@ agent = create_deep_agent(
 
 # Files persist across different thread_ids
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Configure StoreBackend for cross-thread persistence:
 
 ```typescript
 import { createDeepAgent, StoreBackend } from "deepagents";
@@ -129,12 +139,14 @@ const agent = await createDeepAgent({
   store
 });
 ```
+</typescript>
 
 ### CompositeBackend (Hybrid Storage)
 
 Route different paths to different backends.
 
-#### Python
+<python>
+Route paths to different backends:
 
 ```python
 from deepagents import create_deep_agent
@@ -158,8 +170,10 @@ agent = create_deep_agent(
 # /draft.txt -> ephemeral (StateBackend)
 # /memories/user-prefs.txt -> persistent (StoreBackend)
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Route paths to different backends:
 
 ```typescript
 import { createDeepAgent, CompositeBackend, StateBackend, StoreBackend } from "deepagents";
@@ -175,9 +189,10 @@ const agent = await createDeepAgent({
   store
 });
 ```
+</typescript>
+</backend-types>
 
-## Decision Table: Which Backend to Use
-
+<decision-table>
 | Use Case | Backend | Why |
 |----------|---------|-----|
 | Temporary working files | StateBackend | Default, no setup needed |
@@ -185,12 +200,11 @@ const agent = await createDeepAgent({
 | Cross-session memory | StoreBackend | Persists across threads |
 | Hybrid storage | CompositeBackend | Mix ephemeral + persistent |
 | Production web app | StateBackend or Sandbox | Never use FilesystemBackend |
+</decision-table>
 
-## Code Examples
-
-### Example 1: Managing Large Context
-
-#### Python
+<ex-large-context>
+<python>
+Offload search results to filesystem:
 
 ```python
 from deepagents import create_deep_agent
@@ -211,8 +225,10 @@ result = agent.invoke({
 # 3. Continue with compact context
 # 4. Later: read_file("/search-results.txt") when needed
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Offload search results to filesystem:
 
 ```typescript
 const agent = await createDeepAgent({});
@@ -225,10 +241,12 @@ const result = await agent.invoke({
 });
 // Agent: search -> write_file -> compact context -> read_file when needed
 ```
+</typescript>
+</ex-large-context>
 
-### Example 2: Custom Tool Descriptions
-
-#### Python
+<ex-custom-tools>
+<python>
+Customize filesystem tool descriptions:
 
 ```python
 from langchain.agents import create_agent
@@ -248,8 +266,10 @@ agent = create_agent(
     ],
 )
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Customize filesystem tool descriptions:
 
 ```typescript
 import { createAgent, createFilesystemMiddleware } from "langchain";
@@ -267,10 +287,12 @@ const agent = createAgent({
   ],
 });
 ```
+</typescript>
+</ex-custom-tools>
 
-### Example 3: Long-term Memory with CompositeBackend
-
-#### Python
+<ex-long-term-memory>
+<python>
+Access saved preferences across threads:
 
 ```python
 from deepagents import create_deep_agent
@@ -300,8 +322,10 @@ agent.invoke({
 }, config=config2)
 # Agent reads /memories/prefs.txt and provides concise explanation
 ```
+</python>
 
-#### TypeScript
+<typescript>
+Access saved preferences across threads:
 
 ```typescript
 import { createDeepAgent, CompositeBackend, StateBackend, StoreBackend } from "deepagents";
@@ -327,8 +351,12 @@ await agent.invoke({
   messages: [{ role: "user", content: "Read my preferences and explain async/await" }]
 }, { configurable: { thread_id: "thread-2" } });
 ```
+</typescript>
+</ex-long-term-memory>
 
-### Example 4: FilesystemBackend for Local Development (Python)
+<ex-local-dev>
+<python>
+Read actual project files with HITL safety:
 
 ```python
 from deepagents import create_deep_agent
@@ -347,11 +375,11 @@ result = agent.invoke({
     "messages": [{"role": "user", "content": "Analyze the code in src/main.py"}]
 })
 ```
+</python>
+</ex-local-dev>
 
-## Boundaries
-
-### What Agents CAN Configure
-
+<boundaries>
+**What Agents CAN Configure:**
 - Backend type and configuration
 - Custom tool descriptions
 - File paths and organization
@@ -359,19 +387,17 @@ result = agent.invoke({
 - Root directory for FilesystemBackend
 - Routing rules for CompositeBackend
 
-### What Agents CANNOT Configure
-
+**What Agents CANNOT Configure:**
 - Tool names (ls, read_file, write_file, edit_file, glob, grep)
 - The fundamental file operation protocol
 - Disable filesystem tools in create_deep_agent
 - Access files outside virtual_mode restrictions
 - Cross-thread file access without proper backend setup
+</boundaries>
 
-## Gotchas
-
-### 1. StateBackend Files Don't Persist Across Threads
-
-#### Python
+<fix-statebackend-thread-persistence>
+<python>
+Files are lost when thread changes:
 
 ```python
 # Files lost when thread changes
@@ -384,8 +410,9 @@ agent.invoke({"messages": [{"role": "user", "content": "Read /notes.txt"}]}, con
 
 # Use same thread_id OR use StoreBackend for persistence
 ```
-
-#### TypeScript
+</python>
+<typescript>
+Files are lost when thread changes:
 
 ```typescript
 // Files lost when thread changes
@@ -397,10 +424,12 @@ await agent.invoke({messages: [{role: "user", content: "Read /notes.txt"}]},
 
 // Use same thread_id OR StoreBackend
 ```
+</typescript>
+</fix-statebackend-thread-persistence>
 
-### 2. FilesystemBackend Needs virtual_mode for Security
-
-#### Python
+<fix-filesystembackend-virtual-mode>
+<python>
+Enable virtual_mode to restrict paths:
 
 ```python
 # Insecure - agent can access anywhere
@@ -409,8 +438,9 @@ backend = FilesystemBackend(root_dir="/project", virtual_mode=False)
 # Secure - agent restricted to /project
 backend = FilesystemBackend(root_dir="/project", virtual_mode=True)
 ```
-
-#### TypeScript
+</python>
+<typescript>
+Enable virtualMode to restrict paths:
 
 ```typescript
 // Insecure
@@ -419,10 +449,12 @@ new FilesystemBackend({ rootDir: "/project", virtualMode: false })
 // Secure
 new FilesystemBackend({ rootDir: "/project", virtualMode: true })
 ```
+</typescript>
+</fix-filesystembackend-virtual-mode>
 
-### 3. StoreBackend Requires a Store Instance
-
-#### Python
+<fix-storebackend-requires-store>
+<python>
+Provide store when using StoreBackend:
 
 ```python
 # Missing store
@@ -438,8 +470,9 @@ agent = create_deep_agent(
     store=InMemoryStore()
 )
 ```
-
-#### TypeScript
+</python>
+<typescript>
+Provide store when using StoreBackend:
 
 ```typescript
 // Missing store
@@ -451,8 +484,12 @@ await createDeepAgent({
   store: new InMemoryStore()
 });
 ```
+</typescript>
+</fix-storebackend-requires-store>
 
-### 4. edit_file Requires Exact String Match (Python)
+<fix-edit-file-exact-match>
+<python>
+Match whitespace exactly from file:
 
 ```python
 # The edit_file tool needs exact string matching
@@ -465,15 +502,17 @@ new_string = "def hello():\n    print('hi')"  # Different indentation
 old_string = "  print('hi')"  # Exact match from file
 new_string = "    print('hi')"  # New content
 ```
+</python>
+</fix-edit-file-exact-match>
 
-## Links to Documentation
-
-### Python
+<links>
+**Python:**
 - [Filesystem Middleware](https://docs.langchain.com/oss/python/langchain/middleware/built-in#filesystem-middleware)
 - [Backends Guide](https://docs.langchain.com/oss/python/deepagents/backends)
 - [Long-term Memory](https://docs.langchain.com/oss/python/deepagents/long-term-memory)
 
-### TypeScript
+**TypeScript:**
 - [Filesystem Middleware](https://docs.langchain.com/oss/javascript/langchain/middleware/built-in#filesystem-middleware)
 - [Backends Guide](https://docs.langchain.com/oss/javascript/deepagents/backends)
 - [Long-term Memory](https://docs.langchain.com/oss/javascript/deepagents/long-term-memory)
+</links>

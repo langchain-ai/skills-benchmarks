@@ -3,19 +3,19 @@ name: LangChain Text Splitters Integration
 description: "[LangChain] Guide to using text splitter integrations in LangChain including recursive, character, and semantic splitters"
 ---
 
-## Overview
+<oneliner>
+Text splitters divide large documents into smaller chunks that fit within model context windows and enable effective retrieval for RAG systems.
+</oneliner>
 
-Text splitters divide large documents into smaller chunks that fit within model context windows and enable effective retrieval. Proper chunking is critical for RAG system performance - chunks must be small enough for retrieval but large enough to preserve context.
-
-### Key Concepts
-
+<overview>
+Key Concepts:
 - **Chunk Size**: Target size for each text chunk (in characters or tokens)
 - **Chunk Overlap**: Number of characters/tokens to overlap between chunks (preserves context)
 - **Separators**: Characters used to split text (newlines, periods, spaces)
 - **Metadata**: Preserved and enriched during splitting (including start_index)
+</overview>
 
-## Splitter Selection Decision Table
-
+<splitter-selection>
 | Splitter | Best For | Package (Python / TypeScript) | Key Features |
 |----------|----------|-------------------------------|--------------|
 | **RecursiveCharacterTextSplitter** | General purpose | `langchain-text-splitters` / `@langchain/textsplitters` | Hierarchical splitting, preserves structure |
@@ -24,9 +24,9 @@ Text splitters divide large documents into smaller chunks that fit within model 
 | **MarkdownHeaderTextSplitter** | Markdown documents | `langchain-text-splitters` / `@langchain/textsplitters` | Preserves headers and structure |
 | **SemanticChunker** | Semantic boundaries | `langchain-experimental` | AI-driven splitting (Python) |
 | **RecursiveJsonSplitter** | JSON data | `langchain-text-splitters` / `@langchain/textsplitters` | Splits JSON while preserving structure |
+</splitter-selection>
 
-### When to Choose Each Splitter
-
+<when-to-choose-splitter>
 **Choose RecursiveCharacterTextSplitter if:**
 - You're working with general text (default choice)
 - You want to preserve natural text structure
@@ -43,12 +43,11 @@ Text splitters divide large documents into smaller chunks that fit within model 
 **Choose SemanticChunker if:**
 - You want AI to determine boundaries
 - Quality over speed
+</when-to-choose-splitter>
 
-## Code Examples
-
-### RecursiveCharacterTextSplitter (Recommended)
-
-#### Python
+<ex-recursive>
+<python>
+Recursive splitter with overlap:
 
 ```python
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -83,7 +82,10 @@ split_docs = splitter.split_documents(docs)
 print(split_docs[0].metadata)
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+Recursive splitter with metadata:
 
 ```typescript
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
@@ -116,7 +118,12 @@ const splitDocs = await splitter.splitDocuments(docs);
 // Metadata is preserved and enriched with loc.lines
 ```
 
-### How RecursiveCharacterTextSplitter Works (TypeScript)
+</typescript>
+</ex-recursive>
+
+<ex-recursive-how-ts>
+<typescript>
+Custom separator hierarchy:
 
 ```typescript
 // Tries to split on these separators in order:
@@ -133,10 +140,12 @@ const splitter = new RecursiveCharacterTextSplitter({
 
 // This preserves natural text structure better than simple splitting
 ```
+</typescript>
+</ex-recursive-how-ts>
 
-### CharacterTextSplitter
-
-#### Python
+<ex-character>
+<python>
+Single separator splitting:
 
 ```python
 from langchain_text_splitters import CharacterTextSplitter
@@ -151,7 +160,10 @@ splitter = CharacterTextSplitter(
 chunks = splitter.split_text(text)
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+Split by paragraph breaks:
 
 ```typescript
 import { CharacterTextSplitter } from "@langchain/textsplitters";
@@ -166,9 +178,12 @@ const splitter = new CharacterTextSplitter({
 const chunks = await splitter.splitText(text);
 ```
 
-### TokenTextSplitter (Token-Aware)
+</typescript>
+</ex-character>
 
-#### Python
+<ex-token>
+<python>
+Token-based splitting:
 
 ```python
 from langchain_text_splitters import TokenTextSplitter
@@ -185,7 +200,10 @@ chunks = splitter.split_text(text)
 # More accurate than character counting
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+Precise token counting:
 
 ```typescript
 import { TokenTextSplitter } from "@langchain/textsplitters";
@@ -203,9 +221,12 @@ const chunks = await splitter.splitText(text);
 // 1 token ~ 4 characters for English text, but varies
 ```
 
-### Markdown Splitter
+</typescript>
+</ex-token>
 
-#### Python
+<ex-markdown>
+<python>
+Split by header hierarchy:
 
 ```python
 from langchain_text_splitters import MarkdownHeaderTextSplitter
@@ -239,7 +260,10 @@ for doc in splits:
     print(doc.page_content)
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+Markdown structure-aware splitting:
 
 ```typescript
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
@@ -264,9 +288,12 @@ const chunks = await splitter.splitText(markdown);
 // Tries to keep headers with their content
 ```
 
-### Code Splitter
+</typescript>
+</ex-markdown>
 
-#### Python
+<ex-code>
+<python>
+Language-aware code splitting:
 
 ```python
 from langchain_text_splitters import RecursiveCharacterTextSplitter, Language
@@ -297,7 +324,10 @@ js_splitter = RecursiveCharacterTextSplitter.from_language(
 )
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+Code splitters by language:
 
 ```typescript
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
@@ -316,7 +346,12 @@ const pythonSplitter = RecursiveCharacterTextSplitter.fromLanguage("python", {
 // Uses language-specific separators (functions, classes, etc.)
 ```
 
-### Semantic Chunker (Python - Experimental)
+</typescript>
+</ex-code>
+
+<ex-semantic-py>
+<python>
+AI-driven semantic chunking:
 
 ```python
 from langchain_experimental.text_splitter import SemanticChunker
@@ -331,8 +366,12 @@ splitter = SemanticChunker(
 chunks = splitter.split_text(text)
 # Splits at semantic boundaries, not fixed sizes
 ```
+</python>
+</ex-semantic-py>
 
-### Custom Length Function (Python)
+<ex-custom-length-py>
+<python>
+Custom tiktoken length function:
 
 ```python
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -349,8 +388,12 @@ splitter = RecursiveCharacterTextSplitter(
     length_function=tiktoken_len,
 )
 ```
+</python>
+</ex-custom-length-py>
 
-### Custom Separators (TypeScript)
+<ex-custom-separators-ts>
+<typescript>
+Custom separator precedence:
 
 ```typescript
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
@@ -369,10 +412,12 @@ const splitter = new RecursiveCharacterTextSplitter({
   ],
 });
 ```
+</typescript>
+</ex-custom-separators-ts>
 
-### Splitting Large PDFs
-
-#### Python
+<ex-pdf>
+<python>
+Load and split PDF pages:
 
 ```python
 from langchain_community.document_loaders import PyPDFLoader
@@ -398,7 +443,10 @@ for chunk in chunks:
     print(chunk.metadata)
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+Split PDF with metadata:
 
 ```typescript
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
@@ -424,9 +472,12 @@ splitDocs.forEach(chunk => {
 });
 ```
 
-### Splitting with Vector Store Integration
+</typescript>
+</ex-pdf>
 
-#### Python
+<ex-vectorstore>
+<python>
+Complete RAG ingestion pipeline:
 
 ```python
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -454,7 +505,10 @@ vectorstore = FAISS.from_documents(
 results = vectorstore.similarity_search("query", k=4)
 ```
 
-#### TypeScript
+</python>
+
+<typescript>
+Split and index for RAG:
 
 ```typescript
 import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
@@ -482,47 +536,47 @@ const vectorStore = await MemoryVectorStore.fromDocuments(
 const results = await vectorStore.similaritySearch("query", 4);
 ```
 
-## Boundaries
+</typescript>
+</ex-vectorstore>
 
-### What Agents CAN Do
-
+<boundaries>
+What You CAN Do:
 - **Split text intelligently** - Use recursive splitting to preserve structure, configure chunk size and overlap, choose appropriate separators
 - **Handle various formats** - Plain text, markdown, code, documents with metadata, JSON and structured data
 - **Optimize for use case** - Balance chunk size vs context, adjust overlap for continuity, use token-based splitting for models
 - **Integrate with pipelines** - Combine with loaders and vector stores, preserve metadata through splitting
 
-### What Agents CANNOT Do
-
+What You CANNOT Do:
 - **Guarantee semantic boundaries** - Splitters use heuristics, not perfect semantic understanding; may split mid-sentence in edge cases
 - **Perfectly estimate tokens** - Character-based splitters approximate tokens; use TokenTextSplitter for exact counts
 - **Split without losing some context** - Even with overlap, some context may be lost; trade-off between chunk size and context
+</boundaries>
 
-## Gotchas
-
-### 1. Chunk Size vs Token Limits
-
-#### Python
+<fix-chunk-size-vs-tokens>
+<python>
+BAD: Character vs token mismatch:
 
 ```python
-# ❌ Character count != token count
+# Character count != token count
 splitter = RecursiveCharacterTextSplitter(chunk_size=4000)
 # May exceed 4096 token limit!
 
-# ✅ Use token-aware splitter
+# Use token-aware splitter
 from langchain_text_splitters import TokenTextSplitter
 splitter = TokenTextSplitter(chunk_size=4000)
 ```
-
-#### TypeScript
+</python>
+<typescript>
+GOOD: Use TokenTextSplitter:
 
 ```typescript
-// ❌ Character count != token count
+// Character count != token count
 const splitter = new RecursiveCharacterTextSplitter({
   chunkSize: 4000,  // Characters
 });
 // GPT-3.5 has 4096 token limit, this may exceed it!
 
-// ✅ Use TokenTextSplitter for precise token counts
+// Use TokenTextSplitter for precise token counts
 import { TokenTextSplitter } from "@langchain/textsplitters";
 
 const splitter = new TokenTextSplitter({
@@ -530,97 +584,103 @@ const splitter = new TokenTextSplitter({
   encodingName: "cl100k_base",
 });
 ```
+</typescript>
+</fix-chunk-size-vs-tokens>
 
-**Fix**: Use TokenTextSplitter when token precision matters.
-
-### 2. Import from Correct Package (Python)
+<fix-import-package-python>
+<python>
+Updated import path:
 
 ```python
-# ❌ OLD
+# OLD
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 
-# ✅ NEW
+# NEW
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 ```
+</python>
+</fix-import-package-python>
 
-**Fix**: Use `langchain-text-splitters` package.
-
-### 3. Too Small Chunks Lose Context (TypeScript)
+<fix-small-chunks-typescript>
+<typescript>
+BAD vs GOOD chunk sizes:
 
 ```typescript
-// ❌ Chunks too small
+// Chunks too small
 const splitter = new RecursiveCharacterTextSplitter({
   chunkSize: 100,    // Very small
   chunkOverlap: 0,   // No overlap
 });
 // Chunks lack sufficient context for good retrieval
 
-// ✅ Reasonable chunk size with overlap
+// Reasonable chunk size with overlap
 const splitter = new RecursiveCharacterTextSplitter({
   chunkSize: 1000,   // Good size
   chunkOverlap: 200, // 20% overlap
 });
 ```
+</typescript>
+</fix-small-chunks-typescript>
 
-**Fix**: Use 500-2000 characters with 10-20% overlap for most cases.
-
-### 4. Zero Overlap Breaks Continuity
-
-#### Python
+<fix-zero-overlap>
+<python>
+BAD vs GOOD overlap config:
 
 ```python
-# ❌ No overlap
+# No overlap
 splitter = RecursiveCharacterTextSplitter(
     chunk_size=1000,
     chunk_overlap=0,  # Context lost at boundaries
 )
 
-# ✅ Use overlap
+# Use overlap
 splitter = RecursiveCharacterTextSplitter(
     chunk_size=1000,
     chunk_overlap=200,  # 20% overlap
 )
 ```
-
-#### TypeScript
+</python>
+<typescript>
+Add overlap for context:
 
 ```typescript
-// ❌ No overlap
+// No overlap
 const splitter = new RecursiveCharacterTextSplitter({
   chunkSize: 1000,
   chunkOverlap: 0,  // Information at boundaries may be lost
 });
 
-// ✅ Use overlap to preserve context
+// Use overlap to preserve context
 const splitter = new RecursiveCharacterTextSplitter({
   chunkSize: 1000,
   chunkOverlap: 200,  // 20% overlap is good default
 });
 ```
+</typescript>
+</fix-zero-overlap>
 
-**Fix**: Always use overlap (typically 10-20% of chunk size).
-
-### 5. Metadata Not Preserved
-
-#### Python
+<fix-metadata-not-preserved>
+<python>
+Preserve metadata with split_documents:
 
 ```python
-# ❌ split_text loses metadata
+# split_text loses metadata
 chunks = splitter.split_text(text)
 
-# ✅ Use split_documents
+# Use split_documents
 docs = [Document(page_content=text, metadata={"source": "file"})]
 chunks = splitter.split_documents(docs)
 ```
-
-#### TypeScript
+</python>
+<typescript>
+Use splitDocuments for metadata:
 
 ```typescript
-// ❌ Using splitText loses metadata
+// Using splitText loses metadata
 const chunks = await splitter.splitText(documentText);
 // No metadata!
 
-// ✅ Use splitDocuments to preserve metadata
+// Use splitDocuments to preserve metadata
 const docs = [new Document({
   pageContent: documentText,
   metadata: { source: "file.pdf" }
@@ -628,21 +688,21 @@ const docs = [new Document({
 const chunks = await splitter.splitDocuments(docs);
 // Metadata preserved!
 ```
+</typescript>
+</fix-metadata-not-preserved>
 
-**Fix**: Use `split_documents()`/`splitDocuments()` instead of `split_text()`/`splitText()` to keep metadata.
-
-## Links to Documentation
-
-### Python
+<links>
+Python:
 - [LangChain Python Text Splitters](https://python.langchain.com/docs/integrations/text_splitters/)
 
-### TypeScript
+TypeScript:
 - [LangChain JS Text Splitters](https://js.langchain.com/docs/integrations/text_splitters/)
 - [RecursiveCharacterTextSplitter](https://js.langchain.com/docs/modules/data_connection/document_transformers/)
+</links>
 
-### Package Installation
+<installation>
+Python:
 
-**Python:**
 ```bash
 pip install langchain-text-splitters
 
@@ -650,7 +710,9 @@ pip install langchain-text-splitters
 pip install langchain-experimental
 ```
 
-**TypeScript:**
+TypeScript:
+
 ```bash
 npm install @langchain/textsplitters
 ```
+</installation>

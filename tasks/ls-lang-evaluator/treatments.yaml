@@ -1,20 +1,12 @@
-# Treatment configurations for benchmark experiments
+# Treatment configurations for ls-evaluator task
 #
-# Treatments define skill configurations that can be combined with any task.
-# Skills are loaded from skills/benchmarks/ with specified variants.
+# Tests whether separate skill names (langsmith-evaluator-py, langsmith-evaluator-ts)
+# help Claude create evaluators in the correct language for each agent type.
 #
-# Skill loading options:
-#   variant: py | ts | all   - Which language variant to load
-#   suffix: true | false     - Add language suffix to skill name (e.g., -py, -ts)
-#   name: custom-name        - Override the skill name (default: directory name)
-#   filter_related: true     - Remove <related_skills> sections (default: true)
-
-# =============================================================================
-# LANGSMITH POLYGLOT TREATMENTS (for ls-evaluator, ls-tracing tasks)
-# =============================================================================
+# Original: tests/benchmarks/ls_languages/test_evaluators.py
 
 SEPARATE_NAMES:
-  description: "Language-specific skill names (skill-py/ts for each)"
+  description: "Language-specific skill names (evaluator-py/ts, trace-py/ts, dataset-py/ts + noise)"
   claude_md: |
     # Project Guidelines
 
@@ -26,7 +18,6 @@ SEPARATE_NAMES:
     - **Match schemas exactly**: Code should access the exact field names present in the data, not assumed names
     - **Use skill scripts**: Reference the scripts in skills for working patterns
   skills:
-    # Each skill type loaded twice with language-specific names
     - skill: langsmith_trace
       variant: py
       name: langsmith-trace-py
@@ -56,7 +47,7 @@ SEPARATE_NAMES:
       noise: true
 
 UNIFIED_BOTH:
-  description: "Unified skills with all language variants"
+  description: "Unified skills (evaluator/trace/dataset with all variants)"
   claude_md: |
     # Project Guidelines
 
@@ -68,12 +59,12 @@ UNIFIED_BOTH:
     - **Match schemas exactly**: Code should access the exact field names present in the data, not assumed names
     - **Use skill scripts**: Reference the scripts in skills for working patterns
   skills:
-    - skill: langsmith_trace
-      variant: all
-      name: langsmith-trace
     - skill: langsmith_evaluator
       variant: all
       name: langsmith-evaluator
+    - skill: langsmith_trace
+      variant: all
+      name: langsmith-trace
     - skill: langsmith_dataset
       variant: all
       name: langsmith-dataset
@@ -91,12 +82,12 @@ UNIFIED_WITH_NOISE:
     - **Match schemas exactly**: Code should access the exact field names present in the data, not assumed names
     - **Use skill scripts**: Reference the scripts in skills for working patterns
   skills:
-    - skill: langsmith_trace
-      variant: all
-      name: langsmith-trace
     - skill: langsmith_evaluator
       variant: all
       name: langsmith-evaluator
+    - skill: langsmith_trace
+      variant: all
+      name: langsmith-trace
     - skill: langsmith_dataset
       variant: all
       name: langsmith-dataset
@@ -117,15 +108,9 @@ UNIFIED_PY_ONLY:
     - **Match schemas exactly**: Code should access the exact field names present in the data, not assumed names
     - **Use skill scripts**: Reference the scripts in skills for working patterns
   skills:
-    - skill: langsmith_trace
-      variant: py
-      name: langsmith-trace
     - skill: langsmith_evaluator
       variant: py
       name: langsmith-evaluator
-    - skill: langsmith_dataset
-      variant: py
-      name: langsmith-dataset
 
 UNIFIED_TS_ONLY:
   description: "Single skill with only TypeScript content"
@@ -140,61 +125,10 @@ UNIFIED_TS_ONLY:
     - **Match schemas exactly**: Code should access the exact field names present in the data, not assumed names
     - **Use skill scripts**: Reference the scripts in skills for working patterns
   skills:
-    - skill: langsmith_trace
-      variant: ts
-      name: langsmith-trace
     - skill: langsmith_evaluator
       variant: ts
       name: langsmith-evaluator
-    - skill: langsmith_dataset
-      variant: ts
-      name: langsmith-dataset
 
 CONTROL:
   description: "No skills (baseline - Claude's native knowledge)"
-  skills: []
-
-# =============================================================================
-# MULTISKILL TREATMENTS (for ls-multiskill-basic, ls-multiskill-advanced tasks)
-# =============================================================================
-
-MULTISKILL_ALL_SKILLS:
-  description: "All three LangSmith skills with cross-references"
-  claude_md: |
-    # CRITICAL
-
-    This project has skills with reference implementations. Before writing code, you must check the available skills and use relevant ones.
-  skills:
-    - skill: langsmith_trace
-      variant: py
-      name: langsmith-trace
-      include_related: true
-    - skill: langsmith_dataset
-      variant: py
-      name: langsmith-dataset
-      include_related: true
-    - skill: langsmith_evaluator
-      variant: py
-      name: langsmith-evaluator
-      include_related: true
-
-MULTISKILL_SKILLS_ONLY:
-  description: "Skills without CLAUDE.md workflow rules"
-  skills:
-    - skill: langsmith_trace
-      variant: py
-      name: langsmith-trace
-    - skill: langsmith_dataset
-      variant: py
-      name: langsmith-dataset
-    - skill: langsmith_evaluator
-      variant: py
-      name: langsmith-evaluator
-
-MULTISKILL_CLAUDEMD_ONLY:
-  description: "CLAUDE.md workflow rules without skills"
-  claude_md: |
-    # CRITICAL
-
-    This project has skills with reference implementations. Before writing code, you must check the available skills and use relevant ones.
   skills: []

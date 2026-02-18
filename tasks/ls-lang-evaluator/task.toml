@@ -1,5 +1,5 @@
 [metadata]
-name = "ls-evaluator"
+name = "ls-lang-evaluator"
 description = "Create LangSmith evaluators for Python and TypeScript agents"
 difficulty = "medium"
 category = "langsmith"

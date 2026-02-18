@@ -1,0 +1,200 @@
+# Treatment configurations for benchmark experiments
+#
+# Treatments define skill configurations that can be combined with any task.
+# Skills are loaded from skills/benchmarks/ with specified variants.
+#
+# Skill loading options:
+#   variant: py | ts | all   - Which language variant to load
+#   suffix: true | false     - Add language suffix to skill name (e.g., -py, -ts)
+#   name: custom-name        - Override the skill name (default: directory name)
+#   filter_related: true     - Remove <related_skills> sections (default: true)
+
+# =============================================================================
+# LANGSMITH POLYGLOT TREATMENTS (for ls-evaluator, ls-tracing tasks)
+# =============================================================================
+
+SEPARATE_NAMES:
+  description: "Language-specific skill names (skill-py/ts for each)"
+  claude_md: |
+    # Project Guidelines
+
+    Before starting any coding task, check available project skills to find the best approach.
+
+    ## General Principles
+
+    - **Understand before building**: Query and inspect existing data structures before writing code that processes them
+    - **Match schemas exactly**: Code should access the exact field names present in the data, not assumed names
+    - **Use skill scripts**: Reference the scripts in skills for working patterns
+  skills:
+    # Each skill type loaded twice with language-specific names
+    - skill: langsmith_trace
+      variant: py
+      name: langsmith-trace-py
+      suffix: true
+    - skill: langsmith_trace
+      variant: ts
+      name: langsmith-trace-ts
+      suffix: true
+    - skill: langsmith_evaluator
+      variant: py
+      name: langsmith-evaluator-py
+      suffix: true
+    - skill: langsmith_evaluator
+      variant: ts
+      name: langsmith-evaluator-ts
+      suffix: true
+    - skill: langsmith_dataset
+      variant: py
+      name: langsmith-dataset-py
+      suffix: true
+    - skill: langsmith_dataset
+      variant: ts
+      name: langsmith-dataset-ts
+      suffix: true
+    - skill: langchain_basic
+      name: langchain-basic
+      noise: true
+
+UNIFIED_BOTH:
+  description: "Unified skills with all language variants"
+  claude_md: |
+    # Project Guidelines
+
+    Before starting any coding task, check available project skills to find the best approach.
+
+    ## General Principles
+
+    - **Understand before building**: Query and inspect existing data structures before writing code that processes them
+    - **Match schemas exactly**: Code should access the exact field names present in the data, not assumed names
+    - **Use skill scripts**: Reference the scripts in skills for working patterns
+  skills:
+    - skill: langsmith_trace
+      variant: all
+      name: langsmith-trace
+    - skill: langsmith_evaluator
+      variant: all
+      name: langsmith-evaluator
+    - skill: langsmith_dataset
+      variant: all
+      name: langsmith-dataset
+
+UNIFIED_WITH_NOISE:
+  description: "Unified skills + distractor noise skill"
+  claude_md: |
+    # Project Guidelines
+
+    Before starting any coding task, check available project skills to find the best approach.
+
+    ## General Principles
+
+    - **Understand before building**: Query and inspect existing data structures before writing code that processes them
+    - **Match schemas exactly**: Code should access the exact field names present in the data, not assumed names
+    - **Use skill scripts**: Reference the scripts in skills for working patterns
+  skills:
+    - skill: langsmith_trace
+      variant: all
+      name: langsmith-trace
+    - skill: langsmith_evaluator
+      variant: all
+      name: langsmith-evaluator
+    - skill: langsmith_dataset
+      variant: all
+      name: langsmith-dataset
+    - skill: langchain_basic
+      name: langchain-basic
+      noise: true
+
+UNIFIED_PY_ONLY:
+  description: "Single skill with only Python content"
+  claude_md: |
+    # Project Guidelines
+
+    Before starting any coding task, check available project skills to find the best approach.
+
+    ## General Principles
+
+    - **Understand before building**: Query and inspect existing data structures before writing code that processes them
+    - **Match schemas exactly**: Code should access the exact field names present in the data, not assumed names
+    - **Use skill scripts**: Reference the scripts in skills for working patterns
+  skills:
+    - skill: langsmith_trace
+      variant: py
+      name: langsmith-trace
+    - skill: langsmith_evaluator
+      variant: py
+      name: langsmith-evaluator
+    - skill: langsmith_dataset
+      variant: py
+      name: langsmith-dataset
+
+UNIFIED_TS_ONLY:
+  description: "Single skill with only TypeScript content"
+  claude_md: |
+    # Project Guidelines
+
+    Before starting any coding task, check available project skills to find the best approach.
+
+    ## General Principles
+
+    - **Understand before building**: Query and inspect existing data structures before writing code that processes them
+    - **Match schemas exactly**: Code should access the exact field names present in the data, not assumed names
+    - **Use skill scripts**: Reference the scripts in skills for working patterns
+  skills:
+    - skill: langsmith_trace
+      variant: ts
+      name: langsmith-trace
+    - skill: langsmith_evaluator
+      variant: ts
+      name: langsmith-evaluator
+    - skill: langsmith_dataset
+      variant: ts
+      name: langsmith-dataset
+
+CONTROL:
+  description: "No skills (baseline - Claude's native knowledge)"
+  skills: []
+
+# =============================================================================
+# MULTISKILL TREATMENTS (for ls-multiskill-basic, ls-multiskill-advanced tasks)
+# =============================================================================
+
+MULTISKILL_ALL_SKILLS:
+  description: "All three LangSmith skills with cross-references"
+  claude_md: |
+    # CRITICAL
+
+    This project has skills with reference implementations. Before writing code, you must check the available skills and use relevant ones.
+  skills:
+    - skill: langsmith_trace
+      variant: py
+      name: langsmith-trace
+      include_related: true
+    - skill: langsmith_dataset
+      variant: py
+      name: langsmith-dataset
+      include_related: true
+    - skill: langsmith_evaluator
+      variant: py
+      name: langsmith-evaluator
+      include_related: true
+
+MULTISKILL_SKILLS_ONLY:
+  description: "Skills without CLAUDE.md workflow rules"
+  skills:
+    - skill: langsmith_trace
+      variant: py
+      name: langsmith-trace
+    - skill: langsmith_dataset
+      variant: py
+      name: langsmith-dataset
+    - skill: langsmith_evaluator
+      variant: py
+      name: langsmith-evaluator
+
+MULTISKILL_CLAUDEMD_ONLY:
+  description: "CLAUDE.md workflow rules without skills"
+  claude_md: |
+    # CRITICAL
+
+    This project has skills with reference implementations. Before writing code, you must check the available skills and use relevant ones.
+  skills: []

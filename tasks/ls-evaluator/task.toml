@@ -1,0 +1,17 @@
+[metadata]
+name = "ls-evaluator"
+description = "Create LangSmith evaluators for Python and TypeScript agents"
+difficulty = "medium"
+category = "langsmith"
+tags = ["evaluator", "polyglot", "python", "typescript"]
+
+[template]
+# Variables substituted into instruction.md at runtime
+required = ["py_dataset", "ts_dataset", "run_id"]
+
+[environment]
+dockerfile = "Dockerfile"
+timeout_sec = 900
+
+[validation]
+validators = ["LanguageValidator", "SyntaxValidator", "DatasetValidator", "UploadValidator"]

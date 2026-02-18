@@ -3,12 +3,16 @@
 Structure:
 - scaffold/shell/   - Language-agnostic shell scripts (source of truth)
 - scaffold/python/  - Python wrappers and pytest utilities
+- scaffold/tasks.py - Task loader for self-contained benchmark tasks
 
 Usage:
     from scaffold import Treatment, NoiseTask, Validator
     from scaffold.python import ExperimentLogger, parse_output, extract_events
-    from tests.noise import get_task, get_tasks
+    from scaffold.tasks import load_task, list_tasks
 """
+
+# Re-export task utilities
+from .tasks import Task, TaskConfig, list_tasks, load_task
 
 # Re-export from scaffold.python for convenience
 from .python import (
@@ -41,6 +45,11 @@ from .python import (
 )
 
 __all__ = [
+    # Tasks
+    "Task",
+    "TaskConfig",
+    "load_task",
+    "list_tasks",
     # Schema
     "NoiseTask",
     "Treatment",

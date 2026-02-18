@@ -1,0 +1,16 @@
+[metadata]
+name = "ls-multiskill-advanced"
+description = "Create trajectory dataset and evaluator from LangSmith traces"
+difficulty = "hard"
+category = "langsmith"
+tags = ["multiskill", "trace", "dataset", "evaluator"]
+
+[template]
+required = ["run_id"]
+
+[environment]
+dockerfile = "Dockerfile"
+timeout_sec = 900
+
+[validation]
+validators = ["SkillInvokedValidator", "DatasetUploadValidator", "DatasetStructureValidator", "EvaluatorUploadValidator", "EvaluatorStructureValidator"]

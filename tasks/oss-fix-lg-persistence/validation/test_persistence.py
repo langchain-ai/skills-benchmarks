@@ -4,6 +4,7 @@ The broken code has multiple issues:
 1. No checkpointer - state not saved between invocations
 2. No thread_id usage - conversations not isolated
 3. Missing reducer on messages list - messages get overwritten, not accumulated
+4. Node returns entire state instead of partial update dict
 
 These tests verify the code actually works, not just that it contains patterns.
 """
@@ -112,7 +113,39 @@ def run_tests(agent_module_path: str) -> dict:
     except Exception as e:
         results["failed"].append(f"messages_accumulate_with_reducer: {e}")
 
-    # Test 4: Functional - bot remembers name across turns
+    # Test 4: No message duplication (nodes must return partial updates, not entire state)
+    try:
+        graph = agent.graph
+        config = {"configurable": {"thread_id": "test-no-duplication"}}
+
+        # Single invoke with one message
+        result = graph.invoke({
+            "messages": ["Hello there"],
+            "context": {},
+            "current_step": "start"
+        }, config)
+
+        messages = result.get("messages", [])
+        # Should have exactly 2: input + response
+        # If a node returns entire state with reducer, input gets duplicated -> 3+ messages
+        input_count = sum(1 for m in messages if m == "Hello there")
+
+        if input_count == 1 and len(messages) == 2:
+            results["passed"].append("no_message_duplication")
+        elif input_count > 1:
+            results["failed"].append(
+                f"no_message_duplication: input message duplicated {input_count} times - "
+                f"node is returning entire state instead of partial update dict"
+            )
+        else:
+            results["failed"].append(
+                f"no_message_duplication: unexpected message count {len(messages)}, "
+                f"messages: {messages}"
+            )
+    except Exception as e:
+        results["failed"].append(f"no_message_duplication: {e}")
+
+    # Test 5: Functional - bot remembers name across turns
     try:
         graph = agent.graph
         config = {"configurable": {"thread_id": "test-name-memory"}}
@@ -144,7 +177,7 @@ def run_tests(agent_module_path: str) -> dict:
     except Exception as e:
         results["failed"].append(f"remembers_user_name: {e}")
 
-    # Test 5: Thread isolation - different users have separate state
+    # Test 6: Thread isolation - different users have separate state
     try:
         graph = agent.graph
         config_a = {"configurable": {"thread_id": "user-alice"}}

@@ -25,7 +25,7 @@ def lookup_order(order_id: str) -> str:
     return f"Order {order_id}: Shipped, arriving in 2 days"
 
 
-def extract_context(state: State) -> dict:
+def extract_context(state: State) -> State:
     """Extract user context from messages."""
     messages = state.get("messages", [])
     context = state.get("context", {})
@@ -37,7 +37,10 @@ def extract_context(state: State) -> dict:
                 name = lower_msg.split("my name is")[-1].strip().split()[0]
                 context["name"] = name.title()
 
-    return {"context": context, "current_step": "extracted"}
+    # Update state and return it
+    state["context"] = context
+    state["current_step"] = "extracted"
+    return state
 
 
 def generate_response(state: State) -> dict:

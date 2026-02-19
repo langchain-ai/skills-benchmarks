@@ -4,6 +4,7 @@ Fixes applied:
 1. Added checkpointer to compile() for persistence
 2. Uses thread_id when invoking for conversation isolation
 3. Added Annotated[list, operator.add] reducer for messages
+4. Nodes return partial update dicts, not entire state (prevents duplication)
 """
 
 from langgraph.checkpoint.memory import InMemorySaver
@@ -29,7 +30,11 @@ def lookup_order(order_id: str) -> str:
 
 
 def extract_context(state: State) -> dict:
-    """Extract user context from messages."""
+    """Extract user context from messages.
+
+    FIX: Returns partial update dict, not entire state.
+    Returning the entire state would cause message duplication with the reducer.
+    """
     messages = state.get("messages", [])
     context = state.get("context", {})
 
@@ -40,6 +45,7 @@ def extract_context(state: State) -> dict:
                 name = lower_msg.split("my name is")[-1].strip().split()[0]
                 context["name"] = name.title()
 
+    # Return only the fields that changed - NOT the entire state
     return {"context": context, "current_step": "extracted"}
 
 

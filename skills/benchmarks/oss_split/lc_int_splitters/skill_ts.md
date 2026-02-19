@@ -1,6 +1,6 @@
 ---
 name: LangChain Text Splitters Integration (TypeScript)
-description: [LangChain] Guide to using text splitter integrations in LangChain including recursive, character, and semantic splitters
+description: "[LangChain] Guide to using text splitter integrations in LangChain including recursive, character, and semantic splitters"
 ---
 
 <overview>

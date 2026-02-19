@@ -1,6 +1,6 @@
 ---
 name: Deep Agents Filesystem (Python)
-description: [Deep Agents] Using FilesystemMiddleware with virtual filesystems, backends (State, Store, Filesystem, Composite), and context management for Deep Agents.
+description: "[Deep Agents] Using FilesystemMiddleware with virtual filesystems, backends (State, Store, Filesystem, Composite), and context management for Deep Agents."
 ---
 
 <overview>

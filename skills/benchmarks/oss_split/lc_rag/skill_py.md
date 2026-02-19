@@ -1,6 +1,6 @@
 ---
 name: LangChain RAG (Python)
-description: [LangChain] Build Retrieval Augmented Generation (RAG) systems with LangChain - includes embeddings, vector stores, retrievers, document loaders, and text splitting
+description: "[LangChain] Build Retrieval Augmented Generation (RAG) systems with LangChain - includes embeddings, vector stores, retrievers, document loaders, and text splitting"
 ---
 
 <overview>

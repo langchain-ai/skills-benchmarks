@@ -1,6 +1,6 @@
 ---
 name: LangChain Chat Models Integration (Python)
-description: [LangChain] Guide to using chat model integrations in LangChain including OpenAI, Anthropic, Google, Azure, and Bedrock
+description: "[LangChain] Guide to using chat model integrations in LangChain including OpenAI, Anthropic, Google, Azure, and Bedrock"
 ---
 
 <overview>

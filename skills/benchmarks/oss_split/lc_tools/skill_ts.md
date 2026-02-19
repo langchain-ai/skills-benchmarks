@@ -1,6 +1,6 @@
 ---
 name: LangChain Tools (TypeScript)
-description: [LangChain] Define and use tools in LangChain - includes @tool decorator, custom tools, built-in tools, and tool schemas
+description: "[LangChain] Define and use tools in LangChain - includes @tool decorator, custom tools, built-in tools, and tool schemas"
 ---
 
 <overview>

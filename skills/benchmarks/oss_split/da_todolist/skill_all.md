@@ -1,6 +1,6 @@
 ---
 name: Deep Agents Todo List
-description: [Deep Agents] Using TodoListMiddleware for task planning and tracking progress with the write_todos tool in Deep Agents for complex multi-step workflows.
+description: "[Deep Agents] Using TodoListMiddleware for task planning and tracking progress with the write_todos tool in Deep Agents for complex multi-step workflows."
 ---
 
 <overview>

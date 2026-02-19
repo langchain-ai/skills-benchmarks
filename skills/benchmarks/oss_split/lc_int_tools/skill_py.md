@@ -1,6 +1,6 @@
 ---
 name: LangChain Tools Integration (Python)
-description: [LangChain] Guide to using tool integrations in LangChain including pre-built toolkits, Tavily, Wikipedia, and custom tools
+description: "[LangChain] Guide to using tool integrations in LangChain including pre-built toolkits, Tavily, Wikipedia, and custom tools"
 ---
 
 <overview>

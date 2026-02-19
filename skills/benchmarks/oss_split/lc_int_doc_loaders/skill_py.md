@@ -1,6 +1,6 @@
 ---
 name: LangChain Document Loaders Integration (Python)
-description: [LangChain] Guide to using document loader integrations in LangChain for PDFs, web pages, text files, and APIs
+description: "[LangChain] Guide to using document loader integrations in LangChain for PDFs, web pages, text files, and APIs"
 ---
 
 <overview>

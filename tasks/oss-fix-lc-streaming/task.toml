@@ -1,0 +1,16 @@
+[metadata]
+name = "oss-fix-lc-streaming"
+description = "Fix multiple layered bugs in a chat application"
+difficulty = "medium"
+category = "langchain"
+tags = ["streaming", "tools", "async", "bug-fix"]
+
+[template]
+required = []
+
+[environment]
+timeout_sec = 600
+
+[validation]
+# Pattern-based validation checking for fixes from lc_streaming + lc_tools
+validators = ["StreamingPatternValidator", "ToolPatternValidator"]

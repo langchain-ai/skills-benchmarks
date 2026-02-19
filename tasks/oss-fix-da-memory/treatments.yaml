@@ -1,0 +1,173 @@
+# Treatment configurations for oss-fix-da-memory task
+#
+# Tests whether Claude can find and apply patterns from multiple skills.
+# The bugs require knowledge from: da_memory + da_subagents
+#
+# Memory bugs: CompositeBackend longest-prefix routing, path selection
+# Subagent bugs: skill inheritance asymmetry, interrupt_on needs checkpointer
+
+TARGETED:
+  description: "Both relevant skills (memory + subagents)"
+  claude_md: |
+    # Project Guidelines
+    Check available skills before coding.
+  skills:
+    - skill: oss_split/da_memory
+      variant: all
+      name: Deep Agents Memory
+    - skill: oss_split/da_subagents
+      variant: all
+      name: Deep Agents Subagents
+
+PARTIAL_MEMORY:
+  description: "Only memory skill (missing subagents knowledge)"
+  claude_md: |
+    # Project Guidelines
+    Check available skills before coding.
+  skills:
+    - skill: oss_split/da_memory
+      variant: all
+      name: Deep Agents Memory
+
+PARTIAL_SUBAGENTS:
+  description: "Only subagents skill (missing memory knowledge)"
+  claude_md: |
+    # Project Guidelines
+    Check available skills before coding.
+  skills:
+    - skill: oss_split/da_subagents
+      variant: all
+      name: Deep Agents Subagents
+
+ALL_DA:
+  description: "All DeepAgents skills"
+  claude_md: |
+    # Project Guidelines
+    Check available skills before coding.
+  skills:
+    - skill: oss_split/da_overview
+      variant: all
+      name: Deep Agents Overview
+    - skill: oss_split/da_memory
+      variant: all
+      name: Deep Agents Memory
+    - skill: oss_split/da_skills
+      variant: all
+      name: Deep Agents Skills
+    - skill: oss_split/da_subagents
+      variant: all
+      name: Deep Agents Subagents
+    - skill: oss_split/da_todolist
+      variant: all
+      name: Deep Agents Todolist
+    - skill: oss_split/da_hitl
+      variant: all
+      name: Deep Agents Human-in-the-Loop
+    - skill: oss_split/da_filesystem
+      variant: all
+      name: Deep Agents Filesystem
+
+ALL_LG:
+  description: "All LangGraph skills (wrong domain)"
+  claude_md: |
+    # Project Guidelines
+    Check available skills before coding.
+  skills:
+    - skill: oss_split/lg_graph_api
+      variant: all
+      name: LangGraph Graph API
+    - skill: oss_split/lg_interrupts
+      variant: all
+      name: LangGraph Interrupts
+    - skill: oss_split/lg_memory
+      variant: all
+      name: LangGraph Memory
+    - skill: oss_split/lg_overview
+      variant: all
+      name: LangGraph Overview
+    - skill: oss_split/lg_persistence
+      variant: all
+      name: LangGraph Persistence
+    - skill: oss_split/lg_state
+      variant: all
+      name: LangGraph State
+    - skill: oss_split/lg_streaming
+      variant: all
+      name: LangGraph Streaming
+    - skill: oss_split/lg_workflows
+      variant: all
+      name: LangGraph Workflows
+
+MANY_MIXED:
+  description: "20 skills from all categories (LG + LC + DA)"
+  claude_md: |
+    # Project Guidelines
+    Check available skills before coding.
+  skills:
+    # LangGraph (all 8)
+    - skill: oss_split/lg_graph_api
+      variant: all
+      name: LangGraph Graph API
+    - skill: oss_split/lg_interrupts
+      variant: all
+      name: LangGraph Interrupts
+    - skill: oss_split/lg_memory
+      variant: all
+      name: LangGraph Memory
+    - skill: oss_split/lg_overview
+      variant: all
+      name: LangGraph Overview
+    - skill: oss_split/lg_persistence
+      variant: all
+      name: LangGraph Persistence
+    - skill: oss_split/lg_state
+      variant: all
+      name: LangGraph State
+    - skill: oss_split/lg_streaming
+      variant: all
+      name: LangGraph Streaming
+    - skill: oss_split/lg_workflows
+      variant: all
+      name: LangGraph Workflows
+    # LangChain (subset - 7)
+    - skill: oss_split/lc_agents
+      variant: all
+      name: LangChain Agents
+    - skill: oss_split/lc_rag
+      variant: all
+      name: LangChain RAG
+    - skill: oss_split/lc_streaming
+      variant: all
+      name: LangChain Streaming
+    - skill: oss_split/lc_tools
+      variant: all
+      name: LangChain Tools
+    - skill: oss_split/lc_models
+      variant: all
+      name: LangChain Models
+    - skill: oss_split/lc_structured_output
+      variant: all
+      name: LangChain Structured Output
+    - skill: oss_split/lc_tool_calling
+      variant: all
+      name: LangChain Tool Calling
+    # DeepAgents (subset - 5)
+    - skill: oss_split/da_overview
+      variant: all
+      name: Deep Agents Overview
+    - skill: oss_split/da_memory
+      variant: all
+      name: Deep Agents Memory
+    - skill: oss_split/da_skills
+      variant: all
+      name: Deep Agents Skills
+    - skill: oss_split/da_subagents
+      variant: all
+      name: Deep Agents Subagents
+    - skill: oss_split/da_todolist
+      variant: all
+      name: Deep Agents Todolist
+
+CONTROL:
+  description: "No skills - baseline using Claude's general knowledge"
+  skills: []

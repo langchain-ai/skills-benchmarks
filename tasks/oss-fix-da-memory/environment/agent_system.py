@@ -7,11 +7,10 @@ Issues reported by users:
 - "The deployment approval feature doesn't work - it deploys without asking"
 """
 
-from deepagents import create_deep_agent, CompiledSubAgent
+from deepagents import create_deep_agent
 from deepagents.backends import CompositeBackend, StateBackend, StoreBackend
-from langgraph.checkpoint.memory import MemorySaver
-from langgraph.store.memory import InMemoryStore
 from langchain.tools import tool
+from langgraph.store.memory import InMemoryStore
 
 
 @tool

@@ -9,8 +9,9 @@ Issues reported by users:
 """
 
 from datetime import datetime
-from langchain_openai import ChatOpenAI
+
 from langchain.tools import tool
+from langchain_openai import ChatOpenAI
 
 
 @tool
@@ -73,7 +74,7 @@ class ChatInterface:
                 stream_mode=["messages"],
             )
 
-        for mode, chunk in self._stream:
+        for _mode, chunk in self._stream:
             # Print each token
             if chunk.content:
                 print(chunk.content, end="")
@@ -84,11 +85,11 @@ class ChatInterface:
         """Show both tool progress and response tokens."""
         print(f"\nUser: {user_message}")
 
-        for mode, chunk in self.agent.stream(
+        for _mode, chunk in self.agent.stream(
             {"messages": [{"role": "user", "content": user_message}]},
             stream_mode=["updates", "messages"],
         ):
-            # Show progress for tools, content for responses
+            # Show progress for tools, content for responses (bug: not checking mode)
             if chunk.content:
                 print(f"Token: {chunk.content}")
             elif hasattr(chunk, "tool_calls"):
@@ -99,7 +100,7 @@ def simple_chat(agent, message: str) -> str:
     """Simple streaming chat that returns the response."""
     tokens = []
 
-    for mode, chunk in agent.stream(
+    for _mode, chunk in agent.stream(
         {"messages": [{"role": "user", "content": message}]},
         stream_mode=["messages"],
     ):
@@ -121,7 +122,7 @@ async def api_endpoint(agent, message: str) -> str:
     tokens = []
 
     # Use regular stream in async context
-    for mode, chunk in agent.stream(
+    for _mode, chunk in agent.stream(
         {"messages": [{"role": "user", "content": message}]},
         stream_mode=["messages"],
     ):

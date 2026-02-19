@@ -60,12 +60,9 @@ ALL_DA:
     - skill: oss_split/da_todolist
       variant: all
       name: Deep Agents Todolist
-    - skill: oss_split/da_harness
+    - skill: oss_split/da_hitl
       variant: all
-      name: Deep Agents Harness
-    - skill: oss_split/da_backend
-      variant: all
-      name: Deep Agents Backend
+      name: Deep Agents Human-in-the-Loop
     - skill: oss_split/da_filesystem
       variant: all
       name: Deep Agents Filesystem

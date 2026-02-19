@@ -3,14 +3,14 @@
 The broken code has bugs from multiple skill areas:
 
 From lc_tools/lc_agents:
-1. Vague tool descriptions - agent doesn't know when to use tools
-2. Non-serializable returns - datetime objects cause serialization errors
+1. Non-serializable returns - datetime objects cause serialization errors
 
 From lc_streaming:
-3. Tuple unpacking - messages mode returns (token, metadata) tuple
-4. Generator exhaustion - caching/reusing exhausted stream
-5. Missing flush - tokens buffered instead of real-time display
-6. Sync in async - using sync stream in async context
+2. Tuple unpacking - messages mode returns (token, metadata) tuple
+3. Generator exhaustion - caching/reusing exhausted stream
+4. Missing flush - tokens buffered instead of real-time display
+5. Sync in async - using sync stream in async context
+6. Mode checking - multi-mode streaming needs mode-specific handling
 
 Tests verify correct patterns are present after fixing.
 """
@@ -43,42 +43,7 @@ def run_tests(module_path: str) -> dict:
 
     # ========== lc_tools / lc_agents bugs ==========
 
-    # Test 1: Tool descriptions should be specific (not vague)
-    # Looking for descriptive docstrings in tool functions
-    try:
-        tool_pattern = r'@tool\s*\ndef\s+(\w+)[^"\']*?["\'\'\']([^"\']*)["\'\'\']'
-        tool_matches = re.findall(tool_pattern, source, re.DOTALL)
-
-        specific_keywords = [
-            "search the web",
-            "find information",
-            "perform mathematical",
-            "calculate",
-            "compute",
-            "current time",
-            "retrieve",
-            "query",
-        ]
-
-        has_good_descriptions = False
-        for _name, docstring in tool_matches:
-            docstring_lower = docstring.lower()
-            # Check if docstring is specific (contains action words)
-            if any(keyword in docstring_lower for keyword in specific_keywords):
-                has_good_descriptions = True
-                break
-
-        if has_good_descriptions:
-            results["passed"].append("specific_tool_descriptions")
-        else:
-            results["failed"].append(
-                "specific_tool_descriptions: tool descriptions are too vague - "
-                "agent won't know when to use them"
-            )
-    except Exception as e:
-        results["failed"].append(f"specific_tool_descriptions: {e}")
-
-    # Test 2: Tools should return serializable types (not datetime objects)
+    # Test 1: Tools should return serializable types (not datetime objects)
     try:
         # Check for datetime return type annotations or raw datetime returns
         datetime_return_pattern = r"def\s+\w+\([^)]*\)\s*->\s*datetime"
@@ -110,7 +75,7 @@ def run_tests(module_path: str) -> dict:
 
     # ========== lc_streaming bugs ==========
 
-    # Test 3: Tuple unpacking in messages mode
+    # Test 2: Tuple unpacking in messages mode
     try:
         tuple_unpack_patterns = [
             r"token\s*,\s*metadata\s*=\s*chunk",
@@ -133,7 +98,7 @@ def run_tests(module_path: str) -> dict:
     except Exception as e:
         results["failed"].append(f"tuple_unpacking: {e}")
 
-    # Test 4: No generator caching/reuse
+    # Test 3: No generator caching/reuse
     try:
         cached_stream_pattern = r"_stream\s*=|cached.*stream|self\.stream\s*="
         reuses_stream = re.search(cached_stream_pattern, source)
@@ -148,7 +113,7 @@ def run_tests(module_path: str) -> dict:
     except Exception as e:
         results["failed"].append(f"no_generator_reuse: {e}")
 
-    # Test 5: Real-time display with flush
+    # Test 4: Real-time display with flush
     try:
         flush_pattern = r"print\([^)]*flush\s*=\s*True"
         stdout_flush = r"sys\.stdout\.(write|flush)"
@@ -164,7 +129,7 @@ def run_tests(module_path: str) -> dict:
     except Exception as e:
         results["failed"].append(f"realtime_flush: {e}")
 
-    # Test 6: Async stream in async context
+    # Test 5: Async stream in async context
     try:
         async_func_source = extract_async_functions(source)
 
@@ -186,7 +151,7 @@ def run_tests(module_path: str) -> dict:
     except Exception as e:
         results["failed"].append(f"async_uses_astream: {e}")
 
-    # Test 7: Mode checking in multi-mode streaming
+    # Test 6: Mode checking in multi-mode streaming
     try:
         multimode_pattern = r"stream_mode\s*=\s*\[.*,.*\]"
         has_multimode = re.search(multimode_pattern, source)

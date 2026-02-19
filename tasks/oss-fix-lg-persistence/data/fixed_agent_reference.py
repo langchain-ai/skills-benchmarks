@@ -7,12 +7,13 @@ Fixes applied:
 4. Nodes return partial update dicts, not entire state (prevents duplication)
 """
 
-from langgraph.checkpoint.memory import InMemorySaver
-from langgraph.graph import StateGraph, START, END
-from typing_extensions import TypedDict
-from typing import Annotated
 import operator
+from typing import Annotated
+
 from langchain_core.tools import tool
+from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.graph import END, START, StateGraph
+from typing_extensions import TypedDict
 
 
 class State(TypedDict):

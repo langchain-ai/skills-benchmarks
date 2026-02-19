@@ -9,8 +9,8 @@ The broken code has multiple issues:
 These tests verify the code actually works, not just that it contains patterns.
 """
 
-import sys
 import json
+import sys
 
 
 def run_tests(agent_module_path: str) -> dict:

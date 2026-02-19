@@ -18,6 +18,7 @@ from typing_extensions import TypedDict
 
 class State(TypedDict):
     """Agent state for tracking conversations."""
+
     # FIX: Added reducer so messages accumulate instead of overwrite
     messages: Annotated[list, operator.add]
     context: dict
@@ -85,11 +86,7 @@ builder.add_node("respond", generate_response)
 
 builder.add_edge(START, "extract")
 builder.add_edge("extract", "respond")
-builder.add_conditional_edges(
-    "respond",
-    route_message,
-    {"respond": END}
-)
+builder.add_conditional_edges("respond", route_message, {"respond": END})
 
 # FIX: Add checkpointer at compile time
 checkpointer = InMemorySaver()
@@ -102,11 +99,9 @@ def chat(user_message: str, thread_id: str = "default") -> str:
     FIX: Added thread_id parameter for conversation isolation.
     """
     config = {"configurable": {"thread_id": thread_id}}
-    result = graph.invoke({
-        "messages": [user_message],
-        "context": {},
-        "current_step": "start"
-    }, config)
+    result = graph.invoke(
+        {"messages": [user_message], "context": {}, "current_step": "start"}, config
+    )
 
     responses = result.get("messages", [])
     return responses[-1] if responses else "Sorry, I couldn't process that."

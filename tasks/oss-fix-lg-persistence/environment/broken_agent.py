@@ -13,6 +13,7 @@ from typing_extensions import TypedDict
 
 class State(TypedDict):
     """Agent state for tracking conversations."""
+
     messages: list  # Conversation history
     context: dict  # User context (name, preferences, etc.)
     current_step: str
@@ -93,7 +94,7 @@ builder.add_edge("extract", "respond")
 builder.add_conditional_edges(
     "respond",
     route_message,
-    {"respond": END}  # Only one path, could be more flexible
+    {"respond": END},  # Only one path, could be more flexible
 )
 
 # Compile without persistence - every conversation is fresh
@@ -105,11 +106,7 @@ def chat(user_message: str) -> str:
 
     Note: Each call starts fresh - no memory of previous calls.
     """
-    result = graph.invoke({
-        "messages": [user_message],
-        "context": {},
-        "current_step": "start"
-    })
+    result = graph.invoke({"messages": [user_message], "context": {}, "current_step": "start"})
 
     responses = result.get("messages", [])
     return responses[-1] if responses else "Sorry, I couldn't process that."

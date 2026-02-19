@@ -55,19 +55,15 @@ def run_tests(agent_module_path: str) -> dict:
         config = {"configurable": {"thread_id": "test-persistence"}}
 
         # First invoke
-        result1 = graph.invoke({
-            "messages": ["Hello"],
-            "context": {},
-            "current_step": "start"
-        }, config)
+        result1 = graph.invoke(
+            {"messages": ["Hello"], "context": {}, "current_step": "start"}, config
+        )
         msgs_after_1 = len(result1.get("messages", []))
 
         # Second invoke - should accumulate
-        result2 = graph.invoke({
-            "messages": ["How are you?"],
-            "context": {},
-            "current_step": "start"
-        }, config)
+        result2 = graph.invoke(
+            {"messages": ["How are you?"], "context": {}, "current_step": "start"}, config
+        )
         msgs_after_2 = len(result2.get("messages", []))
 
         if msgs_after_2 > msgs_after_1:
@@ -80,9 +76,7 @@ def run_tests(agent_module_path: str) -> dict:
             )
     except ValueError as e:
         if "thread_id" in str(e).lower() or "configurable" in str(e).lower():
-            results["failed"].append(
-                f"state_persists_across_calls: {e}"
-            )
+            results["failed"].append(f"state_persists_across_calls: {e}")
         else:
             results["failed"].append(f"state_persists_across_calls: {e}")
     except Exception as e:
@@ -95,11 +89,9 @@ def run_tests(agent_module_path: str) -> dict:
 
         # Invoke with a message - should go through extract -> respond
         # and accumulate the response to the messages list
-        result = graph.invoke({
-            "messages": ["Test message"],
-            "context": {},
-            "current_step": "start"
-        }, config)
+        result = graph.invoke(
+            {"messages": ["Test message"], "context": {}, "current_step": "start"}, config
+        )
 
         messages = result.get("messages", [])
         # With proper reducer, should have: input message + response
@@ -119,11 +111,9 @@ def run_tests(agent_module_path: str) -> dict:
         config = {"configurable": {"thread_id": "test-no-duplication"}}
 
         # Single invoke with one message
-        result = graph.invoke({
-            "messages": ["Hello there"],
-            "context": {},
-            "current_step": "start"
-        }, config)
+        result = graph.invoke(
+            {"messages": ["Hello there"], "context": {}, "current_step": "start"}, config
+        )
 
         messages = result.get("messages", [])
         # Should have exactly 2: input + response
@@ -151,18 +141,14 @@ def run_tests(agent_module_path: str) -> dict:
         config = {"configurable": {"thread_id": "test-name-memory"}}
 
         # Introduce ourselves
-        graph.invoke({
-            "messages": ["Hi! My name is Alex"],
-            "context": {},
-            "current_step": "start"
-        }, config)
+        graph.invoke(
+            {"messages": ["Hi! My name is Alex"], "context": {}, "current_step": "start"}, config
+        )
 
         # Ask for name
-        result = graph.invoke({
-            "messages": ["What is my name?"],
-            "context": {},
-            "current_step": "start"
-        }, config)
+        result = graph.invoke(
+            {"messages": ["What is my name?"], "context": {}, "current_step": "start"}, config
+        )
 
         messages = result.get("messages", [])
         last_response = messages[-1].lower() if messages else ""
@@ -184,28 +170,20 @@ def run_tests(agent_module_path: str) -> dict:
         config_b = {"configurable": {"thread_id": "user-bob"}}
 
         # Alice's conversation
-        graph.invoke({
-            "messages": ["My name is Alice"],
-            "context": {},
-            "current_step": "start"
-        }, config_a)
-        graph.invoke({
-            "messages": ["More from Alice"],
-            "context": {},
-            "current_step": "start"
-        }, config_a)
-        result_a = graph.invoke({
-            "messages": ["Alice again"],
-            "context": {},
-            "current_step": "start"
-        }, config_a)
+        graph.invoke(
+            {"messages": ["My name is Alice"], "context": {}, "current_step": "start"}, config_a
+        )
+        graph.invoke(
+            {"messages": ["More from Alice"], "context": {}, "current_step": "start"}, config_a
+        )
+        result_a = graph.invoke(
+            {"messages": ["Alice again"], "context": {}, "current_step": "start"}, config_a
+        )
 
         # Bob's conversation (separate)
-        result_b = graph.invoke({
-            "messages": ["My name is Bob"],
-            "context": {},
-            "current_step": "start"
-        }, config_b)
+        result_b = graph.invoke(
+            {"messages": ["My name is Bob"], "context": {}, "current_step": "start"}, config_b
+        )
 
         alice_msgs = len(result_a.get("messages", []))
         bob_msgs = len(result_b.get("messages", []))
@@ -214,8 +192,7 @@ def run_tests(agent_module_path: str) -> dict:
             results["passed"].append("thread_isolation")
         else:
             results["failed"].append(
-                f"thread_isolation: threads not isolated "
-                f"(Alice: {alice_msgs}, Bob: {bob_msgs})"
+                f"thread_isolation: threads not isolated (Alice: {alice_msgs}, Bob: {bob_msgs})"
             )
     except Exception as e:
         results["failed"].append(f"thread_isolation: {e}")

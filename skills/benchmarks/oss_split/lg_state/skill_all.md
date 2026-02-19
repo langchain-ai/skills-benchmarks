@@ -14,12 +14,14 @@ State is the central data structure in LangGraph that persists throughout graph 
 </overview>
 
 <decision-table>
+
 | Need | Python Solution | TypeScript Solution | Use Case |
 |------|-----------------|---------------------|----------|
 | Overwrite value | No reducer (default) | Plain Zod schema | Simple fields like strings |
 | Append to list | `operator.add` | `ReducedValue` with concat | Message history, logs |
 | Custom logic | Custom reducer function | Custom reducer function | Complex merging, validation |
 | Messages | `Annotated[list, add_messages]` | `MessagesValue` | Chat applications |
+
 </decision-table>
 
 <key-concepts>
@@ -112,6 +114,7 @@ For advanced state control:
 | `BinaryOperatorAggregate` | Combines with reducer |
 | `Topic` | Collects all values |
 | `EphemeralValue` | Resets between supersteps |
+
 </key-concepts>
 
 <ex-basic>

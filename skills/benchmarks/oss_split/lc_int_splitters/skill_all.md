@@ -16,6 +16,7 @@ Key Concepts:
 </overview>
 
 <splitter-selection>
+
 | Splitter | Best For | Package (Python / TypeScript) | Key Features |
 |----------|----------|-------------------------------|--------------|
 | **RecursiveCharacterTextSplitter** | General purpose | `langchain-text-splitters` / `@langchain/textsplitters` | Hierarchical splitting, preserves structure |
@@ -24,6 +25,7 @@ Key Concepts:
 | **MarkdownHeaderTextSplitter** | Markdown documents | `langchain-text-splitters` / `@langchain/textsplitters` | Preserves headers and structure |
 | **SemanticChunker** | Semantic boundaries | `langchain-experimental` | AI-driven splitting (Python) |
 | **RecursiveJsonSplitter** | JSON data | `langchain-text-splitters` / `@langchain/textsplitters` | Splits JSON while preserving structure |
+
 </splitter-selection>
 
 <when-to-choose-splitter>

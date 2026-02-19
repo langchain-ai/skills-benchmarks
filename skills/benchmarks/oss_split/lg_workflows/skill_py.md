@@ -13,6 +13,7 @@ LangGraph supports both **workflows** (predetermined paths) and **agents** (dyna
 </overview>
 
 <workflow-vs-agent>
+
 | Characteristic | Workflow | Agent | Hybrid |
 |----------------|----------|-------|--------|
 | **Control Flow** | Fixed, predetermined | Dynamic, model-driven | Mixed |
@@ -20,6 +21,7 @@ LangGraph supports both **workflows** (predetermined paths) and **agents** (dyna
 | **Complexity** | Simple | Complex | Variable |
 | **Use Case** | Sequential tasks | Open-ended problems | Structured flexibility |
 | **Examples** | ETL, validation | Research, QA | Review approval |
+
 </workflow-vs-agent>
 
 <key-patterns>

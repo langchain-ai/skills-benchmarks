@@ -18,6 +18,7 @@ Key Concepts:
 </overview>
 
 <when-to-define-custom-tools>
+
 | Scenario | Create Custom Tool? | Why |
 |----------|---------------------|-----|
 | Domain-specific logic | Yes | Unique to your application |
@@ -25,15 +26,18 @@ Key Concepts:
 | Database queries | Yes | Your schema/data |
 | Common utilities (search, calc) | Maybe | Check for existing tools first |
 | File operations | Maybe | Built-in filesystem tools exist |
+
 </when-to-define-custom-tools>
 
 <tool-definition-methods>
+
 | Method | When to Use | Example |
 |--------|-------------|---------|
 | `@tool` / `tool()` | Simple functions | Basic transformations |
 | Schema-based | Complex parameters | Multiple typed fields |
 | `StructuredTool` | Full control | Custom error handling |
 | Built-in tools | Common operations | Search, code execution |
+
 </tool-definition-methods>
 
 <ex-basic-tool>

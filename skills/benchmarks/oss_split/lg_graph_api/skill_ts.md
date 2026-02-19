@@ -15,12 +15,14 @@ The LangGraph Graph API allows you to define agent workflows as directed graphs 
 </overview>
 
 <decision-table>
+
 | Need | Edge Type | When to Use |
 |------|-----------|-------------|
 | Always go to same node | `addEdge()` | Fixed, deterministic flow |
 | Route based on state | `addConditionalEdges()` | Dynamic branching logic |
 | Fan-out to multiple nodes | `Send` API | Map-reduce, parallel execution |
 | Update state AND route | `Command` | Combine logic in single node |
+
 </decision-table>
 
 <key-concepts>

@@ -13,11 +13,13 @@ Use **CompositeBackend** for hybrid storage: mix ephemeral and persistent files.
 </overview>
 
 <memory-types>
+
 | Type | Backend | Persistence | Use Case |
 |------|---------|------------|----------|
 | Short-term | StateBackend | Single thread | Temporary working files |
 | Long-term | StoreBackend | Across threads | User preferences, learned patterns |
 | Hybrid | CompositeBackend | Mix both | Some persistent, some temporary |
+
 </memory-types>
 
 <ex-composite-backend>
@@ -216,12 +218,14 @@ agent.invoke({
 </ex-store-in-tools>
 
 <storage-patterns>
+
 | Pattern | Backend Setup | Use Case |
 |---------|--------------|----------|
 | All ephemeral | StateBackend | Single-session tasks |
 | All persistent | StoreBackend | Everything remembered |
 | Hybrid | CompositeBackend | `/memories/` persistent, rest ephemeral |
 | Custom routing | CompositeBackend with multiple routes | Complex storage needs |
+
 </storage-patterns>
 
 <boundaries>

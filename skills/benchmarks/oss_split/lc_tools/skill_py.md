@@ -14,6 +14,7 @@ Tools are functions that agents can execute to perform actions like fetching dat
 </overview>
 
 <when-to-define-custom-tools>
+
 | Scenario | Create Custom Tool? | Why |
 |----------|---------------------|-----|
 | Domain-specific logic | Yes | Unique to your application |
@@ -21,15 +22,18 @@ Tools are functions that agents can execute to perform actions like fetching dat
 | Database queries | Yes | Your schema/data |
 | Common utilities (search, calc) | Partial Maybe | Check for existing tools first |
 | File operations | Partial Maybe | Built-in filesystem tools exist |
+
 </when-to-define-custom-tools>
 
 <tool-definition-methods>
+
 | Method | When to Use | Example |
 |--------|-------------|---------|
 | `@tool` decorator | Simple functions | Basic transformations |
 | `@tool` with Pydantic | Complex parameters | Multiple typed fields |
 | `StructuredTool` | Full control | Custom error handling |
 | Built-in tools | Common operations | Search, code execution |
+
 </tool-definition-methods>
 
 <ex-basic-tool-definition>

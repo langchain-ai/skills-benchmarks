@@ -14,6 +14,7 @@ Streaming allows you to surface real-time updates from LangChain agents and mode
 </overview>
 
 <when-to-use>
+
 | Scenario | Stream? | Why |
 |----------|---------|-----|
 | Long model responses | Yes | Show tokens as generated |
@@ -21,9 +22,11 @@ Streaming allows you to surface real-time updates from LangChain agents and mode
 | Long-running tools | Yes | Provide progress updates |
 | Simple quick requests | Partial Maybe | Overhead might not be worth it |
 | Backend batch processing | No | No user waiting for updates |
+
 </when-to-use>
 
 <stream-mode-selection>
+
 | Mode | Use When | Returns |
 |------|----------|---------|
 | `"values"` | Need full state after each step | Complete state object |
@@ -31,6 +34,7 @@ Streaming allows you to surface real-time updates from LangChain agents and mode
 | `"messages"` | Need LLM token stream | [token, metadata] tuples |
 | `"custom"` | Need custom progress signals | User-defined data |
 | Multiple modes | Need combined data | Array of modes |
+
 </stream-mode-selection>
 
 <ex-basic-model-token-streaming>

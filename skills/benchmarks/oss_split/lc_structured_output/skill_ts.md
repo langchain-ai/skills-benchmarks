@@ -14,6 +14,7 @@ Structured output transforms unstructured model responses into validated, typed 
 </overview>
 
 <when-to-use-structured-output>
+
 | Use Case | Use Structured Output? | Why |
 |----------|----------------------|-----|
 | Extract contact info, dates, etc. | Yes | Reliable data extraction |
@@ -22,14 +23,17 @@ Structured output transforms unstructured model responses into validated, typed 
 | Classification tasks | Yes | Enum validation |
 | Open-ended Q&A | No | Free-form text is fine |
 | Creative writing | No | Don't constrain creativity |
+
 </when-to-use-structured-output>
 
 <schema-options>
+
 | Schema Type | When to Use | Example |
 |-------------|-------------|---------|
 | Zod schema | TypeScript projects (recommended) | `z.object({...})` |
 | JSON Schema | Interoperability | `{ type: "object", properties: {...} }` |
 | Union types | Multiple possible formats | `z.union([schema1, schema2])` |
+
 </schema-options>
 
 <ex-basic-structured-output-with-agent>

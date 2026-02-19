@@ -10,11 +10,13 @@ Skills provide specialized capabilities through **progressive disclosure**: agen
 </overview>
 
 <skills-vs-memory>
+
 | Skills | Memory (AGENTS.md) |
 |--------|-------------------|
 | On-demand loading | Always loaded |
 | Task-specific | General preferences |
 | Large docs | Compact context |
+
 </skills-vs-memory>
 
 <ex-with-filesystembackend>

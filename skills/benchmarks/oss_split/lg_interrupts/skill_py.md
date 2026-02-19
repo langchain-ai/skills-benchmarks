@@ -12,11 +12,13 @@ Interrupts enable human-in-the-loop patterns by pausing graph execution for exte
 </overview>
 
 <interrupt-type-selection>
+
 | Type | When Set | Use Case |
 |------|----------|----------|
 | Dynamic (`interrupt()`) | Inside node code | Conditional pausing based on logic |
 | Static (`interrupt_before`) | At compile time | Debug/test before specific nodes |
 | Static (`interrupt_after`) | At compile time | Review output after specific nodes |
+
 </interrupt-type-selection>
 
 <ex-dynamic-interrupt>

@@ -10,10 +10,12 @@ LangGraph provides two types of memory for agents:
 </overview>
 
 <decision-table>
+
 | Type | Scope | Persistence | Use Case |
 |------|-------|-------------|----------|
 | Short-term | Single thread | Via checkpointer | Conversation history |
 | Long-term | Cross-thread | Via store | User preferences, facts |
+
 </decision-table>
 
 <ex-short-term-memory>

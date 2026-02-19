@@ -14,12 +14,14 @@ State is the central data structure in LangGraph that persists throughout graph 
 </overview>
 
 <decision-table>
+
 | Need | Solution | Use Case |
 |------|----------|----------|
 | Overwrite value | Plain Zod schema | Simple fields like strings |
 | Append to list | `ReducedValue` with concat | Logs, accumulating data |
 | Custom logic | Custom reducer function | Complex merging, validation |
 | Messages | `MessagesValue` | Chat applications |
+
 </decision-table>
 
 <ex-basic-state-management>

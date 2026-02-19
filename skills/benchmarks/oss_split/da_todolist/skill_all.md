@@ -14,12 +14,14 @@ Planning is integral to solving complex problems. The middleware enables agents 
 </overview>
 
 <when-to-use>
+
 | Use TodoList When | Skip TodoList When |
 |------------------|-------------------|
 | Complex multi-step tasks requiring coordination | Simple, single-action tasks |
 | Long-running operations where progress visibility matters | Quick operations (< 3 steps) |
 | Tasks that may need plan adaptation | Fixed, predetermined workflows |
 | Multiple tools need to be orchestrated | Single tool invocation |
+
 </when-to-use>
 
 <how-it-works>
@@ -128,12 +130,14 @@ const agent = createAgent({
 </basic-usage>
 
 <decision-table>
+
 | Task Type | Todo List Strategy | Example |
 |-----------|-------------------|---------|
 | Sequential steps | Create all todos upfront, complete in order | Build app: setup -> code -> test -> deploy |
 | Discovery-based | Add todos as you learn what's needed | Research: initial search -> follow-up -> synthesis |
 | Parallel work | Multiple "in_progress" items allowed | Data processing: extract + transform + load |
 | Iterative refinement | Update todo content as you refine approach | Debugging: reproduce -> isolate -> fix -> verify |
+
 </decision-table>
 
 <ex-sequential>

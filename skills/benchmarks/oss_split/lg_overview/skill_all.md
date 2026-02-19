@@ -34,6 +34,7 @@ Consider alternatives when you:
 </when-to-use>
 
 <decision-table>
+
 | Requirement | Use LangGraph | Use LangChain | Use Deep Agents |
 |------------|---------------|---------------|-----------------|
 | Quick prototyping | No | Yes | Yes |
@@ -43,6 +44,7 @@ Consider alternatives when you:
 | State persistence | Yes | No | Yes |
 | Production deployment | Yes | Use with LangGraph | Yes |
 | Learning curve | High | Low | Medium |
+
 </decision-table>
 
 <key-concepts>

@@ -14,12 +14,14 @@ SubAgentMiddleware enables agents to delegate work to specialized subagents via 
 </overview>
 
 <when-to-use>
+
 | Use Subagents When | Use Main Agent When |
 |-------------------|-------------------|
 | Task needs specialized tools | General-purpose tools sufficient |
 | Want to isolate complex multi-step work | Single-step operation |
 | Need clean context for main agent | Context bloat acceptable |
 | Task benefits from different model/prompt | Same config works |
+
 </when-to-use>
 
 <how-it-works>
@@ -150,12 +152,14 @@ const agent = await createDeepAgent({
 </defining-subagents>
 
 <decision-table>
+
 | Pattern | When to Use | Example |
 |---------|------------|---------|
 | Specialized tools | Task needs unique tools | code-reviewer with linting tools |
 | Different model | Cost/capability tradeoff | GPT-4 main, GPT-3.5 for simple subagents |
 | Context isolation | Keep main context clean | web-research dumps to files, returns summary |
 | Parallel work | Independent subtasks | analyze-data + generate-report simultaneously |
+
 </decision-table>
 
 <ex-research>

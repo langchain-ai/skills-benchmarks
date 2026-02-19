@@ -16,6 +16,7 @@ Key Concepts:
 </overview>
 
 <tool-selection>
+
 | Tool/Toolkit | Best For | Package (Python / TypeScript) | Key Features |
 |--------------|----------|-------------------------------|--------------|
 | **Tavily Search** | Web search | `langchain-community` / `@langchain/community` | AI-optimized search API |
@@ -25,6 +26,7 @@ Key Concepts:
 | **ArXiv** | Academic papers | `langchain-community` | Research paper search (Python) |
 | **Vector Store Tools** | Semantic search | Based on vector store | Query your data |
 | **Custom Tools** | Your specific needs | `langchain-core` / `@langchain/core/tools` | Define any function |
+
 </tool-selection>
 
 <when-to-choose-tool>

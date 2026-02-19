@@ -18,6 +18,7 @@ Key Concepts:
 </overview>
 
 <when-to-use-streaming>
+
 | Scenario | Stream? | Why |
 |----------|---------|-----|
 | Long model responses | Yes | Show tokens as generated |
@@ -25,9 +26,11 @@ Key Concepts:
 | Long-running tools | Yes | Provide progress updates |
 | Simple quick requests | Maybe | Overhead might not be worth it |
 | Backend batch processing | No | No user waiting for updates |
+
 </when-to-use-streaming>
 
 <stream-mode-selection>
+
 | Mode | Use When | Returns |
 |------|----------|---------|
 | `"values"` | Need full state after each step | Complete state dict/object |
@@ -35,6 +38,7 @@ Key Concepts:
 | `"messages"` | Need LLM token stream | (token, metadata) tuples / [token, metadata] arrays |
 | `"custom"` | Need custom progress signals | User-defined data |
 | Multiple modes | Need combined data | List/array of modes |
+
 </stream-mode-selection>
 
 <ex-token-streaming>

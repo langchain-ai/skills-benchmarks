@@ -15,14 +15,16 @@ Chat models in LangChain provide a unified interface for interacting with variou
 </overview>
 
 <provider-selection>
-| Provider | Best For | Model Examples | Package | Key Features |
-|----------|----------|----------------|---------|--------------|
-| **OpenAI** | General purpose, function calling | gpt-4, gpt-4-turbo, gpt-3.5-turbo | `@langchain/openai` | Strong function calling, vision, fast |
-| **Anthropic** | Long context, safety, analysis | claude-3-opus, claude-3-sonnet, claude-3-haiku | `@langchain/anthropic` | 200k context, tool use, prompt caching |
-| **Google GenAI** | Multimodal, free tier | gemini-pro, gemini-pro-vision | `@langchain/google-genai` | Vision, free tier available |
-| **Azure OpenAI** | Enterprise, compliance | gpt-4, gpt-35-turbo (Azure deployed) | `@langchain/openai` | Enterprise SLAs, data residency |
-| **AWS Bedrock** | AWS ecosystem, variety | claude, llama, titan models | `@langchain/aws` | Multiple models, AWS integration |
-| **Google Vertex AI** | GCP ecosystem, enterprise | gemini-pro, palm models | `@langchain/google-vertexai` | Enterprise features, GCP integration |
+
+| Provider | Best For | Models | Package | Key Features |
+|----------|----------|--------|---------|--------------|
+| **OpenAI** | General purpose | gpt-4, gpt-4-turbo | `@langchain/openai` | Function calling, vision |
+| **Anthropic** | Long context, safety | claude-3-opus, claude-3-sonnet | `@langchain/anthropic` | 200k context, tool use |
+| **Google GenAI** | Multimodal, free tier | gemini-pro | `@langchain/google-genai` | Vision, free tier |
+| **Azure OpenAI** | Enterprise | gpt-4 (Azure deployed) | `@langchain/openai` | Enterprise SLAs |
+| **AWS Bedrock** | AWS ecosystem | claude, llama, titan | `@langchain/aws` | Multiple models |
+| **Google Vertex AI** | GCP ecosystem | gemini-pro | `@langchain/google-vertexai` | Enterprise features |
+
 </provider-selection>
 
 <when-to-choose>

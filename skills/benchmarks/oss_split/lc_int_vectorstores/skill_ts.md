@@ -15,6 +15,7 @@ Key Concepts:
 </overview>
 
 <vector-store-selection>
+
 | Vector Store | Best For | Package | Persistence | Scalability | Key Features |
 |--------------|----------|---------|-------------|-------------|--------------|
 | **FAISS** | Local, high performance | `@langchain/community` | Disk | Medium | Fast, CPU/GPU support, local |
@@ -24,6 +25,7 @@ Key Concepts:
 | **Weaviate** | GraphQL, hybrid search | `@langchain/weaviate` | Cloud/Self-hosted | High | GraphQL, hybrid search, modular |
 | **Qdrant** | High performance, filtering | `@langchain/qdrant` | Cloud/Self-hosted | High | Fast, advanced filtering, Rust-based |
 | **Supabase** | PostgreSQL users | `@langchain/community` | Cloud/Self-hosted | High | PostgreSQL extension, familiar tooling |
+
 </vector-store-selection>
 
 <when-to-use>

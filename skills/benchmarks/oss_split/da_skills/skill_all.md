@@ -13,12 +13,14 @@ Skills are reusable agent capabilities that provide specialized workflows and do
 </overview>
 
 <skills-vs-memory>
+
 | Skills | Memory (AGENTS.md) |
 |--------|-------------------|
 | On-demand loading | Always loaded at startup |
 | Task-specific instructions | General preferences |
 | Large documentation | Compact context |
 | SKILL.md in directories | Single AGENTS.md file |
+
 </skills-vs-memory>
 
 <creating-skills>
@@ -252,6 +254,7 @@ await agent.invoke({
 </using-skills-statebackend>
 
 <decision-table>
+
 | Create a Skill When | Use Memory Instead |
 |--------------------|--------------------|
 | Instructions are task-specific | Context always relevant |
@@ -259,6 +262,7 @@ await agent.invoke({
 | Only needed occasionally | Needed every session |
 | Multiple supporting files | Single preference |
 | Domain-specific expertise | General preferences |
+
 </decision-table>
 
 <ex-api-docs>

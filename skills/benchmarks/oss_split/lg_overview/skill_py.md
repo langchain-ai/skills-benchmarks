@@ -30,6 +30,7 @@ When NOT to Use LangGraph:
 </when-to-use-langgraph>
 
 <choosing-the-right-tool>
+
 | Requirement | Use LangGraph | Use LangChain | Use Deep Agents |
 |------------|---------------|---------------|-----------------|
 | Quick prototyping | No | Yes | Yes |
@@ -39,6 +40,7 @@ When NOT to Use LangGraph:
 | State persistence | Yes | No | Yes |
 | Production deployment | Yes | Partial (use with LangGraph) | Yes |
 | Learning curve | High | Low | Medium |
+
 </choosing-the-right-tool>
 
 <key-concepts>

@@ -14,6 +14,7 @@ Key Concepts:
 </overview>
 
 <loader-selection>
+
 | Loader Type | Best For | Package | Key Features |
 |-------------|----------|---------|--------------|
 | **PDFLoader** | PDF files | `@langchain/community` | Extracts text and page numbers |
@@ -25,6 +26,7 @@ Key Concepts:
 | **DirectoryLoader** | Multiple files | `langchain/document_loaders/fs/directory` | Bulk loading from directories |
 | **GithubRepoLoader** | GitHub repos | `@langchain/community` | Clone and load repo files |
 | **NotionLoader** | Notion pages | `@langchain/community` | Notion workspace data |
+
 </loader-selection>
 
 <when-to-use>

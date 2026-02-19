@@ -13,11 +13,13 @@ Key Components:
 </overview>
 
 <checkpointer-selection>
+
 | Checkpointer | Use Case | Persistence | Production Ready |
 |--------------|----------|-------------|------------------|
 | `MemorySaver` | Testing, development | In-memory only | No |
 | `SqliteSaver` | Local development | SQLite file | Partial Single-user |
 | `PostgresSaver` | Production | PostgreSQL | Yes |
+
 </checkpointer-selection>
 
 <ex-memory-saver>

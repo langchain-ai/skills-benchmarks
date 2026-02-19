@@ -61,12 +61,14 @@ const agent = await createDeepAgent({
 </backend-types>
 
 <decision-table>
+
 | Use Case | Backend | Why |
 |----------|---------|-----|
 | Temporary files | StateBackend | Default, no setup |
 | Local development | FilesystemBackend | Direct disk access |
 | Cross-session memory | StoreBackend | Persists across threads |
 | Hybrid storage | CompositeBackend | Mix ephemeral + persistent |
+
 </decision-table>
 
 <ex-managing-large-context>

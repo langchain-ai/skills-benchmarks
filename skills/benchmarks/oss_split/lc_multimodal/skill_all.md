@@ -18,20 +18,24 @@ Key Concepts:
 </overview>
 
 <model-selection-for-multimodal>
+
 | Task | Recommended Model | Why |
 |------|------------------|-----|
 | Image understanding | GPT-4.1, Claude Sonnet, Gemini | Strong vision capabilities |
 | Image generation | DALL-E (via OpenAI) | Specialized for generation |
 | Document analysis (PDF) | Claude, GPT-4.1 | Handle complex layouts |
 | Audio transcription | Whisper (OpenAI) | Specialized for audio |
+
 </model-selection-for-multimodal>
 
 <input-methods>
+
 | Method | When to Use | Example |
 |--------|-------------|---------|
 | URL | Public images | `{ type: "image", url: "https://..." }` |
 | Base64 | Private/local images | `{ type: "image", data: "base64..." }` / `{ "type": "image", "base64": "..." }` |
 | File reference | Provider file APIs | `{ type: "image", fileId: "..." }` |
+
 </input-methods>
 
 <ex-image-url>

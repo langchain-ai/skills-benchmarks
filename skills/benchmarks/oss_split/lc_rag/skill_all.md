@@ -24,20 +24,24 @@ RAG Pipeline:
 </overview>
 
 <vector-store-selection>
+
 | Store | When to Use | Why |
 |-------|-------------|-----|
 | InMemory/MemoryVectorStore | Development, testing | In-memory, fast, ephemeral |
 | Chroma | Local production | Persistent, open-source |
 | Pinecone | Cloud, scale | Managed, fast, scalable |
 | Faiss | High performance | Fast similarity search |
+
 </vector-store-selection>
 
 <embedding-model-selection>
+
 | Model | When to Use | Dimension |
 |-------|-------------|-----------|
 | text-embedding-3-small | Cost-effective | 1536 |
 | text-embedding-3-large | Best quality | 3072 |
 | text-embedding-ada-002 | Legacy | 1536 |
+
 </embedding-model-selection>
 
 <ex-basic-rag>

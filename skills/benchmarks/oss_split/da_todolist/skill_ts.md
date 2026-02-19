@@ -8,11 +8,13 @@ TodoListMiddleware provides agents with task planning and progress tracking capa
 </overview>
 
 <when-to-use>
+
 | Use TodoList When | Skip TodoList When |
 |------------------|-------------------|
 | Complex multi-step tasks requiring coordination | Simple, single-action tasks |
 | Long-running operations where progress visibility matters | Quick operations (< 3 steps) |
 | Tasks that may need plan adaptation | Fixed, predetermined workflows |
+
 </when-to-use>
 
 <ex-default-config>
@@ -53,11 +55,13 @@ const agent = createAgent({
 </ex-custom-config>
 
 <todo-patterns-table>
+
 | Task Type | Todo List Strategy | Example |
 |-----------|-------------------|---------|
 | Sequential steps | Create all todos upfront, complete in order | Build app: setup -> code -> test -> deploy |
 | Discovery-based | Add todos as you learn what's needed | Research: initial search -> follow-up -> synthesis |
 | Parallel work | Multiple "in_progress" items allowed | Data processing: extract + transform + load |
+
 </todo-patterns-table>
 
 <ex-sequential-task>

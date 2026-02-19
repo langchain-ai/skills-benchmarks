@@ -1,6 +1,6 @@
 ---
 name: LangGraph Graph API (Python)
-description: [LangGraph] Building graphs with StateGraph, nodes, edges, START/END nodes, and the Command API for combining control flow with state updates
+description: "[LangGraph] Building graphs with StateGraph, nodes, edges, START/END nodes, and the Command API for combining control flow with state updates"
 ---
 
 <overview>

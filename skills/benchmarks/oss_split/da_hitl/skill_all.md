@@ -1,6 +1,6 @@
 ---
 name: Deep Agents Human-in-the-Loop
-description: [Deep Agents] Implementing human-in-the-loop approval workflows with interrupt_on parameter for sensitive tool operations in Deep Agents.
+description: "[Deep Agents] Implementing human-in-the-loop approval workflows with interrupt_on parameter for sensitive tool operations in Deep Agents."
 ---
 
 <overview>

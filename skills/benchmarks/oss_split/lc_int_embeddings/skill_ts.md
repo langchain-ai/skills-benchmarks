@@ -1,6 +1,6 @@
 ---
 name: LangChain Embeddings Integration (TypeScript)
-description: [LangChain] Guide to using embedding model integrations in LangChain including OpenAI, Azure, and local embeddings
+description: "[LangChain] Guide to using embedding model integrations in LangChain including OpenAI, Azure, and local embeddings"
 ---
 
 <overview>

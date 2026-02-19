@@ -1,6 +1,6 @@
 ---
 name: LangGraph Workflows (TypeScript)
-description: [LangGraph] Understanding workflows vs agents, predetermined vs dynamic patterns, and orchestrator-worker patterns using the Send API
+description: "[LangGraph] Understanding workflows vs agents, predetermined vs dynamic patterns, and orchestrator-worker patterns using the Send API"
 ---
 
 <overview>

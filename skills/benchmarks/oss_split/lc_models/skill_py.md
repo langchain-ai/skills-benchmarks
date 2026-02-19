@@ -1,6 +1,6 @@
 ---
 name: LangChain Models (Python)
-description: [LangChain] Initialize and use LangChain chat models - includes provider selection (OpenAI, Anthropic, Google), model configuration, and invocation patterns
+description: "[LangChain] Initialize and use LangChain chat models - includes provider selection (OpenAI, Anthropic, Google), model configuration, and invocation patterns"
 ---
 
 <overview>

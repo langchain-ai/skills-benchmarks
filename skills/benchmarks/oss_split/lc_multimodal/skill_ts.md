@@ -1,6 +1,6 @@
 ---
 name: LangChain Multimodal (TypeScript)
-description: [LangChain] Work with multimodal inputs/outputs in LangChain - includes images, audio, video, content blocks, and vision capabilities
+description: "[LangChain] Work with multimodal inputs/outputs in LangChain - includes images, audio, video, content blocks, and vision capabilities"
 ---
 
 <overview>

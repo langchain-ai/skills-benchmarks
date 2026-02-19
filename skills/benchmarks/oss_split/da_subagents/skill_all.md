@@ -1,6 +1,6 @@
 ---
 name: Deep Agents Subagents
-description: [Deep Agents] Using SubAgentMiddleware to spawn subagents for task delegation, context isolation, and specialized work in Deep Agents.
+description: "[Deep Agents] Using SubAgentMiddleware to spawn subagents for task delegation, context isolation, and specialized work in Deep Agents."
 ---
 
 <overview>

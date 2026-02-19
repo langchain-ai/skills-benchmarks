@@ -1,6 +1,6 @@
 ---
 name: LangChain Human-in-the-Loop (TypeScript)
-description: [LangChain] Add human oversight to LangChain agents using HITL middleware - includes interrupts, approval workflows, edit/reject decisions, and checkpoints
+description: "[LangChain] Add human oversight to LangChain agents using HITL middleware - includes interrupts, approval workflows, edit/reject decisions, and checkpoints"
 ---
 
 <overview>

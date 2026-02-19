@@ -1,0 +1,16 @@
+[metadata]
+name = "oss-fix-lg-persistence"
+description = "Fix persistence and state bugs in a LangGraph chatbot"
+difficulty = "medium"
+category = "langgraph"
+tags = ["persistence", "state", "checkpointer", "reducer", "bug-fix"]
+
+[template]
+required = []
+
+[environment]
+timeout_sec = 600
+
+[validation]
+# Execution-based validation - actually runs the code
+validators = ["CheckpointerValidator", "StateValidator", "FunctionalValidator"]

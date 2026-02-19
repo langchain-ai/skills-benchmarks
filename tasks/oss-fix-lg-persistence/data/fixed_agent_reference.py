@@ -4,18 +4,21 @@ Fixes applied:
 1. Added checkpointer to compile() for persistence
 2. Uses thread_id when invoking for conversation isolation
 3. Added Annotated[list, operator.add] reducer for messages
+4. Nodes return partial update dicts, not entire state (prevents duplication)
 """
 
-from langgraph.checkpoint.memory import InMemorySaver
-from langgraph.graph import StateGraph, START, END
-from typing_extensions import TypedDict
-from typing import Annotated
 import operator
+from typing import Annotated
+
 from langchain_core.tools import tool
+from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.graph import END, START, StateGraph
+from typing_extensions import TypedDict
 
 
 class State(TypedDict):
     """Agent state for tracking conversations."""
+
     # FIX: Added reducer so messages accumulate instead of overwrite
     messages: Annotated[list, operator.add]
     context: dict
@@ -29,7 +32,11 @@ def lookup_order(order_id: str) -> str:
 
 
 def extract_context(state: State) -> dict:
-    """Extract user context from messages."""
+    """Extract user context from messages.
+
+    FIX: Returns partial update dict, not entire state.
+    Returning the entire state would cause message duplication with the reducer.
+    """
     messages = state.get("messages", [])
     context = state.get("context", {})
 
@@ -40,6 +47,7 @@ def extract_context(state: State) -> dict:
                 name = lower_msg.split("my name is")[-1].strip().split()[0]
                 context["name"] = name.title()
 
+    # Return only the fields that changed - NOT the entire state
     return {"context": context, "current_step": "extracted"}
 
 
@@ -78,11 +86,7 @@ builder.add_node("respond", generate_response)
 
 builder.add_edge(START, "extract")
 builder.add_edge("extract", "respond")
-builder.add_conditional_edges(
-    "respond",
-    route_message,
-    {"respond": END}
-)
+builder.add_conditional_edges("respond", route_message, {"respond": END})
 
 # FIX: Add checkpointer at compile time
 checkpointer = InMemorySaver()
@@ -95,11 +99,9 @@ def chat(user_message: str, thread_id: str = "default") -> str:
     FIX: Added thread_id parameter for conversation isolation.
     """
     config = {"configurable": {"thread_id": thread_id}}
-    result = graph.invoke({
-        "messages": [user_message],
-        "context": {},
-        "current_step": "start"
-    }, config)
+    result = graph.invoke(
+        {"messages": [user_message], "context": {}, "current_step": "start"}, config
+    )
 
     responses = result.get("messages", [])
     return responses[-1] if responses else "Sorry, I couldn't process that."

@@ -28,9 +28,10 @@ Bot: Your name is Sarah!   <-- Remembers the name
 
 ## Your Task
 
-Review the agent code and fix all issues causing the memory problems. The logic for extracting names and generating responses is correct - the issues are with how state is managed and persisted.
+Review the agent code and fix all issues causing the memory problems. There are several bugs in how state is managed. The logic for extracting names and generating responses is correct - focus on state management patterns.
 
 After your fixes:
-1. Messages should accumulate in the conversation history (not get overwritten)
+1. Messages should accumulate correctly in the conversation history
 2. State should persist between separate `chat()` calls
 3. Different users should have isolated conversations (not share state)
+4. Data should flow correctly through the graph nodes

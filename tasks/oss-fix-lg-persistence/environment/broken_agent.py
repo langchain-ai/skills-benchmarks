@@ -6,13 +6,14 @@ Issues reported by users:
 - "When I come back later, it doesn't remember our previous chat"
 """
 
-from langgraph.graph import StateGraph, START, END
-from typing_extensions import TypedDict
 from langchain_core.tools import tool
+from langgraph.graph import END, START, StateGraph
+from typing_extensions import TypedDict
 
 
 class State(TypedDict):
     """Agent state for tracking conversations."""
+
     messages: list  # Conversation history
     context: dict  # User context (name, preferences, etc.)
     current_step: str
@@ -25,7 +26,7 @@ def lookup_order(order_id: str) -> str:
     return f"Order {order_id}: Shipped, arriving in 2 days"
 
 
-def extract_context(state: State) -> dict:
+def extract_context(state: State) -> State:
     """Extract user context from messages."""
     messages = state.get("messages", [])
     context = state.get("context", {})
@@ -37,7 +38,10 @@ def extract_context(state: State) -> dict:
                 name = lower_msg.split("my name is")[-1].strip().split()[0]
                 context["name"] = name.title()
 
-    return {"context": context, "current_step": "extracted"}
+    # Update state and return it
+    state["context"] = context
+    state["current_step"] = "extracted"
+    return state
 
 
 def generate_response(state: State) -> dict:
@@ -90,7 +94,7 @@ builder.add_edge("extract", "respond")
 builder.add_conditional_edges(
     "respond",
     route_message,
-    {"respond": END}  # Only one path, could be more flexible
+    {"respond": END},  # Only one path, could be more flexible
 )
 
 # Compile without persistence - every conversation is fresh
@@ -102,11 +106,7 @@ def chat(user_message: str) -> str:
 
     Note: Each call starts fresh - no memory of previous calls.
     """
-    result = graph.invoke({
-        "messages": [user_message],
-        "context": {},
-        "current_step": "start"
-    })
+    result = graph.invoke({"messages": [user_message], "context": {}, "current_step": "start"})
 
     responses = result.get("messages", [])
     return responses[-1] if responses else "Sorry, I couldn't process that."

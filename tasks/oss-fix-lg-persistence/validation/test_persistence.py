@@ -4,12 +4,13 @@ The broken code has multiple issues:
 1. No checkpointer - state not saved between invocations
 2. No thread_id usage - conversations not isolated
 3. Missing reducer on messages list - messages get overwritten, not accumulated
+4. Node returns entire state instead of partial update dict
 
 These tests verify the code actually works, not just that it contains patterns.
 """
 
-import sys
 import json
+import sys
 
 
 def run_tests(agent_module_path: str) -> dict:
@@ -54,19 +55,15 @@ def run_tests(agent_module_path: str) -> dict:
         config = {"configurable": {"thread_id": "test-persistence"}}
 
         # First invoke
-        result1 = graph.invoke({
-            "messages": ["Hello"],
-            "context": {},
-            "current_step": "start"
-        }, config)
+        result1 = graph.invoke(
+            {"messages": ["Hello"], "context": {}, "current_step": "start"}, config
+        )
         msgs_after_1 = len(result1.get("messages", []))
 
         # Second invoke - should accumulate
-        result2 = graph.invoke({
-            "messages": ["How are you?"],
-            "context": {},
-            "current_step": "start"
-        }, config)
+        result2 = graph.invoke(
+            {"messages": ["How are you?"], "context": {}, "current_step": "start"}, config
+        )
         msgs_after_2 = len(result2.get("messages", []))
 
         if msgs_after_2 > msgs_after_1:
@@ -79,9 +76,7 @@ def run_tests(agent_module_path: str) -> dict:
             )
     except ValueError as e:
         if "thread_id" in str(e).lower() or "configurable" in str(e).lower():
-            results["failed"].append(
-                f"state_persists_across_calls: {e}"
-            )
+            results["failed"].append(f"state_persists_across_calls: {e}")
         else:
             results["failed"].append(f"state_persists_across_calls: {e}")
     except Exception as e:
@@ -94,11 +89,9 @@ def run_tests(agent_module_path: str) -> dict:
 
         # Invoke with a message - should go through extract -> respond
         # and accumulate the response to the messages list
-        result = graph.invoke({
-            "messages": ["Test message"],
-            "context": {},
-            "current_step": "start"
-        }, config)
+        result = graph.invoke(
+            {"messages": ["Test message"], "context": {}, "current_step": "start"}, config
+        )
 
         messages = result.get("messages", [])
         # With proper reducer, should have: input message + response
@@ -112,24 +105,50 @@ def run_tests(agent_module_path: str) -> dict:
     except Exception as e:
         results["failed"].append(f"messages_accumulate_with_reducer: {e}")
 
-    # Test 4: Functional - bot remembers name across turns
+    # Test 4: No message duplication (nodes must return partial updates, not entire state)
+    try:
+        graph = agent.graph
+        config = {"configurable": {"thread_id": "test-no-duplication"}}
+
+        # Single invoke with one message
+        result = graph.invoke(
+            {"messages": ["Hello there"], "context": {}, "current_step": "start"}, config
+        )
+
+        messages = result.get("messages", [])
+        # Should have exactly 2: input + response
+        # If a node returns entire state with reducer, input gets duplicated -> 3+ messages
+        input_count = sum(1 for m in messages if m == "Hello there")
+
+        if input_count == 1 and len(messages) == 2:
+            results["passed"].append("no_message_duplication")
+        elif input_count > 1:
+            results["failed"].append(
+                f"no_message_duplication: input message duplicated {input_count} times - "
+                f"node is returning entire state instead of partial update dict"
+            )
+        else:
+            results["failed"].append(
+                f"no_message_duplication: unexpected message count {len(messages)}, "
+                f"messages: {messages}"
+            )
+    except Exception as e:
+        results["failed"].append(f"no_message_duplication: {e}")
+
+    # Test 5: Functional - bot remembers name across turns
     try:
         graph = agent.graph
         config = {"configurable": {"thread_id": "test-name-memory"}}
 
         # Introduce ourselves
-        graph.invoke({
-            "messages": ["Hi! My name is Alex"],
-            "context": {},
-            "current_step": "start"
-        }, config)
+        graph.invoke(
+            {"messages": ["Hi! My name is Alex"], "context": {}, "current_step": "start"}, config
+        )
 
         # Ask for name
-        result = graph.invoke({
-            "messages": ["What is my name?"],
-            "context": {},
-            "current_step": "start"
-        }, config)
+        result = graph.invoke(
+            {"messages": ["What is my name?"], "context": {}, "current_step": "start"}, config
+        )
 
         messages = result.get("messages", [])
         last_response = messages[-1].lower() if messages else ""
@@ -144,35 +163,27 @@ def run_tests(agent_module_path: str) -> dict:
     except Exception as e:
         results["failed"].append(f"remembers_user_name: {e}")
 
-    # Test 5: Thread isolation - different users have separate state
+    # Test 6: Thread isolation - different users have separate state
     try:
         graph = agent.graph
         config_a = {"configurable": {"thread_id": "user-alice"}}
         config_b = {"configurable": {"thread_id": "user-bob"}}
 
         # Alice's conversation
-        graph.invoke({
-            "messages": ["My name is Alice"],
-            "context": {},
-            "current_step": "start"
-        }, config_a)
-        graph.invoke({
-            "messages": ["More from Alice"],
-            "context": {},
-            "current_step": "start"
-        }, config_a)
-        result_a = graph.invoke({
-            "messages": ["Alice again"],
-            "context": {},
-            "current_step": "start"
-        }, config_a)
+        graph.invoke(
+            {"messages": ["My name is Alice"], "context": {}, "current_step": "start"}, config_a
+        )
+        graph.invoke(
+            {"messages": ["More from Alice"], "context": {}, "current_step": "start"}, config_a
+        )
+        result_a = graph.invoke(
+            {"messages": ["Alice again"], "context": {}, "current_step": "start"}, config_a
+        )
 
         # Bob's conversation (separate)
-        result_b = graph.invoke({
-            "messages": ["My name is Bob"],
-            "context": {},
-            "current_step": "start"
-        }, config_b)
+        result_b = graph.invoke(
+            {"messages": ["My name is Bob"], "context": {}, "current_step": "start"}, config_b
+        )
 
         alice_msgs = len(result_a.get("messages", []))
         bob_msgs = len(result_b.get("messages", []))
@@ -181,8 +192,7 @@ def run_tests(agent_module_path: str) -> dict:
             results["passed"].append("thread_isolation")
         else:
             results["failed"].append(
-                f"thread_isolation: threads not isolated "
-                f"(Alice: {alice_msgs}, Bob: {bob_msgs})"
+                f"thread_isolation: threads not isolated (Alice: {alice_msgs}, Bob: {bob_msgs})"
             )
     except Exception as e:
         results["failed"].append(f"thread_isolation: {e}")

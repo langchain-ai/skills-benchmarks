@@ -10,7 +10,7 @@ TARGETED:
   description: "Both relevant skills (memory + subagents)"
   claude_md: |
     # Project Guidelines
-    Check available skills before coding.
+    You should use relevant skills to ensure you know best practices.
   skills:
     - skill: oss_split/da_memory
       variant: all
@@ -23,7 +23,7 @@ PARTIAL_MEMORY:
   description: "Only memory skill (missing subagents knowledge)"
   claude_md: |
     # Project Guidelines
-    Check available skills before coding.
+    You should use relevant skills to ensure you know best practices.
   skills:
     - skill: oss_split/da_memory
       variant: all
@@ -33,7 +33,7 @@ PARTIAL_SUBAGENTS:
   description: "Only subagents skill (missing memory knowledge)"
   claude_md: |
     # Project Guidelines
-    Check available skills before coding.
+    You should use relevant skills to ensure you know best practices.
   skills:
     - skill: oss_split/da_subagents
       variant: all
@@ -43,7 +43,7 @@ ALL_DA:
   description: "All DeepAgents skills"
   claude_md: |
     # Project Guidelines
-    Check available skills before coding.
+    You should use relevant skills to ensure you know best practices.
   skills:
     - skill: oss_split/da_overview
       variant: all
@@ -71,7 +71,7 @@ ALL_LG:
   description: "All LangGraph skills (wrong domain)"
   claude_md: |
     # Project Guidelines
-    Check available skills before coding.
+    You should use relevant skills to ensure you know best practices.
   skills:
     - skill: oss_split/lg_graph_api
       variant: all
@@ -102,7 +102,7 @@ MANY_MIXED:
   description: "20 skills from all categories (LG + LC + DA)"
   claude_md: |
     # Project Guidelines
-    Check available skills before coding.
+    You should use relevant skills to ensure you know best practices.
   skills:
     # LangGraph (all 8)
     - skill: oss_split/lg_graph_api

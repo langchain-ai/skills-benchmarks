@@ -1,18 +1,17 @@
 """Pattern-based tests for chat application fixes.
 
-The broken code has bugs from multiple skill areas:
-
-From lc_tools/lc_agents:
-1. Non-serializable returns - datetime objects cause serialization errors
+Tests LangChain-specific bugs from multiple skills:
 
 From lc_streaming:
-2. Tuple unpacking - messages mode returns (token, metadata) tuple
-3. Generator exhaustion - caching/reusing exhausted stream
-4. Missing flush - tokens buffered instead of real-time display
-5. Sync in async - using sync stream in async context
-6. Mode checking - multi-mode streaming needs mode-specific handling
+1. Tuple unpacking - messages mode returns (token, metadata) tuple
+2. Mode checking - multi-mode streaming needs mode-specific handling
+3. Async uses astream - async functions should use .astream() not .stream()
 
-Tests verify correct patterns are present after fixing.
+From lc_tools:
+4. Missing docstrings - tools without docstrings have no description for model
+5. Missing type hints - tool parameters without types have poor schema
+
+These are NOT basic Python bugs - they require understanding LangChain APIs.
 """
 
 import ast
@@ -36,54 +35,82 @@ def run_tests(module_path: str) -> dict:
         return results
 
     try:
-        ast.parse(source)
+        tree = ast.parse(source)
     except SyntaxError as e:
         results["error"] = f"Syntax error in file: {e}"
         return results
 
-    # ========== lc_tools / lc_agents bugs ==========
+    # ========== lc_tools bugs (LangChain-specific) ==========
 
-    # Test 1: Tools should return serializable types (not datetime objects)
+    # Test 1: Tools must have docstrings (LangChain uses docstring as tool description)
     try:
-        # Check for datetime return type annotations or raw datetime returns
-        datetime_return_pattern = r"def\s+\w+\([^)]*\)\s*->\s*datetime"
-        returns_datetime_raw = r"return\s+datetime\.now\(\)"
+        tools_without_docstrings = []
+        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef):
+                # Check if function has @tool decorator
+                for decorator in node.decorator_list:
+                    decorator_name = None
+                    if isinstance(decorator, ast.Name):
+                        decorator_name = decorator.id
+                    elif isinstance(decorator, ast.Call) and isinstance(decorator.func, ast.Name):
+                        decorator_name = decorator.func.id
 
-        has_datetime_return = re.search(datetime_return_pattern, source)
-        has_raw_datetime = re.search(returns_datetime_raw, source)
+                    if decorator_name == "tool":
+                        docstring = ast.get_docstring(node)
+                        if not docstring or len(docstring.strip()) < 10:
+                            tools_without_docstrings.append(node.name)
 
-        # Check for fixed version: converting datetime to string
-        fixed_patterns = [
-            r"\.isoformat\(\)",
-            r"\.strftime\(",
-            r"str\(datetime",
-            r"datetime\.now\(\)\.isoformat",
-        ]
-        has_serializable_fix = any(re.search(pattern, source) for pattern in fixed_patterns)
-
-        if not has_datetime_return and not has_raw_datetime:
-            results["passed"].append("serializable_tool_returns")
-        elif has_serializable_fix:
-            results["passed"].append("serializable_tool_returns")
+        if not tools_without_docstrings:
+            results["passed"].append("tool_has_docstring")
         else:
             results["failed"].append(
-                "serializable_tool_returns: tools returning datetime objects cause "
-                "serialization errors - return strings instead (use .isoformat())"
+                f"tool_has_docstring: tools {tools_without_docstrings} missing docstrings - "
+                "LangChain uses docstring as tool description for the model"
             )
     except Exception as e:
-        results["failed"].append(f"serializable_tool_returns: {e}")
+        results["failed"].append(f"tool_has_docstring: {e}")
 
-    # ========== lc_streaming bugs ==========
+    # Test 2: Tool parameters must have type hints (LangChain generates schema from types)
+    try:
+        tools_without_types = []
+        for node in ast.walk(tree):
+            if isinstance(node, ast.FunctionDef):
+                # Check if function has @tool decorator
+                for decorator in node.decorator_list:
+                    decorator_name = None
+                    if isinstance(decorator, ast.Name):
+                        decorator_name = decorator.id
+                    elif isinstance(decorator, ast.Call) and isinstance(decorator.func, ast.Name):
+                        decorator_name = decorator.func.id
 
-    # Test 2: Tuple unpacking in messages mode
+                    if decorator_name == "tool":
+                        # Check all non-self/cls arguments have type annotations
+                        for arg in node.args.args:
+                            if arg.arg not in ("self", "cls") and arg.annotation is None:
+                                tools_without_types.append(f"{node.name}.{arg.arg}")
+
+        if not tools_without_types:
+            results["passed"].append("tool_has_types")
+        else:
+            results["failed"].append(
+                f"tool_has_types: parameters {tools_without_types} missing type hints - "
+                "LangChain generates tool schema from type annotations"
+            )
+    except Exception as e:
+        results["failed"].append(f"tool_has_types: {e}")
+
+    # ========== lc_streaming bugs (LangChain-specific) ==========
+
+    # Test 3: Tuple unpacking in messages mode (LangChain streaming API)
     try:
         tuple_unpack_patterns = [
-            r"token\s*,\s*metadata\s*=\s*chunk",
-            r"msg\s*,\s*meta\s*=\s*chunk",
-            r"message\s*,\s*metadata\s*=\s*chunk",
+            r"token\s*,\s*_?metadata\s*=\s*chunk",  # token, metadata or token, _metadata
+            r"msg\s*,\s*_?meta\s*=\s*chunk",
+            r"message\s*,\s*_?metadata\s*=\s*chunk",
             r"content\s*,\s*_\s*=\s*chunk",
             r"token\s*,\s*_\s*=\s*chunk",
             r"chunk\s*\[\s*0\s*\]",
+            r"\w+\s*,\s*_\w*\s*=\s*chunk",  # Generic: var, _ or var, _var = chunk
         ]
 
         has_tuple_unpack = any(re.search(pattern, source) for pattern in tuple_unpack_patterns)
@@ -98,38 +125,7 @@ def run_tests(module_path: str) -> dict:
     except Exception as e:
         results["failed"].append(f"tuple_unpacking: {e}")
 
-    # Test 3: No generator caching/reuse
-    try:
-        cached_stream_pattern = r"_stream\s*=|cached.*stream|self\.stream\s*="
-        reuses_stream = re.search(cached_stream_pattern, source)
-
-        if not reuses_stream:
-            results["passed"].append("no_generator_reuse")
-        else:
-            results["failed"].append(
-                "no_generator_reuse: generators exhausted after iteration - "
-                "create new stream for each request"
-            )
-    except Exception as e:
-        results["failed"].append(f"no_generator_reuse: {e}")
-
-    # Test 4: Real-time display with flush
-    try:
-        flush_pattern = r"print\([^)]*flush\s*=\s*True"
-        stdout_flush = r"sys\.stdout\.(write|flush)"
-
-        has_flush = re.search(flush_pattern, source) or re.search(stdout_flush, source)
-
-        if has_flush:
-            results["passed"].append("realtime_flush")
-        else:
-            results["failed"].append(
-                "realtime_flush: tokens buffered instead of real-time - use print(..., flush=True)"
-            )
-    except Exception as e:
-        results["failed"].append(f"realtime_flush: {e}")
-
-    # Test 5: Async stream in async context
+    # Test 4: Async stream in async context (LangChain astream API)
     try:
         async_func_source = extract_async_functions(source)
 
@@ -151,7 +147,7 @@ def run_tests(module_path: str) -> dict:
     except Exception as e:
         results["failed"].append(f"async_uses_astream: {e}")
 
-    # Test 6: Mode checking in multi-mode streaming
+    # Test 5: Mode checking in multi-mode streaming (LangChain multi-mode API)
     try:
         multimode_pattern = r"stream_mode\s*=\s*\[.*,.*\]"
         has_multimode = re.search(multimode_pattern, source)

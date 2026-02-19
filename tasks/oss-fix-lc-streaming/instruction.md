@@ -1,17 +1,13 @@
 # Fix: Chat Application Issues
 
-Users are reporting multiple problems with the chat application in `environment/chat_app.py`:
+Users are reporting problems with the chat application in `environment/chat_app.py`. The app was working fine until a recent refactor, and now users are seeing various issues:
 
-1. **"The bot ignores my requests"** - When asked to search for information or do calculations, the bot just makes up answers instead of using its tools.
+1. **"The bot makes up answers"** - Instead of using its tools, the bot fabricates responses. Asked to search, it pretends to search. Asked to calculate, it guesses numbers.
 
-2. **"Crashes when asking for the time"** - The app crashes with a serialization error when users ask what time it is.
+2. **"Random crashes during responses"** - Users report `AttributeError` exceptions at random times while the bot is responding.
 
-3. **"Response appears all at once"** - Instead of seeing the response stream character by character, users see nothing for a while, then the entire response appears.
+3. **"Progress tracking is broken"** - The `chat_with_progress` function that shows both tool execution and response tokens doesn't work properly.
 
-4. **"Follow-up questions don't work"** - After the first message, subsequent messages show no output at all.
+4. **"Web API is unusably slow"** - The async endpoint hangs the entire web server during requests.
 
-5. **"Progress mode crashes randomly"** - The function that shows tool progress sometimes crashes with errors about object types.
-
-6. **"API endpoint blocks the server"** - The async endpoint for web frameworks makes the entire server unresponsive.
-
-Please fix all the issues so the application works correctly.
+Please investigate and fix all the issues.

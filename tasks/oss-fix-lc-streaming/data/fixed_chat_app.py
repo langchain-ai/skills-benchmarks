@@ -1,11 +1,6 @@
-"""A chat application with tool-calling capabilities.
+"""A chat application with tool-calling capabilities - FIXED VERSION.
 
-Issues reported by users:
-- "The agent never uses the search or calculator tools, it just makes up answers"
-- "The search tool has terrible accuracy - it searches for wrong things"
-- "Sometimes the app crashes with weird AttributeError about tuples"
-- "The progress tracking mode shows errors instead of proper updates"
-- "The async API endpoint blocks my entire server"
+All LangChain-specific bugs from the broken version have been fixed.
 """
 
 from datetime import datetime
@@ -14,14 +9,32 @@ from langchain.tools import tool
 from langchain_openai import ChatOpenAI
 
 
+# FIX: Added proper docstring and type hint
 @tool
-def do_search(s):
+def do_search(s: str) -> str:
+    """Search the web for information on any topic.
+
+    Use this tool when the user asks about current events, news,
+    facts, or any information that might require looking up.
+
+    Args:
+        s: The search query or topic to search for
+    """
     return f"Search results for: {s}"
 
 
+# FIX: Added descriptive docstring and type hint
 @tool
-def calc(x):
-    """Math."""
+def calc(x: str) -> str:
+    """Perform mathematical calculations and computations.
+
+    Use this tool when the user asks to calculate, compute, or
+    do math operations like addition, subtraction, multiplication,
+    or division.
+
+    Args:
+        x: A mathematical expression to evaluate (e.g., "15 * 7 + 23")
+    """
     try:
         allowed = {
             "+": lambda a, b: a + b,
@@ -73,8 +86,10 @@ class ChatInterface:
         )
 
         for mode, chunk in stream:
-            if chunk.content:
-                print(chunk.content, end="", flush=True)
+            # FIX: Unpack the (token, metadata) tuple from messages mode
+            token, _metadata = chunk
+            if token.content:
+                print(token.content, end="", flush=True)
 
         print()
 
@@ -86,10 +101,14 @@ class ChatInterface:
             {"messages": [{"role": "user", "content": user_message}]},
             stream_mode=["updates", "messages"],
         ):
-            if chunk.content:
-                print(f"Token: {chunk.content}")
-            elif hasattr(chunk, "tool_calls"):
-                print("[Tool being called...]")
+            # FIX: Check mode before processing - different modes have different formats
+            if mode == "messages":
+                token, _metadata = chunk
+                if token.content:
+                    print(f"Token: {token.content}")
+            elif mode == "updates":
+                if hasattr(chunk, "tool_calls"):
+                    print("[Tool being called...]")
 
 
 def simple_chat(agent, message: str) -> str:
@@ -100,53 +119,27 @@ def simple_chat(agent, message: str) -> str:
         {"messages": [{"role": "user", "content": message}]},
         stream_mode=["messages"],
     ):
-        if chunk.content:
-            print(chunk.content, end="", flush=True)
-            tokens.append(chunk.content)
+        # FIX: Unpack tuple
+        token, _metadata = chunk
+        if token.content:
+            print(token.content, end="", flush=True)
+            tokens.append(token.content)
 
     print()
     return "".join(tokens)
 
 
 async def api_endpoint(agent, message: str) -> str:
-    """Async endpoint for web frameworks like FastAPI.
-
-    Users report: "This blocks my entire server when called"
-    """
+    """Async endpoint for web frameworks like FastAPI."""
     tokens = []
 
-    for mode, chunk in agent.stream(
+    # FIX: Use astream in async context to avoid blocking event loop
+    async for mode, chunk in agent.astream(
         {"messages": [{"role": "user", "content": message}]},
         stream_mode=["messages"],
     ):
-        if chunk.content:
-            tokens.append(chunk.content)
+        token, _metadata = chunk
+        if token.content:
+            tokens.append(token.content)
 
     return "".join(tokens)
-
-
-if __name__ == "__main__":
-    print("=" * 60)
-    print("Chat Application Demo")
-    print("=" * 60)
-
-    interface = ChatInterface()
-
-    # Test 1: Ask about something (agent should use search tool)
-    print("\n--- Test 1: Information Query ---")
-    interface.chat("What are the latest developments in AI?")
-
-    # Test 2: Ask a math question (agent should use calculator)
-    print("\n--- Test 2: Math Query ---")
-    interface.chat("What is 15 * 7 + 23?")
-
-    # Test 3: Ask for current time
-    print("\n--- Test 3: Time Query ---")
-    interface.chat("What time is it right now?")
-
-    # Test 4: Multi-mode streaming
-    print("\n--- Test 4: Progress Tracking ---")
-    try:
-        interface.chat_with_progress("Search for Python best practices")
-    except AttributeError as e:
-        print(f"\nERROR: {e}")

@@ -10,7 +10,7 @@ TARGETED:
   description: "Both relevant skills (streaming + tools)"
   claude_md: |
     # Project Guidelines
-    Check available skills before coding.
+    You should use relevant skills to ensure you know best practices.
   skills:
     - skill: oss_split/lc_streaming
       variant: all
@@ -23,7 +23,7 @@ PARTIAL_STREAMING:
   description: "Only streaming skill (missing tools knowledge)"
   claude_md: |
     # Project Guidelines
-    Check available skills before coding.
+    You should use relevant skills to ensure you know best practices.
   skills:
     - skill: oss_split/lc_streaming
       variant: all
@@ -33,7 +33,7 @@ PARTIAL_TOOLS:
   description: "Only tools skill (missing streaming knowledge)"
   claude_md: |
     # Project Guidelines
-    Check available skills before coding.
+    You should use relevant skills to ensure you know best practices.
   skills:
     - skill: oss_split/lc_tools
       variant: all
@@ -43,7 +43,7 @@ ALL_LG:
   description: "All 8 LangGraph skills (wrong domain entirely)"
   claude_md: |
     # Project Guidelines
-    Check available skills before coding.
+    You should use relevant skills to ensure you know best practices.
   skills:
     - skill: oss_split/lg_graph_api
       variant: all
@@ -74,7 +74,7 @@ ALL_LC:
   description: "All 15 LangChain skills (includes relevant)"
   claude_md: |
     # Project Guidelines
-    Check available skills before coding.
+    You should use relevant skills to ensure you know best practices.
   skills:
     - skill: oss_split/lc_agents
       variant: all
@@ -126,7 +126,7 @@ MANY_MIXED:
   description: "20 skills from all categories (LG + LC + DA)"
   claude_md: |
     # Project Guidelines
-    Check available skills before coding.
+    You should use relevant skills to ensure you know best practices.
   skills:
     # LangGraph (all 8)
     - skill: oss_split/lg_graph_api

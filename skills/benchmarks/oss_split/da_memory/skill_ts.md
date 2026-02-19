@@ -156,11 +156,13 @@ await agent.invoke({
 </ex-knowledge-base>
 
 <backend-selection>
+
 | Pattern | Backend | Use Case |
 |---------|---------|----------|
 | All ephemeral | StateBackend | Single-session tasks |
 | All persistent | StoreBackend | Everything remembered |
 | Hybrid | CompositeBackend | `/memories/` persistent, rest ephemeral |
+
 </backend-selection>
 
 <boundaries>

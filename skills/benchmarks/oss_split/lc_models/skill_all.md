@@ -18,6 +18,7 @@ Key Concepts:
 </overview>
 
 <when-to-use>
+
 | Provider | Best For | Models | Strengths |
 |----------|----------|--------|-----------|
 | OpenAI | General purpose, reasoning | GPT-4.1, GPT-5 | Strong reasoning, large context |
@@ -25,9 +26,11 @@ Key Concepts:
 | Google | Multimodal, speed | Gemini 2.5 | Fast, multimodal, cost-effective |
 | AWS Bedrock | Enterprise, compliance | Multiple providers | Security, compliance, variety |
 | Azure OpenAI | Enterprise OpenAI | GPT models | Enterprise features, SLAs |
+
 </when-to-use>
 
 <choosing-a-model>
+
 | Use Case | Recommended Model | Why |
 |----------|------------------|-----|
 | Complex reasoning | GPT-5, Claude Opus | Best logical capabilities |
@@ -36,14 +39,17 @@ Key Concepts:
 | Long context | Claude Opus, Gemini | 100k+ token windows |
 | Cost-effective | GPT-4.1-mini, Gemini Flash | Lower pricing |
 | Enterprise/compliance | Azure OpenAI, AWS Bedrock | Security features |
+
 </choosing-a-model>
 
 <initialization-methods>
+
 | Method | When to Use | Python Example | TypeScript Example |
 |--------|-------------|----------------|-------------------|
 | Universal init | Quick switching between providers | `init_chat_model("openai:gpt-4.1")` | `initChatModel("openai:gpt-4.1")` |
 | Provider class | Need provider-specific features | `ChatOpenAI(model="gpt-4.1")` | `new ChatOpenAI({ model: "gpt-4.1" })` |
 | With configuration | Custom parameters needed | Temperature, max tokens, etc. | Temperature, max tokens, etc. |
+
 </initialization-methods>
 
 <ex-basic-init>

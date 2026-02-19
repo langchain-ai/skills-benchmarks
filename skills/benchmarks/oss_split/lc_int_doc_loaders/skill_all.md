@@ -16,6 +16,7 @@ Key Concepts:
 </overview>
 
 <loader-selection>
+
 | Loader Type | Best For | Package (Python / TypeScript) | Key Features |
 |-------------|----------|-------------------------------|--------------|
 | **PDF Loader** | PDF files | `langchain-community` / `@langchain/community` | Page-by-page extraction |
@@ -24,6 +25,7 @@ Key Concepts:
 | **JSON Loader** | JSON files/APIs | `langchain-community` / `langchain` | Extract specific JSON fields |
 | **CSV Loader** | CSV files | `langchain-community` / `@langchain/community` | Tabular data |
 | **Directory Loader** | Multiple files | `langchain-community` / `langchain` | Bulk loading from directories |
+
 </loader-selection>
 
 <when-to-choose-loader>

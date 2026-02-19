@@ -30,6 +30,7 @@ LangGraph is a low-level orchestration framework and runtime for building, manag
 </when-to-use>
 
 <decision-table>
+
 | Requirement | Use LangGraph | Use LangChain | Use Deep Agents |
 |------------|---------------|---------------|-----------------|
 | Quick prototyping | No | Yes | Yes |
@@ -39,6 +40,7 @@ LangGraph is a low-level orchestration framework and runtime for building, manag
 | State persistence | Yes | No | Yes |
 | Production deployment | Yes | Partial (use with LangGraph) | Yes |
 | Learning curve | High | Low | Medium |
+
 </decision-table>
 
 <key-concepts>

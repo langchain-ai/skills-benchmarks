@@ -13,12 +13,14 @@ LangGraph's persistence layer enables durable execution by checkpointing graph s
 </overview>
 
 <checkpointer-selection>
+
 | Checkpointer | Use Case | Persistence | Production Ready |
 |--------------|----------|-------------|------------------|
 | `InMemorySaver` | Testing, development | In-memory only | No |
 | `SqliteSaver` | Local development | SQLite file | Partial Single-user |
 | `PostgresSaver` | Production | PostgreSQL | Yes |
 | `AsyncPostgresSaver` | Async production | PostgreSQL | Yes |
+
 </checkpointer-selection>
 
 <ex-basic-persistence>

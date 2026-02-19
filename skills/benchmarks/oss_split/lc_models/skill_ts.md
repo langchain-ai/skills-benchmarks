@@ -14,6 +14,7 @@ Chat models are the core of LangChain applications. They take messages as input 
 </overview>
 
 <provider-selection-table>
+
 | Provider | Best For | Models | Strengths |
 |----------|----------|--------|-----------|
 | OpenAI | General purpose, reasoning | GPT-4.1, GPT-5 | Strong reasoning, large context |
@@ -21,9 +22,11 @@ Chat models are the core of LangChain applications. They take messages as input 
 | Google | Multimodal, speed | Gemini 2.5 | Fast, multimodal, cost-effective |
 | AWS Bedrock | Enterprise, compliance | Multiple providers | Security, compliance, variety |
 | Azure OpenAI | Enterprise OpenAI | GPT models | Enterprise features, SLAs |
+
 </provider-selection-table>
 
 <model-selection-table>
+
 | Use Case | Recommended Model | Why |
 |----------|------------------|-----|
 | Complex reasoning | GPT-5, Claude Opus | Best logical capabilities |
@@ -32,14 +35,17 @@ Chat models are the core of LangChain applications. They take messages as input 
 | Long context | Claude Opus, Gemini | 100k+ token windows |
 | Cost-effective | GPT-4.1-mini, Gemini Flash | Lower pricing |
 | Enterprise/compliance | Azure OpenAI, AWS Bedrock | Security features |
+
 </model-selection-table>
 
 <initialization-methods-table>
+
 | Method | When to Use | Example |
 |--------|-------------|---------|
 | `initChatModel("provider:model")` | Quick switching between providers | `initChatModel("openai:gpt-4.1")` |
 | Provider class | Need provider-specific features | `new ChatOpenAI({ model: "gpt-4.1" })` |
 | With configuration | Custom parameters needed | Temperature, max tokens, etc. |
+
 </initialization-methods-table>
 
 <ex-basic-init>

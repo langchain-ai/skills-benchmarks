@@ -14,6 +14,7 @@ Document loaders extract data from various sources and formats into LangChain's 
 </overview>
 
 <loader-selection>
+
 | Loader Type | Best For | Package | Key Features |
 |-------------|----------|---------|--------------|
 | **PyPDFLoader** | PDF files | `langchain-community` | Page-by-page extraction |
@@ -23,6 +24,7 @@ Document loaders extract data from various sources and formats into LangChain's 
 | **CSVLoader** | CSV files | `langchain-community` | Tabular data |
 | **DirectoryLoader** | Multiple files | `langchain-community` | Bulk loading from directories |
 | **UnstructuredLoader** | Various formats | `langchain-community` | PDFs, DOCXs, PPTs, images |
+
 </loader-selection>
 
 <when-to-choose-loader>

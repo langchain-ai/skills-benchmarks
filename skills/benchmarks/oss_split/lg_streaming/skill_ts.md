@@ -8,6 +8,7 @@ LangGraph's streaming system surfaces real-time updates during graph execution, 
 </overview>
 
 <decision-table>
+
 | Mode | What it Streams | Use Case |
 |------|----------------|----------|
 | `values` | Full state after each step | Monitor complete state changes |
@@ -15,6 +16,7 @@ LangGraph's streaming system surfaces real-time updates during graph execution, 
 | `messages` | LLM tokens + metadata | Chat UIs, token streaming |
 | `custom` | User-defined data | Progress indicators, logs |
 | `debug` | All execution details | Debugging, detailed tracing |
+
 </decision-table>
 
 <ex-stream-state-values>

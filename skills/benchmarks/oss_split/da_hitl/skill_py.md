@@ -13,12 +13,14 @@ Requires LangGraph's persistence (checkpointer) to save state during interrupts.
 </overview>
 
 <when-to-use-hitl>
+
 | Use HITL When | Skip HITL When |
 |--------------|---------------|
 | High-stakes operations (DB writes, deployments) | Read-only operations |
 | Compliance requires human oversight | Fully automated workflows |
 | Expensive API calls need verification | Low-cost operations |
 | Learning agent behavior | Trusted, tested operations |
+
 </when-to-use-hitl>
 
 <ex-basic-setup>
@@ -62,12 +64,14 @@ agent = create_agent(
 </ex-human-in-the-loop-middleware-directly>
 
 <interrupt-strategies>
+
 | Tool Type | Interrupt Config | Allowed Decisions | Use Case |
 |-----------|-----------------|------------------|----------|
 | Destructive | `True` | approve, edit, reject | write_file, delete_record |
 | Critical | `{"allowed_decisions": ["approve", "reject"]}` | approve, reject only | deploy_code, execute_sql |
 | Safe | `False` | none | read_file, get_weather |
 | Expensive | `True` | approve, edit, reject | call_paid_api |
+
 </interrupt-strategies>
 
 <ex-basic-approval-workflow>

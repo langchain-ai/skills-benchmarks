@@ -15,6 +15,7 @@ Key Concepts:
 </overview>
 
 <provider-selection>
+
 | Provider | Best For | Model Examples | Dimensions | Package | Key Features |
 |----------|----------|----------------|------------|---------|--------------|
 | **OpenAI** | General purpose, high quality | text-embedding-3-small, text-embedding-3-large, text-embedding-ada-002 | 1536, 3072 | `@langchain/openai` | High quality, reliable, flexible dimensions |
@@ -23,6 +24,7 @@ Key Concepts:
 | **HuggingFace** | Open source, customizable | all-MiniLM-L6-v2, BGE models | Varies | `@langchain/community` | Free, local inference, many models |
 | **Google** | GCP integration | textembedding-gecko | 768 | `@langchain/google-genai` | GCP ecosystem, multimodal |
 | **Ollama** | Local, privacy | llama2, mistral, nomic-embed-text | Varies | `@langchain/ollama` | Fully local, no API costs, privacy |
+
 </provider-selection>
 
 <when-to-use>

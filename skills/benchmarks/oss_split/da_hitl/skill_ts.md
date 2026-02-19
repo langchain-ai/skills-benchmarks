@@ -26,11 +26,13 @@ const agent = await createDeepAgent({
 </basic-setup>
 
 <decision-table>
+
 | Tool Type | Config | Decisions | Use Case |
 |-----------|--------|-----------|----------|
 | Destructive | `true` | approve/edit/reject | write_file, delete |
 | Critical | `{allowedDecisions: [...]}` | approve/reject only | deploy, SQL |
 | Safe | `false` | none | read_file |
+
 </decision-table>
 
 <ex-basic-approval>

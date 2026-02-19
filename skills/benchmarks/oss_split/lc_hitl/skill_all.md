@@ -16,6 +16,7 @@ Key Concepts:
 </overview>
 
 <when-to-use>
+
 | Scenario | Use HITL? | Why |
 |----------|-----------|-----|
 | Database writes | Yes | Prevent data corruption |
@@ -24,14 +25,17 @@ Key Concepts:
 | Deleting data | Yes | Prevent accidental loss |
 | Read-only operations | No | Low risk |
 | Internal calculations | No | No external impact |
+
 </when-to-use>
 
 <decision-types>
+
 | Decision | Effect | When to Use |
 |----------|--------|-------------|
 | `approve` | Execute tool as-is | Tool call looks correct |
 | `edit` | Modify args then execute | Need to change parameters |
 | `reject` | Don't execute, provide feedback | Tool call is wrong |
+
 </decision-types>
 
 <ex-setup>

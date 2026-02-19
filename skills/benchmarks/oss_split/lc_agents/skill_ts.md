@@ -13,6 +13,7 @@ Key Concepts:
 </overview>
 
 <when-to-use>
+
 | Scenario | Use Agent? | Why |
 |----------|-----------|-----|
 | Need to call external APIs/databases | Yes | Agents can dynamically choose which tools to call |
@@ -20,9 +21,11 @@ Key Concepts:
 | Simple prompt-response | No | Use a chat model directly |
 | Predetermined workflow | No | Use LangGraph workflow instead |
 | Need tool calling without iteration | Partial Maybe | Consider using model.bindTools() directly |
+
 </when-to-use>
 
 <choosing-agent-configuration>
+
 | Need | Configuration | Example |
 |------|---------------|---------|
 | Basic agent with tools | `createAgent({ model, tools })` | Search, calculator, weather |
@@ -30,15 +33,18 @@ Key Concepts:
 | Human approval for sensitive operations | Add `humanInTheLoopMiddleware` | Database writes, emails |
 | Persistence across sessions | Add `checkpointer` | Multi-turn conversations |
 | Structured output format | Add `responseFormat` | Extract contact info, parse forms |
+
 </choosing-agent-configuration>
 
 <tool-strategy>
+
 | Tool Type | When to Use | Example |
 |-----------|-------------|---------|
 | Static tools | Tools don't change during execution | Search, weather, calculator |
 | Dynamic tools | Tools depend on runtime state | User-specific APIs |
 | Built-in tools | Need common functionality | File system, code execution |
 | Custom tools | Domain-specific operations | Your business logic |
+
 </tool-strategy>
 
 <ex-basic>

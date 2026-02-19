@@ -16,6 +16,7 @@ Vector stores are databases optimized for storing and searching high-dimensional
 </overview>
 
 <vectorstore-selection>
+
 | Vector Store | Best For | Package | Persistence | Scalability | Key Features |
 |--------------|----------|---------|-------------|-------------|--------------|
 | **FAISS** | Local, high performance | `langchain-community` | Disk | Medium | Fast, CPU/GPU support, local |
@@ -25,6 +26,7 @@ Vector stores are databases optimized for storing and searching high-dimensional
 | **Weaviate** | GraphQL, hybrid search | `langchain-weaviate` | Cloud/Self-hosted | High | GraphQL, hybrid search |
 | **Qdrant** | High performance, filtering | `langchain-qdrant` | Cloud/Self-hosted | High | Fast, advanced filtering |
 | **PGVector** | PostgreSQL users | `langchain-postgres` | PostgreSQL | High | PostgreSQL extension |
+
 </vectorstore-selection>
 
 <when-to-choose>

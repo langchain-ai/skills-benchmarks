@@ -14,29 +14,35 @@ Tool calling allows chat models to request execution of external functions. Mode
 </overview>
 
 <when-to-use-tool-calling>
+
 | Scenario | Use Tool Calling? | Why |
 |----------|------------------|-----|
 | Need external data (API, database) | Yes | Model can't access external data directly |
 | Multi-step reasoning with actions | Yes | Model decides next action based on results |
 | Simple Q&A | No | No tools needed |
 | Predetermined workflow | Partial Maybe | Consider if model needs to decide steps |
+
 </when-to-use-tool-calling>
 
 <tool-choice-strategies>
+
 | Strategy | When to Use | Example |
 |----------|-------------|---------|
 | `"auto"` (default) | Model decides if/which tool to use | General purpose |
 | `"any"` | Force model to use at least one tool | Extraction, classification |
 | `"tool_name"` | Force specific tool | When you know which tool is needed |
 | `"none"` | Prevent tool use | After tools are executed |
+
 </tool-choice-strategies>
 
 <handling-tool-calls>
+
 | Pattern | When to Use | Example |
 |---------|-------------|---------|
 | Manual execution | Outside of agents | Testing, custom workflows |
 | Agent loop | Production use | create_agent handles automatically |
 | Parallel execution | Multiple independent tools | Weather + news queries |
+
 </handling-tool-calls>
 
 <ex-basic-tool-calling>

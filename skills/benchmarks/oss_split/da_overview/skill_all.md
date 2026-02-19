@@ -16,6 +16,7 @@ Deep Agents use an "agent harness" architecture - the same core tool-calling loo
 </overview>
 
 <when-to-use>
+
 | Use Deep Agents When | Use LangChain's create_agent/createAgent When |
 |---------------------|-----------------------------------|
 | Multi-step tasks requiring planning | Simple, single-purpose tasks |
@@ -23,6 +24,7 @@ Deep Agents use an "agent harness" architecture - the same core tool-calling loo
 | Need for specialized subagents | Single agent is sufficient |
 | Persistent memory across sessions | Ephemeral, single-session work |
 | CLI or coding assistant use cases | Simple API or chat applications |
+
 </when-to-use>
 
 <ex-basic-agent>
@@ -269,6 +271,7 @@ const agent = await createDeepAgent({
 </ex-config-options>
 
 <decision-table>
+
 | If you need to... | Use this middleware | When to customize |
 |------------------|-------------------|------------------|
 | Track complex multi-step tasks | TodoListMiddleware / todoListMiddleware | Default works; customize prompt if needed |
@@ -279,6 +282,7 @@ const agent = await createDeepAgent({
 | Add human approval | HumanInTheLoopMiddleware / humanInTheLoopMiddleware | Configure which tools require approval |
 | Load skills on-demand | SkillsMiddleware / skillsMiddleware | Provide skill directories |
 | Access persistent memory | MemoryMiddleware / memoryMiddleware | Provide a Store instance |
+
 </decision-table>
 
 <boundaries>

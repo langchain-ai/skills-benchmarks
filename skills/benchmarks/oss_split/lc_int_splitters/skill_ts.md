@@ -14,6 +14,7 @@ Text splitters divide large documents into smaller chunks that fit within model 
 </overview>
 
 <splitter-selection>
+
 | Splitter | Best For | Package | Key Features |
 |----------|----------|---------|--------------|
 | **RecursiveCharacterTextSplitter** | General purpose | `@langchain/textsplitters` | Hierarchical splitting, preserves structure |
@@ -21,6 +22,7 @@ Text splitters divide large documents into smaller chunks that fit within model 
 | **TokenTextSplitter** | Token-aware splitting | `@langchain/textsplitters` | Counts actual tokens, not characters |
 | **MarkdownTextSplitter** | Markdown documents | `@langchain/textsplitters` | Preserves markdown structure |
 | **RecursiveJsonSplitter** | JSON data | `@langchain/textsplitters` | Splits JSON while preserving structure |
+
 </splitter-selection>
 
 <when-to-choose>

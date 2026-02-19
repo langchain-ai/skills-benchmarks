@@ -13,12 +13,14 @@ Requires LangGraph's persistence (checkpointer) to save state during interrupts.
 </overview>
 
 <when-to-use>
+
 | Use HITL When | Skip HITL When |
 |--------------|---------------|
 | High-stakes operations (DB writes, deployments) | Read-only operations |
 | Compliance requires human oversight | Fully automated workflows |
 | Expensive API calls need verification | Low-cost operations |
 | Learning agent behavior | Trusted, tested operations |
+
 </when-to-use>
 
 <setup>
@@ -88,12 +90,14 @@ const agent = await createDeepAgent({
 </setup>
 
 <decision-table>
+
 | Tool Type | Interrupt Config | Allowed Decisions | Use Case |
 |-----------|-----------------|------------------|----------|
 | Destructive | `True` / `true` | approve, edit, reject | write_file, delete_record |
 | Critical | `{"allowed_decisions": ["approve", "reject"]}` | approve, reject only | deploy_code, execute_sql |
 | Safe | `False` / `false` | none | read_file, get_weather |
 | Expensive | `True` / `true` | approve, edit, reject | call_paid_api |
+
 </decision-table>
 
 <ex-basic-approval>

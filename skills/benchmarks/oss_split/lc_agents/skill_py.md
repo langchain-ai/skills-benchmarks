@@ -13,6 +13,7 @@ Agents combine language models with tools to create systems that can reason abou
 </overview>
 
 <when-to-use-agents>
+
 | Scenario | Use Agent? | Why |
 |----------|-----------|-----|
 | Need to call external APIs/databases | Yes | Agents can dynamically choose which tools to call |
@@ -20,9 +21,11 @@ Agents combine language models with tools to create systems that can reason abou
 | Simple prompt-response | No | Use a chat model directly |
 | Predetermined workflow | No | Use LangGraph workflow instead |
 | Need tool calling without iteration | Partial Maybe | Consider using model.bind_tools() directly |
+
 </when-to-use-agents>
 
 <agent-configuration-selection>
+
 | Need | Configuration | Example |
 |------|---------------|---------|
 | Basic agent with tools | `create_agent(model, tools)` | Search, calculator, weather |
@@ -30,15 +33,18 @@ Agents combine language models with tools to create systems that can reason abou
 | Human approval for sensitive operations | Add `human_in_the_loop_middleware` | Database writes, emails |
 | Persistence across sessions | Add `checkpointer` | Multi-turn conversations |
 | Structured output format | Add `response_format` | Extract contact info, parse forms |
+
 </agent-configuration-selection>
 
 <tool-strategy>
+
 | Tool Type | When to Use | Example |
 |-----------|-------------|---------|
 | Static tools | Tools don't change during execution | Search, weather, calculator |
 | Dynamic tools | Tools depend on runtime state | User-specific APIs |
 | Built-in tools | Need common functionality | File system, code execution |
 | Custom tools | Domain-specific operations | Your business logic |
+
 </tool-strategy>
 
 <ex-basic-agent-with-tools>

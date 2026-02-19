@@ -16,15 +16,18 @@ FilesystemMiddleware solves context engineering challenges by providing file ope
 </overview>
 
 <when-to-use-filesystem>
+
 | Use Filesystem Tools When | Alternative Approach |
 |--------------------------|---------------------|
 | Tool results are variable-length (web_search, RAG) | Keep in message history (if small) |
 | Working with large documents or code | Use specialized tools |
 | Need persistent storage across turns | Use short-term message history |
 | Multiple files need coordination | Single-turn operations |
+
 </when-to-use-filesystem>
 
 <backend-selection>
+
 | Use Case | Backend | Why |
 |----------|---------|-----|
 | Temporary working files | StateBackend | Default, no setup needed |
@@ -32,6 +35,7 @@ FilesystemMiddleware solves context engineering challenges by providing file ope
 | Cross-session memory | StoreBackend | Persists across threads |
 | Hybrid storage | CompositeBackend | Mix ephemeral + persistent |
 | Production web app | StateBackend or Sandbox | Never use FilesystemBackend |
+
 </backend-selection>
 
 <ex-state-backend-default>

@@ -15,6 +15,7 @@ Tools enable LLMs to interact with external systems, perform calculations, searc
 </overview>
 
 <tool-selection>
+
 | Tool/Toolkit | Best For | Package | Key Features |
 |--------------|----------|---------|--------------|
 | **Tavily Search** | Web search | `langchain-community` | AI-optimized search API |
@@ -23,6 +24,7 @@ Tools enable LLMs to interact with external systems, perform calculations, searc
 | **ArXiv** | Academic papers | `langchain-community` | Research paper search |
 | **Vector Store Tools** | Semantic search | Based on vector store | Query your data |
 | **Custom Tools** | Your specific needs | `langchain-core` | Define any function |
+
 </tool-selection>
 
 <when-to-choose>

@@ -1,0 +1,176 @@
+# Treatment configurations for oss-fix-lg-persistence task
+#
+# Tests whether Claude can find relevant skills among many options.
+# The bugs require knowledge from: lg_persistence, lg_state
+#
+# Key question: Does having many skills help or hurt?
+
+TARGETED:
+  description: "Only the 2 directly relevant skills"
+  claude_md: |
+    # Project Guidelines
+    Check available skills before coding.
+  skills:
+    - skill: oss_split/lg_persistence
+      variant: py
+      name: LangGraph Persistence (Python)
+    - skill: oss_split/lg_state
+      variant: py
+      name: LangGraph State (Python)
+
+ALL_LG:
+  description: "All 8 LangGraph skills (includes relevant + distractors)"
+  claude_md: |
+    # Project Guidelines
+    Check available skills before coding.
+  skills:
+    - skill: oss_split/lg_graph_api
+      variant: py
+      name: LangGraph Graph API (Python)
+    - skill: oss_split/lg_interrupts
+      variant: py
+      name: LangGraph Interrupts (Python)
+    - skill: oss_split/lg_memory
+      variant: py
+      name: LangGraph Memory (Python)
+    - skill: oss_split/lg_overview
+      variant: py
+      name: LangGraph Overview (Python)
+    - skill: oss_split/lg_persistence
+      variant: py
+      name: LangGraph Persistence (Python)
+    - skill: oss_split/lg_state
+      variant: py
+      name: LangGraph State (Python)
+    - skill: oss_split/lg_streaming
+      variant: py
+      name: LangGraph Streaming (Python)
+    - skill: oss_split/lg_workflows
+      variant: py
+      name: LangGraph Workflows (Python)
+
+ALL_LC:
+  description: "All 15 LangChain skills (none directly relevant to this LangGraph task)"
+  claude_md: |
+    # Project Guidelines
+    Check available skills before coding.
+  skills:
+    - skill: oss_split/lc_agents
+      variant: py
+      name: LangChain Agents (Python)
+    - skill: oss_split/lc_hitl
+      variant: py
+      name: LangChain Human-in-the-Loop (Python)
+    - skill: oss_split/lc_int_chat_models
+      variant: py
+      name: LangChain Chat Models (Python)
+    - skill: oss_split/lc_int_doc_loaders
+      variant: py
+      name: LangChain Document Loaders (Python)
+    - skill: oss_split/lc_int_embeddings
+      variant: py
+      name: LangChain Embeddings (Python)
+    - skill: oss_split/lc_int_splitters
+      variant: py
+      name: LangChain Text Splitters (Python)
+    - skill: oss_split/lc_int_tools
+      variant: py
+      name: LangChain Tools Integration (Python)
+    - skill: oss_split/lc_int_vectorstores
+      variant: py
+      name: LangChain Vector Stores (Python)
+    - skill: oss_split/lc_models
+      variant: py
+      name: LangChain Models (Python)
+    - skill: oss_split/lc_multimodal
+      variant: py
+      name: LangChain Multimodal (Python)
+    - skill: oss_split/lc_rag
+      variant: py
+      name: LangChain RAG (Python)
+    - skill: oss_split/lc_streaming
+      variant: py
+      name: LangChain Streaming (Python)
+    - skill: oss_split/lc_structured_output
+      variant: py
+      name: LangChain Structured Output (Python)
+    - skill: oss_split/lc_tool_calling
+      variant: py
+      name: LangChain Tool Calling (Python)
+    - skill: oss_split/lc_tools
+      variant: py
+      name: LangChain Tools (Python)
+
+MANY_MIXED:
+  description: "20 skills from all categories (LG + LC + DA)"
+  claude_md: |
+    # Project Guidelines
+    Check available skills before coding.
+  skills:
+    # LangGraph (all 8)
+    - skill: oss_split/lg_graph_api
+      variant: py
+      name: LangGraph Graph API (Python)
+    - skill: oss_split/lg_interrupts
+      variant: py
+      name: LangGraph Interrupts (Python)
+    - skill: oss_split/lg_memory
+      variant: py
+      name: LangGraph Memory (Python)
+    - skill: oss_split/lg_overview
+      variant: py
+      name: LangGraph Overview (Python)
+    - skill: oss_split/lg_persistence
+      variant: py
+      name: LangGraph Persistence (Python)
+    - skill: oss_split/lg_state
+      variant: py
+      name: LangGraph State (Python)
+    - skill: oss_split/lg_streaming
+      variant: py
+      name: LangGraph Streaming (Python)
+    - skill: oss_split/lg_workflows
+      variant: py
+      name: LangGraph Workflows (Python)
+    # LangChain (subset - 7)
+    - skill: oss_split/lc_agents
+      variant: py
+      name: LangChain Agents (Python)
+    - skill: oss_split/lc_rag
+      variant: py
+      name: LangChain RAG (Python)
+    - skill: oss_split/lc_streaming
+      variant: py
+      name: LangChain Streaming (Python)
+    - skill: oss_split/lc_tools
+      variant: py
+      name: LangChain Tools (Python)
+    - skill: oss_split/lc_models
+      variant: py
+      name: LangChain Models (Python)
+    - skill: oss_split/lc_structured_output
+      variant: py
+      name: LangChain Structured Output (Python)
+    - skill: oss_split/lc_tool_calling
+      variant: py
+      name: LangChain Tool Calling (Python)
+    # DeepAgents (subset - 5)
+    - skill: oss_split/da_overview
+      variant: py
+      name: Deep Agents Overview (Python)
+    - skill: oss_split/da_memory
+      variant: py
+      name: Deep Agents Memory (Python)
+    - skill: oss_split/da_skills
+      variant: py
+      name: Deep Agents Skills (Python)
+    - skill: oss_split/da_subagents
+      variant: py
+      name: Deep Agents Subagents (Python)
+    - skill: oss_split/da_todolist
+      variant: py
+      name: Deep Agents Todolist (Python)
+
+CONTROL:
+  description: "No skills - baseline using Claude's general knowledge"
+  skills: []

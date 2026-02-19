@@ -171,27 +171,6 @@ MANY_MIXED:
       variant: all
       name: Deep Agents Todolist
 
-NAMES_ONLY:
-  description: "Skill names visible but minimal/empty content - tests name priming"
-  claude_md: |
-    # Project Guidelines
-    Check available skills before coding.
-  skills:
-    - name: LangGraph Persistence
-      content: |
-        ---
-        name: LangGraph Persistence
-        description: Persistence patterns for LangGraph
-        ---
-        This skill covers persistence patterns.
-    - name: LangGraph State
-      content: |
-        ---
-        name: LangGraph State
-        description: State management for LangGraph
-        ---
-        This skill covers state management patterns.
-
 CONTROL:
   description: "No skills - baseline using Claude's general knowledge"
   skills: []

@@ -63,7 +63,7 @@ from typing import Any
 
 import yaml
 
-from scaffold.python.skill_parser import load_skill, load_skill_variant, skill_config
+from scaffold.python.skill_parser import load_skill_variant, skill_config
 
 TREATMENTS_FILE = Path(__file__).parent.parent.parent / "tests" / "treatments.yaml"
 SKILL_BASE = Path(__file__).parent.parent.parent / "skills" / "benchmarks"
@@ -155,7 +155,7 @@ def _build_skill_config(
             raise FileNotFoundError(f"No skill file found in {skill_path}")
 
         # Parse directly since load_skill expects lowercase skill.md
-        from scaffold.python.skill_parser import parse_skill_md, get_section_list
+        from scaffold.python.skill_parser import get_section_list, parse_skill_md
 
         sections = parse_skill_md(skill_md)
         all_sections = get_section_list(skill_md)

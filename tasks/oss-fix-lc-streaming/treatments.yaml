@@ -219,9 +219,9 @@ ALL_MERGED:
     - skill: oss_merged/lc_rag
       variant: all
       name: LangChain RAG
-    - skill: oss_merged/lc_models
+    - skill: oss_merged/lc_fundamentals
       variant: all
-      name: LangChain Models
+      name: LangChain Fundamentals
     - skill: oss_merged/lc_output
       variant: all
       name: LangChain Output

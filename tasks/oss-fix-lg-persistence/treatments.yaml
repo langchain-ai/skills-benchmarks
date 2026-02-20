@@ -204,9 +204,9 @@ ALL_MERGED:
     - skill: oss_merged/lc_rag
       variant: all
       name: LangChain RAG Pipeline
-    - skill: oss_merged/lc_models
+    - skill: oss_merged/lc_fundamentals
       variant: all
-      name: LangChain Models & Streaming
+      name: LangChain Fundamentals
     - skill: oss_merged/lc_output
       variant: all
       name: LangChain Structured Output & HITL

@@ -9,6 +9,7 @@ Build production agents using `create_agent()`, the `@tool` decorator / `tool()`
 
 <quick_start>
 <python>
+Create and invoke a basic agent with tools using create_agent.
 ```python
 from langchain.agents import create_agent
 from langchain_core.tools import tool
@@ -32,6 +33,7 @@ result = agent.invoke({"messages": [("user", "Search for LangChain docs")]})
 ```
 </python>
 <typescript>
+Create and invoke a basic agent with tools using createAgent.
 ```typescript
 import { createAgent } from "@langchain/langgraph/prebuilt";
 import { tool } from "@langchain/core/tools";

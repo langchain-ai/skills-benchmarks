@@ -171,6 +171,46 @@ MANY_MIXED:
       variant: all
       name: Deep Agents Todolist
 
+ALL_MERGED:
+  description: "All 10 consolidated skills from oss_merged (3 LG + 3 DA + 4 LC) - Python + TypeScript"
+  claude_md: |
+    # Project Guidelines
+    You should use relevant skills to ensure you know best practices.
+  skills:
+    # LangGraph (3 merged)
+    - skill: oss_merged/lg_fundamentals
+      variant: all
+      name: LangGraph Fundamentals
+    - skill: oss_merged/lg_persistence
+      variant: all
+      name: LangGraph Persistence & Memory
+    - skill: oss_merged/lg_execution
+      variant: all
+      name: LangGraph Execution Control
+    # DeepAgents (3 merged)
+    - skill: oss_merged/da_core
+      variant: all
+      name: Deep Agents Core
+    - skill: oss_merged/da_memory
+      variant: all
+      name: Deep Agents Memory & Filesystem
+    - skill: oss_merged/da_orchestration
+      variant: all
+      name: Deep Agents Orchestration
+    # LangChain (4 merged)
+    - skill: oss_merged/lc_agents
+      variant: all
+      name: LangChain Agents & Tools
+    - skill: oss_merged/lc_rag
+      variant: all
+      name: LangChain RAG Pipeline
+    - skill: oss_merged/lc_models
+      variant: all
+      name: LangChain Models & Streaming
+    - skill: oss_merged/lc_output
+      variant: all
+      name: LangChain Structured Output & HITL
+
 CONTROL:
   description: "No skills - baseline using Claude's general knowledge"
   skills: []

@@ -1,0 +1,16 @@
+[metadata]
+name = "lc-deps-tavily"
+description = "Dependency confusion task: Claude fixes a broken project with wrong langchain deps and import paths"
+difficulty = "medium"
+category = "langchain"
+tags = ["langchain", "dependencies", "tavily", "imports", "debugging"]
+
+[template]
+required = []
+
+[environment]
+dockerfile = "environment/Dockerfile"
+timeout_sec = 900
+
+[validation]
+validators = ["validators"]

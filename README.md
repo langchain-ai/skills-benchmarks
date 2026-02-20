@@ -123,9 +123,9 @@ ls-multiskill-basic-BASELINE 5/8 (62%)       12       95s      langsmith-dataset
 
 Tasks prefixed with `ls-` query and create LangSmith resources. Important considerations:
 
-> **Note: Parallel execution**
+> **Note: Parallel execution** 
 >
-> Parallel execution via pytest-xdist (`-n 4`) is tested and safe - each worker gets isolated LangSmith projects. Running multiple separate pytest processes simultaneously is untested and may have issues.
+> Parallel execution via pytest-xdist (`-n 4`) is tested and safe - each worker gets isolated LangSmith projects. Running multiple separate pytest processes simultaneously is untested and may have issues. 
 
 > **Warning: Orphaned resources on interrupt**
 >

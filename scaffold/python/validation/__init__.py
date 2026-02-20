@@ -39,6 +39,7 @@ from scaffold.python.validation.core import (
     validate_noise_outputs,
     validate_pattern,
     validate_skill_invoked,
+    validate_starter_skill_first,
 )
 from scaffold.python.validation.dataset import (
     extract_examples,
@@ -82,6 +83,7 @@ __all__ = [
     "validate_pattern",
     "validate_no_pattern",
     "validate_skill_invoked",
+    "validate_starter_skill_first",
     "validate_noise_outputs",
     "get_noise_task_prompts",
     "NOISE_TASK_DELIVERABLES",

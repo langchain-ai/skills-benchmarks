@@ -1,0 +1,14 @@
+[metadata]
+name = "lc-version-confusion"
+description = "Legacy code modernization task: Claude modernizes LangChain 0.1/0.2 era code to current patterns"
+difficulty = "medium"
+category = "langchain"
+tags = ["langchain", "migration", "legacy", "modernization", "deprecated"]
+
+
+[environment]
+dockerfile = "environment/Dockerfile"
+timeout_sec = 900
+
+[validation]
+validators = ["validators"]

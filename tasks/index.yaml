@@ -54,6 +54,39 @@ tasks:
       - MULTISKILL_CLAUDEMD_ONLY
       - CONTROL
 
+  lc-deps-tavily:
+    description: "Fix a broken project with wrong langchain deps and import paths for Tavily"
+    difficulty: medium
+    category: langchain
+    tags: [langchain, dependencies, tavily, imports, debugging]
+    compatible_treatments:
+      - CONTROL
+      - ALL_MAIN_SKILLS
+      - SEPARATE_SKILLS
+      - STARTER_KIT
+
+  lc-framework-choice:
+    description: "Pick appropriate frameworks (LangChain/LangGraph/Deep Agents) for app components"
+    difficulty: hard
+    category: langchain
+    tags: [langchain, langgraph, deep-agents, framework-selection, architecture]
+    compatible_treatments:
+      - CONTROL
+      - ALL_MAIN_SKILLS
+      - SEPARATE_SKILLS
+      - STARTER_KIT
+
+  lc-version-confusion:
+    description: "Modernize LangChain 0.1/0.2 era legacy code to current 1.0 patterns"
+    difficulty: medium
+    category: langchain
+    tags: [langchain, migration, legacy, modernization, deprecated]
+    compatible_treatments:
+      - CONTROL
+      - ALL_MAIN_SKILLS
+      - SEPARATE_SKILLS
+      - STARTER_KIT
+
 # Difficulty levels:
 #   easy   - Single-skill tasks with clear requirements
 #   medium - Multi-step tasks or polyglot requirements
@@ -61,3 +94,4 @@ tasks:
 
 # Categories:
 #   langsmith - LangSmith tracing, datasets, evaluators
+#   langchain - LangChain agents, dependencies, framework selection

@@ -222,3 +222,133 @@ CLAUDE_MD_BOTH_MOVED:
       included_sections: *curated_sections
       section_overrides:
         quick_start: *quick_start_neutral
+
+# =============================================================================
+# NEW SKILL COMPARISONS (all 12 main skills + new benchmark skills)
+# =============================================================================
+
+ALL_MAIN_SKILLS:
+  description: "All 12 main skills, no new skills (baseline for comparison)"
+  skills:
+    - skill: langsmith-trace
+      base: main
+      name: langsmith-trace
+    - skill: langsmith-dataset
+      base: main
+      name: langsmith-dataset
+    - skill: langsmith-evaluator
+      base: main
+      name: langsmith-evaluator
+    - skill: langchain-models
+      base: main
+      name: langchain-models
+    - skill: langchain-rag
+      base: main
+      name: langchain-rag
+    - skill: langchain-output
+      base: main
+      name: langchain-output
+    - skill: langgraph-fundamentals
+      base: main
+      name: langgraph-fundamentals
+    - skill: langgraph-persistence
+      base: main
+      name: langgraph-persistence
+    - skill: langgraph-execution
+      base: main
+      name: langgraph-execution
+    - skill: deep-agents-core
+      base: main
+      name: deep-agents-core
+    - skill: deep-agents-memory
+      base: main
+      name: deep-agents-memory
+    - skill: deep-agents-orchestration
+      base: main
+      name: deep-agents-orchestration
+
+SEPARATE_SKILLS:
+  description: "All 12 main skills + framework-selection + langchain-dependencies"
+  skills:
+    - skill: langsmith-trace
+      base: main
+      name: langsmith-trace
+    - skill: langsmith-dataset
+      base: main
+      name: langsmith-dataset
+    - skill: langsmith-evaluator
+      base: main
+      name: langsmith-evaluator
+    - skill: langchain-models
+      base: main
+      name: langchain-models
+    - skill: langchain-rag
+      base: main
+      name: langchain-rag
+    - skill: langchain-output
+      base: main
+      name: langchain-output
+    - skill: langgraph-fundamentals
+      base: main
+      name: langgraph-fundamentals
+    - skill: langgraph-persistence
+      base: main
+      name: langgraph-persistence
+    - skill: langgraph-execution
+      base: main
+      name: langgraph-execution
+    - skill: deep-agents-core
+      base: main
+      name: deep-agents-core
+    - skill: deep-agents-memory
+      base: main
+      name: deep-agents-memory
+    - skill: deep-agents-orchestration
+      base: main
+      name: deep-agents-orchestration
+    - skill: framework-selection
+      name: framework-selection
+    - skill: langchain-dependencies
+      name: langchain-dependencies
+
+STARTER_KIT:
+  description: "All 12 main skills + langchain-agent-starter-kit"
+  skills:
+    - skill: langsmith-trace
+      base: main
+      name: langsmith-trace
+    - skill: langsmith-dataset
+      base: main
+      name: langsmith-dataset
+    - skill: langsmith-evaluator
+      base: main
+      name: langsmith-evaluator
+    - skill: langchain-models
+      base: main
+      name: langchain-models
+    - skill: langchain-rag
+      base: main
+      name: langchain-rag
+    - skill: langchain-output
+      base: main
+      name: langchain-output
+    - skill: langgraph-fundamentals
+      base: main
+      name: langgraph-fundamentals
+    - skill: langgraph-persistence
+      base: main
+      name: langgraph-persistence
+    - skill: langgraph-execution
+      base: main
+      name: langgraph-execution
+    - skill: deep-agents-core
+      base: main
+      name: deep-agents-core
+    - skill: deep-agents-memory
+      base: main
+      name: deep-agents-memory
+    - skill: deep-agents-orchestration
+      base: main
+      name: deep-agents-orchestration
+    - skill: langchain-agent-starter-kit
+      name: langchain-agent-starter-kit

@@ -1,0 +1,16 @@
+[metadata]
+name = "lc-framework-choice"
+description = "Framework selection task: Claude picks appropriate frameworks for components of an app"
+difficulty = "hard"
+category = "langchain"
+tags = ["langchain", "langgraph", "deep-agents", "framework-selection", "architecture"]
+
+[template]
+required = []
+
+[environment]
+dockerfile = "environment/Dockerfile"
+timeout_sec = 900
+
+[validation]
+validators = ["validators"]

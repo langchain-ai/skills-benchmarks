@@ -4,12 +4,12 @@ description: Create LangChain agents with create_agent, define tools, and use mi
 ---
 
 <oneliner>
-Build production agents using `create_agent()`, the `@tool` decorator, and middleware patterns.
+Build production agents using `create_agent()`, the `@tool` decorator / `tool()` function, and middleware patterns.
 </oneliner>
 
 <quick_start>
-**Modern LangChain Agent Pattern:**
-
+<python>
+Create and invoke a basic agent with tools using create_agent.
 ```python
 from langchain.agents import create_agent
 from langchain_core.tools import tool
@@ -24,18 +24,39 @@ def search(query: str) -> str:
     return f"Results for: {query}"
 
 agent = create_agent(
-    model="anthropic:claude-sonnet-4-5",  # or "openai:gpt-4.1"
+    model="anthropic:claude-sonnet-4-5",
     tools=[search],
     system_prompt="You are a helpful assistant."
 )
 
 result = agent.invoke({"messages": [("user", "Search for LangChain docs")]})
 ```
+</python>
+<typescript>
+Create and invoke a basic agent with tools using createAgent.
+```typescript
+import { createAgent } from "@langchain/langgraph/prebuilt";
+import { tool } from "@langchain/core/tools";
+import { z } from "zod";
 
-**Key Imports:**
-- `from langchain.agents import create_agent` - Agent factory
-- `from langchain_core.tools import tool` - Tool decorator
-- `from langchain.agents import human_in_the_loop_middleware` - Human approval
+const search = tool(
+  async ({ query }) => `Results for: ${query}`,
+  {
+    name: "search",
+    description: "Search for information on the web.",
+    schema: z.object({ query: z.string().describe("The search query") }),
+  }
+);
+
+const agent = createAgent({
+  model: "anthropic:claude-sonnet-4-5",
+  tools: [search],
+  systemPrompt: "You are a helpful assistant.",
+});
+
+const result = await agent.invoke({ messages: [["user", "Search for LangChain docs"]] });
+```
+</typescript>
 </quick_start>
 
 <create_agent>
@@ -43,8 +64,21 @@ result = agent.invoke({"messages": [("user", "Search for LangChain docs")]})
 
 `create_agent()` is the recommended way to build agents. It handles the agent loop, tool execution, and state management.
 
-### Basic Agent
+### Agent Configuration Options
 
+| Parameter | Purpose | Example |
+|-----------|---------|---------|
+| `model` | LLM to use | `"anthropic:claude-sonnet-4-5"` or model instance |
+| `tools` | List of tools | `[search, calculator]` |
+| `system_prompt` / `systemPrompt` | Agent instructions | `"You are a helpful assistant"` |
+| `checkpointer` | State persistence | `MemorySaver()` |
+| `middleware` | Processing hooks | `[human_in_the_loop_middleware]` |
+| `max_iterations` / `maxIterations` | Loop limit | `10` |
+</create_agent>
+
+<ex-basic-agent>
+<python>
+Create a basic agent with a weather tool and invoke it with a user query.
 ```python
 from langchain.agents import create_agent
 from langchain_core.tools import tool
@@ -58,19 +92,10 @@ def get_weather(location: str) -> str:
     """
     return f"Weather in {location}: Sunny, 72F"
 
-@tool
-def search(query: str) -> str:
-    """Search for information on the web.
-
-    Args:
-        query: The search query
-    """
-    return f"Search results for: {query}"
-
 agent = create_agent(
     model="anthropic:claude-sonnet-4-5",
-    tools=[get_weather, search],
-    system_prompt="You are a helpful assistant that can search and check weather."
+    tools=[get_weather],
+    system_prompt="You are a helpful assistant."
 )
 
 result = agent.invoke({
@@ -78,9 +103,40 @@ result = agent.invoke({
 })
 print(result["messages"][-1].content)
 ```
+</python>
+<typescript>
+Create a basic agent with a weather tool and invoke it with a user query.
+```typescript
+import { createAgent } from "@langchain/langgraph/prebuilt";
+import { tool } from "@langchain/core/tools";
+import { z } from "zod";
 
-### Agent with Persistence
+const getWeather = tool(
+  async ({ location }) => `Weather in ${location}: Sunny, 72F`,
+  {
+    name: "get_weather",
+    description: "Get current weather for a location.",
+    schema: z.object({ location: z.string().describe("City name") }),
+  }
+);
 
+const agent = createAgent({
+  model: "anthropic:claude-sonnet-4-5",
+  tools: [getWeather],
+  systemPrompt: "You are a helpful assistant.",
+});
+
+const result = await agent.invoke({
+  messages: [{ role: "user", content: "What's the weather in Paris?" }],
+});
+console.log(result.messages[result.messages.length - 1].content);
+```
+</typescript>
+</ex-basic-agent>
+
+<ex-agent-with-persistence>
+<python>
+Add MemorySaver checkpointer to maintain conversation state across invocations.
 ```python
 from langchain.agents import create_agent
 from langgraph.checkpoint.memory import MemorySaver
@@ -93,33 +149,43 @@ agent = create_agent(
     checkpointer=checkpointer,
 )
 
-# Conversation maintains state across invocations
 config = {"configurable": {"thread_id": "user-123"}}
 agent.invoke({"messages": [{"role": "user", "content": "My name is Alice"}]}, config=config)
 result = agent.invoke({"messages": [{"role": "user", "content": "What's my name?"}]}, config=config)
 # Agent remembers: "Your name is Alice"
 ```
+</python>
+<typescript>
+Add MemorySaver checkpointer to maintain conversation state across invocations.
+```typescript
+import { createAgent } from "@langchain/langgraph/prebuilt";
+import { MemorySaver } from "@langchain/langgraph";
 
-### Agent Configuration Options
+const checkpointer = new MemorySaver();
 
-| Parameter | Purpose | Example |
-|-----------|---------|---------|
-| `model` | LLM to use | `"anthropic:claude-sonnet-4-5"` or model instance |
-| `tools` | List of tools | `[search, calculator]` |
-| `system_prompt` | Agent instructions | `"You are a helpful assistant"` |
-| `checkpointer` | State persistence | `MemorySaver()` |
-| `middleware` | Processing hooks | `[human_in_the_loop_middleware]` |
-| `max_iterations` | Loop limit | `10` |
-| `response_format` | Structured output | Pydantic model |
-</create_agent>
+const agent = createAgent({
+  model: "anthropic:claude-sonnet-4-5",
+  tools: [search],
+  checkpointer,
+});
+
+const config = { configurable: { thread_id: "user-123" } };
+await agent.invoke({ messages: [{ role: "user", content: "My name is Alice" }] }, config);
+const result = await agent.invoke({ messages: [{ role: "user", content: "What's my name?" }] }, config);
+// Agent remembers: "Your name is Alice"
+```
+</typescript>
+</ex-agent-with-persistence>
 
 <tools>
-## Defining Tools with @tool
+## Defining Tools
 
-Tools are functions that agents can call. Use the `@tool` decorator to create them.
+Tools are functions that agents can call. Use the `@tool` decorator (Python) or `tool()` function (TypeScript).
+</tools>
 
-### Basic Tool
-
+<ex-basic-tool>
+<python>
+Define a calculator tool using the @tool decorator with parameter types.
 ```python
 from langchain_core.tools import tool
 
@@ -138,84 +204,46 @@ def calculate(expression: str) -> str:
     except Exception as e:
         return f"Error: {e}"
 ```
+</python>
+<typescript>
+Define a calculator tool using the tool() function with Zod schema validation.
+```typescript
+import { tool } from "@langchain/core/tools";
+import { z } from "zod";
 
-### Tool with Complex Parameters
-
-```python
-from langchain_core.tools import tool
-from pydantic import BaseModel, Field
-from typing import Literal, Optional
-
-class SearchParams(BaseModel):
-    query: str = Field(description="Search query")
-    limit: int = Field(default=10, description="Max results")
-    category: Optional[Literal["news", "docs", "code"]] = None
-
-@tool(args_schema=SearchParams)
-def advanced_search(query: str, limit: int = 10, category: str = None) -> str:
-    """Search with filters.
-
-    Args:
-        query: Search query
-        limit: Maximum results
-        category: Filter by category
-    """
-    return f"Found {limit} results for '{query}' in {category or 'all'}"
+const calculate = tool(
+  async ({ expression }) => {
+    const allowed = new Set("0123456789+-*/(). ".split(""));
+    if (![...expression].every((c) => allowed.has(c))) {
+      return "Error: Invalid characters in expression";
+    }
+    try {
+      return String(eval(expression));
+    } catch (e) {
+      return `Error: ${e}`;
+    }
+  },
+  {
+    name: "calculate",
+    description: "Evaluate a mathematical expression safely.",
+    schema: z.object({
+      expression: z.string().describe("Math expression like '2 + 2' or '10 * 5'"),
+    }),
+  }
+);
 ```
-
-### Async Tool
-
-```python
-from langchain_core.tools import tool
-import aiohttp
-
-@tool
-async def fetch_url(url: str) -> str:
-    """Fetch content from a URL.
-
-    Args:
-        url: URL to fetch
-    """
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
-            return await response.text()
-```
-
-### Tool Best Practices
-
-**Good tool definition:**
-```python
-@tool
-def search_customers(query: str) -> str:
-    """Search customer database by name, email, or ID.
-
-    Returns customer records with contact information.
-    Use this when user asks about customer data.
-
-    Args:
-        query: Customer name, email, or ID to search for
-    """
-    return search_database(query)
-```
-
-**Bad tool definition:**
-```python
-@tool
-def bad_tool(data: str) -> str:
-    """Does something."""  # Too vague!
-    return "result"
-```
-</tools>
+</typescript>
+</ex-basic-tool>
 
 <middleware>
 ## Middleware for Agent Control
 
 Middleware intercepts the agent loop to add human approval, error handling, logging, etc.
+</middleware>
 
-### Human-in-the-Loop Middleware
-
-Require human approval before executing sensitive tools:
-
+<ex-hitl-middleware>
+<python>
+Require human approval before executing sensitive tools like delete operations.
 ```python
 from langchain.agents import create_agent, human_in_the_loop_middleware
 
@@ -238,14 +266,41 @@ agent = create_agent(
         )
     ],
 )
-
-# Agent will pause and ask for approval before calling delete_record
 ```
+</python>
+<typescript>
+Require human approval before executing sensitive tools like delete operations.
+```typescript
+import { createAgent, humanInTheLoopMiddleware } from "@langchain/langgraph/prebuilt";
 
-### Error Handling Middleware
+const deleteRecord = tool(
+  async ({ recordId }) => {
+    await db.delete(recordId);
+    return `Deleted record ${recordId}`;
+  },
+  {
+    name: "delete_record",
+    description: "Delete a database record permanently.",
+    schema: z.object({ recordId: z.string().describe("ID of record to delete") }),
+  }
+);
 
-Catch and handle tool errors gracefully:
+const agent = createAgent({
+  model: "anthropic:claude-sonnet-4-5",
+  tools: [deleteRecord, search],
+  middleware: [
+    humanInTheLoopMiddleware({
+      toolsRequiringApproval: ["delete_record"],
+    }),
+  ],
+});
+```
+</typescript>
+</ex-hitl-middleware>
 
+<ex-error-middleware>
+<python>
+Catch and handle tool errors gracefully with custom middleware.
 ```python
 from langchain.agents import create_agent, wrap_tool_call
 
@@ -265,117 +320,68 @@ agent = create_agent(
     middleware=[error_handler],
 )
 ```
+</python>
+<typescript>
+Catch and handle tool errors gracefully with custom middleware.
+```typescript
+import { createAgent, wrapToolCall } from "@langchain/langgraph/prebuilt";
 
-### Logging Middleware
+const errorHandler = wrapToolCall(async (toolCall, handler) => {
+  try {
+    return await handler(toolCall);
+  } catch (error) {
+    return {
+      ...toolCall,
+      content: `Tool error: ${error}. Please try a different approach.`,
+    };
+  }
+});
 
-Log all tool calls for debugging:
-
-```python
-from langchain.agents import wrap_tool_call
-
-@wrap_tool_call
-async def logging_middleware(tool_call, handler):
-    print(f"Calling tool: {tool_call['name']} with args: {tool_call['args']}")
-    result = await handler(tool_call)
-    print(f"Tool result: {result['content'][:100]}...")
-    return result
+const agent = createAgent({
+  model: "anthropic:claude-sonnet-4-5",
+  tools: [riskyTool],
+  middleware: [errorHandler],
+});
 ```
-</middleware>
+</typescript>
+</ex-error-middleware>
 
 <model_config>
 ## Model Configuration
 
-### Model String Format
-
 `create_agent` accepts model strings in `provider:model` format:
 
-```python
-# Anthropic
-agent = create_agent(model="anthropic:claude-sonnet-4-5", tools=[...])
-
-# OpenAI
-agent = create_agent(model="openai:gpt-4.1", tools=[...])
-
-# AWS Bedrock
-agent = create_agent(model="bedrock:anthropic.claude-3-5-sonnet-20241022-v2:0", tools=[...])
 ```
-
-### Using Model Instances
-
-For more control, pass a model instance:
-
-```python
-from langchain_anthropic import ChatAnthropic
-from langchain_openai import ChatOpenAI
-
-# Anthropic with custom settings
-model = ChatAnthropic(
-    model="claude-sonnet-4-5",
-    temperature=0,
-    max_tokens=4096,
-)
-
-# OpenAI with custom settings
-model = ChatOpenAI(
-    model="gpt-4.1",
-    temperature=0.7,
-)
-
-agent = create_agent(model=model, tools=[...])
-```
-
-### Using init_chat_model
-
-For dynamic provider selection:
-
-```python
-from langchain.chat_models import init_chat_model
-
-model = init_chat_model(
-    model="claude-sonnet-4-5",
-    model_provider="anthropic",
-    temperature=0,
-)
-
-agent = create_agent(model=model, tools=[...])
+"anthropic:claude-sonnet-4-5"
+"openai:gpt-4.1"
+"bedrock:anthropic.claude-3-5-sonnet-20241022-v2:0"
 ```
 </model_config>
 
-<streaming>
-## Streaming Agent Output
-
-### Stream Modes
-
+<ex-model-instance>
+<python>
+Pass a model instance with custom settings instead of a model string.
 ```python
-# Stream full state after each step
-for mode, chunk in agent.stream(input, stream_mode=["values"]):
-    print(chunk["messages"][-1])
+from langchain_anthropic import ChatAnthropic
 
-# Stream only changes
-for mode, chunk in agent.stream(input, stream_mode=["updates"]):
-    print(chunk)
-
-# Stream LLM tokens
-for mode, chunk in agent.stream(input, stream_mode=["messages"]):
-    token, metadata = chunk
-    if token.content:
-        print(token.content, end="", flush=True)
+model = ChatAnthropic(model="claude-sonnet-4-5", temperature=0)
+agent = create_agent(model=model, tools=[...])
 ```
+</python>
+<typescript>
+Pass a model instance with custom settings instead of a model string.
+```typescript
+import { ChatAnthropic } from "@langchain/anthropic";
 
-### Async Streaming
-
-```python
-async for mode, chunk in agent.astream(
-    {"messages": [{"role": "user", "content": "Hello"}]},
-    stream_mode=["messages"],
-):
-    token, metadata = chunk
-    if token.content:
-        print(token.content, end="", flush=True)
+const model = new ChatAnthropic({ model: "claude-sonnet-4-5", temperature: 0 });
+const agent = createAgent({ model, tools: [...] });
 ```
-</streaming>
+</typescript>
+</ex-model-instance>
 
 <fix-missing-tool-description>
+<python>
+Clear descriptions help the agent know when to use each tool.
 ```python
 # WRONG: Vague or missing description
 @tool
@@ -395,9 +401,32 @@ def search(query: str) -> str:
     """
     return web_search(query)
 ```
+</python>
+<typescript>
+Clear descriptions help the agent know when to use each tool.
+```typescript
+// WRONG: Vague description
+const badTool = tool(async ({ input }) => "result", {
+  name: "bad_tool",
+  description: "Does stuff.", // Too vague!
+  schema: z.object({ input: z.string() }),
+});
+
+// CORRECT: Clear, specific description
+const search = tool(async ({ query }) => webSearch(query), {
+  name: "search",
+  description: "Search the web for current information about a topic. Use this when you need recent data or facts.",
+  schema: z.object({
+    query: z.string().describe("The search query (2-10 words recommended)"),
+  }),
+});
+```
+</typescript>
 </fix-missing-tool-description>
 
 <fix-no-checkpointer>
+<python>
+Add checkpointer and thread_id for conversation memory across invocations.
 ```python
 # WRONG: No persistence - agent forgets between calls
 agent = create_agent(model="anthropic:claude-sonnet-4-5", tools=[search])
@@ -413,21 +442,43 @@ agent = create_agent(
     tools=[search],
     checkpointer=MemorySaver(),
 )
-
 config = {"configurable": {"thread_id": "session-1"}}
 agent.invoke({"messages": [{"role": "user", "content": "I'm Bob"}]}, config=config)
 agent.invoke({"messages": [{"role": "user", "content": "What's my name?"}]}, config=config)
 # Agent remembers: "Your name is Bob"
 ```
+</python>
+<typescript>
+Add checkpointer and thread_id for conversation memory across invocations.
+```typescript
+// WRONG: No persistence
+const agent = createAgent({ model: "anthropic:claude-sonnet-4-5", tools: [search] });
+await agent.invoke({ messages: [{ role: "user", content: "I'm Bob" }] });
+await agent.invoke({ messages: [{ role: "user", content: "What's my name?" }] });
+// Agent doesn't remember!
+
+// CORRECT: Add checkpointer and thread_id
+import { MemorySaver } from "@langchain/langgraph";
+
+const agent = createAgent({
+  model: "anthropic:claude-sonnet-4-5",
+  tools: [search],
+  checkpointer: new MemorySaver(),
+});
+const config = { configurable: { thread_id: "session-1" } };
+await agent.invoke({ messages: [{ role: "user", content: "I'm Bob" }] }, config);
+await agent.invoke({ messages: [{ role: "user", content: "What's my name?" }] }, config);
+// Agent remembers: "Your name is Bob"
+```
+</typescript>
 </fix-no-checkpointer>
 
 <fix-infinite-loop>
+<python>
+Set max_iterations to prevent runaway agent loops.
 ```python
 # WRONG: No iteration limit - could loop forever
 agent = create_agent(model="anthropic:claude-sonnet-4-5", tools=[search])
-result = agent.invoke({
-    "messages": [{"role": "user", "content": "Keep searching until you find everything"}]
-})
 
 # CORRECT: Set max_iterations
 agent = create_agent(
@@ -436,27 +487,26 @@ agent = create_agent(
     max_iterations=10,  # Stop after 10 tool calls
 )
 ```
+</python>
+<typescript>
+Set maxIterations to prevent runaway agent loops.
+```typescript
+// WRONG: No iteration limit
+const agent = createAgent({ model: "anthropic:claude-sonnet-4-5", tools: [search] });
+
+// CORRECT: Set maxIterations
+const agent = createAgent({
+  model: "anthropic:claude-sonnet-4-5",
+  tools: [search],
+  maxIterations: 10, // Stop after 10 tool calls
+});
+```
+</typescript>
 </fix-infinite-loop>
 
-<fix-non-serializable-return>
-```python
-from datetime import datetime
-
-# WRONG: Returning non-JSON-serializable objects
-@tool
-def bad_get_time() -> datetime:
-    """Get current time."""
-    return datetime.now()  # datetime not serializable!
-
-# CORRECT: Return strings or JSON-serializable data
-@tool
-def get_time() -> str:
-    """Get current time in ISO format."""
-    return datetime.now().isoformat()
-```
-</fix-non-serializable-return>
-
 <fix-accessing-result-wrong>
+<python>
+Access the messages array from the result, not result.content directly.
 ```python
 # WRONG: Trying to access result.content directly
 result = agent.invoke({"messages": [{"role": "user", "content": "Hello"}]})
@@ -466,11 +516,24 @@ print(result.content)  # AttributeError!
 result = agent.invoke({"messages": [{"role": "user", "content": "Hello"}]})
 print(result["messages"][-1].content)  # Last message content
 ```
+</python>
+<typescript>
+Access the messages array from the result, not result.content directly.
+```typescript
+// WRONG: Trying to access result.content directly
+const result = await agent.invoke({ messages: [{ role: "user", content: "Hello" }] });
+console.log(result.content); // undefined!
+
+// CORRECT: Access messages from result object
+const result = await agent.invoke({ messages: [{ role: "user", content: "Hello" }] });
+console.log(result.messages[result.messages.length - 1].content); // Last message content
+```
+</typescript>
 </fix-accessing-result-wrong>
 
 <related_skills>
 - **langgraph-fundamentals**: For custom graph-based agents with StateGraph
 - **langgraph-persistence**: For advanced persistence patterns with checkpointers
-- **langchain-output**: For structured output with Pydantic models
+- **langchain-output**: For structured output with Pydantic/Zod models
 - **langchain-rag**: For RAG pipelines with vector stores
 </related_skills>

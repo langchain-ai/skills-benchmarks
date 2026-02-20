@@ -352,6 +352,29 @@ langchain-tavily>=0.1
 ```
 </fix-community-tool-outdated>
 
+<fix-community-import-deprecated>
+Many tools that used to live in `langchain-community` now have dedicated packages with updated import paths. Always prefer the dedicated package import.
+
+```python
+# WRONG — deprecated community import path
+from langchain_community.tools.tavily_search import TavilySearchResults
+from langchain_community.tools import WikipediaQueryRun
+from langchain_community.vectorstores import Chroma
+from langchain_community.vectorstores import Pinecone
+
+# CORRECT — use dedicated package imports
+from langchain_tavily import TavilySearchResults          # pip: langchain-tavily
+from langchain_community.tools import WikipediaQueryRun  # no dedicated pkg yet
+from langchain_chroma import Chroma                       # pip: langchain-chroma
+from langchain_pinecone import PineconeVectorStore        # pip: langchain-pinecone
+```
+
+To find the current canonical import for any integration, search the integrations directory:
+https://python.langchain.com/docs/integrations/tools/
+
+Each entry shows the correct package and import path. If a dedicated package exists, use it — the community path may still work but is considered legacy.
+</fix-community-import-deprecated>
+
 <fix-core-not-installed>
 <typescript>
 `@langchain/core` is a peer dependency — it must be in your package.json, especially in monorepos.

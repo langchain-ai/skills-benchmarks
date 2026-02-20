@@ -152,6 +152,7 @@ def test_task_treatment(
     outputs = {
         "run_id": run_id,
         "langsmith_project": langsmith_project,
+        "treatment_name": treatment_name,
         "events": events,
         "noise_tasks": treatment_cfg.noise_tasks,
         "trace_id_map": trace_id_map,

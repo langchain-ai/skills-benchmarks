@@ -15,15 +15,16 @@ from scaffold.python.validation import validate_skill_invoked
 MODERN_PATTERNS = {
     "from langchain.agents import create_agent": "imports create_agent from langchain.agents",
     "@tool": "uses @tool decorator",
+    "from langchain_tavily import": "uses correct langchain_tavily import (not community)",
 }
 
 # Patterns that indicate wrong choices
 WRONG_PATTERNS = {
     "from langgraph.prebuilt import create_react_agent": "uses create_react_agent from LangGraph (should use create_agent for simple agent)",
+    "from langchain_community.tools.tavily_search import": "uses deprecated community tavily import (should use langchain_tavily)",
     "AgentExecutor(": "uses deprecated AgentExecutor",
     "initialize_agent(": "uses deprecated initialize_agent",
     "from langchain.chat_models import": "uses old chat_models import path (should use langchain_openai)",
-    "from langchain.llms import": "uses deprecated langchain.llms import",
 }
 
 # Modern import patterns (good signals)
@@ -99,7 +100,7 @@ Does this demonstrate the expected behavior?"""
 
 def validate_skill_usage(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:
     """Track skill invocation (informational, doesn't fail)."""
-    return validate_skill_invoked(outputs, "langchain-agent-starter-kit", required=False)
+    return validate_skill_invoked(outputs, "langchain-oss-primer", required=False)
 
 
 def validate_metrics(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:

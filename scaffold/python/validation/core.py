@@ -123,6 +123,50 @@ def run_validators(
     return all_passed, all_failed
 
 
+def validate_starter_skill_first(
+    test_dir: "Path",
+    outputs: dict,
+) -> tuple[list[str], list[str]]:
+    """Check that langchain-oss-primer or framework-selection was invoked first.
+
+    Skipped (informational) when:
+    - No skills were invoked (e.g. CONTROL treatment)
+    - Treatment is ALL_MAIN_SKILLS (starter skills not included in that treatment)
+
+    Fails if skills were invoked and the first was not a starter skill.
+
+    Args:
+        test_dir: Test working directory (unused, required for validator signature)
+        outputs: Outputs dict containing events and treatment_name
+
+    Returns:
+        (passed, failed) lists
+    """
+    # Skip for ALL_MAIN_SKILLS — starter skills are not part of that treatment
+    treatment_name = (outputs or {}).get("treatment_name", "")
+    if treatment_name == "ALL_MAIN_SKILLS":
+        return ["Note: starter skill check skipped (ALL_MAIN_SKILLS)"], []
+
+    events = outputs.get("events", {}) if outputs else {}
+    skills_invoked = events.get("skills_invoked", [])
+
+    # No skills invoked at all (e.g. CONTROL treatment) — nothing to check
+    if not skills_invoked:
+        return ["Note: no skills invoked"], []
+
+    starter_skills = {"langchain-oss-primer", "framework-selection"}
+
+    if skills_invoked[0] in starter_skills:
+        return [f"Starter skill invoked first: {skills_invoked[0]}"], []
+
+    first = skills_invoked[0]
+    invoked_starters = [s for s in skills_invoked if s in starter_skills]
+    if invoked_starters:
+        starters = ", ".join(invoked_starters)
+        return [], [f"Starter skill not invoked first: first was '{first}', starters invoked later: {starters}"]
+    return [], [f"Starter skill not invoked: first skill was '{first}' (expected langchain-oss-primer or framework-selection)"]
+
+
 def validate_skill_invoked(
     outputs: dict,
     skill_name: str,

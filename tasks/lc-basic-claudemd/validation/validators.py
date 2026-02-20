@@ -9,7 +9,7 @@ import ast
 from pathlib import Path
 
 from scaffold.python.utils import evaluate_with_schema, run_python_in_docker
-from scaffold.python.validation import validate_skill_invoked
+from scaffold.python.validation import validate_skill_invoked, validate_starter_skill_first
 
 # Required modern patterns - ALL must be present
 AGENT_MODERN_PATTERNS = {
@@ -129,6 +129,7 @@ def validate_metrics(test_dir: Path, outputs: dict) -> tuple[list[str], list[str
 
 # List of all validators for this task
 VALIDATORS = [
+    validate_starter_skill_first,
     validate_skill_usage,
     validate_sql_agent_code,
     validate_sql_agent_output,

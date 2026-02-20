@@ -11,7 +11,7 @@ import ast
 from pathlib import Path
 
 from scaffold.python.utils import evaluate_with_schema, run_python_in_docker
-from scaffold.python.validation import validate_skill_invoked
+from scaffold.python.validation import validate_skill_invoked, validate_starter_skill_first
 
 
 def validate_qa_agent(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:
@@ -175,6 +175,7 @@ def validate_metrics(test_dir: Path, outputs: dict) -> tuple[list[str], list[str
 
 
 VALIDATORS = [
+    validate_starter_skill_first,
     validate_skill_usage,
     validate_qa_agent,
     validate_approval_pipeline,

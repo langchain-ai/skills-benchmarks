@@ -10,18 +10,17 @@ import ast
 from pathlib import Path
 
 from scaffold.python.utils import evaluate_with_schema, run_python_in_docker
-from scaffold.python.validation import validate_skill_invoked
+from scaffold.python.validation import validate_skill_invoked, validate_starter_skill_first
 
 # Correct import patterns for langchain-tavily
 CORRECT_TAVILY_IMPORTS = {
-    "langchain_tavily": "imports from langchain_tavily package",
+    "from langchain.tools import TavilySearchResults": "uses correct langchain.tools path",
     "TavilySearchResults": "uses TavilySearchResults tool",
 }
 
 # Wrong/deprecated import patterns that should NOT be present
 WRONG_TAVILY_IMPORTS = {
     "from langchain_community.tools.tavily_search": "uses deprecated community tavily import",
-    "from langchain.tools import TavilySearchResults": "uses wrong langchain.tools path",
     "tavily-python": "uses raw tavily-python instead of langchain-tavily integration",
 }
 
@@ -127,6 +126,7 @@ def validate_metrics(test_dir: Path, outputs: dict) -> tuple[list[str], list[str
 
 # List of all validators for this task
 VALIDATORS = [
+    validate_starter_skill_first,
     validate_skill_usage,
     validate_fixed_agent_code,
     validate_fixed_agent_output,

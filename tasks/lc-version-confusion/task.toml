@@ -5,8 +5,6 @@ difficulty = "medium"
 category = "langchain"
 tags = ["langchain", "migration", "legacy", "modernization", "deprecated"]
 
-[template]
-required = ["legacy_agent.py"]
 
 [environment]
 dockerfile = "environment/Dockerfile"

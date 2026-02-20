@@ -29,6 +29,7 @@ Each skill in a treatment can be configured with:
    - `noise`: Load from noise skill directory (skills/noise/)
    - `content`: Inline skill content (bypasses file loading entirely)
    - `include_related`: Include <related_skills> sections (filtered out by default)
+   - `base`: Base directory for skills ("benchmarks" or "main", default: "benchmarks")
 
 ## YAML Anchor Pattern
 
@@ -66,6 +67,7 @@ from scaffold.python.skill_parser import load_skill, load_skill_variant, skill_c
 
 TREATMENTS_FILE = Path(__file__).parent.parent.parent / "tests" / "treatments.yaml"
 SKILL_BASE = Path(__file__).parent.parent.parent / "skills" / "benchmarks"
+MAIN_SKILL_BASE = Path(__file__).parent.parent.parent / "skills" / "main"
 NOISE_SKILL_BASE = Path(__file__).parent.parent.parent / "skills" / "noise"
 
 
@@ -103,6 +105,7 @@ def _build_skill_config(
     suffix: bool = False,
     include_related: bool = False,
     noise: bool = False,
+    base: str = "benchmarks",
     included_sections: list[str] | None = None,
     extra_sections: list[str] | None = None,
     section_overrides: dict[str, str] | None = None,
@@ -110,11 +113,12 @@ def _build_skill_config(
     """Build a skill configuration from a skill directory.
 
     Args:
-        skill_dir: Skill directory name (e.g., "langsmith_trace")
+        skill_dir: Skill directory name (e.g., "langsmith_trace" or "langsmith-trace")
         variant: Language variant to load (py, ts, all)
         suffix: Whether to add language suffix to description
         include_related: Whether to include <related_skills> sections from skill
         noise: Whether this is a noise/distractor skill (simpler loading)
+        base: Base directory for skills ("benchmarks" or "main")
         included_sections: If specified, only include these named sections
         extra_sections: If specified, append these custom sections as content strings
         section_overrides: If specified, replace these sections with custom content
@@ -122,7 +126,10 @@ def _build_skill_config(
     Returns:
         Skill configuration dict for scaffold
     """
-    skill_path = SKILL_BASE / skill_dir
+    if base == "main":
+        skill_path = MAIN_SKILL_BASE / skill_dir
+    else:
+        skill_path = SKILL_BASE / skill_dir
 
     if noise:
         # Noise skills are in a separate directory with uppercase SKILL.md
@@ -134,12 +141,32 @@ def _build_skill_config(
                 return skill_config([skill_md.read_text()], None, None)
         return None
 
-    # Load skill - check if variant files exist, otherwise fall back to skill.md
+    # Load skill - check if variant files exist, otherwise fall back to skill.md or SKILL.md
     variant_path = skill_path / f"skill_{variant}.md" if variant else skill_path / "skill.md"
     if variant and not variant_path.exists():
-        # No variant files - fall back to load_skill (skill.md)
-        skill = load_skill(skill_path)
-        skill["script_filter"] = None  # No variant filtering
+        # No variant files - try SKILL.md (uppercase) for main skills, then skill.md
+        skill_md = None
+        for filename in ["SKILL.md", "skill.md"]:
+            if (skill_path / filename).exists():
+                skill_md = skill_path / filename
+                break
+
+        if skill_md is None:
+            raise FileNotFoundError(f"No skill file found in {skill_path}")
+
+        # Parse directly since load_skill expects lowercase skill.md
+        from scaffold.python.skill_parser import parse_skill_md, get_section_list
+
+        sections = parse_skill_md(skill_md)
+        all_sections = get_section_list(skill_md)
+        scripts_dir = skill_path / "scripts"
+
+        skill = {
+            "sections": sections,
+            "all": all_sections,
+            "scripts_dir": scripts_dir if scripts_dir.exists() else None,
+            "script_filter": None,  # No variant filtering
+        }
     else:
         skill = load_skill_variant(skill_path, variant)
 
@@ -209,6 +236,7 @@ def build_treatment_skills(skill_configs: list[dict[str, Any]]) -> dict[str, dic
         suffix = cfg.get("suffix", False)
         include_related = cfg.get("include_related", False)
         noise = cfg.get("noise", False)
+        base = cfg.get("base", "benchmarks")  # "benchmarks" or "main"
         included_sections = cfg.get("included_sections")  # Optional list of section names
         extra_sections = cfg.get("extra_sections")  # Optional list of custom section content
         section_overrides = cfg.get("section_overrides")  # Optional dict of section replacements
@@ -219,6 +247,7 @@ def build_treatment_skills(skill_configs: list[dict[str, Any]]) -> dict[str, dic
             suffix=suffix,
             include_related=include_related,
             noise=noise,
+            base=base,
             included_sections=included_sections,
             extra_sections=extra_sections,
             section_overrides=section_overrides,

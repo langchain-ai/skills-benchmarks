@@ -163,8 +163,12 @@ def validate_starter_skill_first(
     invoked_starters = [s for s in skills_invoked if s in starter_skills]
     if invoked_starters:
         starters = ", ".join(invoked_starters)
-        return [], [f"Starter skill not invoked first: first was '{first}', starters invoked later: {starters}"]
-    return [], [f"Starter skill not invoked: first skill was '{first}' (expected langchain-oss-primer or framework-selection)"]
+        return [], [
+            f"Starter skill not invoked first: first was '{first}', starters invoked later: {starters}"
+        ]
+    return [], [
+        f"Starter skill not invoked: first skill was '{first}' (expected langchain-oss-primer or framework-selection)"
+    ]
 
 
 def validate_skill_invoked(

@@ -36,7 +36,9 @@ def validate_qa_agent(test_dir: Path, outputs: dict) -> tuple[list[str], list[st
         failed.append("QA Agent: missing create_agent from langchain.agents")
 
     if "from langgraph.prebuilt import create_react_agent" in content:
-        failed.append("QA Agent: uses create_react_agent from LangGraph (should use create_agent for simple agent)")
+        failed.append(
+            "QA Agent: uses create_react_agent from LangGraph (should use create_agent for simple agent)"
+        )
 
     if "StateGraph" in content:
         failed.append("QA Agent: uses LangGraph StateGraph (overkill for simple react agent)")
@@ -62,9 +64,13 @@ def validate_approval_pipeline(test_dir: Path, outputs: dict) -> tuple[list[str]
         return passed, failed + [f"Approval Pipeline: syntax error line {e.lineno}"]
 
     if "StateGraph" in content:
-        passed.append("Approval Pipeline: correctly uses LangGraph StateGraph for deterministic routing")
+        passed.append(
+            "Approval Pipeline: correctly uses LangGraph StateGraph for deterministic routing"
+        )
     else:
-        failed.append("Approval Pipeline: missing LangGraph StateGraph (required for deterministic branching)")
+        failed.append(
+            "Approval Pipeline: missing LangGraph StateGraph (required for deterministic branching)"
+        )
 
     if "add_conditional_edges" in content or "add_edge" in content:
         passed.append("Approval Pipeline: uses explicit edge routing")
@@ -94,7 +100,9 @@ def validate_middleware_agent(test_dir: Path, outputs: dict) -> tuple[list[str],
     uses_langgraph = "StateGraph" in content
 
     if uses_langgraph:
-        failed.append("Middleware Agent: uses LangGraph StateGraph (middleware/hooks are not a LangGraph concept)")
+        failed.append(
+            "Middleware Agent: uses LangGraph StateGraph (middleware/hooks are not a LangGraph concept)"
+        )
 
     if uses_create_agent or uses_deep_agent:
         which = "create_agent" if uses_create_agent else "create_deep_agent"
@@ -123,9 +131,13 @@ def validate_research_assistant(test_dir: Path, outputs: dict) -> tuple[list[str
         return passed, failed + [f"Research Assistant: syntax error line {e.lineno}"]
 
     if "create_deep_agent" in content:
-        passed.append("Research Assistant: correctly uses create_deep_agent for sub-agent orchestration")
+        passed.append(
+            "Research Assistant: correctly uses create_deep_agent for sub-agent orchestration"
+        )
     else:
-        failed.append("Research Assistant: missing create_deep_agent (required for sub-agent planning)")
+        failed.append(
+            "Research Assistant: missing create_deep_agent (required for sub-agent planning)"
+        )
 
     return passed, failed
 
@@ -148,12 +160,18 @@ def validate_personal_assistant(test_dir: Path, outputs: dict) -> tuple[list[str
         return passed, failed + [f"Personal Assistant: syntax error line {e.lineno}"]
 
     if "create_deep_agent" in content:
-        passed.append("Personal Assistant: correctly uses create_deep_agent for built-in planning + memory")
+        passed.append(
+            "Personal Assistant: correctly uses create_deep_agent for built-in planning + memory"
+        )
     else:
-        failed.append("Personal Assistant: missing create_deep_agent (required for built-in planning and memory management)")
+        failed.append(
+            "Personal Assistant: missing create_deep_agent (required for built-in planning and memory management)"
+        )
 
     if "StateGraph" in content and "create_deep_agent" not in content:
-        failed.append("Personal Assistant: uses LangGraph StateGraph instead of create_deep_agent for memory management")
+        failed.append(
+            "Personal Assistant: uses LangGraph StateGraph instead of create_deep_agent for memory management"
+        )
 
     return passed, failed
 

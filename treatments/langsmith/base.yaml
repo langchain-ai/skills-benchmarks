@@ -1,0 +1,18 @@
+# LangSmith base treatment - unified skills
+
+LS_BASE:
+  description: "Unified skills (trace/evaluator/dataset with all variants)"
+  claude_md: |
+    # CRITICAL
+
+    This project has skills with reference implementations. Before writing code, you must check the available skills and use relevant ones - this ensure you follow best practices.
+  skills:
+    - skill: langsmith_trace
+      variant: all
+      name: langsmith-trace
+    - skill: langsmith_evaluator
+      variant: all
+      name: langsmith-evaluator
+    - skill: langsmith_dataset
+      variant: all
+      name: langsmith-dataset

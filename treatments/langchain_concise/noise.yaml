@@ -1,0 +1,54 @@
+# LangChain noise experiment treatments
+#
+# Tests skill retention when distracted by unrelated noise tasks.
+
+LCC_NOISE_NONE:
+  description: "Baseline for noise comparison (no noise)"
+  skills:
+    - skill: langchain_basic
+      name: langchain-agents
+
+LCC_NOISE_1:
+  description: "1 noise task (Docker)"
+  skills:
+    - skill: langchain_basic
+      name: langchain-agents
+    - skill: docker_patterns
+      name: docker-patterns
+      noise: true
+  noise_tasks:
+    - docker_patterns
+
+LCC_NOISE_2:
+  description: "2 noise tasks (Docker + React)"
+  skills:
+    - skill: langchain_basic
+      name: langchain-agents
+    - skill: docker_patterns
+      name: docker-patterns
+      noise: true
+    - skill: react_components
+      name: react-components
+      noise: true
+  noise_tasks:
+    - docker_patterns
+    - react_components
+
+LCC_NOISE_3:
+  description: "3 noise tasks (Docker + React + API)"
+  skills:
+    - skill: langchain_basic
+      name: langchain-agents
+    - skill: docker_patterns
+      name: docker-patterns
+      noise: true
+    - skill: react_components
+      name: react-components
+      noise: true
+    - skill: api_docs
+      name: api-docs
+      noise: true
+  noise_tasks:
+    - docker_patterns
+    - react_components
+    - api_docs

@@ -66,9 +66,19 @@ import yaml
 from scaffold.python.skill_parser import load_skill_variant, skill_config
 
 TREATMENTS_FILE = Path(__file__).parent.parent.parent / "tests" / "treatments.yaml"
+TREATMENTS_FOLDER = Path(__file__).parent.parent.parent / "treatments"
 SKILL_BASE = Path(__file__).parent.parent.parent / "skills" / "benchmarks"
 MAIN_SKILL_BASE = Path(__file__).parent.parent.parent / "skills" / "main"
 NOISE_SKILL_BASE = Path(__file__).parent.parent.parent / "skills" / "noise"
+
+# Categories of treatments that are shared across tasks (not task-specific folders)
+SHARED_CATEGORIES = {
+    "common",
+    "langsmith",
+    "langchain_concise",
+    "oss_split",
+    "oss_merged",
+}
 
 
 @dataclass
@@ -288,6 +298,86 @@ def load_treatments_yaml(path: Path | None = None) -> dict[str, TreatmentConfig]
             skills=cfg.get("skills", []),
             noise_tasks=cfg.get("noise_tasks", []),
         )
+
+    return treatments
+
+
+def load_shared_treatments() -> dict[str, TreatmentConfig]:
+    """Load all shared treatments from the treatments/ folder structure.
+
+    Loads treatments from category folders (common, langsmith, etc.)
+    but NOT from task-specific folders.
+
+    Returns:
+        Dict mapping treatment names to TreatmentConfig objects
+    """
+    if not TREATMENTS_FOLDER.exists():
+        return {}
+
+    treatments = {}
+
+    for category in TREATMENTS_FOLDER.iterdir():
+        if not category.is_dir():
+            continue
+        # Only load from shared categories, not task-specific folders
+        if category.name not in SHARED_CATEGORIES:
+            continue
+
+        for yaml_file in category.glob("*.yaml"):
+            category_treatments = load_treatments_yaml(yaml_file)
+            treatments.update(category_treatments)
+
+    return treatments
+
+
+def load_task_specific_treatments(task_name: str) -> dict[str, TreatmentConfig]:
+    """Load task-specific treatments from treatments/{task_name}/.
+
+    Args:
+        task_name: Name of the task (e.g., "ls-lang-evaluator")
+
+    Returns:
+        Dict mapping treatment names to TreatmentConfig objects
+    """
+    task_folder = TREATMENTS_FOLDER / task_name
+    if not task_folder.exists():
+        return {}
+
+    treatments = {}
+    for yaml_file in task_folder.glob("*.yaml"):
+        task_treatments = load_treatments_yaml(yaml_file)
+        treatments.update(task_treatments)
+
+    return treatments
+
+
+def load_all_task_treatments(task_path: Path) -> dict[str, TreatmentConfig]:
+    """Load all treatments available for a task (shared + task-specific).
+
+    Merges shared treatments with task-specific overrides.
+    Task-specific treatments override shared ones with the same name.
+
+    Args:
+        task_path: Path to task directory (e.g., tasks/ls-lang-evaluator)
+
+    Returns:
+        Dict mapping treatment names to TreatmentConfig objects
+    """
+    task_name = task_path.name
+
+    # 1. Load shared treatments from category folders
+    treatments = load_shared_treatments()
+
+    # 2. Load task-specific treatments and merge (task-specific overrides shared)
+    task_specific = load_task_specific_treatments(task_name)
+    treatments.update(task_specific)
+
+    # 3. Fall back to legacy task-specific treatments.yaml if exists
+    #    (for backward compatibility during transition)
+    legacy_path = task_path / "treatments.yaml"
+    if legacy_path.exists():
+        legacy_treatments = load_treatments_yaml(legacy_path)
+        treatments.update(legacy_treatments)
 
     return treatments
 

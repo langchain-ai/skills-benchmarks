@@ -54,7 +54,7 @@ import { tool } from "langchain";
 import { z } from "zod";
 
 const getWeather = tool(
-  ({ city }) => `It's always sunny in ${city}!`,
+  ({ city }) => `It is always sunny in ${city}`,
   {
     name: "get_weather",
     description: "Get the weather for a given city",

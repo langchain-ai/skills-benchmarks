@@ -4,7 +4,7 @@ description: Create LangChain agents with createAgent, define tools, and use mid
 ---
 
 <oneliner>
-Build production agents using `createAgent()`, the `tool()` function, and middleware patterns.
+Build production agents using `create_agent()`, middleware patterns, and the `@tool` decorator / `tool()` function. When creating LangChain agents, you MUST use create_agent(), with middleware for custom flows. All other alternatives are outdated.
 </oneliner>
 
 <quick_start>

@@ -4,14 +4,25 @@
  * Treatments are loaded from YAML configuration and built into Treatment objects
  * with fully-resolved skill configurations.
  *
- * @example
- * import { loadTaskTreatments, buildTreatmentSkills } from "./treatments.js";
+ * ## Treatment Organization
  *
- * const treatments = loadTaskTreatments(taskPath);
+ * Treatments are organized in the `treatments/` folder by category:
+ * - `common/` - Shared treatments (CONTROL, ALL_MAIN_SKILLS, etc.)
+ * - `langsmith/` - LS_* treatments for LangSmith tasks
+ * - `langchain_concise/` - LCC_* treatments for LangChain tasks
+ * - `oss_split/` - OSSS_* treatments for OSS fix tasks (granular skills)
+ * - `oss_merged/` - OSSM_* treatments for OSS fix tasks (consolidated skills)
+ *
+ * All treatments are shared across tasks - there are no task-specific treatments.
+ *
+ * @example
+ * import { loadTreatments, buildTreatmentSkills } from "./treatments.js";
+ *
+ * const treatments = loadTreatments();
  * const skills = buildTreatmentSkills(treatment.skills);
  */
 
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
@@ -21,8 +32,19 @@ import { NOISE_TASK_PROMPTS, NOISE_TASK_DELIVERABLES } from "./validation.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+export const TREATMENTS_FOLDER = join(__dirname, "..", "..", "treatments");
 export const SKILL_BASE = join(__dirname, "..", "..", "skills", "benchmarks");
+export const MAIN_SKILL_BASE = join(__dirname, "..", "..", "skills", "main");
 export const NOISE_SKILL_BASE = join(__dirname, "..", "..", "skills", "noise");
+
+// All treatment categories (all shared, no task-specific folders)
+const TREATMENT_CATEGORIES = new Set([
+  "common",
+  "langsmith",
+  "langchain_concise",
+  "oss_split",
+  "oss_merged",
+]);
 
 // =============================================================================
 // TYPES
@@ -39,6 +61,7 @@ export interface SkillConfigInput {
   included_sections?: string[];
   extra_sections?: string[];
   section_overrides?: Record<string, string>;
+  base?: "benchmarks" | "main";
 }
 
 export interface TreatmentConfig {
@@ -60,17 +83,14 @@ export interface BuiltSkillConfig {
 // =============================================================================
 
 /**
- * Load treatment configurations from a task's treatments.yaml.
+ * Load treatment configurations from a YAML file.
  */
-export function loadTaskTreatments(
-  taskPath: string,
-): Record<string, TreatmentConfig> {
-  const treatmentsPath = join(taskPath, "treatments.yaml");
-  if (!existsSync(treatmentsPath)) {
+export function loadTreatmentsYaml(path: string): Record<string, TreatmentConfig> {
+  if (!existsSync(path)) {
     return {};
   }
 
-  const content = readFileSync(treatmentsPath, "utf8");
+  const content = readFileSync(path, "utf8");
   const data = parseYaml(content) as Record<string, unknown>;
 
   const treatments: Record<string, TreatmentConfig> = {};
@@ -92,11 +112,60 @@ export function loadTaskTreatments(
 }
 
 /**
- * Get list of treatment names defined for a task.
+ * Load all treatments from the treatments/ folder structure.
+ */
+export function loadTreatments(): Record<string, TreatmentConfig> {
+  if (!existsSync(TREATMENTS_FOLDER)) {
+    return {};
+  }
+
+  const treatments: Record<string, TreatmentConfig> = {};
+
+  for (const category of readdirSync(TREATMENTS_FOLDER, { withFileTypes: true })) {
+    if (!category.isDirectory()) continue;
+    if (!TREATMENT_CATEGORIES.has(category.name)) continue;
+
+    const categoryPath = join(TREATMENTS_FOLDER, category.name);
+    for (const file of readdirSync(categoryPath)) {
+      if (!file.endsWith(".yaml")) continue;
+
+      const yamlPath = join(categoryPath, file);
+      const categoryTreatments = loadTreatmentsYaml(yamlPath);
+      Object.assign(treatments, categoryTreatments);
+    }
+  }
+
+  return treatments;
+}
+
+/**
+ * List available treatment names.
+ */
+export function listTreatments(): string[] {
+  const treatments = loadTreatments();
+  return Object.keys(treatments);
+}
+
+/**
+ * Load treatments available for a task.
+ *
+ * Note: All treatments are now shared. This function returns all treatments
+ * regardless of taskPath (kept for backward compatibility).
+ */
+export function loadTaskTreatments(
+  taskPath: string,
+): Record<string, TreatmentConfig> {
+  return loadTreatments();
+}
+
+/**
+ * Get list of treatment names available for a task.
+ *
+ * Note: All treatments are now shared. This function returns all treatments
+ * regardless of taskPath (kept for backward compatibility).
  */
 export function getTaskTreatmentNames(taskPath: string): string[] {
-  const treatments = loadTaskTreatments(taskPath);
-  return Object.keys(treatments);
+  return listTreatments();
 }
 
 /**
@@ -133,18 +202,19 @@ export function buildTreatmentSkills(
     }
 
     // Option 2: Load from skill directory
-    // Note: Full skill loading would require porting skills/parser.py to TypeScript
-    // For now, we just store the config for the Python side to process
     if (cfg.skill) {
+      const base = cfg.base || "benchmarks";
+      const baseDir = base === "main" ? MAIN_SKILL_BASE : SKILL_BASE;
       const skillDir = cfg.noise
         ? join(NOISE_SKILL_BASE, cfg.skill)
-        : join(SKILL_BASE, cfg.skill);
+        : join(baseDir, cfg.skill);
 
       // Try to load skill.md content directly
       const skillMdPath = join(skillDir, "skill.md");
       const skillAllPath = join(skillDir, "skill_all.md");
       const skillPyPath = join(skillDir, "skill_py.md");
       const skillTsPath = join(skillDir, "skill_ts.md");
+      const skillUpperPath = join(skillDir, "SKILL.md");
 
       let content = "";
       const variant = cfg.variant || "all";
@@ -155,6 +225,8 @@ export function buildTreatmentSkills(
         content = readFileSync(skillTsPath, "utf8");
       } else if (existsSync(skillAllPath)) {
         content = readFileSync(skillAllPath, "utf8");
+      } else if (existsSync(skillUpperPath)) {
+        content = readFileSync(skillUpperPath, "utf8");
       } else if (existsSync(skillMdPath)) {
         content = readFileSync(skillMdPath, "utf8");
       }

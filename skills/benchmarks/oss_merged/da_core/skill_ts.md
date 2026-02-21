@@ -48,7 +48,7 @@ import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 
 const getWeather = tool(
-  async ({ city }) => `It's always sunny in ${city}!`,
+  async ({ city }) => `It is always sunny in ${city}`,
   { name: "get_weather", description: "Get weather for a city", schema: z.object({ city: z.string() }) }
 );
 

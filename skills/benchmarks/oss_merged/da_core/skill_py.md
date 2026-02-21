@@ -36,7 +36,7 @@ from langchain.tools import tool
 @tool
 def get_weather(city: str) -> str:
     """Get the weather for a given city."""
-    return f"It's always sunny in {city}!"
+    return f"It is always sunny in {city}"
 
 agent = create_deep_agent(
     model="claude-sonnet-4-5-20250929",  # Default model

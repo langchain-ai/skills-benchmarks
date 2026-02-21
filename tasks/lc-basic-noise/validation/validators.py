@@ -9,7 +9,11 @@ import ast
 from pathlib import Path
 
 from scaffold.python.utils import evaluate_with_schema, run_python_in_docker
-from scaffold.python.validation import validate_noise_outputs, validate_skill_invoked, validate_starter_skill_first
+from scaffold.python.validation import (
+    validate_noise_outputs,
+    validate_skill_invoked,
+    validate_starter_skill_first,
+)
 
 # Required modern patterns - ALL must be present
 AGENT_MODERN_PATTERNS = {

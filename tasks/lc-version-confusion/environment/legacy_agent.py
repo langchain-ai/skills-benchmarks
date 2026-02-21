@@ -1,7 +1,6 @@
-from langchain_openai import ChatOpenAI
 from langchain_community.tools.tavily_search import TavilySearchResults  # deprecated
+from langchain_openai import ChatOpenAI
 from langgraph.prebuilt import create_react_agent  # wrong level for a simple agent
-from langchain.tools import tool
 
 llm = ChatOpenAI(model="gpt-4o-mini")
 search_tool = TavilySearchResults(max_results=3)

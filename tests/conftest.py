@@ -933,14 +933,3 @@ def upload_fixture_traces(project: str, data_dir: Path) -> dict[str, str]:
     return id_mapping
 
 
-@pytest.fixture
-def upload_traces(langsmith_project):
-    """Factory fixture to upload trace fixtures to LangSmith project."""
-
-    def _upload(data_dir: Path) -> dict[str, str]:
-        if not langsmith_project or not data_dir or not data_dir.exists():
-            return {}
-        print(f"\nUploading traces from {data_dir.name} to {langsmith_project}...")
-        return upload_fixture_traces(langsmith_project, data_dir)
-
-    return _upload

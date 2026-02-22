@@ -35,6 +35,7 @@ from pathlib import Path
 import pytest
 from langsmith import testing as ls_testing
 
+from conftest import upload_fixture_traces
 from scaffold import NoiseTask, Treatment
 from scaffold.python import extract_events, parse_output
 from scaffold.python.tasks import list_tasks, load_task
@@ -162,7 +163,6 @@ def test_task_treatment(
     setup_test_context,
     run_claude,
     record_result,
-    upload_traces,
 ):
     """Run a task with a treatment and validate results."""
     # Load task
@@ -199,12 +199,13 @@ def test_task_treatment(
     # Generate run_id for parallel execution
     run_id = str(uuid.uuid4())
 
-    # Upload fixture traces for tasks that need them (ls-multiskill-*)
+    # Upload fixture traces if task has trace data files (convention-based)
     trace_id_map = {}
-    if task_name.startswith("ls-multiskill"):
+    if langsmith_project:
         data_dir = task.path / "data"
-        if data_dir.exists():
-            trace_id_map = upload_traces(data_dir)
+        if data_dir.exists() and list(data_dir.glob("trace_*.jsonl")):
+            print(f"\nUploading traces from {data_dir.name} to {langsmith_project}...")
+            trace_id_map = upload_fixture_traces(langsmith_project, data_dir)
 
     # Render prompt with required variables
     template_vars = {"run_id": run_id}

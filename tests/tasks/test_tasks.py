@@ -244,7 +244,6 @@ def test_task_treatment(task_name, treatment_name, fixtures):
     ls_testing.log_outputs(
         {
             "skills_invoked": events.get("skills_invoked", []),
-            "files_produced": events.get("files_created", []),
             "passed_checks": passed,
             "failed_checks": failed,
         }

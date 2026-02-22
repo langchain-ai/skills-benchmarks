@@ -382,6 +382,36 @@ def langsmith_project(worker_id, request):
         del os.environ["LANGSMITH_PROJECT"]
 
 
+# Track datasets created during tests for cleanup
+_created_datasets: list[str] = []
+
+
+def register_dataset_for_cleanup(dataset_name: str):
+    """Register a dataset name for cleanup at session end."""
+    if dataset_name not in _created_datasets:
+        _created_datasets.append(dataset_name)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def cleanup_datasets(request):
+    """Clean up datasets created during tests at session end."""
+    yield
+
+    if not _created_datasets:
+        return
+
+    client, _ = _get_langsmith_client()
+    if not client:
+        return
+
+    for dataset_name in _created_datasets:
+        try:
+            client.delete_dataset(dataset_name=dataset_name)
+            print(f"Deleted dataset: {dataset_name}")
+        except Exception:
+            pass  # Dataset may not exist
+
+
 @pytest.fixture(scope="session")
 def verify_environment(project_root, request):
     """Verify Docker, Claude CLI, and API keys are available.

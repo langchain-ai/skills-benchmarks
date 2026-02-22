@@ -35,6 +35,7 @@ from pathlib import Path
 import pytest
 from langsmith import testing as ls_testing
 
+from conftest import register_dataset_for_cleanup
 from scaffold import NoiseTask, Treatment
 from scaffold.python import extract_events, parse_output
 from scaffold.python.external_data_handler import run_handler
@@ -190,6 +191,14 @@ def test_task_treatment(task_name, treatment_name, fixtures):
     # Generate run_id for parallel execution
     run_id = str(uuid.uuid4())
     run_id_short = run_id[:8]
+
+    # Register datasets for cleanup (Claude may create these during the test)
+    # Using bench- prefix for all datasets
+    register_dataset_for_cleanup(f"bench-{run_id}")
+    register_dataset_for_cleanup(f"bench-be-{run_id}")
+    register_dataset_for_cleanup(f"bench-fe-{run_id}")
+    register_dataset_for_cleanup(f"bench-sql-{run_id_short}")
+    register_dataset_for_cleanup(f"bench-support-{run_id_short}")
 
     # Execute data handlers from task config
     trace_id_map = {}

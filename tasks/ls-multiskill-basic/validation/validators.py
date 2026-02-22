@@ -44,7 +44,7 @@ def validate_upload(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]
         test_dir,
         outputs,
         filename="trajectory_dataset.json",
-        upload_prefix="test-",
+        upload_prefix="bench-",
     )
 
 

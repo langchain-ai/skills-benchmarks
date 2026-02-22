@@ -29,5 +29,5 @@ validators = ["LanguageValidator", "SyntaxValidator", "DatasetValidator", "Uploa
 [setup]
 # Template variables generated at runtime
 [setup.template_vars]
-py_dataset = "benchmark-sql-{run_id_short}"
-ts_dataset = "benchmark-support-{run_id_short}"
+py_dataset = "bench-sql-{run_id_short}"
+ts_dataset = "bench-support-{run_id_short}"

@@ -273,13 +273,13 @@ def test_task_treatment(
     if num_turns:
         ls_testing.log_feedback(key="num_turns", score=float(num_turns))
 
-    # Pass rate (percentage of checks passed)
+    # Checks pass rate (percentage of validation checks passed)
     if total_checks > 0:
-        pass_rate = len(passed) / total_checks
-        ls_testing.log_feedback(key="pass_rate", score=pass_rate)
+        checks_pass_rate = len(passed) / total_checks
+        ls_testing.log_feedback(key="checks_pass_rate", score=checks_pass_rate)
 
-    # All passed (boolean: 1.0 = pass, 0.0 = fail)
-    ls_testing.log_feedback(key="all_passed", score=1.0 if not failed else 0.0)
+    # All checks passed (boolean: 1.0 = all passed, 0.0 = any failed)
+    ls_testing.log_feedback(key="all_checks_passed", score=1.0 if not failed else 0.0)
 
     # Record results
     record_result(events, passed, failed, run_id=run_id)

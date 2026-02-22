@@ -34,10 +34,6 @@ ENV_KEYS=(
     LANGSMITH_TRACING
     LANGSMITH_ENDPOINT
     TAVILY_API_KEY
-    # Claude Code tracing to LangSmith
-    CC_LANGSMITH_API_KEY
-    CC_LANGSMITH_PROJECT
-    CC_LANGSMITH_DEBUG
 )
 
 # =============================================================================
@@ -327,8 +323,7 @@ Options for run-claude:
 Environment variables passed to containers:
   OPENAI_API_KEY, ANTHROPIC_API_KEY, LANGSMITH_API_KEY,
   LANGSMITH_PROJECT, LANGSMITH_TRACING, LANGSMITH_ENDPOINT,
-  TAVILY_API_KEY, CC_LANGSMITH_API_KEY, CC_LANGSMITH_PROJECT,
-  CC_LANGSMITH_DEBUG
+  TAVILY_API_KEY
 EOF
         ;;
     esac

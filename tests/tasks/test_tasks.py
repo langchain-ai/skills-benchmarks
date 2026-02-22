@@ -1,33 +1,34 @@
 """Generic test runner for task + treatment combinations.
 
-This test file uses the new task-based structure where:
+This test file uses the task-based structure where:
 - Tasks are self-contained directories with instruction.md, task.toml, environment/, validation/
-- Treatments are defined per-task in treatments.yaml
-- Each task defines its own treatments
+- Treatments are shared across tasks in treatments/{category}/*.yaml
+- Any treatment can be used with any task
 
 Usage:
-    # Run all task/treatment combinations
-    pytest tests/test_tasks.py -v
+    # Run all default task/treatment combinations
+    pytest tests/tasks/test_tasks.py -v
 
-    # Run specific task
-    pytest tests/test_tasks.py -k "ls-evaluator" -v
+    # Run specific task with specific treatment
+    pytest tests/tasks/test_tasks.py --task=ls-evaluator --treatment=LS_BASIC_PY -v
 
-    # Run specific treatment
-    pytest tests/test_tasks.py -k "SEPARATE_NAMES" -v
+    # Run specific task with all its default treatments
+    pytest tests/tasks/test_tasks.py --task=ls-evaluator -v
 
-    # Run specific combination
-    pytest tests/test_tasks.py -k "ls-evaluator and UNIFIED_BOTH" -v
+    # Run specific treatment across all tasks that have it as default
+    pytest tests/tasks/test_tasks.py --treatment=CONTROL -v
 """
 
 import uuid
 from pathlib import Path
 
 import pytest
+import yaml
 
 from scaffold import NoiseTask, Treatment
 from scaffold.python import extract_events, parse_output
 from scaffold.python.tasks import list_tasks, load_task
-from scaffold.python.treatments import build_treatment_skills, load_task_treatments
+from scaffold.python.treatments import build_treatment_skills, load_treatments
 from scaffold.python.validation import NOISE_TASK_DELIVERABLES, NOISE_TASK_PROMPTS
 
 
@@ -50,18 +51,63 @@ CLAUDE_TIMEOUT = 600  # 10 minutes for Claude to complete task
 PYTEST_TIMEOUT = 900  # 15 minutes total including setup/teardown
 
 # Tasks directory
-TASKS_DIR = Path(__file__).parent.parent / "tasks"
+TASKS_DIR = Path(__file__).parent.parent.parent / "tasks"
+TASK_INDEX = TASKS_DIR / "index.yaml"
 
 
-def generate_test_params():
-    """Generate (task_name, treatment_name) pairs from per-task treatments.yaml files."""
+def load_task_index() -> dict:
+    """Load the task index with default treatments."""
+    if not TASK_INDEX.exists():
+        return {}
+    with open(TASK_INDEX) as f:
+        data = yaml.safe_load(f)
+    return data.get("tasks", {})
+
+
+def generate_test_params(task_filter: str | None, treatment_filter: str | None):
+    """Generate (task_name, treatment_name) pairs based on filters.
+
+    - No filters: returns default_treatments for each task
+    - --task only: returns default_treatments for that task
+    - --treatment only: returns that treatment for all tasks
+    - Both: returns that specific combination
+    """
     params = []
-    for task_name in list_tasks():
-        task = load_task(task_name)
-        treatments = load_task_treatments(task.path)
-        for treatment_name in treatments.keys():
-            params.append((task_name, treatment_name))
+    task_index = load_task_index()
+    all_treatments = load_treatments()
+    all_tasks = list_tasks()
+
+    # Validate filters
+    if task_filter and task_filter not in all_tasks:
+        raise ValueError(f"Task not found: {task_filter}. Available: {all_tasks}")
+    if treatment_filter and treatment_filter not in all_treatments:
+        raise ValueError(f"Treatment not found: {treatment_filter}. Available: {list(all_treatments.keys())}")
+
+    # Determine which tasks to run
+    tasks_to_run = [task_filter] if task_filter else all_tasks
+
+    for task_name in tasks_to_run:
+        if treatment_filter:
+            # Specific treatment requested - use it
+            params.append((task_name, treatment_filter))
+        else:
+            # No treatment filter - use defaults for this task
+            task_info = task_index.get(task_name, {})
+            defaults = task_info.get("default_treatments", [])
+            for treatment_name in defaults:
+                if treatment_name in all_treatments:
+                    params.append((task_name, treatment_name))
+
     return params
+
+
+def pytest_generate_tests(metafunc):
+    """Dynamically parametrize tests based on CLI options."""
+    if "task_name" in metafunc.fixturenames and "treatment_name" in metafunc.fixturenames:
+        task_filter = metafunc.config.getoption("--task")
+        treatment_filter = metafunc.config.getoption("--treatment")
+        params = generate_test_params(task_filter, treatment_filter)
+        metafunc.parametrize("task_name,treatment_name", params)
 
 
 def run_validators(validators: list, test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:
@@ -75,7 +121,6 @@ def run_validators(validators: list, test_dir: Path, outputs: dict) -> tuple[lis
 
 
 @pytest.mark.timeout(PYTEST_TIMEOUT)
-@pytest.mark.parametrize("task_name,treatment_name", generate_test_params())
 def test_task_treatment(
     task_name,
     treatment_name,
@@ -92,10 +137,10 @@ def test_task_treatment(
     # Load task
     task = load_task(task_name)
 
-    # Load per-task treatments (treatments.yaml in task directory)
-    treatments = load_task_treatments(task.path)
+    # Load all shared treatments
+    treatments = load_treatments()
     if treatment_name not in treatments:
-        pytest.skip(f"Treatment {treatment_name} not found in {task_name}/treatments.yaml")
+        pytest.skip(f"Treatment {treatment_name} not found")
     treatment_cfg = treatments[treatment_name]
 
     # Load validators from task

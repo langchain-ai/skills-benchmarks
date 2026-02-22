@@ -3,28 +3,6 @@
 # Tests skill synergy with 3 skills (trace + dataset + evaluator).
 # Each treatment tests different combinations of skills, section selections,
 # and CLAUDE.md configurations.
-#
-# Original: tests/benchmarks/ls_multiskill/test_advanced.py
-
-# Custom related_skills content (for cross-skill coordination tests)
-
-_trace_related_skills: &trace_related_skills |
-  <related_skills>
-  - **langsmith-dataset**: Generates evaluation datasets from trace data. Traces provide the raw execution data that datasets structure for testing.
-  - **langsmith-evaluator**: Creates evaluators that validate agent outputs. Evaluators can check trajectories captured in traces.
-  </related_skills>
-
-_dataset_related_skills: &dataset_related_skills |
-  <related_skills>
-  - **langsmith-trace**: Queries and exports trace data. Datasets are built from trace data - traces contain the inputs, outputs, and tool calls that become dataset examples.
-  - **langsmith-evaluator**: Creates evaluators that validate outputs. Evaluators run against datasets to measure performance.
-  </related_skills>
-
-_evaluator_related_skills: &evaluator_related_skills |
-  <related_skills>
-  - **langsmith-trace**: Queries execution data. Traces show what tools were called, helping you understand what evaluators should check.
-  - **langsmith-dataset**: Generates evaluation datasets. Evaluators validate the expected outputs defined in datasets.
-  </related_skills>
 
 # Curated section lists (excludes detailed examples to stress test Claude)
 
@@ -55,17 +33,8 @@ _evaluator_curated_sections: &evaluator_curated_sections
   - evaluator_types
   - best_practices
 
-# =============================================================================
-# TREATMENTS
-# =============================================================================
-
-# Control: No skills, no CLAUDE.md (pure baseline - Claude's native ability)
-CONTROL:
-  description: "No skills, no CLAUDE.md (pure baseline)"
-  skills: []
-
 # Baseline: Skills WITHOUT workflow hints, no CLAUDE.md (hardest - no cross-references)
-BASELINE:
+LS_CLAUDE_ADVANCED_NONE:
   description: "Skills without workflow hints, no CLAUDE.md (no cross-references)"
   skills:
     - skill: langsmith_trace
@@ -82,7 +51,7 @@ BASELINE:
       included_sections: *evaluator_curated_sections
 
 # CLAUDE.md only: Workflow rules in CLAUDE.md, skills without hints
-CLAUDEMD:
+LS_CLAUDE_ADVANCED_WORKFLOW:
   description: "Workflow rules in CLAUDE.md, skills without hints"
   claude_md: |
     # Project Guidelines
@@ -116,7 +85,7 @@ CLAUDEMD:
       included_sections: *evaluator_curated_sections
 
 # Skills only: Workflow hints in skills (related_skills section), minimal CLAUDE.md
-SKILLS:
+LS_CLAUDE_ADVANCED_MOVED_TO_SKILLS:
   description: "Workflow hints in skills, minimal CLAUDE.md"
   claude_md: |
     # Project Guidelines
@@ -128,22 +97,34 @@ SKILLS:
       name: langsmith-trace
       included_sections: *trace_curated_sections
       extra_included_sections:
-        - *trace_related_skills
+        - |
+          <related_skills>
+          - **langsmith-dataset**: Generates evaluation datasets from trace data. Traces provide the raw execution data that datasets structure for testing.
+          - **langsmith-evaluator**: Creates evaluators that validate agent outputs. Evaluators can check trajectories captured in traces.
+          </related_skills>
     - skill: langsmith_dataset
       variant: py
       name: langsmith-dataset
       included_sections: *dataset_curated_sections
       extra_included_sections:
-        - *dataset_related_skills
+        - |
+          <related_skills>
+          - **langsmith-trace**: Queries and exports trace data. Datasets are built from trace data - traces contain the inputs, outputs, and tool calls that become dataset examples.
+          - **langsmith-evaluator**: Creates evaluators that validate outputs. Evaluators run against datasets to measure performance.
+          </related_skills>
     - skill: langsmith_evaluator
       variant: py
       name: langsmith-evaluator
       included_sections: *evaluator_curated_sections
       extra_included_sections:
-        - *evaluator_related_skills
+        - |
+          <related_skills>
+          - **langsmith-trace**: Queries execution data. Traces show what tools were called, helping you understand what evaluators should check.
+          - **langsmith-dataset**: Generates evaluation datasets. Evaluators validate the expected outputs defined in datasets.
+          </related_skills>
 
 # Both: Workflow rules in CLAUDE.md AND skill hints (reinforcement)
-BOTH:
+LS_CLAUDE_ADVANCED_ALSO_IN_SKILLS:
   description: "Workflow rules in CLAUDE.md AND skill hints"
   claude_md: |
     # Project Guidelines
@@ -168,22 +149,34 @@ BOTH:
       name: langsmith-trace
       included_sections: *trace_curated_sections
       extra_included_sections:
-        - *trace_related_skills
+        - |
+          <related_skills>
+          - **langsmith-dataset**: Generates evaluation datasets from trace data. Traces provide the raw execution data that datasets structure for testing.
+          - **langsmith-evaluator**: Creates evaluators that validate agent outputs. Evaluators can check trajectories captured in traces.
+          </related_skills>
     - skill: langsmith_dataset
       variant: py
       name: langsmith-dataset
       included_sections: *dataset_curated_sections
       extra_included_sections:
-        - *dataset_related_skills
+        - |
+          <related_skills>
+          - **langsmith-trace**: Queries and exports trace data. Datasets are built from trace data - traces contain the inputs, outputs, and tool calls that become dataset examples.
+          - **langsmith-evaluator**: Creates evaluators that validate outputs. Evaluators run against datasets to measure performance.
+          </related_skills>
     - skill: langsmith_evaluator
       variant: py
       name: langsmith-evaluator
       included_sections: *evaluator_curated_sections
       extra_included_sections:
-        - *evaluator_related_skills
+        - |
+          <related_skills>
+          - **langsmith-trace**: Queries execution data. Traces show what tools were called, helping you understand what evaluators should check.
+          - **langsmith-dataset**: Generates evaluation datasets. Evaluators validate the expected outputs defined in datasets.
+          </related_skills>
 
 # All included_sections: Complete skill content (without cross-skill hints) + full CLAUDE.md
-ALL_SECTIONS:
+LS_CLAUDE_ADVANCED_FULL:
   description: "All skill sections + full CLAUDE.md"
   claude_md: |
     # LangChain + LangSmith Development Guide
@@ -253,87 +246,3 @@ ALL_SECTIONS:
     - skill: langsmith_evaluator
       variant: py
       name: langsmith-evaluator
-
-# All main skills: Every skill from skills/main/ (12 skills total)
-ALL_MAIN_SKILLS:
-  description: "All 12 production main skills + comprehensive CLAUDE.md"
-  claude_md: |
-    # LangChain + LangSmith + DeepAgents Development Guide
-
-    This project uses skills that contain up-to-date patterns and working reference scripts.
-
-    ## CRITICAL: Invoke Skills BEFORE Writing Code
-
-    **ALWAYS** invoke the relevant skill first - skills have the correct imports, patterns, and scripts that prevent common mistakes.
-
-    ### LangSmith Skills
-    - **langsmith-trace** - Invoke for ANY trace querying or analysis
-    - **langsmith-dataset** - Invoke for ANY dataset creation from traces
-    - **langsmith-evaluator** - Invoke for ANY evaluator creation
-
-    ### LangChain Skills
-    - **langchain-fundamentals** - Invoke for create_agent, @tool decorator, middleware patterns
-    - **langchain-rag** - Invoke for RAG pipelines, vector stores, embeddings
-    - **langchain-output** - Invoke for structured output with Pydantic
-
-    ### LangGraph Skills
-    - **langgraph-fundamentals** - Invoke for StateGraph, state schemas, reducers
-    - **langgraph-persistence** - Invoke for checkpointers, thread_id, memory
-    - **langgraph-execution** - Invoke for workflows, interrupts, streaming
-
-    ### DeepAgents Skills
-    - **deep-agents-core** - Invoke for DeepAgents harness architecture
-    - **deep-agents-memory** - Invoke for long-term memory with StoreBackend
-    - **deep-agents-orchestration** - Invoke for multi-agent coordination
-
-    ## Debugging Flow: Build → Trace → Dataset → Evaluate
-
-    When stuck or debugging, use this powerful workflow:
-    1. **Build agent** using LangChain, DeepAgents, or LangGraph patterns
-    2. **Run agent** to generate traces in LangSmith
-    3. **Query traces** using `langsmith-trace` to find interesting examples
-    4. **Create dataset** using `langsmith-dataset` from those traces
-    5. **Build evaluator** using `langsmith-evaluator` to measure quality
-
-    Each skill includes reference scripts in `scripts/` - use these instead of writing from scratch.
-  skills:
-    # LangSmith (3 skills)
-    - skill: langsmith-trace
-      base: main
-      name: langsmith-trace
-    - skill: langsmith-dataset
-      base: main
-      name: langsmith-dataset
-    - skill: langsmith-evaluator
-      base: main
-      name: langsmith-evaluator
-    # LangChain (3 skills)
-    - skill: langchain-fundamentals
-      base: main
-      name: langchain-fundamentals
-    - skill: langchain-rag
-      base: main
-      name: langchain-rag
-    - skill: langchain-output
-      base: main
-      name: langchain-output
-    # LangGraph (3 skills)
-    - skill: langgraph-fundamentals
-      base: main
-      name: langgraph-fundamentals
-    - skill: langgraph-persistence
-      base: main
-      name: langgraph-persistence
-    - skill: langgraph-execution
-      base: main
-      name: langgraph-execution
-    # DeepAgents (3 skills)
-    - skill: deep-agents-core
-      base: main
-      name: deep-agents-core
-    - skill: deep-agents-memory
-      base: main
-      name: deep-agents-memory
-    - skill: deep-agents-orchestration
-      base: main
-      name: deep-agents-orchestration

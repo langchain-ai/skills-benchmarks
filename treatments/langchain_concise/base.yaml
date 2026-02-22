@@ -1,0 +1,24 @@
+# LangChain concise base treatment
+#
+# Reusable base treatment with all skill sections + full CLAUDE.md
+
+LCC_BASE:
+  description: "All skill sections + full CLAUDE.md"
+  claude_md: |
+    # LangChain + LangSmith Development Guide
+
+    This project uses skills that contain up-to-date patterns and working reference scripts.
+
+    ## CRITICAL: Invoke Skills BEFORE Writing Code
+
+    **ALWAYS** invoke the relevant skill first - skills have the correct imports, patterns, and scripts that prevent common mistakes. The skills available to you are:
+
+    - **langchain-agents** - Invoke for ANY LangChain/LangGraph agent code
+    - **langsmith-trace** - Invoke for ANY trace querying or analysis
+    - **langsmith-dataset** - Invoke for ANY dataset creation from traces
+    - **langsmith-evaluator** - Invoke for ANY evaluator creation
+
+    Each skill includes reference scripts in `scripts/` - use these instead of writing from scratch.
+  skills:
+    - skill: langchain_basic
+      name: langchain-agents

@@ -1,0 +1,5 @@
+# Control treatment - baseline with no skills
+
+CONTROL:
+  description: "No skills - baseline using Claude's general knowledge"
+  skills: []

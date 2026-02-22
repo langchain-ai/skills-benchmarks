@@ -85,6 +85,7 @@ from .python.treatments import (
     list_treatments,
     load_task_treatments,
     load_treatment,
+    load_treatments,
     load_treatments_yaml,
 )
 
@@ -101,6 +102,7 @@ __all__ = [
     "list_treatments",
     "load_task_treatments",
     "load_treatment",
+    "load_treatments",
     "load_treatments_yaml",
     # Schema
     "NoiseTask",

@@ -3,6 +3,17 @@
 Treatments are loaded from YAML configuration and built into Treatment objects
 with fully-resolved skill configurations.
 
+## Treatment Organization
+
+Treatments are organized in the `treatments/` folder by category:
+- `common/` - Shared treatments (CONTROL, ALL_MAIN_SKILLS, etc.)
+- `langsmith/` - LS_* treatments for LangSmith tasks
+- `langchain_concise/` - LCC_* treatments for LangChain tasks
+- `oss_split/` - OSSS_* treatments for OSS fix tasks (granular skills)
+- `oss_merged/` - OSSM_* treatments for OSS fix tasks (consolidated skills)
+
+All treatments are shared across tasks - there are no task-specific treatments.
+
 ## Skill Configuration Options
 
 Each skill in a treatment can be configured with:
@@ -52,8 +63,8 @@ TREATMENT_A:
 Usage:
     from scaffold.python.treatments import load_treatments, load_treatment
 
-    treatments = load_treatments()  # Load all from tests/treatments.yaml
-    treatment = load_treatment("SEPARATE_NAMES")
+    treatments = load_treatments()  # Load all shared treatments
+    treatment = load_treatment("CONTROL")
 """
 
 import re
@@ -65,10 +76,19 @@ import yaml
 
 from scaffold.python.skill_parser import load_skill_variant, skill_config
 
-TREATMENTS_FILE = Path(__file__).parent.parent.parent / "tests" / "treatments.yaml"
+TREATMENTS_FOLDER = Path(__file__).parent.parent.parent / "treatments"
 SKILL_BASE = Path(__file__).parent.parent.parent / "skills" / "benchmarks"
 MAIN_SKILL_BASE = Path(__file__).parent.parent.parent / "skills" / "main"
 NOISE_SKILL_BASE = Path(__file__).parent.parent.parent / "skills" / "noise"
+
+# All treatment categories (all shared, no task-specific folders)
+TREATMENT_CATEGORIES = {
+    "common",
+    "langsmith",
+    "langchain_concise",
+    "oss_split",
+    "oss_merged",
+}
 
 
 @dataclass
@@ -259,17 +279,15 @@ def build_treatment_skills(skill_configs: list[dict[str, Any]]) -> dict[str, dic
     return skills
 
 
-def load_treatments_yaml(path: Path | None = None) -> dict[str, TreatmentConfig]:
-    """Load treatment configurations from YAML file.
+def load_treatments_yaml(path: Path) -> dict[str, TreatmentConfig]:
+    """Load treatment configurations from a YAML file.
 
     Args:
-        path: Optional path to treatments.yaml
+        path: Path to treatments YAML file
 
     Returns:
         Dict mapping treatment names to TreatmentConfig objects
     """
-    path = path or TREATMENTS_FILE
-
     if not path.exists():
         raise FileNotFoundError(f"Treatments file not found: {path}")
 
@@ -292,19 +310,42 @@ def load_treatments_yaml(path: Path | None = None) -> dict[str, TreatmentConfig]
     return treatments
 
 
-def load_treatment(name: str, path: Path | None = None):
+def load_treatments() -> dict[str, TreatmentConfig]:
+    """Load all treatments from the treatments/ folder structure.
+
+    Returns:
+        Dict mapping treatment names to TreatmentConfig objects
+    """
+    if not TREATMENTS_FOLDER.exists():
+        return {}
+
+    treatments = {}
+
+    for category in TREATMENTS_FOLDER.iterdir():
+        if not category.is_dir():
+            continue
+        if category.name not in TREATMENT_CATEGORIES:
+            continue
+
+        for yaml_file in category.glob("*.yaml"):
+            category_treatments = load_treatments_yaml(yaml_file)
+            treatments.update(category_treatments)
+
+    return treatments
+
+
+def load_treatment(name: str):
     """Load a single treatment by name and build it.
 
     Args:
         name: Treatment name
-        path: Optional path to treatments.yaml
 
     Returns:
         Built Treatment object ready for use
     """
     from scaffold import Treatment
 
-    configs = load_treatments_yaml(path)
+    configs = load_treatments()
 
     if name not in configs:
         raise KeyError(f"Treatment not found: {name}. Available: {list(configs.keys())}")
@@ -320,44 +361,42 @@ def load_treatment(name: str, path: Path | None = None):
     )
 
 
-def list_treatments(path: Path | None = None) -> list[str]:
+def list_treatments() -> list[str]:
     """List available treatment names.
-
-    Args:
-        path: Optional path to treatments.yaml
 
     Returns:
         List of treatment names
     """
-    configs = load_treatments_yaml(path)
+    configs = load_treatments()
     return list(configs.keys())
 
 
+# Legacy aliases for backward compatibility
 def load_task_treatments(task_path: Path) -> dict[str, TreatmentConfig]:
-    """Load treatment configurations from a task's treatments.yaml.
+    """Load treatments available for a task.
+
+    Note: All treatments are now shared. This function returns all treatments
+    regardless of task_path (kept for backward compatibility).
 
     Args:
-        task_path: Path to task directory (e.g., tasks/lc-basic-noise)
+        task_path: Path to task directory (ignored, kept for API compatibility)
 
     Returns:
-        Dict mapping treatment names to TreatmentConfig objects,
-        or empty dict if no task-specific treatments.yaml exists
+        Dict mapping treatment names to TreatmentConfig objects
     """
-    treatments_path = task_path / "treatments.yaml"
-    if not treatments_path.exists():
-        return {}
-    return load_treatments_yaml(treatments_path)
+    return load_treatments()
 
 
 def get_task_treatment_names(task_path: Path) -> list[str]:
-    """Get list of treatment names defined for a task.
+    """Get list of treatment names available for a task.
+
+    Note: All treatments are now shared. This function returns all treatments
+    regardless of task_path (kept for backward compatibility).
 
     Args:
-        task_path: Path to task directory
+        task_path: Path to task directory (ignored, kept for API compatibility)
 
     Returns:
-        List of treatment names from task's treatments.yaml,
-        or empty list if no task-specific treatments
+        List of treatment names
     """
-    configs = load_task_treatments(task_path)
-    return list(configs.keys())
+    return list_treatments()

@@ -1,0 +1,51 @@
+# LangSmith noise treatments - testing with distractor skills
+
+_basic_claude_md: &basic_claude_md |
+  # CRITICAL
+
+  This project has skills with reference implementations. Before writing code, you must check the available skills and use relevant ones - this ensure you follow best practices.
+
+_workflow_claude_md: &workflow_claude_md |
+  # Project Guidelines
+
+  Before starting any coding task, check available project skills to find the best approach.
+
+  ## General Principles
+
+  - **Understand before building**: Query and inspect existing data structures before writing code that processes them
+  - **Match schemas exactly**: Code should access the exact field names present in the data, not assumed names
+  - **Use skill scripts**: Reference the scripts in skills for working patterns
+
+LS_BASIC_NOISE:
+  description: "Unified skills + distractor noise skill (basic claude_md)"
+  claude_md: *basic_claude_md
+  skills:
+    - skill: langsmith_trace
+      variant: all
+      name: langsmith-trace
+    - skill: langsmith_evaluator
+      variant: all
+      name: langsmith-evaluator
+    - skill: langsmith_dataset
+      variant: all
+      name: langsmith-dataset
+    - skill: langchain_basic
+      name: langchain-basic
+      noise: true
+
+LS_WORKFLOW_NOISE:
+  description: "Unified skills + distractor noise skill (workflow claude_md)"
+  claude_md: *workflow_claude_md
+  skills:
+    - skill: langsmith_evaluator
+      variant: all
+      name: langsmith-evaluator
+    - skill: langsmith_trace
+      variant: all
+      name: langsmith-trace
+    - skill: langsmith_dataset
+      variant: all
+      name: langsmith-dataset
+    - skill: langchain_basic
+      name: langchain-basic
+      noise: true

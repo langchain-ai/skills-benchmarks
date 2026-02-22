@@ -3,7 +3,8 @@
 # Central registry of all benchmark tasks. Each task is a self-contained
 # directory with instruction.md, task.toml, environment/, and validation/.
 #
-# Tasks can be combined with any compatible treatment from tests/treatments.yaml.
+# Tasks can be combined with any compatible treatment from the treatments/ folder.
+# All treatments are shared across tasks - see treatments/{category}/*.yaml
 
 tasks:
   ls-evaluator:
@@ -12,11 +13,12 @@ tasks:
     category: langsmith
     tags: [evaluator, polyglot, python, typescript]
     compatible_treatments:
-      - SEPARATE_NAMES
-      - UNIFIED_BOTH
-      - UNIFIED_WITH_NOISE
-      - UNIFIED_PY_ONLY
-      - UNIFIED_TS_ONLY
+      - LS_BASIC_PY
+      - LS_BASIC_TS
+      - LS_BASIC_BOTH
+      - LS_WORKFLOW_PY
+      - LS_WORKFLOW_TS
+      - LS_WORKFLOW_BOTH
       - CONTROL
 
   ls-tracing:
@@ -25,11 +27,12 @@ tasks:
     category: langsmith
     tags: [tracing, polyglot, python, typescript]
     compatible_treatments:
-      - SEPARATE_NAMES
-      - UNIFIED_BOTH
-      - UNIFIED_WITH_NOISE
-      - UNIFIED_PY_ONLY
-      - UNIFIED_TS_ONLY
+      - LS_BASIC_PY
+      - LS_BASIC_TS
+      - LS_BASIC_BOTH
+      - LS_WORKFLOW_PY
+      - LS_WORKFLOW_TS
+      - LS_WORKFLOW_BOTH
       - CONTROL
 
   ls-multiskill-basic:
@@ -38,9 +41,8 @@ tasks:
     category: langsmith
     tags: [multiskill, trace, dataset]
     compatible_treatments:
-      - MULTISKILL_ALL_SKILLS
-      - MULTISKILL_SKILLS_ONLY
-      - MULTISKILL_CLAUDEMD_ONLY
+      - LS_BASIC_PY
+      - LS_WORKFLOW_PY
       - CONTROL
 
   ls-multiskill-advanced:
@@ -49,9 +51,8 @@ tasks:
     category: langsmith
     tags: [multiskill, trace, dataset, evaluator]
     compatible_treatments:
-      - MULTISKILL_ALL_SKILLS
-      - MULTISKILL_SKILLS_ONLY
-      - MULTISKILL_CLAUDEMD_ONLY
+      - LS_BASIC_PY
+      - LS_WORKFLOW_PY
       - CONTROL
 
   lc-deps-tavily:
@@ -62,8 +63,8 @@ tasks:
     compatible_treatments:
       - CONTROL
       - ALL_MAIN_SKILLS
-      - SEPARATE_SKILLS
-      - STARTER_KIT
+      - MAIN_SINGLE_PRIMER
+      - MAIN_SPLIT_PRIMER_CLAUDE
 
   lc-framework-choice:
     description: "Pick appropriate frameworks (LangChain/LangGraph/Deep Agents) for app components"
@@ -73,8 +74,8 @@ tasks:
     compatible_treatments:
       - CONTROL
       - ALL_MAIN_SKILLS
-      - SEPARATE_SKILLS
-      - STARTER_KIT
+      - MAIN_SINGLE_PRIMER
+      - MAIN_SPLIT_PRIMER_CLAUDE
 
   lc-version-confusion:
     description: "Modernize LangChain 0.1/0.2 era legacy code to current 1.0 patterns"
@@ -84,8 +85,56 @@ tasks:
     compatible_treatments:
       - CONTROL
       - ALL_MAIN_SKILLS
-      - SEPARATE_SKILLS
-      - STARTER_KIT
+      - MAIN_SINGLE_PRIMER
+      - MAIN_SPLIT_PRIMER_CLAUDE
+
+  oss-fix-lg-persistence:
+    description: "Fix LangGraph persistence bugs using skill knowledge"
+    difficulty: medium
+    category: langgraph
+    tags: [langgraph, persistence, state, debugging]
+    compatible_treatments:
+      - CONTROL
+      - OSSS_LG_PERSISTENCE_ONLY
+      - OSSS_LG_STATE_ONLY
+      - OSSS_LG_PERSISTENCE_AND_STATE
+      - OSSS_ALL_LG
+      - OSSS_ALL_LC
+      - OSSS_MIXED_20
+      - OSSM_BASE
+      - ALL_MAIN_SKILLS
+
+  oss-fix-da-memory:
+    description: "Fix Deep Agents memory bugs using skill knowledge"
+    difficulty: medium
+    category: deepagents
+    tags: [deepagents, memory, subagents, debugging]
+    compatible_treatments:
+      - CONTROL
+      - OSSS_DA_MEMORY_ONLY
+      - OSSS_DA_SUBAGENTS_ONLY
+      - OSSS_DA_MEMORY_AND_SUBAGENTS
+      - OSSS_ALL_DA
+      - OSSS_ALL_LG
+      - OSSS_MIXED_20
+      - OSSM_BASE
+      - ALL_MAIN_SKILLS
+
+  oss-fix-lc-streaming:
+    description: "Fix LangChain streaming bugs using skill knowledge"
+    difficulty: medium
+    category: langchain
+    tags: [langchain, streaming, tools, debugging]
+    compatible_treatments:
+      - CONTROL
+      - OSSS_LC_STREAMING_ONLY
+      - OSSS_LC_TOOLS_ONLY
+      - OSSS_LC_STREAMING_AND_TOOLS
+      - OSSS_ALL_LC
+      - OSSS_ALL_LG
+      - OSSS_MIXED_20
+      - OSSM_BASE
+      - ALL_MAIN_SKILLS
 
 # Difficulty levels:
 #   easy   - Single-skill tasks with clear requirements
@@ -95,3 +144,5 @@ tasks:
 # Categories:
 #   langsmith - LangSmith tracing, datasets, evaluators
 #   langchain - LangChain agents, dependencies, framework selection
+#   langgraph - LangGraph persistence, state, workflows
+#   deepagents - Deep Agents memory, subagents, orchestration

@@ -1,0 +1,157 @@
+# LangSmith language treatments
+#
+# Tests whether separate skill names (langsmith-*-py, langsmith-*-ts)
+# help Claude use the correct language variant.
+#
+# LS_BASIC_*: Simple claude_md (for tracing tasks)
+# LS_WORKFLOW_*: Detailed claude_md with workflow guidance (for evaluator tasks)
+
+# Simple claude_md for basic treatments
+_basic_claude_md: &basic_claude_md |
+  # CRITICAL
+
+  This project has skills with reference implementations. Before writing code, you must check the available skills and use relevant ones - this ensure you follow best practices.
+
+# Detailed claude_md for workflow treatments
+_workflow_claude_md: &workflow_claude_md |
+  # Project Guidelines
+
+  Before starting any coding task, check available project skills to find the best approach.
+
+  ## General Principles
+
+  - **Understand before building**: Query and inspect existing data structures before writing code that processes them
+  - **Match schemas exactly**: Code should access the exact field names present in the data, not assumed names
+  - **Use skill scripts**: Reference the scripts in skills for working patterns
+
+# =============================================================================
+# BASIC treatments (simple claude_md, trace-focused skills)
+# =============================================================================
+
+LS_BASIC_SPLIT_PY_TS:
+  description: "Language-specific skill names (trace-py/ts, evaluator-py/ts, dataset-py/ts + noise)"
+  claude_md: *basic_claude_md
+  skills:
+    - skill: langsmith_trace
+      variant: py
+      name: langsmith-trace-py
+      suffix: true
+    - skill: langsmith_trace
+      variant: ts
+      name: langsmith-trace-ts
+      suffix: true
+    - skill: langsmith_evaluator
+      variant: py
+      name: langsmith-evaluator-py
+      suffix: true
+    - skill: langsmith_evaluator
+      variant: ts
+      name: langsmith-evaluator-ts
+      suffix: true
+    - skill: langsmith_dataset
+      variant: py
+      name: langsmith-dataset-py
+      suffix: true
+    - skill: langsmith_dataset
+      variant: ts
+      name: langsmith-dataset-ts
+      suffix: true
+    - skill: langchain_basic
+      name: langchain-basic
+      noise: true
+
+LS_BASIC_UNIFIED_LANG:
+  description: "Unified skills (trace/evaluator/dataset with all variants)"
+  claude_md: *basic_claude_md
+  skills:
+    - skill: langsmith_trace
+      variant: all
+      name: langsmith-trace
+    - skill: langsmith_evaluator
+      variant: all
+      name: langsmith-evaluator
+    - skill: langsmith_dataset
+      variant: all
+      name: langsmith-dataset
+
+LS_BASIC_PY_ONLY:
+  description: "Single skill with only Python content"
+  claude_md: *basic_claude_md
+  skills:
+    - skill: langsmith_trace
+      variant: py
+      name: langsmith-trace
+
+LS_BASIC_TS_ONLY:
+  description: "Single skill with only TypeScript content"
+  claude_md: *basic_claude_md
+  skills:
+    - skill: langsmith_trace
+      variant: ts
+      name: langsmith-trace
+
+# =============================================================================
+# WORKFLOW treatments (detailed claude_md, evaluator-focused skills)
+# =============================================================================
+
+LS_WORKFLOW_SPLIT_PY_TS:
+  description: "Language-specific skill names (evaluator-py/ts, trace-py/ts, dataset-py/ts + noise)"
+  claude_md: *workflow_claude_md
+  skills:
+    - skill: langsmith_trace
+      variant: py
+      name: langsmith-trace-py
+      suffix: true
+    - skill: langsmith_trace
+      variant: ts
+      name: langsmith-trace-ts
+      suffix: true
+    - skill: langsmith_evaluator
+      variant: py
+      name: langsmith-evaluator-py
+      suffix: true
+    - skill: langsmith_evaluator
+      variant: ts
+      name: langsmith-evaluator-ts
+      suffix: true
+    - skill: langsmith_dataset
+      variant: py
+      name: langsmith-dataset-py
+      suffix: true
+    - skill: langsmith_dataset
+      variant: ts
+      name: langsmith-dataset-ts
+      suffix: true
+    - skill: langchain_basic
+      name: langchain-basic
+      noise: true
+
+LS_WORKFLOW_UNIFIED_LANG:
+  description: "Unified skills (evaluator/trace/dataset with all variants)"
+  claude_md: *workflow_claude_md
+  skills:
+    - skill: langsmith_evaluator
+      variant: all
+      name: langsmith-evaluator
+    - skill: langsmith_trace
+      variant: all
+      name: langsmith-trace
+    - skill: langsmith_dataset
+      variant: all
+      name: langsmith-dataset
+
+LS_WORKFLOW_PY_ONLY:
+  description: "Single skill with only Python content"
+  claude_md: *workflow_claude_md
+  skills:
+    - skill: langsmith_evaluator
+      variant: py
+      name: langsmith-evaluator
+
+LS_WORKFLOW_TS_ONLY:
+  description: "Single skill with only TypeScript content"
+  claude_md: *workflow_claude_md
+  skills:
+    - skill: langsmith_evaluator
+      variant: ts
+      name: langsmith-evaluator

@@ -3,20 +3,20 @@
 This test file uses the task-based structure where:
 - Tasks are self-contained directories with instruction.md, task.toml, environment/, validation/
 - Treatments are shared across tasks in treatments/{category}/*.yaml
-- Each task declares default_treatments in tasks/index.yaml (any treatment can be used with any task)
+- Any treatment can be used with any task
 
 Usage:
-    # Run all task/treatment combinations
+    # Run all default task/treatment combinations
     pytest tests/tasks/test_tasks.py -v
 
-    # Run specific task
-    pytest tests/tasks/test_tasks.py -k "ls-evaluator" -v
+    # Run specific task with specific treatment
+    pytest tests/tasks/test_tasks.py --task=ls-evaluator --treatment=LS_BASIC_PY -v
 
-    # Run specific treatment
-    pytest tests/tasks/test_tasks.py -k "LS_BASIC_PY" -v
+    # Run specific task with all its default treatments
+    pytest tests/tasks/test_tasks.py --task=ls-evaluator -v
 
-    # Run specific combination
-    pytest tests/tasks/test_tasks.py -k "ls-evaluator and LS_BASIC_BOTH" -v
+    # Run specific treatment across all tasks that have it as default
+    pytest tests/tasks/test_tasks.py --treatment=CONTROL -v
 """
 
 import uuid
@@ -55,8 +55,24 @@ TASKS_DIR = Path(__file__).parent.parent.parent / "tasks"
 TASK_INDEX = TASKS_DIR / "index.yaml"
 
 
+def pytest_addoption(parser):
+    """Add CLI options for task and treatment selection."""
+    parser.addoption(
+        "--task",
+        action="store",
+        default=None,
+        help="Run specific task (e.g., --task=ls-evaluator)",
+    )
+    parser.addoption(
+        "--treatment",
+        action="store",
+        default=None,
+        help="Run specific treatment (e.g., --treatment=LS_BASIC_PY)",
+    )
+
+
 def load_task_index() -> dict:
-    """Load the task index with compatible treatments."""
+    """Load the task index with default treatments."""
     if not TASK_INDEX.exists():
         return {}
     with open(TASK_INDEX) as f:
@@ -64,23 +80,50 @@ def load_task_index() -> dict:
     return data.get("tasks", {})
 
 
-def generate_test_params():
-    """Generate (task_name, treatment_name) pairs from task index default_treatments."""
+def generate_test_params(task_filter: str | None, treatment_filter: str | None):
+    """Generate (task_name, treatment_name) pairs based on filters.
+
+    - No filters: returns default_treatments for each task
+    - --task only: returns default_treatments for that task
+    - --treatment only: returns that treatment for all tasks
+    - Both: returns that specific combination
+    """
     params = []
     task_index = load_task_index()
     all_treatments = load_treatments()
+    all_tasks = list_tasks()
 
-    for task_name in list_tasks():
-        # Get default treatments from task index
-        task_info = task_index.get(task_name, {})
-        defaults = task_info.get("default_treatments", [])
+    # Validate filters
+    if task_filter and task_filter not in all_tasks:
+        raise ValueError(f"Task not found: {task_filter}. Available: {all_tasks}")
+    if treatment_filter and treatment_filter not in all_treatments:
+        raise ValueError(f"Treatment not found: {treatment_filter}. Available: {list(all_treatments.keys())}")
 
-        # Filter to only treatments that actually exist
-        for treatment_name in defaults:
-            if treatment_name in all_treatments:
-                params.append((task_name, treatment_name))
+    # Determine which tasks to run
+    tasks_to_run = [task_filter] if task_filter else all_tasks
+
+    for task_name in tasks_to_run:
+        if treatment_filter:
+            # Specific treatment requested - use it
+            params.append((task_name, treatment_filter))
+        else:
+            # No treatment filter - use defaults for this task
+            task_info = task_index.get(task_name, {})
+            defaults = task_info.get("default_treatments", [])
+            for treatment_name in defaults:
+                if treatment_name in all_treatments:
+                    params.append((task_name, treatment_name))
 
     return params
+
+
+def pytest_generate_tests(metafunc):
+    """Dynamically parametrize tests based on CLI options."""
+    if "task_name" in metafunc.fixturenames and "treatment_name" in metafunc.fixturenames:
+        task_filter = metafunc.config.getoption("--task")
+        treatment_filter = metafunc.config.getoption("--treatment")
+        params = generate_test_params(task_filter, treatment_filter)
+        metafunc.parametrize("task_name,treatment_name", params)
 
 
 def run_validators(validators: list, test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:
@@ -94,7 +137,6 @@ def run_validators(validators: list, test_dir: Path, outputs: dict) -> tuple[lis
 
 
 @pytest.mark.timeout(PYTEST_TIMEOUT)
-@pytest.mark.parametrize("task_name,treatment_name", generate_test_params())
 def test_task_treatment(
     task_name,
     treatment_name,

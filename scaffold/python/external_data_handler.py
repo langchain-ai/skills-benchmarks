@@ -1,19 +1,15 @@
-"""External data handlers for test setup.
+"""External data handlers for test setup and cleanup.
 
-Handlers are triggered by pattern matches in task.toml setup configuration.
-Each handler prepares external data sources needed for the test.
-
-Example task.toml:
-    [setup]
-    [[setup.data]]
-    pattern = "trace_*.jsonl"
-    handler = "upload_traces"
+Handlers manage external LangSmith resources during tests.
+All resources use a namespace pattern: bench-{type}-{run_id}
 
 Available handlers:
-    - upload_traces: Upload trace fixtures from jsonl files to LangSmith
+    - upload_traces: Upload trace fixtures to a LangSmith project
+    - cleanup_namespace: Delete all LangSmith resources ending with -{run_id}
 """
 
 import json
+import uuid
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -48,8 +44,6 @@ def _replay_trace_operations(client: Any, project: str, operations: list[dict]) 
 
     Uses two-step POST/PATCH approach to avoid dotted_order requirement.
     """
-    import uuid
-
     # Build ID mapping for all post operations
     id_map = {
         op["id"]: str(uuid.uuid4())
@@ -111,7 +105,7 @@ def _replay_trace_operations(client: Any, project: str, operations: list[dict]) 
     return root_id
 
 
-def upload_traces(project: str, data_dir: Path) -> dict[str, str]:
+def upload_traces(project: str, data_dir: Path, **kwargs) -> dict[str, str]:
     """Upload trace fixtures from jsonl files to LangSmith project.
 
     Required for tasks like ls-multiskill-* that need pre-existing traces.
@@ -119,6 +113,7 @@ def upload_traces(project: str, data_dir: Path) -> dict[str, str]:
     Args:
         project: LangSmith project name to upload to
         data_dir: Directory containing trace_*.jsonl files
+        **kwargs: Additional arguments (ignored)
 
     Returns:
         Mapping of original trace_id -> new trace_id
@@ -127,6 +122,9 @@ def upload_traces(project: str, data_dir: Path) -> dict[str, str]:
     if error:
         print(f"Could not upload traces: {error}")
         return {}
+
+    # Ensure data_dir is a Path
+    data_dir = Path(data_dir) if not isinstance(data_dir, Path) else data_dir
 
     id_mapping = {}
     for jsonl_file in sorted(data_dir.glob("trace_*.jsonl")):
@@ -162,28 +160,92 @@ def upload_traces(project: str, data_dir: Path) -> dict[str, str]:
     return id_mapping
 
 
+def cleanup_namespace(run_id: str, **kwargs) -> dict[str, list[str]]:
+    """Delete all LangSmith resources matching the run_id namespace.
+
+    Finds and deletes:
+    - Projects ending with -{run_id}
+    - Datasets ending with -{run_id}
+
+    Args:
+        run_id: Unique identifier to match in resource names
+
+    Returns:
+        Dict with lists of deleted resource names by type
+    """
+    client, error = _get_langsmith_client()
+    if error:
+        print(f"Could not cleanup namespace: {error}")
+        return {}
+
+    deleted = {"projects": [], "datasets": []}
+    suffix = f"-{run_id}"
+
+    # Delete matching projects
+    try:
+        for project in client.list_projects():
+            if project.name.endswith(suffix):
+                try:
+                    client.delete_project(project_name=project.name)
+                    deleted["projects"].append(project.name)
+                    print(f"  Deleted project: {project.name}")
+                except Exception as e:
+                    print(f"  Failed to delete project {project.name}: {e}")
+    except Exception as e:
+        print(f"  Error listing projects: {e}")
+
+    # Delete matching datasets
+    try:
+        for dataset in client.list_datasets():
+            if dataset.name.endswith(suffix):
+                try:
+                    client.delete_dataset(dataset_name=dataset.name)
+                    deleted["datasets"].append(dataset.name)
+                    print(f"  Deleted dataset: {dataset.name}")
+                except Exception as e:
+                    print(f"  Failed to delete dataset {dataset.name}: {e}")
+    except Exception as e:
+        print(f"  Error listing datasets: {e}")
+
+    return deleted
+
+
 # Registry of available handlers
 HANDLERS = {
     "upload_traces": upload_traces,
+    "cleanup_namespace": cleanup_namespace,
 }
 
 
-def run_handler(handler_name: str, project: str, data_dir: Path, **kwargs) -> dict:
-    """Run a named handler.
-
-    Args:
-        handler_name: Name of the handler (e.g., "upload_traces")
-        project: LangSmith project name
-        data_dir: Directory containing data files
-        **kwargs: Additional arguments passed to the handler
-
-    Returns:
-        Handler-specific result (e.g., trace ID mapping)
-
-    Raises:
-        ValueError: If handler_name is not recognized
-    """
+def run_handler(handler_name: str, **kwargs) -> Any:
+    """Run a named handler."""
     if handler_name not in HANDLERS:
         raise ValueError(f"Unknown handler: {handler_name}. Available: {list(HANDLERS.keys())}")
+    return HANDLERS[handler_name](**kwargs)
 
-    return HANDLERS[handler_name](project, data_dir, **kwargs)
+
+def run_task_handlers(
+    data_handlers: list, data_dir: Path, project: str | None
+) -> dict[str, str]:
+    """Run all data handlers for a task.
+
+    Args:
+        data_handlers: List of DataHandler objects from task config
+        data_dir: Task's data directory
+        project: LangSmith project name
+
+    Returns:
+        trace_id_map: Mapping of old trace IDs to new ones (from upload_traces)
+    """
+    trace_id_map = {}
+    if not project or not data_dir.exists():
+        return trace_id_map
+
+    for handler in data_handlers:
+        if list(data_dir.glob(handler.pattern)):
+            print(f"\nRunning {handler.handler}...")
+            result = run_handler(handler.handler, project=project, data_dir=data_dir)
+            if handler.handler == "upload_traces" and result:
+                trace_id_map = result
+
+    return trace_id_map

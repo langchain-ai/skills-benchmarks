@@ -48,7 +48,7 @@ class SetupConfig:
     # Data handlers triggered by pattern matches
     data_handlers: list[DataHandler] = field(default_factory=list)
 
-    # Template variables with format strings (can use {run_id}, {run_id_short})
+    # Template variables with format strings (can use {run_id})
     template_vars: dict[str, str] = field(default_factory=dict)
 
 

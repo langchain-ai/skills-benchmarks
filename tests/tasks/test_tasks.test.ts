@@ -171,16 +171,15 @@ describe("Task/Treatment Tests", () => {
         // Build skills
         const skills = buildTreatmentSkills(treatmentCfg.skills);
 
-        // Generate run_id
+        // Generate run_id for namespace isolation
         const runId = uuidv4();
 
-        // Render prompt
+        // Build template variables
+        // TODO: Read setup.template_vars from task config (Python has this)
         const templateVars: Record<string, string> = { run_id: runId };
-
-        // Task-specific variables
         if (taskName === "ls-lang-evaluator") {
-          templateVars.py_dataset = `benchmark-sql-${runId.slice(0, 8)}`;
-          templateVars.ts_dataset = `benchmark-support-${runId.slice(0, 8)}`;
+          templateVars.py_dataset = `bench-sql-${runId}`;
+          templateVars.ts_dataset = `bench-support-${runId}`;
         }
 
         const prompt = task.renderPrompt(templateVars);

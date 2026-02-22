@@ -18,8 +18,10 @@ import shutil
 import subprocess
 import tempfile
 import time
+import uuid
 from datetime import datetime
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
@@ -34,6 +36,8 @@ from scaffold.python import (
     save_report,
     strip_ansi,
 )
+from scaffold.python.external_data_handler import run_handler
+from scaffold.python.skill_parser import SCRIPT_EXTENSIONS
 
 PROJECT_ROOT = Path(__file__).parent.parent
 
@@ -330,86 +334,51 @@ def worker_id(request):
     return "master"
 
 
-def _get_langsmith_client():
-    """Get LangSmith client."""
-    try:
-        from langsmith import Client
+# Track run_ids for namespace-based cleanup
+_test_run_ids: list[str] = []
 
-        return Client(), None
-    except Exception as e:
-        return None, str(e)
+
+def register_run_id_for_cleanup(run_id: str):
+    """Register a run_id for namespace cleanup at session end."""
+    if run_id not in _test_run_ids:
+        _test_run_ids.append(run_id)
 
 
 @pytest.fixture(scope="session")
 def langsmith_project(worker_id, request):
-    """Create isolated LangSmith project for this test session.
-
-    Each pytest-xdist worker gets its own project to avoid conflicts.
-    Projects are cleaned up after the session.
-    """
-    # Skip for script-only runs
+    """Create isolated LangSmith project for trace uploads."""
     if _is_scripts_only(request.config):
         yield None
         return
 
-    import uuid
-
-    suffix = "main" if worker_id == "master" else worker_id
-    project_name = f"benchmark-{suffix}-{uuid.uuid4().hex[:8]}"
+    run_id = str(uuid.uuid4())
+    project_name = f"bench-project-{run_id}"
+    register_run_id_for_cleanup(run_id)
 
     old_project = os.environ.get("LANGSMITH_PROJECT")
     os.environ["LANGSMITH_PROJECT"] = project_name
-
-    print(f"\n{'=' * 60}")
-    print(f"LANGSMITH PROJECT: {project_name}")
-    print(f"{'=' * 60}\n")
+    print(f"\nLANGSMITH PROJECT: {project_name}\n")
 
     yield project_name
 
-    # Cleanup
-    client, _ = _get_langsmith_client()
-    if client:
-        try:
-            client.delete_project(project_name=project_name)
-            print(f"Deleted project: {project_name}")
-        except Exception as e:
-            print(f"Warning: Could not delete project {project_name}: {e}")
-
-    # Restore original env var
     if old_project:
         os.environ["LANGSMITH_PROJECT"] = old_project
     elif "LANGSMITH_PROJECT" in os.environ:
         del os.environ["LANGSMITH_PROJECT"]
 
 
-# Track datasets created during tests for cleanup
-_created_datasets: list[str] = []
-
-
-def register_dataset_for_cleanup(dataset_name: str):
-    """Register a dataset name for cleanup at session end."""
-    if dataset_name not in _created_datasets:
-        _created_datasets.append(dataset_name)
-
-
 @pytest.fixture(scope="session", autouse=True)
-def cleanup_datasets(request):
-    """Clean up datasets created during tests at session end."""
+def cleanup_langsmith_namespace(request):
+    """Clean up all LangSmith resources matching test run_ids at session end."""
     yield
-
-    if not _created_datasets:
+    if not _test_run_ids:
         return
 
-    client, _ = _get_langsmith_client()
-    if not client:
-        return
-
-    for dataset_name in _created_datasets:
+    for run_id in _test_run_ids:
         try:
-            client.delete_dataset(dataset_name=dataset_name)
-            print(f"Deleted dataset: {dataset_name}")
+            run_handler("cleanup_namespace", run_id=run_id)
         except Exception:
-            pass  # Dataset may not exist
+            pass
 
 
 @pytest.fixture(scope="session")
@@ -522,8 +491,6 @@ def _filter_scripts(scripts_dir: Path, script_filter: str) -> Path | None:
     Returns:
         Path to temp dir with filtered scripts, or original dir if no filtering needed
     """
-    from scaffold.python.skill_parser import SCRIPT_EXTENSIONS
-
     if not scripts_dir or not scripts_dir.exists():
         return None
 
@@ -751,8 +718,6 @@ def fixtures(
             result = fixtures.run_claude(prompt)
             fixtures.record_result(events, passed, failed)
     """
-    from types import SimpleNamespace
-
     return SimpleNamespace(
         langsmith_project=langsmith_project,
         test_dir=test_dir,

@@ -4,6 +4,7 @@ description = "Legacy code modernization task: Claude modernizes LangChain 0.1/0
 difficulty = "medium"
 category = "langchain"
 tags = ["langchain", "migration", "legacy", "modernization", "deprecated"]
+default_treatments = ["CONTROL", "ALL_MAIN_SKILLS", "MAIN_SINGLE_PRIMER", "MAIN_SPLIT_PRIMER_CLAUDE"]
 
 
 [environment]

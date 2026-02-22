@@ -40,6 +40,9 @@ class TaskConfig:
     category: str = ""
     tags: list[str] = field(default_factory=list)
 
+    # Default treatments to test with this task
+    default_treatments: list[str] = field(default_factory=list)
+
     # Template variables required for instruction.md
     template_required: list[str] = field(default_factory=list)
 
@@ -74,6 +77,10 @@ class Task:
     @property
     def data_dir(self) -> Path:
         return self.path / "data"
+
+    @property
+    def default_treatments(self) -> list[str]:
+        return self.config.default_treatments
 
     def render_prompt(self, **kwargs: Any) -> str:
         """Render the instruction template with provided variables.
@@ -165,6 +172,7 @@ def load_task(name: str, tasks_dir: Path | None = None) -> Task:
         difficulty=metadata.get("difficulty", "medium"),
         category=metadata.get("category", ""),
         tags=metadata.get("tags", []),
+        default_treatments=metadata.get("default_treatments", []),
         template_required=template.get("required", []),
         dockerfile=environment.get("dockerfile", "Dockerfile"),
         timeout_sec=environment.get("timeout_sec", 900),

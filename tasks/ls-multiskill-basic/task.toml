@@ -4,6 +4,7 @@ description = "Create trajectory dataset from LangSmith traces"
 difficulty = "medium"
 category = "langsmith"
 tags = ["multiskill", "trace", "dataset"]
+default_treatments = ["LS_BASIC_PY", "LS_WORKFLOW_PY", "CONTROL"]
 
 [template]
 required = ["run_id"]

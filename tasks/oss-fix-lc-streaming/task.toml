@@ -4,6 +4,17 @@ description = "Fix multiple layered bugs in a chat application"
 difficulty = "medium"
 category = "langchain"
 tags = ["streaming", "tools", "async", "bug-fix"]
+default_treatments = [
+    "CONTROL",
+    "OSSS_LC_STREAMING_ONLY",
+    "OSSS_LC_TOOLS_ONLY",
+    "OSSS_LC_STREAMING_AND_TOOLS",
+    "OSSS_ALL_LC",
+    "OSSS_ALL_LG",
+    "OSSS_MIXED_20",
+    "OSSM_BASE",
+    "ALL_MAIN_SKILLS",
+]
 
 [template]
 required = []

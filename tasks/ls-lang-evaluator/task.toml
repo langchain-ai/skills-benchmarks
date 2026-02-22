@@ -25,3 +25,9 @@ timeout_sec = 900
 
 [validation]
 validators = ["LanguageValidator", "SyntaxValidator", "DatasetValidator", "UploadValidator"]
+
+[setup]
+# Template variables generated at runtime
+[setup.template_vars]
+py_dataset = "benchmark-sql-{run_id_short}"
+ts_dataset = "benchmark-support-{run_id_short}"

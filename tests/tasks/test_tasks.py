@@ -35,9 +35,9 @@ from pathlib import Path
 import pytest
 from langsmith import testing as ls_testing
 
-from conftest import upload_fixture_traces
 from scaffold import NoiseTask, Treatment
 from scaffold.python import extract_events, parse_output
+from scaffold.python.external_data_handler import run_handler
 from scaffold.python.tasks import list_tasks, load_task
 from scaffold.python.treatments import build_treatment_skills, load_treatments
 from scaffold.python.validation import NOISE_TASK_DELIVERABLES, NOISE_TASK_PROMPTS
@@ -189,23 +189,28 @@ def test_task_treatment(task_name, treatment_name, fixtures):
 
     # Generate run_id for parallel execution
     run_id = str(uuid.uuid4())
+    run_id_short = run_id[:8]
 
-    # Upload fixture traces if task has trace data files (convention-based)
+    # Execute data handlers from task config
     trace_id_map = {}
-    if fixtures.langsmith_project:
-        data_dir = task.path / "data"
-        if data_dir.exists() and list(data_dir.glob("trace_*.jsonl")):
-            print(f"\nUploading traces from {data_dir.name} to {fixtures.langsmith_project}...")
-            trace_id_map = upload_fixture_traces(fixtures.langsmith_project, data_dir)
+    if fixtures.langsmith_project and task.data_dir.exists():
+        for data_handler in task.config.setup.data_handlers:
+            # Check if pattern matches any files
+            if list(task.data_dir.glob(data_handler.pattern)):
+                print(f"\nRunning {data_handler.handler} for {task.data_dir.name}...")
+                result = run_handler(
+                    data_handler.handler,
+                    fixtures.langsmith_project,
+                    task.data_dir,
+                )
+                # upload_traces returns a trace_id_map
+                if data_handler.handler == "upload_traces" and result:
+                    trace_id_map = result
 
-    # Render prompt with required variables
-    template_vars = {"run_id": run_id}
-
-    # Add task-specific variables (e.g., datasets for ls-lang-evaluator)
-    if task_name == "ls-lang-evaluator":
-        # These would come from fixtures in a real test
-        template_vars["py_dataset"] = f"benchmark-sql-{run_id[:8]}"
-        template_vars["ts_dataset"] = f"benchmark-support-{run_id[:8]}"
+    # Build template variables from config
+    template_vars = {"run_id": run_id, "run_id_short": run_id_short}
+    for var_name, var_template in task.config.setup.template_vars.items():
+        template_vars[var_name] = var_template.format(run_id=run_id, run_id_short=run_id_short)
 
     prompt = task.render_prompt(**template_vars)
     prompt = treatment.build_prompt(prompt)

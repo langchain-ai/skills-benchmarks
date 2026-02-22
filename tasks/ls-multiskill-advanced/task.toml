@@ -16,3 +16,9 @@ timeout_sec = 900
 
 [validation]
 validators = ["DatasetStructureValidator", "EvaluatorValidator", "SkillScriptValidator", "TrajectoryAccuracyValidator"]
+
+[setup]
+# Data handlers - upload traces when trace files exist
+[[setup.data]]
+pattern = "trace_*.jsonl"
+handler = "upload_traces"

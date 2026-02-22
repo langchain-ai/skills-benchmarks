@@ -31,6 +31,28 @@ TASKS_DIR = Path(__file__).parent.parent.parent / "tasks"
 
 
 @dataclass
+class DataHandler:
+    """A data handler triggered by file pattern match."""
+
+    pattern: str  # Glob pattern relative to task data dir (e.g., "trace_*.jsonl")
+    handler: str  # Handler name (e.g., "upload_traces")
+
+
+@dataclass
+class SetupConfig:
+    """Setup configuration for a task.
+
+    Defines data handlers and template variables that are computed at test time.
+    """
+
+    # Data handlers triggered by pattern matches
+    data_handlers: list[DataHandler] = field(default_factory=list)
+
+    # Template variables with format strings (can use {run_id}, {run_id_short})
+    template_vars: dict[str, str] = field(default_factory=dict)
+
+
+@dataclass
 class TaskConfig:
     """Configuration loaded from task.toml."""
 
@@ -55,6 +77,9 @@ class TaskConfig:
 
     # Validators to run
     validators: list[str] = field(default_factory=list)
+
+    # Setup configuration
+    setup: SetupConfig = field(default_factory=SetupConfig)
 
 
 @dataclass
@@ -168,6 +193,17 @@ def load_task(name: str, tasks_dir: Path | None = None) -> Task:
     template = toml_data.get("template", {})
     environment = toml_data.get("environment", {})
     validation = toml_data.get("validation", {})
+    setup_data = toml_data.get("setup", {})
+
+    # Parse setup config
+    data_handlers = [
+        DataHandler(pattern=d["pattern"], handler=d["handler"])
+        for d in setup_data.get("data", [])
+    ]
+    setup = SetupConfig(
+        data_handlers=data_handlers,
+        template_vars=setup_data.get("template_vars", {}),
+    )
 
     config = TaskConfig(
         name=metadata.get("name", name),
@@ -181,6 +217,7 @@ def load_task(name: str, tasks_dir: Path | None = None) -> Task:
         dockerfile=environment.get("dockerfile", "Dockerfile"),
         timeout_sec=environment.get("timeout_sec", 900),
         validators=validation.get("validators", []),
+        setup=setup,
     )
 
     # Load instruction.md

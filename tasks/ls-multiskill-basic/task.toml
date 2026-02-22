@@ -18,3 +18,9 @@ timeout_sec = 900
 # Validators that don't require arguments
 # SkillScriptValidator requires script_patterns config - handled separately
 validators = ["DatasetStructureValidator", "TrajectoryAccuracyValidator"]
+
+[setup]
+# Data handlers - upload traces when trace files exist
+[[setup.data]]
+pattern = "trace_*.jsonl"
+handler = "upload_traces"

@@ -346,6 +346,8 @@ def langsmith_project(worker_id, request):
 
     Each pytest-xdist worker gets its own project to avoid conflicts.
     Projects are cleaned up after the session.
+
+    Also sets up Claude Code tracing to a separate project.
     """
     # Skip for script-only runs
     if _is_scripts_only(request.config):
@@ -356,12 +358,23 @@ def langsmith_project(worker_id, request):
 
     suffix = "main" if worker_id == "master" else worker_id
     project_name = f"benchmark-{suffix}-{uuid.uuid4().hex[:8]}"
+    claude_code_project = os.environ.get("CC_LANGSMITH_PROJECT", "claude-code")
 
     old_project = os.environ.get("LANGSMITH_PROJECT")
+    old_cc_project = os.environ.get("CC_LANGSMITH_PROJECT")
+    old_cc_api_key = os.environ.get("CC_LANGSMITH_API_KEY")
+
     os.environ["LANGSMITH_PROJECT"] = project_name
+
+    # Set up Claude Code tracing
+    # Use LANGSMITH_API_KEY for Claude Code if CC_LANGSMITH_API_KEY not set
+    if not os.environ.get("CC_LANGSMITH_API_KEY") and os.environ.get("LANGSMITH_API_KEY"):
+        os.environ["CC_LANGSMITH_API_KEY"] = os.environ["LANGSMITH_API_KEY"]
+    os.environ["CC_LANGSMITH_PROJECT"] = claude_code_project
 
     print(f"\n{'=' * 60}")
     print(f"LANGSMITH PROJECT: {project_name}")
+    print(f"CLAUDE CODE PROJECT: {claude_code_project}")
     print(f"{'=' * 60}\n")
 
     yield project_name
@@ -375,10 +388,21 @@ def langsmith_project(worker_id, request):
         except Exception as e:
             print(f"Warning: Could not delete project {project_name}: {e}")
 
+    # Restore original env vars
     if old_project:
         os.environ["LANGSMITH_PROJECT"] = old_project
     elif "LANGSMITH_PROJECT" in os.environ:
         del os.environ["LANGSMITH_PROJECT"]
+
+    if old_cc_project:
+        os.environ["CC_LANGSMITH_PROJECT"] = old_cc_project
+    elif "CC_LANGSMITH_PROJECT" in os.environ:
+        del os.environ["CC_LANGSMITH_PROJECT"]
+
+    if old_cc_api_key:
+        os.environ["CC_LANGSMITH_API_KEY"] = old_cc_api_key
+    elif "CC_LANGSMITH_API_KEY" in os.environ:
+        del os.environ["CC_LANGSMITH_API_KEY"]
 
 
 @pytest.fixture(scope="session")

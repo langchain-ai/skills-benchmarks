@@ -28,10 +28,12 @@ Usage:
     pytest tests/tasks/test_tasks.py --task=ls-evaluator --treatment=LS_BASIC_* -v
 """
 
+import os
 import uuid
 from pathlib import Path
 
 import pytest
+from langsmith import testing as ls_testing
 
 from scaffold import NoiseTask, Treatment
 from scaffold.python import extract_events, parse_output
@@ -147,6 +149,9 @@ def run_validators(validators: list, test_dir: Path, outputs: dict) -> tuple[lis
     return all_passed, all_failed
 
 
+@pytest.mark.langsmith(
+    test_suite_name=os.environ.get("LANGSMITH_TEST_SUITE", "skills-benchmark")
+)
 @pytest.mark.timeout(PYTEST_TIMEOUT)
 def test_task_treatment(
     task_name,
@@ -214,6 +219,19 @@ def test_task_treatment(
     prompt = task.render_prompt(**template_vars)
     prompt = treatment.build_prompt(prompt)
 
+    # Log inputs to LangSmith
+    ls_testing.log_inputs(
+        {
+            "task_name": task_name,
+            "task_description": task.config.description,
+            "environment_description": task.config.environment_description,
+            "treatment_name": treatment_name,
+            "treatment_description": treatment_cfg.description,
+            "prompt": prompt,
+            "skills_loaded": list(treatment.skills.keys()) if treatment.skills else [],
+        }
+    )
+
     # Run Claude
     result = run_claude(prompt, timeout=CLAUDE_TIMEOUT)
 
@@ -230,6 +248,37 @@ def test_task_treatment(
         "trace_id_map": trace_id_map,
     }
     passed, failed = run_validators(validators, test_dir, outputs)
+
+    # Log outputs to LangSmith
+    ls_testing.log_outputs(
+        {
+            "skills_invoked": events.get("skills_invoked", []),
+            "files_produced": events.get("files_created", []),
+            "passed_checks": passed,
+            "failed_checks": failed,
+        }
+    )
+
+    # Log feedback scores to LangSmith
+    total_checks = len(passed) + len(failed)
+    duration = events.get("duration_seconds", 0)
+    num_turns = events.get("num_turns", 0)
+
+    # Duration in seconds
+    if duration:
+        ls_testing.log_feedback(key="duration_seconds", score=float(duration))
+
+    # Number of turns
+    if num_turns:
+        ls_testing.log_feedback(key="num_turns", score=float(num_turns))
+
+    # Pass rate (percentage of checks passed)
+    if total_checks > 0:
+        pass_rate = len(passed) / total_checks
+        ls_testing.log_feedback(key="pass_rate", score=pass_rate)
+
+    # All passed (boolean: 1.0 = pass, 0.0 = fail)
+    ls_testing.log_feedback(key="all_passed", score=1.0 if not failed else 0.0)
 
     # Record results
     record_result(events, passed, failed, run_id=run_id)

@@ -10,6 +10,7 @@ default_treatments = ["CONTROL", "LCC_NOISE_NONE", "LCC_NOISE_1", "LCC_NOISE_2",
 required = []
 
 [environment]
+description = "Python workspace with chinook.db (music store SQLite database with artists, albums, tracks, invoices, customers). LangChain, LangGraph, and langsmith dependencies pre-installed. Same as lc-basic but with distracting noise tasks injected."
 dockerfile = "Dockerfile"
 timeout_sec = 900
 

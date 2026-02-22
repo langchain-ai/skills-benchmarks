@@ -20,6 +20,7 @@ default_treatments = [
 required = []
 
 [environment]
+description = "Python workspace with agent_system.py - a Deep Agents (claude-agent-sdk) multi-agent system with 2 bugs: incorrect memory backend configuration preventing persistence, and subagent routing that fails to delegate tasks. claude-agent-sdk dependencies installed."
 timeout_sec = 600
 
 [validation]

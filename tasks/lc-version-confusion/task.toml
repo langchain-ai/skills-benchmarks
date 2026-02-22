@@ -8,6 +8,7 @@ default_treatments = ["CONTROL", "ALL_MAIN_SKILLS", "MAIN_SINGLE_PRIMER", "MAIN_
 
 
 [environment]
+description = "Python workspace with legacy_agent.py using deprecated LangChain 0.1/0.2 patterns (AgentExecutor, old callback syntax, deprecated imports from langchain.agents). Modern LangChain 0.3+ installed. Claude must modernize the code to use create_react_agent, langgraph, and current APIs."
 dockerfile = "environment/Dockerfile"
 timeout_sec = 900
 

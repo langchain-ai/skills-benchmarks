@@ -19,6 +19,7 @@ default_treatments = [
 required = ["py_dataset", "ts_dataset", "run_id"]
 
 [environment]
+description = "Polyglot workspace with backend/ (Python SQL analytics agent) and frontend/ (TypeScript support chatbot). Both agents already have LangSmith tracing. Pre-existing datasets contain example runs. Claude must create custom evaluators for both agents and upload to LangSmith."
 dockerfile = "Dockerfile"
 timeout_sec = 900
 

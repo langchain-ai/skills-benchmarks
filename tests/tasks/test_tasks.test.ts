@@ -13,6 +13,12 @@
  *   # Run specific task with specific treatment
  *   TASK=ls-evaluator TREATMENT=LS_BASIC_PY pnpm vitest tests/tasks/test_tasks.test.ts
  *
+ *   # Run specific task with multiple treatments (comma-separated)
+ *   TASK=ls-evaluator TREATMENT=LS_BASIC_PY,LS_WORKFLOW_PY pnpm vitest tests/tasks/test_tasks.test.ts
+ *
+ *   # Run with wildcard pattern (matches all treatments starting with prefix)
+ *   TASK=ls-evaluator TREATMENT=LS_BASIC_* pnpm vitest tests/tasks/test_tasks.test.ts
+ *
  *   # Run with parallelism
  *   pnpm vitest tests/tasks/test_tasks.test.ts --pool=threads --poolOptions.threads.maxThreads=4
  *
@@ -48,21 +54,62 @@ interface TestCase {
   treatmentName: string;
 }
 
+/**
+ * Expand treatment patterns into matching treatment names.
+ * Supports:
+ * - Exact names: "LS_BASIC_PY"
+ * - Wildcards: "LS_BASIC_*" (matches LS_BASIC_PY, LS_BASIC_TS, etc.)
+ * - Comma-separated: "LS_BASIC_PY,LS_WORKFLOW_PY"
+ */
+function expandTreatmentPatterns(
+  patterns: string[],
+  allTreatments: Record<string, TreatmentConfig>
+): string[] {
+  const treatmentNames = Object.keys(allTreatments);
+  const expanded: string[] = [];
+
+  for (const pattern of patterns) {
+    if (pattern.endsWith("*")) {
+      // Wildcard pattern - match prefix
+      const prefix = pattern.slice(0, -1);
+      const matches = treatmentNames.filter((t) => t.startsWith(prefix));
+      if (matches.length === 0) {
+        throw new Error(
+          `No treatments match pattern: ${pattern}. Available: ${treatmentNames.join(", ")}`
+        );
+      }
+      expanded.push(...matches);
+    } else {
+      // Exact match
+      if (!(pattern in allTreatments)) {
+        throw new Error(
+          `Treatment not found: ${pattern}. Available: ${treatmentNames.join(", ")}`
+        );
+      }
+      expanded.push(pattern);
+    }
+  }
+
+  return [...new Set(expanded)]; // Deduplicate
+}
+
 function generateTestCases(): TestCase[] {
   const testCases: TestCase[] = [];
   const allTreatments = loadTreatments();
   const allTasks = listTasks();
 
-  // Validate filters
+  // Validate task filter
   if (TASK_FILTER && !allTasks.includes(TASK_FILTER)) {
     throw new Error(
       `Task not found: ${TASK_FILTER}. Available: ${allTasks.join(", ")}`
     );
   }
-  if (TREATMENT_FILTER && !(TREATMENT_FILTER in allTreatments)) {
-    throw new Error(
-      `Treatment not found: ${TREATMENT_FILTER}. Available: ${Object.keys(allTreatments).join(", ")}`
-    );
+
+  // Parse and expand treatment filter (supports comma-separated and wildcards)
+  let treatmentList: string[] = [];
+  if (TREATMENT_FILTER) {
+    const patterns = TREATMENT_FILTER.split(",").map((t) => t.trim());
+    treatmentList = expandTreatmentPatterns(patterns, allTreatments);
   }
 
   // Determine which tasks to run
@@ -71,9 +118,11 @@ function generateTestCases(): TestCase[] {
   for (const taskName of tasksToRun) {
     const task = loadTask(taskName);
 
-    if (TREATMENT_FILTER) {
-      // Specific treatment requested
-      testCases.push({ taskName, treatmentName: TREATMENT_FILTER });
+    if (treatmentList.length > 0) {
+      // Specific treatments requested
+      for (const treatmentName of treatmentList) {
+        testCases.push({ taskName, treatmentName });
+      }
     } else {
       // Use default treatments for this task
       for (const treatmentName of task.defaultTreatments) {

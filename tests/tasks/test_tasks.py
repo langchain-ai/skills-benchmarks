@@ -154,16 +154,7 @@ def run_validators(validators: list, test_dir: Path, outputs: dict) -> tuple[lis
     test_suite_name=os.environ.get("LANGSMITH_TEST_SUITE", "skills-benchmark"),
 )
 @pytest.mark.timeout(PYTEST_TIMEOUT)
-def test_task_treatment(
-    task_name,
-    treatment_name,
-    verify_environment,
-    langsmith_project,
-    test_dir,
-    setup_test_context,
-    run_claude,
-    record_result,
-):
+def test_task_treatment(task_name, treatment_name, fixtures):
     """Run a task with a treatment and validate results."""
     # Load task
     task = load_task(task_name)
@@ -190,7 +181,7 @@ def test_task_treatment(
     )
 
     # Setup test context with task's environment
-    setup_test_context(
+    fixtures.setup_test_context(
         skills=treatment.skills,
         claude_md=treatment.claude_md,
         environment_dir=task.environment_dir,
@@ -201,11 +192,11 @@ def test_task_treatment(
 
     # Upload fixture traces if task has trace data files (convention-based)
     trace_id_map = {}
-    if langsmith_project:
+    if fixtures.langsmith_project:
         data_dir = task.path / "data"
         if data_dir.exists() and list(data_dir.glob("trace_*.jsonl")):
-            print(f"\nUploading traces from {data_dir.name} to {langsmith_project}...")
-            trace_id_map = upload_fixture_traces(langsmith_project, data_dir)
+            print(f"\nUploading traces from {data_dir.name} to {fixtures.langsmith_project}...")
+            trace_id_map = upload_fixture_traces(fixtures.langsmith_project, data_dir)
 
     # Render prompt with required variables
     template_vars = {"run_id": run_id}
@@ -233,7 +224,7 @@ def test_task_treatment(
     )
 
     # Run Claude
-    result = run_claude(prompt, timeout=CLAUDE_TIMEOUT)
+    result = fixtures.run_claude(prompt, timeout=CLAUDE_TIMEOUT)
 
     # Parse output
     events = extract_events(parse_output(result.stdout))
@@ -241,13 +232,13 @@ def test_task_treatment(
     # Run validators
     outputs = {
         "run_id": run_id,
-        "langsmith_project": langsmith_project,
+        "langsmith_project": fixtures.langsmith_project,
         "treatment_name": treatment_name,
         "events": events,
         "noise_tasks": treatment_cfg.noise_tasks,
         "trace_id_map": trace_id_map,
     }
-    passed, failed = run_validators(validators, test_dir, outputs)
+    passed, failed = run_validators(validators, fixtures.test_dir, outputs)
 
     # Log outputs to LangSmith
     ls_testing.log_outputs(
@@ -278,6 +269,6 @@ def test_task_treatment(
         ls_testing.log_feedback(key="checks_pass_rate", score=checks_pass_rate)
 
     # Record results
-    record_result(events, passed, failed, run_id=run_id)
+    fixtures.record_result(events, passed, failed, run_id=run_id)
 
     assert not failed, f"Validation failed: {failed}"

@@ -28,11 +28,14 @@ Usage:
     pytest tests/tasks/test_tasks.py --task=ls-evaluator --treatment=LS_BASIC_* -v
 """
 
+import os
 import uuid
 from pathlib import Path
 
 import pytest
+from langsmith import testing as ls_testing
 
+from conftest import upload_fixture_traces
 from scaffold import NoiseTask, Treatment
 from scaffold.python import extract_events, parse_output
 from scaffold.python.tasks import list_tasks, load_task
@@ -147,19 +150,11 @@ def run_validators(validators: list, test_dir: Path, outputs: dict) -> tuple[lis
     return all_passed, all_failed
 
 
+@pytest.mark.langsmith(
+    test_suite_name=os.environ.get("LANGSMITH_TEST_SUITE", "skills-benchmark"),
+)
 @pytest.mark.timeout(PYTEST_TIMEOUT)
-def test_task_treatment(
-    task_name,
-    treatment_name,
-    # Fixtures from conftest
-    verify_environment,
-    langsmith_project,
-    test_dir,
-    setup_test_context,
-    run_claude,
-    record_result,
-    upload_traces,
-):
+def test_task_treatment(task_name, treatment_name, fixtures):
     """Run a task with a treatment and validate results."""
     # Load task
     task = load_task(task_name)
@@ -186,7 +181,7 @@ def test_task_treatment(
     )
 
     # Setup test context with task's environment
-    setup_test_context(
+    fixtures.setup_test_context(
         skills=treatment.skills,
         claude_md=treatment.claude_md,
         environment_dir=task.environment_dir,
@@ -195,12 +190,13 @@ def test_task_treatment(
     # Generate run_id for parallel execution
     run_id = str(uuid.uuid4())
 
-    # Upload fixture traces for tasks that need them (ls-multiskill-*)
+    # Upload fixture traces if task has trace data files (convention-based)
     trace_id_map = {}
-    if task_name.startswith("ls-multiskill"):
+    if fixtures.langsmith_project:
         data_dir = task.path / "data"
-        if data_dir.exists():
-            trace_id_map = upload_traces(data_dir)
+        if data_dir.exists() and list(data_dir.glob("trace_*.jsonl")):
+            print(f"\nUploading traces from {data_dir.name} to {fixtures.langsmith_project}...")
+            trace_id_map = upload_fixture_traces(fixtures.langsmith_project, data_dir)
 
     # Render prompt with required variables
     template_vars = {"run_id": run_id}
@@ -214,8 +210,21 @@ def test_task_treatment(
     prompt = task.render_prompt(**template_vars)
     prompt = treatment.build_prompt(prompt)
 
+    # Log inputs to LangSmith
+    ls_testing.log_inputs(
+        {
+            "task_name": task_name,
+            "task_description": task.config.description,
+            "environment_description": task.config.environment_description,
+            "treatment_name": treatment_name,
+            "treatment_description": treatment_cfg.description,
+            "prompt": prompt,
+            "skills_loaded": list(treatment.skills.keys()) if treatment.skills else [],
+        }
+    )
+
     # Run Claude
-    result = run_claude(prompt, timeout=CLAUDE_TIMEOUT)
+    result = fixtures.run_claude(prompt, timeout=CLAUDE_TIMEOUT)
 
     # Parse output
     events = extract_events(parse_output(result.stdout))
@@ -223,15 +232,45 @@ def test_task_treatment(
     # Run validators
     outputs = {
         "run_id": run_id,
-        "langsmith_project": langsmith_project,
+        "langsmith_project": fixtures.langsmith_project,
         "treatment_name": treatment_name,
         "events": events,
         "noise_tasks": treatment_cfg.noise_tasks,
         "trace_id_map": trace_id_map,
     }
-    passed, failed = run_validators(validators, test_dir, outputs)
+    passed, failed = run_validators(validators, fixtures.test_dir, outputs)
+
+    # Log outputs to LangSmith
+    ls_testing.log_outputs(
+        {
+            "skills_invoked": events.get("skills_invoked", []),
+            "passed_checks": passed,
+            "failed_checks": failed,
+        }
+    )
+
+    # Log feedback scores to LangSmith
+    total_checks = len(passed) + len(failed)
+    duration = events.get("duration_seconds", 0)
+    num_turns = events.get("num_turns", 0)
+
+    # Duration in seconds
+    if duration:
+        ls_testing.log_feedback(key="duration_seconds", score=float(duration))
+
+    # Number of turns
+    if num_turns:
+        ls_testing.log_feedback(key="num_turns", score=float(num_turns))
+
+    # Checks pass rate (percentage of validation checks passed)
+    if total_checks > 0:
+        checks_pass_rate = len(passed) / total_checks
+        ls_testing.log_feedback(key="checks_pass_rate", score=checks_pass_rate)
 
     # Record results
-    record_result(events, passed, failed, run_id=run_id)
+    fixtures.record_result(events, passed, failed, run_id=run_id)
 
-    assert not failed, f"Validation failed: {failed}"
+    # Use pytest.fail() instead of assert to get cleaner error messages
+    # (assert shows the full expression evaluation which is noisy)
+    if failed:
+        pytest.fail(f"Validation failed: {failed}")

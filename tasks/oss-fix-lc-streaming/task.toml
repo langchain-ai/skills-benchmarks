@@ -20,6 +20,7 @@ default_treatments = [
 required = []
 
 [environment]
+description = "Python workspace with chat_app.py - a LangChain chat application with 2 bugs: broken streaming output that doesn't flush tokens in real-time, and tool call handling that ignores tool results. LangChain and langchain-openai dependencies installed."
 timeout_sec = 600
 
 [validation]

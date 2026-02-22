@@ -10,6 +10,7 @@ default_treatments = ["CONTROL", "ALL_MAIN_SKILLS", "MAIN_SINGLE_PRIMER", "MAIN_
 required = []
 
 [environment]
+description = "Clean Python workspace with LangChain, LangGraph, and Deep Agents (claude-agent-sdk) all installed. Claude must design and build a multi-component application, choosing the right framework (LangChain vs LangGraph vs Deep Agents) for each component based on requirements."
 dockerfile = "environment/Dockerfile"
 timeout_sec = 900
 

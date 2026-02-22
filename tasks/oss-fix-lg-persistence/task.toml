@@ -20,6 +20,7 @@ default_treatments = [
 required = []
 
 [environment]
+description = "Python workspace with broken_agent.py - a LangGraph chatbot with 3 bugs: missing checkpointer configuration, incorrect thread_id usage, and state reducer issues. LangGraph, LangChain, and langgraph-checkpoint dependencies installed."
 timeout_sec = 600
 
 [validation]

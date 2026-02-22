@@ -18,6 +18,7 @@ default_treatments = [
 required = ["run_id"]
 
 [environment]
+description = "Polyglot workspace with backend/ (Python SQL analytics agent) and frontend/ (TypeScript support chatbot). Neither agent has tracing enabled. langsmith SDK installed for both Python and TypeScript. Claude must add LangSmith tracing to both agents."
 dockerfile = "Dockerfile"
 timeout_sec = 900
 

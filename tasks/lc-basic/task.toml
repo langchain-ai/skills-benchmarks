@@ -18,6 +18,7 @@ default_treatments = [
 required = []
 
 [environment]
+description = "Python workspace with chinook.db (music store SQLite database with artists, albums, tracks, invoices, customers). LangChain, LangGraph, and langsmith dependencies pre-installed. Claude must build a SQL analytics agent from scratch."
 dockerfile = "environment/Dockerfile"
 timeout_sec = 900
 

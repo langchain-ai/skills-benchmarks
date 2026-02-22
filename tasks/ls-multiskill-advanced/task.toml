@@ -10,6 +10,7 @@ default_treatments = ["LS_BASIC_PY", "LS_WORKFLOW_PY", "CONTROL"]
 required = ["run_id"]
 
 [environment]
+description = "Clean Python workspace with langsmith SDK installed. Claude has access to a LangSmith project containing pre-existing traces from a SQL analytics agent. Task requires creating trajectory datasets and custom evaluators."
 dockerfile = "Dockerfile"
 timeout_sec = 900
 

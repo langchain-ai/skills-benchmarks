@@ -375,6 +375,7 @@ def langsmith_project(worker_id, request):
         except Exception as e:
             print(f"Warning: Could not delete project {project_name}: {e}")
 
+    # Restore original env var
     if old_project:
         os.environ["LANGSMITH_PROJECT"] = old_project
     elif "LANGSMITH_PROJECT" in os.environ:
@@ -700,6 +701,37 @@ def record_result(test_dir, experiment_logger, request):
     return _record
 
 
+@pytest.fixture(scope="function")
+def fixtures(
+    verify_environment,
+    langsmith_project,
+    test_dir,
+    setup_test_context,
+    run_claude,
+    record_result,
+):
+    """Bundle test fixtures to reduce LangSmith input noise.
+
+    Scope is 'function' (narrowest among dependencies) since it depends on
+    function-scoped fixtures like test_dir, run_claude, etc.
+
+    Usage:
+        def test_task_treatment(task_name, treatment_name, fixtures):
+            fixtures.setup_test_context(skills=..., environment_dir=...)
+            result = fixtures.run_claude(prompt)
+            fixtures.record_result(events, passed, failed)
+    """
+    from types import SimpleNamespace
+
+    return SimpleNamespace(
+        langsmith_project=langsmith_project,
+        test_dir=test_dir,
+        setup_test_context=setup_test_context,
+        run_claude=run_claude,
+        record_result=record_result,
+    )
+
+
 # =============================================================================
 # HELPERS
 # =============================================================================
@@ -714,17 +746,34 @@ def _get_treatment_name(node) -> str:
     return nodeid.split("::")[-1]
 
 
-# Known skill scripts for tracking
-_KNOWN_SCRIPTS = [
-    "query_traces.py",
-    "query_traces.ts",
-    "generate_datasets.py",
-    "generate_datasets.ts",
-    "query_datasets.py",
-    "query_datasets.ts",
-    "upload_evaluators.py",
-    "upload_evaluators.ts",
-]
+def _discover_skill_scripts() -> list[str]:
+    """Dynamically discover all script files from skills directories."""
+    scripts = set()
+    skills_dir = PROJECT_ROOT / "skills"
+
+    if not skills_dir.exists():
+        return []
+
+    # Find all scripts directories in skills
+    for scripts_dir in skills_dir.rglob("scripts"):
+        if scripts_dir.is_dir():
+            for script in scripts_dir.iterdir():
+                if script.is_file() and script.suffix in {".py", ".ts", ".js"}:
+                    scripts.add(script.name)
+
+    return sorted(scripts)
+
+
+# Cache discovered scripts (computed once at import time)
+_KNOWN_SCRIPTS: list[str] | None = None
+
+
+def _get_known_scripts() -> list[str]:
+    """Get known scripts, discovering them on first call."""
+    global _KNOWN_SCRIPTS
+    if _KNOWN_SCRIPTS is None:
+        _KNOWN_SCRIPTS = _discover_skill_scripts()
+    return _KNOWN_SCRIPTS
 
 
 def _extract_scripts_used(events: dict) -> list[str]:
@@ -733,7 +782,7 @@ def _extract_scripts_used(events: dict) -> list[str]:
     files_read = " ".join(events.get("files_read", [])).lower()
     all_activity = commands + " " + files_read
 
-    return [s for s in _KNOWN_SCRIPTS if s.lower() in all_activity]
+    return [s for s in _get_known_scripts() if s.lower() in all_activity]
 
 
 def _save_artifacts(base_dir: Path, treatment_name: str, rep: int, test_dir: Path):
@@ -932,14 +981,3 @@ def upload_fixture_traces(project: str, data_dir: Path) -> dict[str, str]:
     return id_mapping
 
 
-@pytest.fixture
-def upload_traces(langsmith_project):
-    """Factory fixture to upload trace fixtures to LangSmith project."""
-
-    def _upload(data_dir: Path) -> dict[str, str]:
-        if not langsmith_project or not data_dir or not data_dir.exists():
-            return {}
-        print(f"\nUploading traces from {data_dir.name} to {langsmith_project}...")
-        return upload_fixture_traces(langsmith_project, data_dir)
-
-    return _upload

@@ -10,6 +10,7 @@ default_treatments = ["CONTROL", "ALL_MAIN_SKILLS", "MAIN_SINGLE_PRIMER", "MAIN_
 required = []
 
 [environment]
+description = "Python workspace with a broken project: incorrect requirements.txt with outdated langchain-community deps, wrong import paths for Tavily tools, and missing langchain-openai. Claude must debug and fix dependency issues to make the search agent work."
 dockerfile = "environment/Dockerfile"
 timeout_sec = 900
 

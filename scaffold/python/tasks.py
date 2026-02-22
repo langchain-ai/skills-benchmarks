@@ -40,6 +40,9 @@ class TaskConfig:
     category: str = ""
     tags: list[str] = field(default_factory=list)
 
+    # Description of what Claude has access to in this task environment
+    environment_description: str = ""
+
     # Default treatments to test with this task
     default_treatments: list[str] = field(default_factory=list)
 
@@ -172,6 +175,7 @@ def load_task(name: str, tasks_dir: Path | None = None) -> Task:
         difficulty=metadata.get("difficulty", "medium"),
         category=metadata.get("category", ""),
         tags=metadata.get("tags", []),
+        environment_description=environment.get("description", ""),
         default_treatments=metadata.get("default_treatments", []),
         template_required=template.get("required", []),
         dockerfile=environment.get("dockerfile", "Dockerfile"),

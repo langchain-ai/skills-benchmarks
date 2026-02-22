@@ -278,9 +278,6 @@ def test_task_treatment(
         checks_pass_rate = len(passed) / total_checks
         ls_testing.log_feedback(key="checks_pass_rate", score=checks_pass_rate)
 
-    # All checks passed (boolean: 1.0 = all passed, 0.0 = any failed)
-    ls_testing.log_feedback(key="all_checks_passed", score=1.0 if not failed else 0.0)
-
     # Record results
     record_result(events, passed, failed, run_id=run_id)
 

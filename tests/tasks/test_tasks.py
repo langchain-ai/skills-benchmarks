@@ -55,22 +55,6 @@ TASKS_DIR = Path(__file__).parent.parent.parent / "tasks"
 TASK_INDEX = TASKS_DIR / "index.yaml"
 
 
-def pytest_addoption(parser):
-    """Add CLI options for task and treatment selection."""
-    parser.addoption(
-        "--task",
-        action="store",
-        default=None,
-        help="Run specific task (e.g., --task=ls-evaluator)",
-    )
-    parser.addoption(
-        "--treatment",
-        action="store",
-        default=None,
-        help="Run specific treatment (e.g., --treatment=LS_BASIC_PY)",
-    )
-
-
 def load_task_index() -> dict:
     """Load the task index with default treatments."""
     if not TASK_INDEX.exists():

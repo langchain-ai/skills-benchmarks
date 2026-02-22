@@ -286,6 +286,22 @@ def _is_scripts_only(config) -> bool:
     return all("scripts" in arg for arg in args)
 
 
+def pytest_addoption(parser):
+    """Add CLI options for task and treatment selection."""
+    parser.addoption(
+        "--task",
+        action="store",
+        default=None,
+        help="Run specific task (e.g., --task=ls-evaluator)",
+    )
+    parser.addoption(
+        "--treatment",
+        action="store",
+        default=None,
+        help="Run specific treatment (e.g., --treatment=LS_BASIC_PY)",
+    )
+
+
 def pytest_configure(config):
     """Register experiment plugin (decision deferred to sessionstart)."""
     global _plugin

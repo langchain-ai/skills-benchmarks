@@ -4,6 +4,7 @@ description = "Tests whether framing matters: DO use modern patterns vs DON'T us
 difficulty = "medium"
 category = "langchain"
 tags = ["langchain", "agents", "guidance"]
+default_treatments = ["CONTROL", "ALL_MAIN_SKILLS", "MAIN_SINGLE_PRIMER", "MAIN_SPLIT_PRIMER_CLAUDE"]
 
 [template]
 required = []

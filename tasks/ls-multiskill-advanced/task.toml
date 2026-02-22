@@ -4,6 +4,7 @@ description = "Create trajectory dataset and evaluator from LangSmith traces"
 difficulty = "hard"
 category = "langsmith"
 tags = ["multiskill", "trace", "dataset", "evaluator"]
+default_treatments = ["LS_BASIC_PY", "LS_WORKFLOW_PY", "CONTROL"]
 
 [template]
 required = ["run_id"]

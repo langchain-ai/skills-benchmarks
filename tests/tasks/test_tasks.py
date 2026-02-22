@@ -23,7 +23,6 @@ import uuid
 from pathlib import Path
 
 import pytest
-import yaml
 
 from scaffold import NoiseTask, Treatment
 from scaffold.python import extract_events, parse_output
@@ -50,30 +49,16 @@ def build_noise_tasks(noise_task_names: list[str]) -> list[NoiseTask]:
 CLAUDE_TIMEOUT = 600  # 10 minutes for Claude to complete task
 PYTEST_TIMEOUT = 900  # 15 minutes total including setup/teardown
 
-# Tasks directory
-TASKS_DIR = Path(__file__).parent.parent.parent / "tasks"
-TASK_INDEX = TASKS_DIR / "index.yaml"
-
-
-def load_task_index() -> dict:
-    """Load the task index with default treatments."""
-    if not TASK_INDEX.exists():
-        return {}
-    with open(TASK_INDEX) as f:
-        data = yaml.safe_load(f)
-    return data.get("tasks", {})
-
 
 def generate_test_params(task_filter: str | None, treatment_filter: str | None):
     """Generate (task_name, treatment_name) pairs based on filters.
 
-    - No filters: returns default_treatments for each task
+    - No filters: returns default_treatments for each task (from task.toml)
     - --task only: returns default_treatments for that task
     - --treatment only: returns that treatment for all tasks
     - Both: returns that specific combination
     """
     params = []
-    task_index = load_task_index()
     all_treatments = load_treatments()
     all_tasks = list_tasks()
 
@@ -87,14 +72,13 @@ def generate_test_params(task_filter: str | None, treatment_filter: str | None):
     tasks_to_run = [task_filter] if task_filter else all_tasks
 
     for task_name in tasks_to_run:
+        task = load_task(task_name)
         if treatment_filter:
             # Specific treatment requested - use it
             params.append((task_name, treatment_filter))
         else:
-            # No treatment filter - use defaults for this task
-            task_info = task_index.get(task_name, {})
-            defaults = task_info.get("default_treatments", [])
-            for treatment_name in defaults:
+            # No treatment filter - use defaults from task.toml
+            for treatment_name in task.default_treatments:
                 if treatment_name in all_treatments:
                     params.append((task_name, treatment_name))
 

@@ -32,6 +32,9 @@ export interface TaskConfig {
   name: string;
   description: string;
   difficulty?: string;
+  category?: string;
+  tags?: string[];
+  default_treatments?: string[];
   template_vars?: string[];
   validator_module?: string;
 }
@@ -42,6 +45,7 @@ export interface Task {
   config: TaskConfig;
   environmentDir: string | null;
   dataDir: string | null;
+  defaultTreatments: string[];
   renderPrompt: (vars?: Record<string, string>) => string;
 }
 
@@ -70,19 +74,24 @@ export function listTasks(): string[] {
 
 /**
  * Parse TOML file (basic implementation for task.toml).
- * Note: This is a simplified TOML parser that handles the task.toml format.
+ * Note: This is a simplified TOML parser that handles the task.toml format,
+ * including multiline arrays.
  */
 function parseToml(content: string): TaskConfig {
   const config: Partial<TaskConfig> = {};
   const lines = content.split("\n");
 
-  for (const line of lines) {
-    const trimmed = line.trim();
+  let i = 0;
+  while (i < lines.length) {
+    const trimmed = lines[i].trim();
+
+    // Skip empty lines, comments, and section headers
     if (!trimmed || trimmed.startsWith("#") || trimmed.startsWith("[")) {
+      i++;
       continue;
     }
 
-    const match = trimmed.match(/^(\w+)\s*=\s*(.+)$/);
+    const match = trimmed.match(/^(\w+)\s*=\s*(.*)$/);
     if (match) {
       const [, key, rawValue] = match;
       let value: string | string[] = rawValue.trim();
@@ -91,7 +100,7 @@ function parseToml(content: string): TaskConfig {
       if (value.startsWith('"') && value.endsWith('"')) {
         value = value.slice(1, -1);
       }
-      // Handle arrays
+      // Handle single-line arrays
       else if (value.startsWith("[") && value.endsWith("]")) {
         value = value
           .slice(1, -1)
@@ -99,9 +108,43 @@ function parseToml(content: string): TaskConfig {
           .map((v) => v.trim().replace(/^"|"$/g, ""))
           .filter(Boolean);
       }
+      // Handle multiline arrays
+      else if (value.startsWith("[") && !value.endsWith("]")) {
+        const arrayItems: string[] = [];
+        // Parse items from first line if any
+        const firstLineContent = value.slice(1).trim();
+        if (firstLineContent) {
+          const items = firstLineContent.split(",").map((v) => v.trim().replace(/^"|"$/g, "")).filter(Boolean);
+          arrayItems.push(...items);
+        }
+        // Continue reading lines until we find the closing bracket
+        i++;
+        while (i < lines.length) {
+          const arrayLine = lines[i].trim();
+          if (arrayLine.startsWith("#")) {
+            i++;
+            continue;
+          }
+          if (arrayLine === "]" || arrayLine.endsWith("]")) {
+            // Handle last line with items before closing bracket
+            if (arrayLine !== "]") {
+              const lastContent = arrayLine.slice(0, -1);
+              const items = lastContent.split(",").map((v) => v.trim().replace(/^"|"$/g, "").replace(/,$/, "")).filter(Boolean);
+              arrayItems.push(...items);
+            }
+            break;
+          }
+          // Parse items from this line
+          const items = arrayLine.split(",").map((v) => v.trim().replace(/^"|"$/g, "").replace(/,$/, "")).filter(Boolean);
+          arrayItems.push(...items);
+          i++;
+        }
+        value = arrayItems;
+      }
 
       (config as Record<string, unknown>)[key] = value;
     }
+    i++;
   }
 
   return config as TaskConfig;
@@ -141,6 +184,7 @@ export function loadTask(name: string): Task {
     config,
     environmentDir: existsSync(environmentDir) ? environmentDir : null,
     dataDir: existsSync(dataDir) ? dataDir : null,
+    defaultTreatments: config.default_treatments || [],
     renderPrompt: (vars = {}) => {
       let prompt = instruction;
       for (const [key, value] of Object.entries(vars)) {

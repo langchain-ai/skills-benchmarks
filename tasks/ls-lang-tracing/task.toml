@@ -4,6 +4,15 @@ description = "Add LangSmith tracing to Python and TypeScript agents"
 difficulty = "easy"
 category = "langsmith"
 tags = ["tracing", "polyglot", "python", "typescript"]
+default_treatments = [
+    "LS_BASIC_PY",
+    "LS_BASIC_TS",
+    "LS_BASIC_BOTH",
+    "LS_WORKFLOW_PY",
+    "LS_WORKFLOW_TS",
+    "LS_WORKFLOW_BOTH",
+    "CONTROL",
+]
 
 [template]
 required = ["run_id"]

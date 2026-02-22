@@ -1,148 +1,16 @@
-# Task Index
+# Task Index (Reference Only)
 #
-# Central registry of all benchmark tasks. Each task is a self-contained
-# directory with instruction.md, task.toml, environment/, and validation/.
+# This file is for documentation purposes only.
+# Tasks are auto-discovered from directories containing task.toml + instruction.md.
+# All task metadata including default_treatments is defined in each task's task.toml.
 #
-# Any treatment from treatments/ can be used with any task.
-# default_treatments defines which treatments are tested by default for each task.
-
-tasks:
-  ls-evaluator:
-    description: "Create LangSmith evaluators for Python and TypeScript agents"
-    difficulty: medium
-    category: langsmith
-    tags: [evaluator, polyglot, python, typescript]
-    default_treatments:
-      - LS_BASIC_PY
-      - LS_BASIC_TS
-      - LS_BASIC_BOTH
-      - LS_WORKFLOW_PY
-      - LS_WORKFLOW_TS
-      - LS_WORKFLOW_BOTH
-      - CONTROL
-
-  ls-tracing:
-    description: "Add LangSmith tracing to Python and TypeScript agents"
-    difficulty: easy
-    category: langsmith
-    tags: [tracing, polyglot, python, typescript]
-    default_treatments:
-      - LS_BASIC_PY
-      - LS_BASIC_TS
-      - LS_BASIC_BOTH
-      - LS_WORKFLOW_PY
-      - LS_WORKFLOW_TS
-      - LS_WORKFLOW_BOTH
-      - CONTROL
-
-  ls-multiskill-basic:
-    description: "Create trajectory dataset from LangSmith traces"
-    difficulty: medium
-    category: langsmith
-    tags: [multiskill, trace, dataset]
-    default_treatments:
-      - LS_BASIC_PY
-      - LS_WORKFLOW_PY
-      - CONTROL
-
-  ls-multiskill-advanced:
-    description: "Create trajectory dataset and evaluator from LangSmith traces"
-    difficulty: hard
-    category: langsmith
-    tags: [multiskill, trace, dataset, evaluator]
-    default_treatments:
-      - LS_BASIC_PY
-      - LS_WORKFLOW_PY
-      - CONTROL
-
-  lc-deps-tavily:
-    description: "Fix a broken project with wrong langchain deps and import paths for Tavily"
-    difficulty: medium
-    category: langchain
-    tags: [langchain, dependencies, tavily, imports, debugging]
-    default_treatments:
-      - CONTROL
-      - ALL_MAIN_SKILLS
-      - MAIN_SINGLE_PRIMER
-      - MAIN_SPLIT_PRIMER_CLAUDE
-
-  lc-framework-choice:
-    description: "Pick appropriate frameworks (LangChain/LangGraph/Deep Agents) for app components"
-    difficulty: hard
-    category: langchain
-    tags: [langchain, langgraph, deep-agents, framework-selection, architecture]
-    default_treatments:
-      - CONTROL
-      - ALL_MAIN_SKILLS
-      - MAIN_SINGLE_PRIMER
-      - MAIN_SPLIT_PRIMER_CLAUDE
-
-  lc-version-confusion:
-    description: "Modernize LangChain 0.1/0.2 era legacy code to current 1.0 patterns"
-    difficulty: medium
-    category: langchain
-    tags: [langchain, migration, legacy, modernization, deprecated]
-    default_treatments:
-      - CONTROL
-      - ALL_MAIN_SKILLS
-      - MAIN_SINGLE_PRIMER
-      - MAIN_SPLIT_PRIMER_CLAUDE
-
-  oss-fix-lg-persistence:
-    description: "Fix LangGraph persistence bugs using skill knowledge"
-    difficulty: medium
-    category: langgraph
-    tags: [langgraph, persistence, state, debugging]
-    default_treatments:
-      - CONTROL
-      - OSSS_LG_PERSISTENCE_ONLY
-      - OSSS_LG_STATE_ONLY
-      - OSSS_LG_PERSISTENCE_AND_STATE
-      - OSSS_ALL_LG
-      - OSSS_ALL_LC
-      - OSSS_MIXED_20
-      - OSSM_BASE
-      - ALL_MAIN_SKILLS
-
-  oss-fix-da-memory:
-    description: "Fix Deep Agents memory bugs using skill knowledge"
-    difficulty: medium
-    category: deepagents
-    tags: [deepagents, memory, subagents, debugging]
-    default_treatments:
-      - CONTROL
-      - OSSS_DA_MEMORY_ONLY
-      - OSSS_DA_SUBAGENTS_ONLY
-      - OSSS_DA_MEMORY_AND_SUBAGENTS
-      - OSSS_ALL_DA
-      - OSSS_ALL_LG
-      - OSSS_MIXED_20
-      - OSSM_BASE
-      - ALL_MAIN_SKILLS
-
-  oss-fix-lc-streaming:
-    description: "Fix LangChain streaming bugs using skill knowledge"
-    difficulty: medium
-    category: langchain
-    tags: [langchain, streaming, tools, debugging]
-    default_treatments:
-      - CONTROL
-      - OSSS_LC_STREAMING_ONLY
-      - OSSS_LC_TOOLS_ONLY
-      - OSSS_LC_STREAMING_AND_TOOLS
-      - OSSS_ALL_LC
-      - OSSS_ALL_LG
-      - OSSS_MIXED_20
-      - OSSM_BASE
-      - ALL_MAIN_SKILLS
-
 # Difficulty levels:
 #   easy   - Single-skill tasks with clear requirements
 #   medium - Multi-step tasks or polyglot requirements
 #   hard   - Multi-skill coordination with complex validation
-
+#
 # Categories:
-#   langsmith - LangSmith tracing, datasets, evaluators
-#   langchain - LangChain agents, dependencies, framework selection
-#   langgraph - LangGraph persistence, state, workflows
+#   langsmith  - LangSmith tracing, datasets, evaluators
+#   langchain  - LangChain agents, dependencies, framework selection
+#   langgraph  - LangGraph persistence, state, workflows
 #   deepagents - Deep Agents memory, subagents, orchestration

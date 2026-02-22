@@ -4,6 +4,17 @@ description = "Fix persistence and state bugs in a LangGraph chatbot"
 difficulty = "medium"
 category = "langgraph"
 tags = ["persistence", "state", "checkpointer", "reducer", "bug-fix"]
+default_treatments = [
+    "CONTROL",
+    "OSSS_LG_PERSISTENCE_ONLY",
+    "OSSS_LG_STATE_ONLY",
+    "OSSS_LG_PERSISTENCE_AND_STATE",
+    "OSSS_ALL_LG",
+    "OSSS_ALL_LC",
+    "OSSS_MIXED_20",
+    "OSSM_BASE",
+    "ALL_MAIN_SKILLS",
+]
 
 [template]
 required = []

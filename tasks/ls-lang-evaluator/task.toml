@@ -4,6 +4,15 @@ description = "Create LangSmith evaluators for Python and TypeScript agents"
 difficulty = "medium"
 category = "langsmith"
 tags = ["evaluator", "polyglot", "python", "typescript"]
+default_treatments = [
+    "LS_BASIC_PY",
+    "LS_BASIC_TS",
+    "LS_BASIC_BOTH",
+    "LS_WORKFLOW_PY",
+    "LS_WORKFLOW_TS",
+    "LS_WORKFLOW_BOTH",
+    "CONTROL",
+]
 
 [template]
 # Variables substituted into instruction.md at runtime

@@ -4,6 +4,17 @@ description = "Fix memory routing and subagent configuration bugs"
 difficulty = "medium"
 category = "deepagents"
 tags = ["memory", "subagents", "persistence", "bug-fix"]
+default_treatments = [
+    "CONTROL",
+    "OSSS_DA_MEMORY_ONLY",
+    "OSSS_DA_SUBAGENTS_ONLY",
+    "OSSS_DA_MEMORY_AND_SUBAGENTS",
+    "OSSS_ALL_DA",
+    "OSSS_ALL_LG",
+    "OSSS_MIXED_20",
+    "OSSM_BASE",
+    "ALL_MAIN_SKILLS",
+]
 
 [template]
 required = []

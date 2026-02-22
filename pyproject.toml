@@ -32,6 +32,9 @@ dev = [
 [tool.setuptools]
 packages = []
 
+[tool.pytest.ini_options]
+addopts = "--tb=no"
+
 [tool.ruff]
 target-version = "py311"
 line-length = 100

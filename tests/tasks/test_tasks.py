@@ -270,4 +270,7 @@ def test_task_treatment(task_name, treatment_name, fixtures):
     # Record results
     fixtures.record_result(events, passed, failed, run_id=run_id)
 
-    assert not failed, f"Validation failed: {failed}"
+    # Use pytest.fail() instead of assert to get cleaner error messages
+    # (assert shows the full expression evaluation which is noisy)
+    if failed:
+        pytest.fail(f"Validation failed: {failed}")

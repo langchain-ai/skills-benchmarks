@@ -9,21 +9,24 @@ Measures how skill documentation design affects Claude Code's adherence to recom
 ```bash
 # Setup
 uv sync                      # Python
-npm install && npm run build # TypeScript
+pnpm install && pnpm build   # TypeScript
 
-# Run a single task/treatment
-uv run pytest tests/tasks/test_tasks.py -k "ls-lang-tracing and UNIFIED_BOTH" -v
+# Run a specific task with specific treatments
+uv run pytest tests/tasks/test_tasks.py --task=ls-multiskill-advanced --treatment=LS_CLAUDE_ADVANCED_NONE,LS_CLAUDE_ADVANCED_FULL -v
 
-# Run all treatments for a task
-uv run pytest tests/tasks/test_tasks.py -k "ls-multiskill-basic" -v
+# Run with wildcard pattern (all treatments starting with prefix)
+uv run pytest tests/tasks/test_tasks.py --task=ls-lang-tracing --treatment=LS_BASIC_* -v
 
-# With repetitions
-uv run pytest tests/tasks/test_tasks.py -k "lc-basic-guidance and GUIDANCE_POS" -v --count=3
+# Run task with its default treatments
+uv run pytest tests/tasks/test_tasks.py --task=ls-multiskill-basic -v
+
+# Run with repetitions and parallel workers
+uv run pytest tests/tasks/test_tasks.py --task=lc-basic --treatment=LCC_CLAUDE_* --count=2 -n 4 -v
 ```
 
 ## Requirements
 
-- Python 3.13+ / Node.js 20+
+- Python 3.11+ / Node.js 20+
 - Docker (for sandboxed execution)
 - Claude Code CLI (`claude`)
 - API keys: `OPENAI_API_KEY`, `LANGSMITH_API_KEY`, `ANTHROPIC_API_KEY`
@@ -34,59 +37,107 @@ uv run pytest tests/tasks/test_tasks.py -k "lc-basic-guidance and GUIDANCE_POS" 
 ```
 tasks/                    # Self-contained benchmark tasks
   ls-lang-tracing/        # Each task has its own directory
-    instruction.md        # Task prompt
-    task.toml             # Metadata
-    treatments.yaml       # Treatment configurations
+    instruction.md        # Task prompt with {variable} placeholders
+    task.toml             # Metadata + default_treatments
     environment/          # Docker context
     validation/           # Validators
     data/                 # Ground truth (optional)
 
+treatments/               # Centralized treatment definitions
+  common/                 # Shared treatments (CONTROL, ALL_MAIN_SKILLS)
+  langsmith/              # LangSmith-specific treatments (LS_*)
+  langchain_concise/      # LangChain concise treatments (LCC_*)
+  oss_split/              # OSS split skill treatments (OSSS_*)
+  oss_merged/             # OSS merged skill treatments (OSSM_*)
+
 skills/
   main/                   # Production skills (all tests should pass)
-  benchmarks/             # Benchmark skills (may be weakened for testing)
+  benchmarks/             # Benchmark skills (variations for testing)
   noise/                  # Distractor skills for interference tests
 
 scaffold/
   python/                 # Python scaffold (pytest)
     tasks.py              # Task loader
     treatments.py         # Treatment builder
-    validation/           # Validation utilities
   typescript/             # TypeScript scaffold (vitest)
+    tasks.ts              # Task loader
+    treatments.ts         # Treatment builder
 
 tests/
   tasks/                  # Main test runner
-    test_tasks.py         # Parameterized task/treatment tests
+    test_tasks.py         # Python tests (pytest)
+    test_tasks.test.ts    # TypeScript tests (vitest)
   scripts/                # Script unit tests (Python/TypeScript parity)
 ```
 
 ## Tasks
 
-Each task is a self-contained benchmark with its own treatments:
+Tasks are decoupled from treatments - any treatment can be used with any task. Each task defines `default_treatments` in its `task.toml` for standard testing.
 
-| Task | Description | Treatments |
-|------|-------------|------------|
-| `ls-lang-tracing` | Add LangSmith tracing to Python/TypeScript agents | SEPARATE_NAMES, UNIFIED_BOTH, UNIFIED_PY_ONLY, UNIFIED_TS_ONLY, CONTROL |
-| `ls-lang-evaluator` | Create LangSmith evaluators from datasets | SEPARATE_NAMES, UNIFIED_BOTH, UNIFIED_PY_ONLY, UNIFIED_TS_ONLY, CONTROL |
-| `ls-multiskill-basic` | Create trajectory dataset from traces | BASELINE, CLAUDEMD, SKILLS, BOTH, ALL_SECTIONS, CONTROL |
-| `ls-multiskill-advanced` | Create dataset + evaluator pipeline | BASELINE, CLAUDEMD, SKILLS, BOTH, ALL_SECTIONS, CONTROL |
-| `lc-basic-claudemd` | Test CLAUDE.md content variations | CONTROL, ALL_SECTIONS, BASELINE, CLAUDE_MD_* |
-| `lc-basic-guidance` | Test positive vs negative guidance framing | GUIDANCE_POS, GUIDANCE_NEG |
-| `lc-basic-noise` | Test skill retention with noise tasks | NOISE_BASELINE, NOISE_1, NOISE_2, NOISE_3 |
+| Task | Category | Description |
+|------|----------|-------------|
+| `ls-lang-tracing` | langsmith | Add LangSmith tracing to Python/TypeScript agents |
+| `ls-lang-evaluator` | langsmith | Create LangSmith evaluators from datasets |
+| `ls-multiskill-basic` | langsmith | Create trajectory dataset from traces |
+| `ls-multiskill-advanced` | langsmith | Create dataset + evaluator pipeline |
+| `lc-basic` | langchain | SQL analytics agent (tests skill/guidance variations) |
+| `lc-basic-noise` | langchain | Skill retention with noise distractors |
+| `lc-deps-tavily` | langchain | Fix broken LangChain dependencies |
+| `lc-framework-choice` | langchain | Framework selection task |
+| `lc-version-confusion` | langchain | Modernize legacy LangChain code |
+| `oss-fix-lg-persistence` | langgraph | Fix LangGraph persistence bugs |
+| `oss-fix-lc-streaming` | langchain | Fix LangChain streaming bugs |
+| `oss-fix-da-memory` | deepagents | Fix Deep Agents memory bugs |
+
+## Treatments
+
+Treatments define skill configurations. They're organized by category:
+
+| Prefix | Category | Description |
+|--------|----------|-------------|
+| `CONTROL` | common | No skills (baseline) |
+| `ALL_MAIN_SKILLS` | common | All production skills |
+| `LS_*` | langsmith | LangSmith skill variations |
+| `LCC_*` | langchain_concise | LangChain CLAUDE.md and guidance tests |
+| `OSSS_*` | oss_split | OSS split skill combinations |
+| `OSSM_*` | oss_merged | OSS merged skill combinations |
 
 ## Running Tests
 
 ```bash
-# List all available task/treatment combinations
+# Run specific task + treatment(s)
+uv run pytest tests/tasks/test_tasks.py --task=ls-lang-tracing --treatment=LS_BASIC_PY -v
+
+# Multiple treatments (comma-separated)
+uv run pytest tests/tasks/test_tasks.py --task=lc-basic --treatment=LCC_CLAUDE_NONE,LCC_CLAUDE_FULL -v
+
+# Wildcard patterns
+uv run pytest tests/tasks/test_tasks.py --task=lc-basic --treatment=LCC_GUIDANCE_* -v
+
+# Run task with default treatments
+uv run pytest tests/tasks/test_tasks.py --task=ls-multiskill-basic -v
+
+# With repetitions
+uv run pytest tests/tasks/test_tasks.py --task=lc-basic --treatment=CONTROL --count=3 -v
+
+# Parallel workers
+uv run pytest tests/tasks/test_tasks.py --task=lc-basic --treatment=LCC_* --count=2 -n 4 -v
+
+# List all available combinations
 uv run pytest tests/tasks/test_tasks.py --collect-only
+```
 
-# Run specific combination
-uv run pytest tests/tasks/test_tasks.py -k "ls-lang-tracing and UNIFIED_BOTH" -v
+### TypeScript (Vitest)
 
-# Run all treatments for a task
-uv run pytest tests/tasks/test_tasks.py -k "ls-multiskill-basic" -v
+```bash
+# Run specific task + treatment
+TASK=ls-lang-tracing TREATMENT=LS_BASIC_PY pnpm vitest tests/tasks/test_tasks.test.ts
 
-# Run multiple tasks
-uv run pytest tests/tasks/test_tasks.py -k "lc-basic" -v
+# With wildcard
+TASK=lc-basic TREATMENT=LCC_CLAUDE_* pnpm vitest tests/tasks/test_tasks.test.ts
+
+# With parallelism
+pnpm vitest tests/tasks/test_tasks.test.ts --pool=threads --poolOptions.threads.maxThreads=4
 ```
 
 ## Results
@@ -108,8 +159,8 @@ Example summary output:
 ```
 Treatment                    Checks          Turns    Dur      Skills
 ----------------------------------------------------------------------------
-ls-lang-tracing-UNIFIED_BOTH 17/17 (100%)    51       228s     langsmith-trace
-ls-multiskill-basic-BASELINE 5/8 (62%)       12       95s      langsmith-dataset
+LS_BASIC_PY                  17/17 (100%)    51       228s     langsmith-trace
+LS_CLAUDE_ADVANCED_FULL      5/8 (62%)       12       95s      langsmith-dataset
 ```
 
 ## How It Works
@@ -123,9 +174,9 @@ ls-multiskill-basic-BASELINE 5/8 (62%)       12       95s      langsmith-dataset
 
 Tasks prefixed with `ls-` query and create LangSmith resources. Important considerations:
 
-> **Note: Parallel execution** 
+> **Note: Parallel execution**
 >
-> Parallel execution via pytest-xdist (`-n 4`) is tested and safe - each worker gets isolated LangSmith projects. Running multiple separate pytest processes simultaneously is untested and may have issues. 
+> Parallel execution via pytest-xdist (`-n 4`) is tested and safe - each worker gets isolated LangSmith projects. Running multiple separate pytest processes simultaneously is untested and may have issues.
 
 > **Warning: Orphaned resources on interrupt**
 >
@@ -138,5 +189,5 @@ Tasks prefixed with `ls-` query and create LangSmith resources. Important consid
 See [CONTRIBUTING.md](CONTRIBUTING.md) for:
 - Adding new skills
 - Adding new tasks
+- Adding new treatments
 - Writing validators
-- Treatment configuration options

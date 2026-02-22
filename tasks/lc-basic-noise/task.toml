@@ -4,7 +4,7 @@ description = "Tests skill retention when distracted by unrelated noise tasks"
 difficulty = "medium"
 category = "langchain"
 tags = ["langchain", "agents", "noise", "skill-retention"]
-default_treatments = ["CONTROL", "ALL_MAIN_SKILLS", "MAIN_SINGLE_PRIMER", "MAIN_SPLIT_PRIMER_CLAUDE"]
+default_treatments = ["CONTROL", "LCC_NOISE_NONE", "LCC_NOISE_1", "LCC_NOISE_2", "LCC_NOISE_3"]
 
 [template]
 required = []

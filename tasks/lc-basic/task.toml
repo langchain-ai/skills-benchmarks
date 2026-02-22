@@ -1,0 +1,25 @@
+[metadata]
+name = "lc-basic"
+description = "Basic SQL analytics agent task for testing LangChain skill effectiveness"
+difficulty = "medium"
+category = "langchain"
+tags = ["langchain", "agents", "sql"]
+default_treatments = [
+    "CONTROL",
+    "LCC_CLAUDE_NONE",
+    "LCC_CLAUDE_SKILL_ONLY",
+    "LCC_CLAUDE_GUIDANCE",
+    "LCC_CLAUDE_ALL",
+    "LCC_GUIDANCE_POS",
+    "LCC_GUIDANCE_NEG",
+]
+
+[template]
+required = []
+
+[environment]
+dockerfile = "environment/Dockerfile"
+timeout_sec = 900
+
+[validation]
+validators = ["validators"]

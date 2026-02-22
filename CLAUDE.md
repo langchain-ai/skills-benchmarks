@@ -51,3 +51,68 @@ When creating or updating validators:
 2. Always inspect raw logs and artifacts for every run (including passes)
 3. Document findings about validator accuracy and task difficulty
 4. Track patterns across treatments to understand skill effectiveness
+
+## Running Tests
+
+Use the `--task` and `--treatment` CLI options for targeted test runs:
+
+```bash
+# Run specific task + treatment
+uv run pytest tests/tasks/test_tasks.py --task=lc-basic --treatment=LCC_CLAUDE_ALL -v
+
+# Multiple treatments (comma-separated)
+uv run pytest tests/tasks/test_tasks.py --task=ls-evaluator --treatment=LS_BASIC_PY,LS_WORKFLOW_PY -v
+
+# Wildcard patterns
+uv run pytest tests/tasks/test_tasks.py --task=lc-basic --treatment=LCC_* -v
+
+# With repetitions and parallel workers
+uv run pytest tests/tasks/test_tasks.py --task=lc-basic --treatment=LCC_CLAUDE_ALL --count=2 -n 4 -v
+```
+
+## Project Structure
+
+### Treatments
+Treatments are centralized in `treatments/` folder by category:
+- `common/` - CONTROL, ALL_MAIN_SKILLS
+- `langsmith/` - LS_* treatments
+- `langchain_concise/` - LCC_* treatments
+- `oss_split/` - OSSS_* treatments (granular skills)
+- `oss_merged/` - OSSM_* treatments (consolidated skills)
+
+Tasks and treatments are **decoupled** - any treatment can be used with any task.
+
+### Tasks
+Each task has `default_treatments` in its `task.toml`. When running without `--treatment`, the defaults are used.
+
+## Linting
+
+Use ruff for both linting and formatting:
+```bash
+uv run ruff check .           # Check for issues
+uv run ruff check --fix .     # Auto-fix issues
+uv run ruff format .          # Format code
+```
+
+## Stacked PRs
+
+For large refactors, use stacked PRs:
+
+1. Create base branch from main with first set of commits
+2. Create subsequent branches from previous branch
+3. Push all branches: `git push origin branch1 branch2 branch3`
+4. Create PRs with appropriate base branches
+5. After merging each PR, rebase subsequent branches onto main:
+   ```bash
+   git fetch origin main
+   git checkout -B next-branch origin/main
+   git cherry-pick <commit-hash>
+   git push origin next-branch --force
+   ```
+
+## TypeScript Parity
+
+The TypeScript scaffold (`scaffold/typescript/`) mirrors Python but has limitations:
+- `buildTreatmentSkills()` doesn't support `included_sections`, `section_overrides`, `extra_sections`
+- For full section manipulation, use Python implementation
+- The TOML parser is simplified but handles multiline arrays

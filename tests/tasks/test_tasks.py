@@ -150,7 +150,8 @@ def run_validators(validators: list, test_dir: Path, outputs: dict) -> tuple[lis
 
 
 @pytest.mark.langsmith(
-    test_suite_name=os.environ.get("LANGSMITH_TEST_SUITE", "skills-benchmark")
+    test_suite_name=os.environ.get("LANGSMITH_TEST_SUITE", "skills-benchmark"),
+    inputs={},  # Disable auto-capture, use ls_testing.log_inputs() instead
 )
 @pytest.mark.timeout(PYTEST_TIMEOUT)
 def test_task_treatment(

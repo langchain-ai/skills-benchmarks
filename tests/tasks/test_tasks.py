@@ -3,7 +3,7 @@
 This test file uses the task-based structure where:
 - Tasks are self-contained directories with instruction.md, task.toml, environment/, validation/
 - Treatments are shared across tasks in treatments/{category}/*.yaml
-- Each task declares compatible_treatments in tasks/index.yaml
+- Each task declares default_treatments in tasks/index.yaml (any treatment can be used with any task)
 
 Usage:
     # Run all task/treatment combinations
@@ -65,18 +65,18 @@ def load_task_index() -> dict:
 
 
 def generate_test_params():
-    """Generate (task_name, treatment_name) pairs from task index compatible_treatments."""
+    """Generate (task_name, treatment_name) pairs from task index default_treatments."""
     params = []
     task_index = load_task_index()
     all_treatments = load_treatments()
 
     for task_name in list_tasks():
-        # Get compatible treatments from task index
+        # Get default treatments from task index
         task_info = task_index.get(task_name, {})
-        compatible = task_info.get("compatible_treatments", [])
+        defaults = task_info.get("default_treatments", [])
 
         # Filter to only treatments that actually exist
-        for treatment_name in compatible:
+        for treatment_name in defaults:
             if treatment_name in all_treatments:
                 params.append((task_name, treatment_name))
 

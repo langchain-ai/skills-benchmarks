@@ -3,8 +3,8 @@
 # Central registry of all benchmark tasks. Each task is a self-contained
 # directory with instruction.md, task.toml, environment/, and validation/.
 #
-# Tasks can be combined with any compatible treatment from the treatments/ folder.
-# All treatments are shared across tasks - see treatments/{category}/*.yaml
+# Any treatment from treatments/ can be used with any task.
+# default_treatments defines which treatments are tested by default for each task.
 
 tasks:
   ls-evaluator:
@@ -12,7 +12,7 @@ tasks:
     difficulty: medium
     category: langsmith
     tags: [evaluator, polyglot, python, typescript]
-    compatible_treatments:
+    default_treatments:
       - LS_BASIC_PY
       - LS_BASIC_TS
       - LS_BASIC_BOTH
@@ -26,7 +26,7 @@ tasks:
     difficulty: easy
     category: langsmith
     tags: [tracing, polyglot, python, typescript]
-    compatible_treatments:
+    default_treatments:
       - LS_BASIC_PY
       - LS_BASIC_TS
       - LS_BASIC_BOTH
@@ -40,7 +40,7 @@ tasks:
     difficulty: medium
     category: langsmith
     tags: [multiskill, trace, dataset]
-    compatible_treatments:
+    default_treatments:
       - LS_BASIC_PY
       - LS_WORKFLOW_PY
       - CONTROL
@@ -50,7 +50,7 @@ tasks:
     difficulty: hard
     category: langsmith
     tags: [multiskill, trace, dataset, evaluator]
-    compatible_treatments:
+    default_treatments:
       - LS_BASIC_PY
       - LS_WORKFLOW_PY
       - CONTROL
@@ -60,7 +60,7 @@ tasks:
     difficulty: medium
     category: langchain
     tags: [langchain, dependencies, tavily, imports, debugging]
-    compatible_treatments:
+    default_treatments:
       - CONTROL
       - ALL_MAIN_SKILLS
       - MAIN_SINGLE_PRIMER
@@ -71,7 +71,7 @@ tasks:
     difficulty: hard
     category: langchain
     tags: [langchain, langgraph, deep-agents, framework-selection, architecture]
-    compatible_treatments:
+    default_treatments:
       - CONTROL
       - ALL_MAIN_SKILLS
       - MAIN_SINGLE_PRIMER
@@ -82,7 +82,7 @@ tasks:
     difficulty: medium
     category: langchain
     tags: [langchain, migration, legacy, modernization, deprecated]
-    compatible_treatments:
+    default_treatments:
       - CONTROL
       - ALL_MAIN_SKILLS
       - MAIN_SINGLE_PRIMER
@@ -93,7 +93,7 @@ tasks:
     difficulty: medium
     category: langgraph
     tags: [langgraph, persistence, state, debugging]
-    compatible_treatments:
+    default_treatments:
       - CONTROL
       - OSSS_LG_PERSISTENCE_ONLY
       - OSSS_LG_STATE_ONLY
@@ -109,7 +109,7 @@ tasks:
     difficulty: medium
     category: deepagents
     tags: [deepagents, memory, subagents, debugging]
-    compatible_treatments:
+    default_treatments:
       - CONTROL
       - OSSS_DA_MEMORY_ONLY
       - OSSS_DA_SUBAGENTS_ONLY
@@ -125,7 +125,7 @@ tasks:
     difficulty: medium
     category: langchain
     tags: [langchain, streaming, tools, debugging]
-    compatible_treatments:
+    default_treatments:
       - CONTROL
       - OSSS_LC_STREAMING_ONLY
       - OSSS_LC_TOOLS_ONLY

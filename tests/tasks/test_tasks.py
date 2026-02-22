@@ -75,7 +75,9 @@ def expand_treatment_patterns(patterns: list[str], all_treatments: dict) -> list
             prefix = pattern[:-1]
             matches = [t for t in treatment_names if t.startswith(prefix)]
             if not matches:
-                raise ValueError(f"No treatments match pattern: {pattern}. Available: {treatment_names}")
+                raise ValueError(
+                    f"No treatments match pattern: {pattern}. Available: {treatment_names}"
+                )
             expanded.extend(matches)
         else:
             # Exact match

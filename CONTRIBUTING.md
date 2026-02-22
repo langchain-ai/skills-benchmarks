@@ -35,13 +35,12 @@ For polyglot skills (Python + TypeScript), create variant files:
 
 ## Adding a New Task
 
-Tasks are self-contained directories under `tasks/`:
+Tasks are self-contained directories under `tasks/`. Tasks are **decoupled from treatments** - any treatment can be used with any task.
 
 ```
 tasks/my-task/
   instruction.md        # Task prompt with {variable} placeholders
-  task.toml             # Task metadata
-  treatments.yaml       # Treatment configurations
+  task.toml             # Task metadata + default_treatments
   environment/          # Docker context
     Dockerfile
     requirements.txt
@@ -56,9 +55,14 @@ tasks/my-task/
 [metadata]
 name = "my-task"
 description = "What this task tests"
-difficulty = "basic"  # easy, medium, hard
-category = "langsmith"
+difficulty = "medium"  # easy, medium, hard
+category = "langchain"  # langsmith, langchain, langgraph, deepagents
 tags = ["tag1", "tag2"]
+default_treatments = [
+    "CONTROL",
+    "LCC_CLAUDE_ALL",
+    "ALL_MAIN_SKILLS",
+]
 
 [template]
 required = ["run_id"]
@@ -79,51 +83,7 @@ Create an agent that does X.
 Use the run_id `{run_id}` for any resources you create.
 ```
 
-### 3. Define treatments.yaml
-
-Treatments define skill configurations to test:
-
-```yaml
-CONTROL:
-  description: "No skills (baseline)"
-  skills: []
-
-WITH_SKILL:
-  description: "With my-skill"
-  skills:
-    - skill: my_skill        # Directory name in skills/benchmarks/
-      name: my-skill         # Name shown to Claude
-
-WITH_VARIANT:
-  description: "Python variant only"
-  skills:
-    - skill: langsmith_trace
-      variant: py            # Load skill_py.md variant
-      name: langsmith-trace-py
-      suffix: true           # Add -py suffix to skill name
-
-WITH_GUIDANCE:
-  description: "Skill + CLAUDE.md guidance"
-  claude_md: |
-    # Project Guidelines
-    Always check available skills before coding.
-  skills:
-    - skill: my_skill
-      name: my-skill
-
-WITH_NOISE:
-  description: "Main skill + noise distractor"
-  skills:
-    - skill: my_skill
-      name: my-skill
-    - skill: docker_patterns
-      name: docker-patterns
-      noise: true            # Mark as noise skill
-  noise_tasks:
-    - docker_patterns        # Track noise task completion
-```
-
-### 4. Write validators
+### 3. Write validators
 
 Validators are functions that return `(passed: list[str], failed: list[str])`:
 
@@ -133,8 +93,8 @@ Validators are functions that return `(passed: list[str], failed: list[str])`:
 from pathlib import Path
 
 from scaffold.python.validation import (
-    validate_dataset_structure,
-    validate_skill_scripts,
+    validate_file_exists,
+    validate_pattern,
 )
 
 
@@ -151,35 +111,82 @@ def validate_output(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]
     return passed, failed
 
 
-def validate_scripts(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:
-    """Track which skill scripts Claude used (informational)."""
-    events = outputs.get("events", {}) if outputs else {}
-    return validate_skill_scripts(test_dir, outputs, events)
-
-
 # List of all validators - order matters!
 VALIDATORS = [
     validate_output,
-    validate_scripts,
 ]
 ```
 
-### 5. Add to tasks/index.yaml
-
-```yaml
-tasks:
-  - name: my-task
-    path: my-task
-```
-
-### 6. Run your task
+### 4. Run your task
 
 ```bash
-# Run specific treatment
-uv run pytest tests/tasks/test_tasks.py -k "my-task and WITH_SKILL" -v
+# Run with specific treatment
+uv run pytest tests/tasks/test_tasks.py --task=my-task --treatment=CONTROL -v
 
-# Run all treatments for the task
-uv run pytest tests/tasks/test_tasks.py -k "my-task" -v
+# Run with default treatments
+uv run pytest tests/tasks/test_tasks.py --task=my-task -v
+```
+
+## Adding a New Treatment
+
+Treatments are defined in `treatments/{category}/*.yaml`. Categories:
+- `common/` - Shared treatments (CONTROL, ALL_MAIN_SKILLS)
+- `langsmith/` - LangSmith skill variations (LS_*)
+- `langchain_concise/` - LangChain CLAUDE.md tests (LCC_*)
+- `oss_split/` - OSS split skill combinations (OSSS_*)
+- `oss_merged/` - OSS merged skill combinations (OSSM_*)
+
+### Treatment YAML Format
+
+```yaml
+MY_TREATMENT:
+  name: MY_TREATMENT
+  description: "What this treatment tests"
+  skills:
+    - skill: langsmith_trace    # Directory in skills/benchmarks/
+      name: langsmith-trace     # Name shown to Claude
+      variant: py               # Optional: load skill_py.md
+      suffix: true              # Optional: add variant suffix to name
+
+WITH_CLAUDE_MD:
+  name: WITH_CLAUDE_MD
+  description: "Skill + CLAUDE.md guidance"
+  claude_md: |
+    # Project Guidelines
+    Always check available skills before coding.
+  skills:
+    - skill: my_skill
+      name: my-skill
+
+WITH_NOISE:
+  name: WITH_NOISE
+  description: "Main skill + noise distractor"
+  skills:
+    - skill: my_skill
+      name: my-skill
+    - skill: docker_patterns
+      name: docker-patterns
+      noise: true              # Mark as noise skill
+  noise_tasks:
+    - docker_patterns          # Track noise task completion
+```
+
+### YAML Anchors for Reuse
+
+Use anchors to share skill lists:
+
+```yaml
+# Define anchor
+_base_skills: &base_skills
+  - skill: langsmith_trace
+    name: langsmith-trace
+
+# Reuse with <<: *anchor
+MY_TREATMENT:
+  skills:
+    <<: *base_skills
+    - skill: additional_skill
+      name: additional-skill
 ```
 
 ## Built-in Validation Utilities
@@ -233,23 +240,39 @@ Import from `scaffold.python.validation`:
 ## Running Tests
 
 ```bash
-# Run all tasks
-uv run pytest tests/tasks/test_tasks.py -v
+# Run specific task + treatment
+uv run pytest tests/tasks/test_tasks.py --task=ls-lang-tracing --treatment=LS_BASIC_PY -v
 
-# Run specific task
-uv run pytest tests/tasks/test_tasks.py -k "ls-multiskill-basic" -v
+# Multiple treatments (comma-separated)
+uv run pytest tests/tasks/test_tasks.py --task=lc-basic --treatment=LCC_CLAUDE_NONE,LCC_CLAUDE_FULL -v
 
-# Run specific treatment
-uv run pytest tests/tasks/test_tasks.py -k "UNIFIED_BOTH" -v
+# Wildcard patterns
+uv run pytest tests/tasks/test_tasks.py --task=lc-basic --treatment=LCC_* -v
 
-# Run specific combination
-uv run pytest tests/tasks/test_tasks.py -k "ls-lang-tracing and UNIFIED_BOTH" -v
+# Run task with default treatments
+uv run pytest tests/tasks/test_tasks.py --task=ls-multiskill-basic -v
 
 # With repetitions
-uv run pytest tests/tasks/test_tasks.py -k "ls-lang-tracing and BASELINE" -v --count=3
+uv run pytest tests/tasks/test_tasks.py --task=lc-basic --treatment=CONTROL --count=3 -v
+
+# Parallel workers
+uv run pytest tests/tasks/test_tasks.py --task=lc-basic --treatment=LCC_* --count=2 -n 4 -v
 
 # List all combinations
 uv run pytest tests/tasks/test_tasks.py --collect-only
+```
+
+### TypeScript (Vitest)
+
+```bash
+# Run specific task + treatment
+TASK=ls-lang-tracing TREATMENT=LS_BASIC_PY pnpm vitest tests/tasks/test_tasks.test.ts
+
+# With wildcard
+TASK=lc-basic TREATMENT=LCC_* pnpm vitest tests/tasks/test_tasks.test.ts
+
+# With parallelism
+pnpm vitest tests/tasks/test_tasks.test.ts --pool=threads --poolOptions.threads.maxThreads=4
 ```
 
 ## Experiment Results
@@ -267,3 +290,27 @@ logs/experiments/experiment_20260217_143052/
 ```
 
 The summary shows pass rates, turns, duration, skills invoked, and scripts used for each treatment.
+
+## Design Principles
+
+### Tasks vs Treatments
+
+- **Tasks** define *what* Claude should do (environment, prompt, validators)
+- **Treatments** define *how* Claude is configured (skills, CLAUDE.md, noise)
+- Any treatment can be used with any task
+- `default_treatments` in task.toml defines standard test matrix
+
+### Treatment Naming
+
+Use consistent prefixes:
+- `CONTROL` - No skills (baseline)
+- `LS_*` - LangSmith treatments
+- `LCC_*` - LangChain Concise treatments
+- `OSSS_*` - OSS Split Skill treatments
+- `OSSM_*` - OSS Merged Skill treatments
+
+### Skill Organization
+
+- `skills/main/` - Production-ready skills
+- `skills/benchmarks/` - Skill variations for testing
+- `skills/noise/` - Distractor skills for interference tests

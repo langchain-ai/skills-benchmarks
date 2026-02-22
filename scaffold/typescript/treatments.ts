@@ -182,8 +182,14 @@ export function buildNoiseTasks(noiseTaskNames: string[]): NoiseTask[] {
 
 /**
  * Build skill configuration from YAML skill configs.
- * Note: This is a simplified version - full skill loading requires
- * the skills/parser module which is Python-only.
+ *
+ * Note: This is a simplified version compared to Python. It does NOT support:
+ * - included_sections: Filtering to specific sections
+ * - section_overrides: Replacing section content
+ * - extra_sections: Appending custom sections
+ *
+ * For full section manipulation support, use the Python implementation.
+ * This TypeScript version loads entire skill files without section filtering.
  */
 export function buildTreatmentSkills(
   skillConfigs: SkillConfigInput[] | undefined,

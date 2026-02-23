@@ -259,26 +259,23 @@ def _is_scripts_only(config) -> bool:
 
 
 def _get_experiment_name(session) -> str:
-    """Determine experiment name from test path."""
+    """Determine experiment name from test path or task name."""
     items = getattr(session, "items", None)
-    first_path = str(items[0].fspath) if items else ""
+    if not items:
+        return "experiment"
 
-    if "benchmarks/lc_basic" in first_path or "bench_lc_basic" in first_path:
-        if "guidance" in first_path:
-            return "lc_guide"
-        elif "claudemd" in first_path:
-            return "lc_claude"
-        elif "noise" in first_path:
-            return "lc_noise"
-        return "lc_basic"
-    elif "benchmarks/ls_multiskill" in first_path or "bench_ls_multiskill" in first_path:
-        if "basic" in first_path:
-            return "ls_basic"
-        elif "advanced" in first_path:
-            return "ls_adv"
-        return "ls_multi"
-    elif "example" in first_path:
-        return "example"
+    first_path = str(items[0].fspath)
+
+    # Check for task-based tests (tests/tasks/test_tasks.py)
+    if "tests/tasks" in first_path:
+        # Try to extract task name from test parameters
+        first_item = items[0]
+        if hasattr(first_item, "callspec") and "task_name" in first_item.callspec.params:
+            task_name = first_item.callspec.params["task_name"]
+            # Convert task name to short experiment prefix (e.g., "lc-basic" -> "lc_basic")
+            return task_name.replace("-", "_")
+        return "task_test"
+
     return "experiment"
 
 
@@ -420,13 +417,16 @@ def prebuild_docker_image(request):
         yield
         return
 
-    # Build for common environments
-    for marker in ["benchmarks/lc_basic", "benchmarks/ls_multiskill"]:
-        env_dir = PROJECT_ROOT / "tests" / marker / "environment"
-        if env_dir.exists():
-            image = _build_docker_image_with_lock(env_dir)
-            if image:
-                print(f"\nPre-built Docker image: {image}")
+    # Build for task environments (tasks/{task_name}/environment/)
+    tasks_dir = PROJECT_ROOT / "tasks"
+    if tasks_dir.exists():
+        for task_dir in tasks_dir.iterdir():
+            if task_dir.is_dir():
+                env_dir = task_dir / "environment"
+                if env_dir.exists() and (env_dir / "Dockerfile").exists():
+                    image = _build_docker_image_with_lock(env_dir)
+                    if image:
+                        print(f"\nPre-built Docker image: {image}")
 
     yield
 

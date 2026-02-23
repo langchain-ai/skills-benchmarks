@@ -39,86 +39,59 @@ from scaffold.python import (
 from scaffold.python.external_data_handler import run_handler
 from scaffold.python.skill_parser import SCRIPT_EXTENSIONS
 
+# =============================================================================
+# CONSTANTS
+# =============================================================================
+
 PROJECT_ROOT = Path(__file__).parent.parent
 
-# Shared file for xdist worker coordination
+# Shared files for xdist worker coordination
 XDIST_EXPERIMENT_FILE = PROJECT_ROOT / ".pytest_experiment_id"
 DOCKER_BUILD_LOCK = PROJECT_ROOT / ".pytest_docker_build.lock"
 
+# Global plugin instance (set during pytest_configure)
+_plugin: "ExperimentPlugin | None" = None
+
+# Track run_ids for namespace-based cleanup
+_test_run_ids: list[str] = []
+
+# Cache discovered scripts (computed once on first call)
+_KNOWN_SCRIPTS: list[str] | None = None
+
 
 # =============================================================================
-# EXPERIMENT LOGGING PLUGIN
+# PYTEST HOOKS
 # =============================================================================
 
 
-def _get_experiment_name(session) -> str:
-    """Determine experiment name from test path."""
-    items = getattr(session, "items", None)
-    first_path = str(items[0].fspath) if items else ""
-
-    if "benchmarks/lc_basic" in first_path or "bench_lc_basic" in first_path:
-        if "guidance" in first_path:
-            return "lc_guide"
-        elif "claudemd" in first_path:
-            return "lc_claude"
-        elif "noise" in first_path:
-            return "lc_noise"
-        return "lc_basic"
-    elif "benchmarks/ls_multiskill" in first_path or "bench_ls_multiskill" in first_path:
-        if "basic" in first_path:
-            return "ls_basic"
-        elif "advanced" in first_path:
-            return "ls_adv"
-        return "ls_multi"
-    elif "example" in first_path:
-        return "example"
-    return "experiment"
+def pytest_addoption(parser):
+    """Add CLI options for task and treatment selection."""
+    parser.addoption(
+        "--task",
+        action="store",
+        default=None,
+        help="Run specific task (e.g., --task=ls-evaluator)",
+    )
+    parser.addoption(
+        "--treatment",
+        action="store",
+        default=None,
+        help="Run specific treatment (e.g., --treatment=LS_BASIC_PY)",
+    )
 
 
-def _get_or_create_experiment_id(name: str, use_coordination: bool) -> str:
-    """Get shared experiment ID or create new one.
-
-    Uses file locking to coordinate between xdist workers and master.
-    """
-    if not use_coordination:
-        # Not using xdist, create fresh experiment
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        return f"{name}_{timestamp}"
-
-    # Using xdist - coordinate via shared file
-    lock_file = XDIST_EXPERIMENT_FILE.with_suffix(".lock")
-
-    with open(lock_file, "w") as lf:
-        fcntl.flock(lf.fileno(), fcntl.LOCK_EX)
-        try:
-            if XDIST_EXPERIMENT_FILE.exists():
-                # Another worker already created experiment
-                data = json.loads(XDIST_EXPERIMENT_FILE.read_text())
-                return data["experiment_id"]
-            else:
-                # First worker - create experiment
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-                experiment_id = f"{name}_{timestamp}"
-                XDIST_EXPERIMENT_FILE.write_text(
-                    json.dumps(
-                        {
-                            "experiment_id": experiment_id,
-                            "created_at": datetime.now().isoformat(),
-                        }
-                    )
-                )
-                return experiment_id
-        finally:
-            fcntl.flock(lf.fileno(), fcntl.LOCK_UN)
+def pytest_configure(config):
+    """Register experiment plugin (decision deferred to sessionstart)."""
+    global _plugin
+    # Always create the plugin, but it will decide whether to initialize logging
+    # in pytest_sessionstart after collection when we know the actual test paths
+    _plugin = ExperimentPlugin(config)
+    config.pluginmanager.register(_plugin, "experiment_plugin")
 
 
-def _cleanup_experiment_coordination():
-    """Remove coordination files after experiment."""
-    for f in [XDIST_EXPERIMENT_FILE, XDIST_EXPERIMENT_FILE.with_suffix(".lock")]:
-        try:
-            f.unlink(missing_ok=True)
-        except Exception:
-            pass
+# =============================================================================
+# EXPERIMENT PLUGIN
+# =============================================================================
 
 
 class ExperimentPlugin:
@@ -147,7 +120,6 @@ class ExperimentPlugin:
 
         Skips logging for script-only test runs (unit tests that don't need experiment logs).
         """
-        # Skip experiment logging for script-only runs
         if _is_scripts_only(self.config):
             return
 
@@ -166,13 +138,6 @@ class ExperimentPlugin:
         print(f"Logging to: {self.logger.base_dir}")
         print(f"{'=' * 60}\n")
 
-    def get_rep_number(self, treatment_name: str) -> int:
-        """Get the next repetition number for a treatment."""
-        if treatment_name not in self.run_counter:
-            self.run_counter[treatment_name] = 0
-        self.run_counter[treatment_name] += 1
-        return self.run_counter[treatment_name]
-
     def pytest_sessionfinish(self, session, exitstatus):
         """Generate and save summary at session end.
 
@@ -183,9 +148,7 @@ class ExperimentPlugin:
             return
 
         # Workers: just ensure their results are saved (already done via record_result)
-        # Master/single: generate summary from all saved reports
         if self.is_xdist_worker:
-            # Worker done - results already saved to files
             return
 
         # Master or single process - wait briefly for workers to finish writing
@@ -202,13 +165,20 @@ class ExperimentPlugin:
         # Cleanup coordination files
         _cleanup_experiment_coordination()
 
+    def get_rep_number(self, treatment_name: str) -> int:
+        """Get the next repetition number for a treatment."""
+        if treatment_name not in self.run_counter:
+            self.run_counter[treatment_name] = 0
+        self.run_counter[treatment_name] += 1
+        return self.run_counter[treatment_name]
+
     def _reload_results_from_reports(self):
         """Reload results from saved report files (aggregates all workers)."""
         reports_dir = self.logger.reports_dir
         if not reports_dir.exists():
             return
 
-        # Clear existing results to avoid duplicates (results may have been added in-process)
+        # Clear existing results to avoid duplicates
         self.logger.results.clear()
 
         for report_file in sorted(reports_dir.glob("*.json")):
@@ -275,48 +245,88 @@ class ExperimentPlugin:
         print(f"{'=' * 140}")
 
 
-# Global plugin instance (set during pytest_configure)
-_plugin: ExperimentPlugin | None = None
+# =============================================================================
+# EXPERIMENT PLUGIN HELPERS
+# =============================================================================
 
 
 def _is_scripts_only(config) -> bool:
-    """Check if running ONLY script tests (unit tests that don't need experiment logs).
-
-    Returns True only if ALL test paths contain 'scripts/'.
-    """
+    """Check if running ONLY script tests (unit tests that don't need experiment logs)."""
     args = [a for a in (config.args or []) if not a.startswith("-")]
     if not args:
         return False
     return all("scripts" in arg for arg in args)
 
 
-def pytest_addoption(parser):
-    """Add CLI options for task and treatment selection."""
-    parser.addoption(
-        "--task",
-        action="store",
-        default=None,
-        help="Run specific task (e.g., --task=ls-evaluator)",
-    )
-    parser.addoption(
-        "--treatment",
-        action="store",
-        default=None,
-        help="Run specific treatment (e.g., --treatment=LS_BASIC_PY)",
-    )
+def _get_experiment_name(session) -> str:
+    """Determine experiment name from test path."""
+    items = getattr(session, "items", None)
+    first_path = str(items[0].fspath) if items else ""
+
+    if "benchmarks/lc_basic" in first_path or "bench_lc_basic" in first_path:
+        if "guidance" in first_path:
+            return "lc_guide"
+        elif "claudemd" in first_path:
+            return "lc_claude"
+        elif "noise" in first_path:
+            return "lc_noise"
+        return "lc_basic"
+    elif "benchmarks/ls_multiskill" in first_path or "bench_ls_multiskill" in first_path:
+        if "basic" in first_path:
+            return "ls_basic"
+        elif "advanced" in first_path:
+            return "ls_adv"
+        return "ls_multi"
+    elif "example" in first_path:
+        return "example"
+    return "experiment"
 
 
-def pytest_configure(config):
-    """Register experiment plugin (decision deferred to sessionstart)."""
-    global _plugin
-    # Always create the plugin, but it will decide whether to initialize logging
-    # in pytest_sessionstart after collection when we know the actual test paths
-    _plugin = ExperimentPlugin(config)
-    config.pluginmanager.register(_plugin, "experiment_plugin")
+def _get_or_create_experiment_id(name: str, use_coordination: bool) -> str:
+    """Get shared experiment ID or create new one.
+
+    Uses file locking to coordinate between xdist workers and master.
+    """
+    if not use_coordination:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        return f"{name}_{timestamp}"
+
+    # Using xdist - coordinate via shared file
+    lock_file = XDIST_EXPERIMENT_FILE.with_suffix(".lock")
+
+    with open(lock_file, "w") as lf:
+        fcntl.flock(lf.fileno(), fcntl.LOCK_EX)
+        try:
+            if XDIST_EXPERIMENT_FILE.exists():
+                data = json.loads(XDIST_EXPERIMENT_FILE.read_text())
+                return data["experiment_id"]
+            else:
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                experiment_id = f"{name}_{timestamp}"
+                XDIST_EXPERIMENT_FILE.write_text(
+                    json.dumps(
+                        {
+                            "experiment_id": experiment_id,
+                            "created_at": datetime.now().isoformat(),
+                        }
+                    )
+                )
+                return experiment_id
+        finally:
+            fcntl.flock(lf.fileno(), fcntl.LOCK_UN)
+
+
+def _cleanup_experiment_coordination():
+    """Remove coordination files after experiment."""
+    for f in [XDIST_EXPERIMENT_FILE, XDIST_EXPERIMENT_FILE.with_suffix(".lock")]:
+        try:
+            f.unlink(missing_ok=True)
+        except Exception:
+            pass
 
 
 # =============================================================================
-# FIXTURES
+# SESSION-SCOPED FIXTURES
 # =============================================================================
 
 
@@ -334,16 +344,6 @@ def worker_id(request):
     return "master"
 
 
-# Track run_ids for namespace-based cleanup
-_test_run_ids: list[str] = []
-
-
-def register_run_id_for_cleanup(run_id: str):
-    """Register a run_id for namespace cleanup at session end."""
-    if run_id not in _test_run_ids:
-        _test_run_ids.append(run_id)
-
-
 @pytest.fixture(scope="session")
 def langsmith_project(worker_id, request):
     """Create isolated LangSmith project for trace uploads."""
@@ -353,7 +353,7 @@ def langsmith_project(worker_id, request):
 
     run_id = str(uuid.uuid4())
     project_name = f"bench-project-{run_id}"
-    register_run_id_for_cleanup(run_id)
+    _register_run_id_for_cleanup(run_id)
 
     old_project = os.environ.get("LANGSMITH_PROJECT")
     os.environ["LANGSMITH_PROJECT"] = project_name
@@ -387,7 +387,6 @@ def verify_environment(project_root, request):
 
     Skipped for script tests (unit tests that mock external services).
     """
-    # Skip for script-only runs - they use mocked APIs
     if _is_scripts_only(request.config):
         return
 
@@ -410,49 +409,18 @@ def verify_environment(project_root, request):
         pytest.skip("Claude CLI not available")
 
 
-def _build_docker_image_with_lock(environment_dir: Path) -> str | None:
-    """Build Docker image with file locking to prevent race conditions.
-
-    Uses file locking to ensure only one process builds the image at a time.
-    Other processes wait for the build to complete, then use the cached image.
-    """
-    if not environment_dir or not (environment_dir / "Dockerfile").exists():
-        return None
-
-    # Create lock file
-    lock_file = DOCKER_BUILD_LOCK
-
-    with open(lock_file, "w") as lf:
-        # Acquire exclusive lock (blocks until available)
-        fcntl.flock(lf.fileno(), fcntl.LOCK_EX)
-        try:
-            # Build image (will use cache if already built by another process)
-            result = run_shell("docker.sh", "build", str(environment_dir), timeout=300, check=False)
-            if result.returncode == 0:
-                return result.stdout.strip()
-            return None
-        finally:
-            fcntl.flock(lf.fileno(), fcntl.LOCK_UN)
-
-
 @pytest.fixture(scope="session", autouse=True)
 def prebuild_docker_image(request):
     """Pre-build Docker image once per session to avoid race conditions.
 
-    This fixture uses file locking to ensure only one worker builds the image.
-    Other workers wait for the build to complete.
-
-    Tests should depend on this fixture via environment_dir fixture.
-
+    Uses file locking to ensure only one worker builds the image.
     Skipped for script tests (unit tests that don't need Docker).
     """
-    # Skip for script-only runs - they don't need Docker
     if _is_scripts_only(request.config):
         yield
         return
 
-    # Find environment_dir from test module if available
-    # This is a session fixture, so we build for common environments
+    # Build for common environments
     for marker in ["benchmarks/lc_basic", "benchmarks/ls_multiskill"]:
         env_dir = PROJECT_ROOT / "tests" / marker / "environment"
         if env_dir.exists():
@@ -462,11 +430,15 @@ def prebuild_docker_image(request):
 
     yield
 
-    # Cleanup lock file at session end (only if we're the last one)
     try:
         DOCKER_BUILD_LOCK.unlink(missing_ok=True)
     except Exception:
         pass
+
+
+# =============================================================================
+# FUNCTION-SCOPED FIXTURES
+# =============================================================================
 
 
 @pytest.fixture
@@ -481,49 +453,9 @@ def experiment_logger():
     return _plugin.logger if _plugin else None
 
 
-def _filter_scripts(scripts_dir: Path, script_filter: str) -> Path | None:
-    """Filter scripts by extension and return a temp dir with filtered scripts.
-
-    Args:
-        scripts_dir: Original scripts directory
-        script_filter: Filter type ("py", "ts", "all") or None
-
-    Returns:
-        Path to temp dir with filtered scripts, or original dir if no filtering needed
-    """
-    if not scripts_dir or not scripts_dir.exists():
-        return None
-
-    # No filtering needed
-    if script_filter is None or script_filter == "all":
-        return scripts_dir
-
-    extensions = SCRIPT_EXTENSIONS.get(script_filter)
-    if extensions is None:
-        return scripts_dir
-
-    # Create temp dir with filtered scripts
-    temp_dir = Path(tempfile.mkdtemp(prefix="scripts_"))
-    copied_any = False
-
-    for script in scripts_dir.iterdir():
-        if script.is_file() and script.suffix in extensions:
-            shutil.copy2(script, temp_dir / script.name)
-            copied_any = True
-
-    if not copied_any:
-        shutil.rmtree(temp_dir)
-        return None
-
-    return temp_dir
-
-
 @pytest.fixture
 def setup_test_context(test_dir):
-    """Factory fixture to set up test context with skills and CLAUDE.md.
-
-    Uses shell scripts for file operations.
-    """
+    """Factory fixture to set up test context with skills and CLAUDE.md."""
 
     def _setup(skills: dict = None, claude_md: str = None, environment_dir: Path = None):
         # Write CLAUDE.md using shell
@@ -588,13 +520,7 @@ def setup_test_context(test_dir):
 
 @pytest.fixture
 def run_claude(test_dir, experiment_logger, request):
-    """Factory fixture to run Claude in Docker and capture artifacts.
-
-    This fixture automatically:
-    - Runs Claude with the given prompt
-    - Saves raw output to the experiment logs
-    - Returns the result for further processing
-    """
+    """Factory fixture to run Claude in Docker and capture artifacts."""
 
     def _run(prompt: str, timeout: int = 600, model: str = None):
         result = run_claude_in_docker(test_dir, prompt, timeout=timeout, model=model)
@@ -628,14 +554,7 @@ def run_python_file(test_dir):
 
 @pytest.fixture
 def record_result(test_dir, experiment_logger, request):
-    """Factory fixture to record validation results and save artifacts.
-
-    Usage:
-        result = run_claude(prompt)
-        events = extract_events(parse_output(result.stdout))
-        passed, failed = treatment.validate(events, test_dir, {})
-        record_result(events, passed, failed, run_id="abc123")
-    """
+    """Factory fixture to record validation results and save artifacts."""
 
     def _record(
         events: dict[str, Any],
@@ -647,9 +566,7 @@ def record_result(test_dir, experiment_logger, request):
             return
 
         treatment_name = _get_treatment_name(request.node)
-        # Use existing rep number (already incremented by run_claude)
         rep = _plugin.run_counter.get(treatment_name, 1) if _plugin else 1
-
         base_dir = experiment_logger.base_dir
 
         # Save events
@@ -714,9 +631,6 @@ def fixtures(
 ):
     """Bundle test fixtures to reduce LangSmith input noise.
 
-    Scope is 'function' (narrowest among dependencies) since it depends on
-    function-scoped fixtures like test_dir, run_claude, etc.
-
     Usage:
         def test_task_treatment(task_name, treatment_name, fixtures):
             fixtures.setup_test_context(skills=..., environment_dir=...)
@@ -733,17 +647,66 @@ def fixtures(
 
 
 # =============================================================================
-# HELPERS
+# FIXTURE HELPERS
 # =============================================================================
+
+
+def _register_run_id_for_cleanup(run_id: str):
+    """Register a run_id for namespace cleanup at session end."""
+    if run_id not in _test_run_ids:
+        _test_run_ids.append(run_id)
 
 
 def _get_treatment_name(node) -> str:
     """Extract treatment name from pytest node."""
-    # test_treatment[TREATMENT_NAME] -> TREATMENT_NAME
     nodeid = node.nodeid
     if "[" in nodeid:
         return nodeid.split("[")[1].rstrip("]")
     return nodeid.split("::")[-1]
+
+
+def _filter_scripts(scripts_dir: Path, script_filter: str) -> Path | None:
+    """Filter scripts by extension and return a temp dir with filtered scripts."""
+    if not scripts_dir or not scripts_dir.exists():
+        return None
+
+    if script_filter is None or script_filter == "all":
+        return scripts_dir
+
+    extensions = SCRIPT_EXTENSIONS.get(script_filter)
+    if extensions is None:
+        return scripts_dir
+
+    # Create temp dir with filtered scripts
+    temp_dir = Path(tempfile.mkdtemp(prefix="scripts_"))
+    copied_any = False
+
+    for script in scripts_dir.iterdir():
+        if script.is_file() and script.suffix in extensions:
+            shutil.copy2(script, temp_dir / script.name)
+            copied_any = True
+
+    if not copied_any:
+        shutil.rmtree(temp_dir)
+        return None
+
+    return temp_dir
+
+
+def _build_docker_image_with_lock(environment_dir: Path) -> str | None:
+    """Build Docker image with file locking to prevent race conditions."""
+    if not environment_dir or not (environment_dir / "Dockerfile").exists():
+        return None
+
+    with open(DOCKER_BUILD_LOCK, "w") as lf:
+        fcntl.flock(lf.fileno(), fcntl.LOCK_EX)
+        try:
+            result = run_shell("docker.sh", "build", str(environment_dir), timeout=300, check=False)
+            if result.returncode == 0:
+                return result.stdout.strip()
+            return None
+        finally:
+            fcntl.flock(lf.fileno(), fcntl.LOCK_UN)
 
 
 def _discover_skill_scripts() -> list[str]:
@@ -754,7 +717,6 @@ def _discover_skill_scripts() -> list[str]:
     if not skills_dir.exists():
         return []
 
-    # Find all scripts directories in skills
     for scripts_dir in skills_dir.rglob("scripts"):
         if scripts_dir.is_dir():
             for script in scripts_dir.iterdir():
@@ -762,10 +724,6 @@ def _discover_skill_scripts() -> list[str]:
                     scripts.add(script.name)
 
     return sorted(scripts)
-
-
-# Cache discovered scripts (computed once at import time)
-_KNOWN_SCRIPTS: list[str] | None = None
 
 
 def _get_known_scripts() -> list[str]:
@@ -794,26 +752,17 @@ def _save_artifacts(base_dir: Path, treatment_name: str, rep: int, test_dir: Pat
     execution_dir.mkdir(parents=True, exist_ok=True)
 
     # Files/dirs to exclude
-    exclude_files = {
-        "chinook.db",
-        "requirements.txt",
-        "Dockerfile",
-        "package.json",
-        "tsconfig.json",
-    }
+    exclude_files = {"chinook.db", "requirements.txt", "Dockerfile", "package.json", "tsconfig.json"}
     exclude_dirs = {".claude", "node_modules", "__pycache__"}
 
     # Recursively copy all files Claude generated/modified
     for item in test_dir.rglob("*"):
         if item.is_file():
-            # Skip excluded files and hidden files
             if item.name in exclude_files or item.name.startswith("."):
                 continue
-            # Skip files in excluded directories
             if any(excl in item.parts for excl in exclude_dirs):
                 continue
             try:
-                # Preserve directory structure
                 rel_path = item.relative_to(test_dir)
                 dest = claude_dir / rel_path
                 dest.parent.mkdir(parents=True, exist_ok=True)

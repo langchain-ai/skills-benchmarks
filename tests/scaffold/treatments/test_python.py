@@ -210,9 +210,7 @@ class TestBuildTreatmentSkills:
 
     def test_uses_specified_name_over_generated(self):
         """Verify specified name is used over generated."""
-        configs = [
-            {"skill": "my_skill_name", "name": "override-name", "content": "Some content"}
-        ]
+        configs = [{"skill": "my_skill_name", "name": "override-name", "content": "Some content"}]
 
         skills = build_treatment_skills(configs)
 

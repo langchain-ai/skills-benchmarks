@@ -9,7 +9,6 @@ Tests cover:
 Tests also verify that incorrect implementations would fail by testing edge cases.
 """
 
-
 import pytest
 
 from scaffold.python.skill_parser import (
@@ -254,9 +253,7 @@ class TestGetSectionList:
 
     def test_excludes_specified_tags(self, basic_skill_dir):
         """Verify excluded tags are filtered out."""
-        sections = get_section_list(
-            basic_skill_dir / "skill.md", exclude_tags=["frontmatter"]
-        )
+        sections = get_section_list(basic_skill_dir / "skill.md", exclude_tags=["frontmatter"])
 
         assert len(sections) == 3
         assert not any("---" in s for s in sections if not s.startswith("<"))

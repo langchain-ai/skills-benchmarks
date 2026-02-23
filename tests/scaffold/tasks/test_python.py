@@ -4,7 +4,6 @@ Tests task loading, TOML parsing, and template rendering.
 These tests use fixtures to verify behavior that should have parity with TypeScript.
 """
 
-
 import pytest
 
 from scaffold.python.tasks import list_tasks, load_task
@@ -13,7 +12,7 @@ from scaffold.python.tasks import list_tasks, load_task
 # FIXTURES - Mock task data for consistent testing
 # =============================================================================
 
-BASIC_TASK_TOML = '''
+BASIC_TASK_TOML = """
 [metadata]
 name = "test-basic"
 description = "A basic test task"
@@ -32,9 +31,9 @@ timeout_sec = 300
 
 [validation]
 validators = ["test_validator"]
-'''
+"""
 
-TASK_WITH_SETUP_TOML = '''
+TASK_WITH_SETUP_TOML = """
 [metadata]
 name = "test-setup"
 description = "A task with setup config"
@@ -60,7 +59,7 @@ handler = "upload_datasets"
 [[setup.data]]
 pattern = "trace_*.jsonl"
 handler = "upload_traces"
-'''
+"""
 
 BASIC_INSTRUCTION = "This is a basic task instruction."
 SETUP_INSTRUCTION = "Dataset: {dataset_name}, Run: {run_id}"

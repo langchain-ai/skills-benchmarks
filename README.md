@@ -2,7 +2,7 @@
 
 Measures how skill documentation design affects Claude Code's adherence to recommended patterns.
 
-> **Note**: Tests conducted with Opus 4.5, February 2026.
+> **Note**: Tests default to Claude Sonnet 4.5. Override with `CC_MODEL` env var (e.g., `CC_MODEL=claude-opus-4-5-20251101`).
 
 ## Quick Start
 

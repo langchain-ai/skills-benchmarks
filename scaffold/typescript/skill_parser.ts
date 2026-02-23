@@ -61,6 +61,18 @@
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 
+// Regex patterns for skill parsing
+const FRONTMATTER_PATTERN = /^---\n([\s\S]*?)\n---/;
+const XML_TAG_PATTERN = /<(\w+)>([\s\S]*?)<\/\1>/g;
+const EXCESS_NEWLINES_PATTERN = /\n{3,}/g;
+
+/**
+ * Collapse 3+ consecutive newlines to 2.
+ */
+function cleanupWhitespace(content: string): string {
+  return content.replace(EXCESS_NEWLINES_PATTERN, "\n\n");
+}
+
 /**
  * Parse skill.md and return sections dict keyed by tag name.
  *
@@ -84,15 +96,16 @@ export function parseSkillMd(
   const sections: Record<string, string> = {};
 
   // Extract frontmatter using --- delimiters
-  const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
+  const frontmatterMatch = content.match(FRONTMATTER_PATTERN);
   if (frontmatterMatch) {
     sections["frontmatter"] = `---\n${frontmatterMatch[1].trim()}\n---`;
   }
 
   // Find all XML tags and their content
-  const tagPattern = /<(\w+)>([\s\S]*?)<\/\1>/g;
+  // Reset lastIndex for the global regex
+  XML_TAG_PATTERN.lastIndex = 0;
   let match;
-  while ((match = tagPattern.exec(content)) !== null) {
+  while ((match = XML_TAG_PATTERN.exec(content)) !== null) {
     const tagName = match[1];
     if (tagName === "frontmatter") continue; // Already handled above
     const tagContent = match[2].trim();
@@ -129,15 +142,16 @@ export function parseSkillMdOrdered(
   const sections: Array<[string, string]> = [];
 
   // Extract frontmatter using --- delimiters (always first)
-  const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
+  const frontmatterMatch = content.match(FRONTMATTER_PATTERN);
   if (frontmatterMatch) {
     sections.push(["frontmatter", `---\n${frontmatterMatch[1].trim()}\n---`]);
   }
 
   // Find all XML tags and their content
-  const tagPattern = /<(\w+)>([\s\S]*?)<\/\1>/g;
+  // Reset lastIndex for the global regex
+  XML_TAG_PATTERN.lastIndex = 0;
   let match;
-  while ((match = tagPattern.exec(content)) !== null) {
+  while ((match = XML_TAG_PATTERN.exec(content)) !== null) {
     const tagName = match[1];
     if (tagName === "frontmatter") continue;
     const tagContent = match[2].trim();
@@ -435,10 +449,7 @@ export function stripLangTags(content: string, exclude?: string[]): string {
     result = result.replace(pattern, "");
   }
 
-  // Clean up excessive blank lines left after removal
-  result = result.replace(/\n{3,}/g, "\n\n");
-
-  return result;
+  return cleanupWhitespace(result);
 }
 
 /**
@@ -478,8 +489,5 @@ export function stripByTags(content: string, exclude?: string[]): string {
     result = result.replace(pattern, "");
   }
 
-  // Clean up excessive blank lines left after removal
-  result = result.replace(/\n{3,}/g, "\n\n");
-
-  return result;
+  return cleanupWhitespace(result);
 }

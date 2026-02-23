@@ -112,7 +112,8 @@ For large refactors, use stacked PRs:
 
 ## TypeScript Parity
 
-The TypeScript scaffold (`scaffold/typescript/`) mirrors Python but has limitations:
+The TypeScript scaffold (`scaffold/typescript/`) mirrors Python:
+- Uses `smol-toml` for TOML parsing (same behavior as Python's tomllib)
+- Uses Node.js native `globSync` for file matching
 - `buildTreatmentSkills()` doesn't support `included_sections`, `section_overrides`, `extra_sections`
 - For full section manipulation, use Python implementation
-- The TOML parser is simplified but handles multiline arrays

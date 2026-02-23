@@ -76,16 +76,19 @@ export default async function globalSetup(): Promise<void> {
     throw new Error(`Environment verification failed:\n${errors.join("\n")}`);
   }
 
-  // Pre-build Docker images for test environments
-  const environments = ["benchmarks/lc_basic", "benchmarks/ls_multiskill"];
+  // Pre-build Docker images for task environments (tasks/{task}/environment/)
+  const tasksDir = resolve(PROJECT_ROOT, "tasks");
   const builtImages: string[] = [];
 
-  for (const env of environments) {
-    const envDir = resolve(PROJECT_ROOT, "tests", env, "environment");
-    if (existsSync(envDir)) {
-      const image = prebuildDockerImage(envDir);
-      if (image) {
-        builtImages.push(image);
+  if (existsSync(tasksDir)) {
+    const { readdirSync } = await import("node:fs");
+    for (const taskName of readdirSync(tasksDir)) {
+      const envDir = resolve(tasksDir, taskName, "environment");
+      if (existsSync(envDir) && existsSync(resolve(envDir, "Dockerfile"))) {
+        const image = prebuildDockerImage(envDir);
+        if (image) {
+          builtImages.push(image);
+        }
       }
     }
   }

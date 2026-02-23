@@ -77,6 +77,16 @@ my_config = skill_config(
 import re
 from pathlib import Path
 
+# Regex patterns for skill parsing
+FRONTMATTER_PATTERN = re.compile(r"^---\n(.*?)\n---", re.DOTALL)
+XML_TAG_PATTERN = re.compile(r"<(\w+)>(.*?)</\1>", re.DOTALL)
+EXCESS_NEWLINES_PATTERN = re.compile(r"\n{3,}")
+
+
+def _cleanup_whitespace(content: str) -> str:
+    """Collapse 3+ consecutive newlines to 2."""
+    return EXCESS_NEWLINES_PATTERN.sub("\n\n", content)
+
 
 def parse_skill_md(skill_md_path: Path, keep_tags: bool = True) -> dict[str, str]:
     """Parse skill.md and return sections dict keyed by tag name.
@@ -100,14 +110,12 @@ def parse_skill_md(skill_md_path: Path, keep_tags: bool = True) -> dict[str, str
     sections = {}
 
     # Extract frontmatter using --- delimiters
-    frontmatter_pattern = r"^---\n(.*?)\n---"
-    fm_match = re.search(frontmatter_pattern, content, re.DOTALL)
+    fm_match = FRONTMATTER_PATTERN.search(content)
     if fm_match:
         sections["frontmatter"] = f"---\n{fm_match.group(1).strip()}\n---"
 
     # Find all XML tags and their content (skip frontmatter if present)
-    pattern = r"<(\w+)>(.*?)</\1>"
-    for match in re.finditer(pattern, content, re.DOTALL):
+    for match in XML_TAG_PATTERN.finditer(content):
         tag_name = match.group(1)
         if tag_name == "frontmatter":
             continue  # Already handled above
@@ -146,14 +154,12 @@ def parse_skill_md_ordered(skill_md_path: Path, keep_tags: bool = True) -> list[
     sections = []
 
     # Extract frontmatter using --- delimiters (always first)
-    frontmatter_pattern = r"^---\n(.*?)\n---"
-    fm_match = re.search(frontmatter_pattern, content, re.DOTALL)
+    fm_match = FRONTMATTER_PATTERN.search(content)
     if fm_match:
         sections.append(("frontmatter", f"---\n{fm_match.group(1).strip()}\n---"))
 
     # Find all XML tags and their content (skip frontmatter if present)
-    pattern = r"<(\w+)>(.*?)</\1>"
-    for match in re.finditer(pattern, content, re.DOTALL):
+    for match in XML_TAG_PATTERN.finditer(content):
         tag_name = match.group(1)
         if tag_name == "frontmatter":
             continue  # Already handled above
@@ -424,10 +430,7 @@ def strip_lang_tags(content: str, exclude: list[str] | None = None) -> str:
         pattern = rf"<{lang}(?:\s+[^>]*)?>.*?</{lang}>"
         result = re.sub(pattern, "", result, flags=re.DOTALL)
 
-    # Clean up excessive blank lines left after removal
-    result = re.sub(r"\n{3,}", "\n\n", result)
-
-    return result
+    return _cleanup_whitespace(result)
 
 
 def strip_by_tags(content: str, exclude: list[str] | None = None) -> str:
@@ -463,7 +466,4 @@ def strip_by_tags(content: str, exclude: list[str] | None = None) -> str:
         pattern = rf'<(python|typescript)\s+tag="{re.escape(tag_name)}"[^>]*>.*?</\1>'
         result = re.sub(pattern, "", result, flags=re.DOTALL)
 
-    # Clean up excessive blank lines left after removal
-    result = re.sub(r"\n{3,}", "\n\n", result)
-
-    return result
+    return _cleanup_whitespace(result)

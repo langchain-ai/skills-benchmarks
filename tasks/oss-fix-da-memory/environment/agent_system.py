@@ -155,28 +155,36 @@ if __name__ == "__main__":
     print("Multi-Agent System Demo")
     print("=" * 60)
 
-    agent = create_agent_system()
-
-    # Test 1: Save preferences
-    print("\n--- Test 1: Save preferences ---")
-    save_user_preferences(agent, "alice", {"theme": "dark", "language": "en"})
-    print("Preferences saved")
-
-    # Test 2: Load preferences (after simulated restart)
-    print("\n--- Test 2: Load preferences (new session) ---")
-    agent2 = create_agent_system()  # Simulate restart
-    prefs = load_user_preferences(agent2, "alice")
-    print(f"Loaded preferences: {prefs}")
-
-    # Test 3: Research task
-    print("\n--- Test 3: Research task ---")
-    research = research_topic(agent, "transformer architectures")
-    print(f"Research result: {research}")
-
-    # Test 4: Deploy task (should require approval)
-    print("\n--- Test 4: Deploy task ---")
+    print("\n--- Creating agent system ---")
     try:
-        deploy = deploy_service(agent, "payment-api")
-        print(f"Deploy result: {deploy}")
+        agent = create_agent_system()
+        print("Agent created successfully")
+
+        # Test 1: Save preferences
+        print("\n--- Test 1: Save preferences ---")
+        save_user_preferences(agent, "alice", {"theme": "dark", "language": "en"})
+        print("Preferences saved")
+
+        # Test 2: Load preferences (after simulated restart)
+        print("\n--- Test 2: Load preferences (new session) ---")
+        agent2 = create_agent_system()  # Simulate restart
+        prefs = load_user_preferences(agent2, "alice")
+        print(f"Loaded preferences: {prefs}")
+
+        # Test 3: Research task
+        print("\n--- Test 3: Research task ---")
+        research = research_topic(agent, "transformer architectures")
+        print(f"Research result: {research}")
+
+        # Test 4: Deploy task (should require approval)
+        print("\n--- Test 4: Deploy task ---")
+        try:
+            deploy = deploy_service(agent, "payment-api")
+            print(f"Deploy result: {deploy}")
+        except Exception as e:
+            print(f"Deploy error: {e}")
+
     except Exception as e:
-        print(f"Deploy error: {e}")
+        print(f"Agent creation failed (expected without API keys): {e}")
+
+    print("\n" + "=" * 60)

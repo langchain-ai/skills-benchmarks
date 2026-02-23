@@ -1,4 +1,7 @@
-"""Pattern-based tests for deep agents memory/subagent fixes.
+"""Execution-based tests for deep agents memory/subagent fixes.
+
+These tests verify actual behavior by inspecting the agent configuration
+and testing the routing logic.
 
 The broken code has bugs from multiple skill areas:
 
@@ -11,149 +14,355 @@ From da_subagents:
 3. Skill inheritance asymmetry - custom subagents DON'T inherit main agent's skills
    (only general-purpose subagent does)
 4. Subagent interrupts require checkpointer - interrupt_on without checkpointer won't work
-
-Tests verify correct patterns are present after fixing.
 """
 
 import ast
+import importlib.util
 import json
+import os
 import re
 import sys
+from dataclasses import dataclass, field
+from typing import Any
+
+
+@dataclass
+class TestContext:
+    """Shared context for test execution."""
+
+    module_path: str
+    source: str = ""
+    module: Any | None = None
+    results: dict = field(default_factory=lambda: {"passed": [], "failed": [], "error": None})
+
+    def load(self) -> bool:
+        """Load source and module. Returns True if successful."""
+        # Add module directory to path
+        module_dir = os.path.dirname(os.path.abspath(self.module_path))
+        if module_dir not in sys.path:
+            sys.path.insert(0, module_dir)
+
+        # Read source
+        try:
+            with open(self.module_path) as f:
+                self.source = f.read()
+        except Exception as e:
+            self.results["error"] = f"Failed to read file: {e}"
+            return False
+
+        # Parse AST to validate syntax
+        try:
+            ast.parse(self.source)
+        except SyntaxError as e:
+            self.results["error"] = f"Syntax error in file: {e}"
+            return False
+
+        # Try to import module
+        try:
+            spec = importlib.util.spec_from_file_location("agent_system", self.module_path)
+            self.module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(self.module)
+        except Exception:
+            self.module = None
+
+        return True
+
+    def pass_test(self, name: str):
+        """Mark a test as passed."""
+        self.results["passed"].append(name)
+
+    def fail_test(self, name: str, reason: str):
+        """Mark a test as failed with reason."""
+        self.results["failed"].append(f"{name}: {reason}")
+
+
+# =============================================================================
+# Test 1: Route Hierarchy
+# =============================================================================
+
+
+def test_route_hierarchy(ctx: TestContext):
+    """Check that /memory/cache/ doesn't override /memory/ with ephemeral storage.
+
+    Bug: CompositeBackend uses longest-prefix matching, so /memory/cache/
+    matches before /memory/, making cache storage ephemeral when it shouldn't be.
+    """
+    TEST_NAME = "route_hierarchy_correct"
+
+    # Try execution-based check first
+    if ctx.module and hasattr(ctx.module, "create_agent_system"):
+        try:
+            agent = ctx.module.create_agent_system()
+            backend = getattr(agent, "backend", None) or getattr(agent, "_backend", None)
+
+            if backend and hasattr(backend, "sorted_routes"):
+                for prefix, backend_instance in backend.sorted_routes:
+                    backend_type = type(backend_instance).__name__
+                    if "/memory/cache/" in prefix and "State" in backend_type:
+                        ctx.fail_test(
+                            TEST_NAME,
+                            "longer prefix routes take precedence - "
+                            "/memory/cache/ overrides /memory/, making cache ephemeral",
+                        )
+                        return
+                ctx.pass_test(TEST_NAME)
+                return
+        except Exception:
+            pass  # Fall back to source check
+
+    # Source-based fallback
+    _check_route_hierarchy_source(ctx)
+
+
+def _check_route_hierarchy_source(ctx: TestContext):
+    """Source-based route hierarchy check."""
+    TEST_NAME = "route_hierarchy_correct"
+    composite_routes = re.search(r"routes\s*=\s*\{([^}]+)\}", ctx.source, re.DOTALL)
+
+    if not composite_routes:
+        ctx.pass_test(TEST_NAME)
+        return
+
+    routes_content = composite_routes.group(1)
+
+    # Check if /memory/cache/ uses StateBackend (ephemeral)
+    cache_is_ephemeral = (
+        "StateBackend" in routes_content
+        and "/memory/cache/" in routes_content
+        and re.search(r"/memory/cache/.*StateBackend", routes_content, re.DOTALL)
+    )
+
+    if not cache_is_ephemeral:
+        # Either no cache route, or cache uses StoreBackend - OK
+        ctx.pass_test(TEST_NAME)
+        return
+
+    # Cache is ephemeral - only a problem if prefs are saved there
+    # Look for actual path usage, not comments (match quotes or content strings)
+    prefs_use_cache = re.search(r'["\'].*?/memory/cache/prefs', ctx.source)
+
+    if prefs_use_cache:
+        ctx.fail_test(
+            TEST_NAME,
+            "longer prefix routes take precedence - "
+            "/memory/cache/ overrides /memory/, making cache ephemeral",
+        )
+    else:
+        # Prefs don't use cache path, so ephemeral cache is fine
+        ctx.pass_test(TEST_NAME)
+
+
+# =============================================================================
+# Test 2: Persistent Path Routing
+# =============================================================================
+
+
+def test_persistent_path_routing(ctx: TestContext):
+    """Check that persistent data uses correct paths.
+
+    Bug: Code saves preferences to /memory/cache/ which matches the ephemeral
+    StateBackend route, instead of /memory/ which uses persistent StoreBackend.
+    """
+    TEST_NAME = "persistent_path_routing"
+
+    buggy_path = r"/memory/cache/prefs"
+    correct_path_patterns = [
+        r"/memory/prefs",
+        r"/memory/user",
+        r"/persistent/",
+    ]
+
+    has_buggy_path = re.search(buggy_path, ctx.source)
+    has_correct_path = any(re.search(p, ctx.source) for p in correct_path_patterns)
+    routes_buggy = re.search(r"/memory/cache/.*StateBackend", ctx.source, re.DOTALL)
+
+    if not has_buggy_path or has_correct_path or not routes_buggy:
+        ctx.pass_test(TEST_NAME)
+    else:
+        ctx.fail_test(
+            TEST_NAME,
+            "/memory/cache/ matches longer prefix than /memory/, "
+            "so files there are ephemeral - use /memory/ directly or fix routes",
+        )
+
+
+# =============================================================================
+# Test 3: Subagent Skills Inheritance
+# =============================================================================
+
+
+def test_subagent_skills(ctx: TestContext):
+    """Check that subagents have explicit skills configuration.
+
+    Bug: Custom subagents DON'T inherit main agent's skills.
+    Only the general-purpose subagent does.
+    """
+    TEST_NAME = "subagent_skills_explicit"
+
+    # Try execution-based check by patching create_deep_agent
+    try:
+        captured_calls = []
+        original_create = None
+
+        def capture_create(*args, **kwargs):
+            captured_calls.append(kwargs)
+            if original_create:
+                return original_create(*args, **kwargs)
+            return None
+
+        import deepagents
+
+        original_create = deepagents.create_deep_agent
+        deepagents.create_deep_agent = capture_create
+
+        try:
+            # Clear cached import and reload
+            if "agent_system" in sys.modules:
+                del sys.modules["agent_system"]
+
+            spec = importlib.util.spec_from_file_location("agent_system", ctx.module_path)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+
+            if hasattr(module, "create_agent_system"):
+                try:
+                    module.create_agent_system()
+                except Exception:
+                    pass  # May fail without API keys
+
+            # Analyze captured calls
+            if captured_calls:
+                result = _analyze_subagent_skills(captured_calls)
+                if result:
+                    ctx.fail_test(TEST_NAME, result)
+                else:
+                    ctx.pass_test(TEST_NAME)
+                return
+
+        finally:
+            deepagents.create_deep_agent = original_create
+
+    except ImportError:
+        pass  # deepagents not available
+
+    # Fall back to source check
+    _check_subagent_skills_source(ctx)
+
+
+def _analyze_subagent_skills(captured_calls: list) -> str | None:
+    """Analyze captured create_deep_agent calls for skills issues.
+
+    Returns error message if issues found, None if OK.
+    """
+    for kwargs in captured_calls:
+        subagents = kwargs.get("subagents", [])
+        main_skills = kwargs.get("skills", [])
+
+        if not (subagents and main_skills):
+            continue
+
+        missing = []
+        for sub in subagents:
+            if isinstance(sub, dict):
+                name = sub.get("name", "unnamed")
+                if "skills" not in sub or not sub.get("skills"):
+                    missing.append(name)
+
+        if missing:
+            return (
+                f"custom subagents don't inherit main agent's skills - "
+                f"specify skills explicitly (missing on: {', '.join(missing)})"
+            )
+
+    return None
+
+
+def _check_subagent_skills_source(ctx: TestContext):
+    """Source-based subagent skills check."""
+    TEST_NAME = "subagent_skills_explicit"
+
+    subagent_start = ctx.source.find("subagents=[")
+    if subagent_start == -1:
+        subagent_start = ctx.source.find("subagents = [")
+
+    if subagent_start == -1:
+        ctx.pass_test(TEST_NAME)
+        return
+
+    # Look at next 2000 chars for subagent definitions
+    section = ctx.source[subagent_start : subagent_start + 2000]
+    subagent_count = len(re.findall(r'"name"\s*:', section))
+    skills_count = len(re.findall(r'"skills"\s*:\s*\[', section))
+
+    if subagent_count == 0:
+        ctx.pass_test(TEST_NAME)
+    elif skills_count >= subagent_count:
+        ctx.pass_test(TEST_NAME)
+    else:
+        ctx.fail_test(
+            TEST_NAME,
+            "custom subagents don't inherit main agent's skills - specify skills explicitly",
+        )
+
+
+# =============================================================================
+# Test 4: Interrupt Requires Checkpointer
+# =============================================================================
+
+
+def test_interrupt_checkpointer(ctx: TestContext):
+    """Check that interrupt_on has a checkpointer configured.
+
+    Bug: Using interrupt_on without checkpointer silently fails -
+    the interrupt won't actually pause execution.
+    """
+    TEST_NAME = "interrupt_has_checkpointer"
+
+    has_interrupt = re.search(r"interrupt_on", ctx.source)
+    has_checkpointer = re.search(r"checkpointer\s*=", ctx.source)
+
+    if not has_interrupt:
+        ctx.pass_test(TEST_NAME)
+    elif has_checkpointer:
+        ctx.pass_test(TEST_NAME)
+    else:
+        ctx.fail_test(
+            TEST_NAME,
+            "interrupt_on requires checkpointer on main agent - add checkpointer=MemorySaver()",
+        )
+
+
+# =============================================================================
+# Main Test Runner
+# =============================================================================
 
 
 def run_tests(module_path: str) -> dict:
-    """Run tests against the module.
+    """Run all tests against the module.
 
-    Returns dict with test results.
+    Returns dict with test results: {passed: [], failed: [], error: str|None}
     """
-    results = {"passed": [], "failed": [], "error": None}
+    ctx = TestContext(module_path=module_path)
 
-    try:
-        with open(module_path) as f:
-            source = f.read()
-    except Exception as e:
-        results["error"] = f"Failed to read file: {e}"
-        return results
+    if not ctx.load():
+        return ctx.results
 
-    try:
-        ast.parse(source)
-    except SyntaxError as e:
-        results["error"] = f"Syntax error in file: {e}"
-        return results
+    # Run each test
+    tests = [
+        test_route_hierarchy,
+        test_persistent_path_routing,
+        test_subagent_skills,
+        test_interrupt_checkpointer,
+    ]
 
-    # ========== da_memory bugs ==========
+    for test_fn in tests:
+        try:
+            test_fn(ctx)
+        except Exception as e:
+            test_name = test_fn.__name__.replace("test_", "")
+            ctx.fail_test(test_name, str(e))
 
-    # Test 1: Persistent data should NOT be saved under a more-specific ephemeral route
-    # The bug: /memory/cache/ matches longer prefix than /memory/, so it's ephemeral
-    try:
-        # Check if preferences are saved to /memory/cache/ (buggy) or /memory/ (correct)
-        buggy_path = r"/memory/cache/prefs"
-        correct_path_patterns = [
-            r"/memory/prefs",  # Direct under /memory/
-            r"/memory/user",  # Or similar persistent path
-            r"/persistent/",  # Or renamed route
-        ]
-
-        has_buggy_path = re.search(buggy_path, source)
-        has_correct_path = any(re.search(pattern, source) for pattern in correct_path_patterns)
-
-        # Also check if the routes themselves were fixed
-        # Buggy: /memory/cache/ -> StateBackend (ephemeral)
-        # Fixed: /memory/cache/ removed OR -> StoreBackend
-        routes_buggy = re.search(r"/memory/cache/.*StateBackend", source, re.DOTALL)
-
-        if not has_buggy_path or has_correct_path:
-            results["passed"].append("persistent_path_routing")
-        elif not routes_buggy:
-            results["passed"].append("persistent_path_routing")
-        else:
-            results["failed"].append(
-                "persistent_path_routing: /memory/cache/ matches longer prefix than "
-                "/memory/, so files there are ephemeral - use /memory/ directly or fix routes"
-            )
-    except Exception as e:
-        results["failed"].append(f"persistent_path_routing: {e}")
-
-    # Test 2: Composite backend route understanding
-    # Check if the routes make sense (no ephemeral under persistent)
-    try:
-        # Find route definitions
-        composite_routes = re.search(r"routes\s*=\s*\{([^}]+)\}", source, re.DOTALL)
-
-        if composite_routes:
-            routes_content = composite_routes.group(1)
-            # Check for nested ephemeral under persistent
-            has_nested_ephemeral = (
-                "StateBackend" in routes_content
-                and "/memory/" in routes_content
-                and "/memory/cache/" in routes_content
-            )
-
-            if not has_nested_ephemeral:
-                results["passed"].append("route_hierarchy_correct")
-            else:
-                # Check if the nested one is also StoreBackend
-                if re.search(r"/memory/cache/.*StoreBackend", routes_content):
-                    results["passed"].append("route_hierarchy_correct")
-                else:
-                    results["failed"].append(
-                        "route_hierarchy_correct: longer prefix routes take precedence - "
-                        "/memory/cache/ overrides /memory/, making cache ephemeral"
-                    )
-        else:
-            results["passed"].append("route_hierarchy_correct")
-    except Exception as e:
-        results["failed"].append(f"route_hierarchy_correct: {e}")
-
-    # ========== da_subagents bugs ==========
-
-    # Test 3: Custom subagents need explicit skills (don't inherit)
-    try:
-        # Find subagent definitions
-        subagent_pattern = r"subagents\s*=\s*\[([^\]]+)\]"
-        subagents_match = re.search(subagent_pattern, source, re.DOTALL)
-
-        if subagents_match:
-            subagents_content = subagents_match.group(1)
-
-            # Check if subagents have skills specified
-            # Looking for "skills": [...] in subagent definitions
-            skills_specs = re.findall(r'"skills"\s*:\s*\[', subagents_content)
-
-            # Each custom subagent that needs skills should have them specified
-            has_explicit_skills = len(skills_specs) > 0
-
-            if has_explicit_skills:
-                results["passed"].append("subagent_skills_explicit")
-            else:
-                results["failed"].append(
-                    "subagent_skills_explicit: custom subagents don't inherit "
-                    "main agent's skills - specify skills explicitly"
-                )
-        else:
-            results["passed"].append("subagent_skills_explicit")
-    except Exception as e:
-        results["failed"].append(f"subagent_skills_explicit: {e}")
-
-    # Test 4: Subagent interrupt_on requires checkpointer on main agent
-    try:
-        has_interrupt_on = re.search(r"interrupt_on", source)
-        has_checkpointer = re.search(r"checkpointer\s*=", source)
-
-        if has_interrupt_on:
-            if has_checkpointer:
-                results["passed"].append("interrupt_has_checkpointer")
-            else:
-                results["failed"].append(
-                    "interrupt_has_checkpointer: interrupt_on requires checkpointer "
-                    "on main agent - add checkpointer=MemorySaver()"
-                )
-        else:
-            results["passed"].append("interrupt_has_checkpointer")
-    except Exception as e:
-        results["failed"].append(f"interrupt_has_checkpointer: {e}")
-
-    return results
+    return ctx.results
 
 
 if __name__ == "__main__":

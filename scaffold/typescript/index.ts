@@ -33,11 +33,23 @@ export {
 // Task loading
 export {
   TASKS_DIR,
+  type DataHandler,
+  type SetupConfig,
   type TaskConfig,
   type Task,
   listTasks,
   loadTask,
 } from "./tasks.js";
+
+// External data handlers
+export {
+  type HandlerArgs,
+  uploadTraces,
+  uploadDatasets,
+  cleanupNamespace,
+  runHandler,
+  runTaskHandlers,
+} from "./external_data_handler.js";
 
 // Treatment loading
 export {

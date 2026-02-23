@@ -514,9 +514,11 @@ def setup_test_context(test_dir):
 @pytest.fixture
 def run_claude(test_dir, experiment_logger, request):
     """Factory fixture to run Claude in Docker and capture artifacts."""
+    # Default to Sonnet 4.5 for consistent benchmarks (can override with CC_MODEL env var)
+    default_model = os.environ.get("CC_MODEL", "claude-sonnet-4-5-20250929")
 
     def _run(prompt: str, timeout: int = 600, model: str = None):
-        result = run_claude_in_docker(test_dir, prompt, timeout=timeout, model=model)
+        result = run_claude_in_docker(test_dir, prompt, timeout=timeout, model=model or default_model)
 
         # Save raw output if we have a logger
         if experiment_logger and hasattr(request, "node"):

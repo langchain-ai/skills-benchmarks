@@ -1,10 +1,6 @@
 #!/usr/bin/env python3
 """Generate evaluation datasets from exported trace files.
 
-Workflow:
-  1. Export traces using langsmith-trace skill: query_traces.py export ./traces
-  2. Generate datasets from those traces: generate_datasets.py --input ./traces --type final_response
-
 Dataset types:
   - final_response: Full conversation with expected output
   - single_step: Single node inputs/outputs
@@ -672,7 +668,7 @@ def export_to_langsmith(client: Client, dataset: list[dict], dataset_name: str, 
     "-i",
     "input_path",
     required=True,
-    help="Input traces: directory of JSONL files or single JSONL file (from query_traces.py export)",
+    help="Input traces: directory of JSONL files or single JSONL file",
 )
 @click.option(
     "--type",
@@ -720,11 +716,6 @@ def generate(
     yes,
 ):
     """Generate evaluation datasets from exported JSONL trace files.
-
-    \b
-    Workflow:
-      1. Export traces: query_traces.py export ./traces --project myproject --include-io
-      2. Generate dataset: generate_datasets.py --input ./traces --type final_response -o dataset.json
 
     \b
     Dataset types:

@@ -1,6 +1,6 @@
 ---
 name: langsmith-trace-js
-description: "Use this skill for ANY LangSmith/LangChain observability question. Covers two topics: (1) Adding tracing to your application, and (2) Querying traces. Assist with debugging, analyzing execution flow, and exporting trace data."
+description: "Use this skill for LangSmith/LangChain observability questions. Covers two topics: (1) Adding tracing to your application, and (2) Querying traces. Assist with debugging, analyzing execution flow, and exporting trace data."
 ---
 
 <oneliner>

@@ -1,6 +1,6 @@
 ---
 name: langsmith-evaluator-py
-description: Use this skill for ANY question about CREATING evaluators. Covers creating custom metrics, LLM as Judge evaluators, code-based evaluators, and uploading evaluation logic to LangSmith. Includes basic usage of evaluators to run evaluations.
+description: Use this skill for questions about CREATING evaluators. Covers creating custom metrics, LLM as Judge evaluators, code-based evaluators, and uploading evaluation logic to LangSmith. Includes basic usage of evaluators to run evaluations.
 ---
 
 <oneliner>

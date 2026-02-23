@@ -2,10 +2,6 @@
 /**
  * Generate evaluation datasets from exported trace files.
  *
- * Workflow:
- *   1. Export traces using langsmith-trace skill: query_traces.ts export ./traces
- *   2. Generate datasets from those traces: generate_datasets.ts --input ./traces --type final_response
- *
  * Dataset types:
  *   - final_response: Full conversation with expected output
  *   - single_step: Single node inputs/outputs
@@ -782,10 +778,6 @@ program
   .name("generate_datasets")
   .description(
     `Generate evaluation datasets from exported JSONL trace files.
-
-Workflow:
-  1. Export traces: query_traces.ts export ./traces --project myproject --include-io
-  2. Generate dataset: generate_datasets.ts --input ./traces --type final_response -o dataset.json
 
 Dataset types:
   final_response - Full conversation with expected output

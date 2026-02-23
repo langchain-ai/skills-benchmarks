@@ -7,7 +7,7 @@ We have a multi-agent system in `environment/agent_system.py` built with deepage
 ```python
 # Session 1
 agent = create_agent_system()
-save_user_preferences(agent, "alice", {"theme": "dark"})
+save_user_preferences(agent, "alice", prefs)
 # Message sent: "Save these preferences to /memory/cache/prefs-alice.json"
 
 # Session 2 (restart the app)
@@ -29,7 +29,7 @@ research_topic(agent, "info from project-docs")
 
 ## Issue 3: Deployment skips approval
 
-The deployer subagent has `interrupt_on: {"deploy_to_prod": True}` but:
+The deployer subagent has `interrupt_on` configured for `deploy_to_prod` but:
 
 ```python
 deploy_service(agent, "payment-api")

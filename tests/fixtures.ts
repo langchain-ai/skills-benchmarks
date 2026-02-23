@@ -448,5 +448,37 @@ function printSummary(logger: ExperimentLogger): void {
   console.log("=".repeat(80));
 }
 
+// =============================================================================
+// ENVIRONMENT VERIFICATION
+// =============================================================================
+
+import {
+  checkDockerAvailable,
+  checkClaudeAvailable,
+} from "../scaffold/typescript/utils.js";
+
+/**
+ * Verify that Docker, Claude CLI, and API keys are available.
+ */
+export function verifyTestEnvironment(): {
+  docker: boolean;
+  claude: boolean;
+  apiKeys: boolean;
+} {
+  const docker = checkDockerAvailable();
+  const claude = checkClaudeAvailable();
+  const apiKeys = !!(
+    process.env.ANTHROPIC_API_KEY && process.env.OPENAI_API_KEY
+  );
+
+  console.log("\n=== Environment Verified ===");
+  console.log(`  - Docker: ${docker ? "OK" : "MISSING"}`);
+  console.log(`  - Claude CLI: ${claude ? "OK" : "MISSING"}`);
+  console.log(`  - API Keys: ${apiKeys ? "OK" : "MISSING"}`);
+  console.log("============================\n");
+
+  return { docker, claude, apiKeys };
+}
+
 // Re-export commonly used functions
 export { parseOutput, extractEvents };

@@ -80,6 +80,7 @@ class TestContext:
 # Test 1: Route Hierarchy
 # =============================================================================
 
+
 def test_route_hierarchy(ctx: TestContext):
     """Check that /memory/cache/ doesn't override /memory/ with ephemeral storage.
 
@@ -89,19 +90,19 @@ def test_route_hierarchy(ctx: TestContext):
     TEST_NAME = "route_hierarchy_correct"
 
     # Try execution-based check first
-    if ctx.module and hasattr(ctx.module, 'create_agent_system'):
+    if ctx.module and hasattr(ctx.module, "create_agent_system"):
         try:
             agent = ctx.module.create_agent_system()
-            backend = getattr(agent, 'backend', None) or getattr(agent, '_backend', None)
+            backend = getattr(agent, "backend", None) or getattr(agent, "_backend", None)
 
-            if backend and hasattr(backend, 'sorted_routes'):
+            if backend and hasattr(backend, "sorted_routes"):
                 for prefix, backend_instance in backend.sorted_routes:
                     backend_type = type(backend_instance).__name__
-                    if '/memory/cache/' in prefix and 'State' in backend_type:
+                    if "/memory/cache/" in prefix and "State" in backend_type:
                         ctx.fail_test(
                             TEST_NAME,
                             "longer prefix routes take precedence - "
-                            "/memory/cache/ overrides /memory/, making cache ephemeral"
+                            "/memory/cache/ overrides /memory/, making cache ephemeral",
                         )
                         return
                 ctx.pass_test(TEST_NAME)
@@ -137,13 +138,14 @@ def _check_route_hierarchy_source(ctx: TestContext):
         ctx.fail_test(
             TEST_NAME,
             "longer prefix routes take precedence - "
-            "/memory/cache/ overrides /memory/, making cache ephemeral"
+            "/memory/cache/ overrides /memory/, making cache ephemeral",
         )
 
 
 # =============================================================================
 # Test 2: Persistent Path Routing
 # =============================================================================
+
 
 def test_persistent_path_routing(ctx: TestContext):
     """Check that persistent data uses correct paths.
@@ -170,13 +172,14 @@ def test_persistent_path_routing(ctx: TestContext):
         ctx.fail_test(
             TEST_NAME,
             "/memory/cache/ matches longer prefix than /memory/, "
-            "so files there are ephemeral - use /memory/ directly or fix routes"
+            "so files there are ephemeral - use /memory/ directly or fix routes",
         )
 
 
 # =============================================================================
 # Test 3: Subagent Skills Inheritance
 # =============================================================================
+
 
 def test_subagent_skills(ctx: TestContext):
     """Check that subagents have explicit skills configuration.
@@ -198,6 +201,7 @@ def test_subagent_skills(ctx: TestContext):
             return None
 
         import deepagents
+
         original_create = deepagents.create_deep_agent
         deepagents.create_deep_agent = capture_create
 
@@ -210,7 +214,7 @@ def test_subagent_skills(ctx: TestContext):
             module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(module)
 
-            if hasattr(module, 'create_agent_system'):
+            if hasattr(module, "create_agent_system"):
                 try:
                     module.create_agent_system()
                 except Exception:
@@ -267,16 +271,16 @@ def _check_subagent_skills_source(ctx: TestContext):
     """Source-based subagent skills check."""
     TEST_NAME = "subagent_skills_explicit"
 
-    subagent_start = ctx.source.find('subagents=[')
+    subagent_start = ctx.source.find("subagents=[")
     if subagent_start == -1:
-        subagent_start = ctx.source.find('subagents = [')
+        subagent_start = ctx.source.find("subagents = [")
 
     if subagent_start == -1:
         ctx.pass_test(TEST_NAME)
         return
 
     # Look at next 2000 chars for subagent definitions
-    section = ctx.source[subagent_start:subagent_start + 2000]
+    section = ctx.source[subagent_start : subagent_start + 2000]
     subagent_count = len(re.findall(r'"name"\s*:', section))
     skills_count = len(re.findall(r'"skills"\s*:\s*\[', section))
 
@@ -287,13 +291,14 @@ def _check_subagent_skills_source(ctx: TestContext):
     else:
         ctx.fail_test(
             TEST_NAME,
-            "custom subagents don't inherit main agent's skills - specify skills explicitly"
+            "custom subagents don't inherit main agent's skills - specify skills explicitly",
         )
 
 
 # =============================================================================
 # Test 4: Interrupt Requires Checkpointer
 # =============================================================================
+
 
 def test_interrupt_checkpointer(ctx: TestContext):
     """Check that interrupt_on has a checkpointer configured.
@@ -313,13 +318,14 @@ def test_interrupt_checkpointer(ctx: TestContext):
     else:
         ctx.fail_test(
             TEST_NAME,
-            "interrupt_on requires checkpointer on main agent - add checkpointer=MemorySaver()"
+            "interrupt_on requires checkpointer on main agent - add checkpointer=MemorySaver()",
         )
 
 
 # =============================================================================
 # Main Test Runner
 # =============================================================================
+
 
 def run_tests(module_path: str) -> dict:
     """Run all tests against the module.

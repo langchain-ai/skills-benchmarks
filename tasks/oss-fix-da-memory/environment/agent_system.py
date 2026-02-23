@@ -191,7 +191,7 @@ def test_subagent_skills_inheritance():
         source = f.read()
 
     # Find the main agent's skills
-    main_skills_match = re.search(r'skills=\[([^\]]+)\]', source)
+    main_skills_match = re.search(r"skills=\[([^\]]+)\]", source)
     if not main_skills_match:
         print("SKIP: No main agent skills configured")
         return True
@@ -200,12 +200,12 @@ def test_subagent_skills_inheritance():
     print(f"Main agent skills: [{main_skills}]")
 
     # Find subagents section
-    subagent_start = source.find('subagents=[')
+    subagent_start = source.find("subagents=[")
     if subagent_start == -1:
         print("SKIP: No subagents configured")
         return True
 
-    subagents_section = source[subagent_start:subagent_start + 2000]
+    subagents_section = source[subagent_start : subagent_start + 2000]
 
     # Count subagent names
     subagent_names = re.findall(r'"name":\s*"([^"]+)"', subagents_section)

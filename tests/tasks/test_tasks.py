@@ -33,11 +33,12 @@ import uuid
 from pathlib import Path
 
 import pytest
+from conftest import register_run_id_for_cleanup
 from langsmith import testing as ls_testing
 
-from conftest import upload_fixture_traces
 from scaffold import NoiseTask, Treatment
 from scaffold.python import extract_events, parse_output
+from scaffold.python.external_data_handler import run_task_handlers
 from scaffold.python.tasks import list_tasks, load_task
 from scaffold.python.treatments import build_treatment_skills, load_treatments
 from scaffold.python.validation import NOISE_TASK_DELIVERABLES, NOISE_TASK_PROMPTS
@@ -187,25 +188,21 @@ def test_task_treatment(task_name, treatment_name, fixtures):
         environment_dir=task.environment_dir,
     )
 
-    # Generate run_id for parallel execution
+    # Generate run_id for namespace isolation and cleanup
     run_id = str(uuid.uuid4())
+    register_run_id_for_cleanup(run_id)
 
-    # Upload fixture traces if task has trace data files (convention-based)
-    trace_id_map = {}
-    if fixtures.langsmith_project:
-        data_dir = task.path / "data"
-        if data_dir.exists() and list(data_dir.glob("trace_*.jsonl")):
-            print(f"\nUploading traces from {data_dir.name} to {fixtures.langsmith_project}...")
-            trace_id_map = upload_fixture_traces(fixtures.langsmith_project, data_dir)
+    # Execute data handlers from task config
+    trace_id_map = run_task_handlers(
+        task.config.setup.data_handlers,
+        task.data_dir,
+        fixtures.langsmith_project,
+    )
 
-    # Render prompt with required variables
+    # Build template variables from config
     template_vars = {"run_id": run_id}
-
-    # Add task-specific variables (e.g., datasets for ls-lang-evaluator)
-    if task_name == "ls-lang-evaluator":
-        # These would come from fixtures in a real test
-        template_vars["py_dataset"] = f"benchmark-sql-{run_id[:8]}"
-        template_vars["ts_dataset"] = f"benchmark-support-{run_id[:8]}"
+    for var_name, var_template in task.config.setup.template_vars.items():
+        template_vars[var_name] = var_template.format(run_id=run_id)
 
     prompt = task.render_prompt(**template_vars)
     prompt = treatment.build_prompt(prompt)

@@ -18,8 +18,10 @@ import shutil
 import subprocess
 import tempfile
 import time
+import uuid
 from datetime import datetime
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
@@ -34,6 +36,8 @@ from scaffold.python import (
     save_report,
     strip_ansi,
 )
+from scaffold.python.external_data_handler import run_handler
+from scaffold.python.skill_parser import SCRIPT_EXTENSIONS
 
 PROJECT_ROOT = Path(__file__).parent.parent
 
@@ -330,56 +334,51 @@ def worker_id(request):
     return "master"
 
 
-def _get_langsmith_client():
-    """Get LangSmith client."""
-    try:
-        from langsmith import Client
+# Track run_ids for namespace-based cleanup
+_test_run_ids: list[str] = []
 
-        return Client(), None
-    except Exception as e:
-        return None, str(e)
+
+def register_run_id_for_cleanup(run_id: str):
+    """Register a run_id for namespace cleanup at session end."""
+    if run_id not in _test_run_ids:
+        _test_run_ids.append(run_id)
 
 
 @pytest.fixture(scope="session")
 def langsmith_project(worker_id, request):
-    """Create isolated LangSmith project for this test session.
-
-    Each pytest-xdist worker gets its own project to avoid conflicts.
-    Projects are cleaned up after the session.
-    """
-    # Skip for script-only runs
+    """Create isolated LangSmith project for trace uploads."""
     if _is_scripts_only(request.config):
         yield None
         return
 
-    import uuid
-
-    suffix = "main" if worker_id == "master" else worker_id
-    project_name = f"benchmark-{suffix}-{uuid.uuid4().hex[:8]}"
+    run_id = str(uuid.uuid4())
+    project_name = f"bench-project-{run_id}"
+    register_run_id_for_cleanup(run_id)
 
     old_project = os.environ.get("LANGSMITH_PROJECT")
     os.environ["LANGSMITH_PROJECT"] = project_name
-
-    print(f"\n{'=' * 60}")
-    print(f"LANGSMITH PROJECT: {project_name}")
-    print(f"{'=' * 60}\n")
+    print(f"\nLANGSMITH PROJECT: {project_name}\n")
 
     yield project_name
 
-    # Cleanup
-    client, _ = _get_langsmith_client()
-    if client:
-        try:
-            client.delete_project(project_name=project_name)
-            print(f"Deleted project: {project_name}")
-        except Exception as e:
-            print(f"Warning: Could not delete project {project_name}: {e}")
-
-    # Restore original env var
     if old_project:
         os.environ["LANGSMITH_PROJECT"] = old_project
     elif "LANGSMITH_PROJECT" in os.environ:
         del os.environ["LANGSMITH_PROJECT"]
+
+
+@pytest.fixture(scope="session", autouse=True)
+def cleanup_langsmith_namespace(request):
+    """Clean up all LangSmith resources matching test run_ids at session end."""
+    yield
+    if not _test_run_ids:
+        return
+
+    for run_id in _test_run_ids:
+        try:
+            run_handler("cleanup_namespace", run_id=run_id)
+        except Exception:
+            pass
 
 
 @pytest.fixture(scope="session")
@@ -492,8 +491,6 @@ def _filter_scripts(scripts_dir: Path, script_filter: str) -> Path | None:
     Returns:
         Path to temp dir with filtered scripts, or original dir if no filtering needed
     """
-    from scaffold.python.skill_parser import SCRIPT_EXTENSIONS
-
     if not scripts_dir or not scripts_dir.exists():
         return None
 
@@ -721,8 +718,6 @@ def fixtures(
             result = fixtures.run_claude(prompt)
             fixtures.record_result(events, passed, failed)
     """
-    from types import SimpleNamespace
-
     return SimpleNamespace(
         langsmith_project=langsmith_project,
         test_dir=test_dir,
@@ -844,140 +839,3 @@ def _save_artifacts(base_dir: Path, treatment_name: str, rep: int, test_dir: Pat
         except Exception as e:
             error_file = execution_dir / f"{ts_file.stem}_error.txt"
             error_file.write_text(str(e))
-
-
-# =============================================================================
-# LANGSMITH TRACE FIXTURE UPLOAD
-# =============================================================================
-
-
-def _parse_ts(s: str):
-    """Parse ISO timestamp string, always returning UTC-aware datetime."""
-    from datetime import UTC
-
-    if not s:
-        return None
-    try:
-        dt = datetime.fromisoformat(s.replace("Z", "+00:00"))
-        # Ensure timezone-aware (some formats may not have tz info)
-        if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=UTC)
-        return dt
-    except ValueError:
-        return None
-
-
-def _replay_trace_operations(client, project: str, operations: list[dict]) -> str:
-    """Replay trace operations with new IDs and date-shifted timestamps.
-
-    Uses two-step POST/PATCH approach to avoid dotted_order requirement.
-    """
-    import uuid
-    from datetime import UTC, timedelta
-
-    # Build ID mapping for all post operations
-    id_map = {
-        op["id"]: str(uuid.uuid4())
-        for op in operations
-        if op.get("operation") == "post" and op.get("id")
-    }
-    if not id_map:
-        return None
-
-    # Calculate time shift
-    timestamps = [
-        _parse_ts(op.get("start_time")) for op in operations if op.get("operation") == "post"
-    ]
-    timestamps = [t for t in timestamps if t]
-    if not timestamps:
-        return None
-
-    offset = datetime.now(UTC) - min(timestamps) - timedelta(minutes=5)
-
-    def shift_ts(ts_str):
-        ts = _parse_ts(ts_str)
-        return ts + offset if ts else None
-
-    root_id = None
-    for op in operations:
-        old_id = op.get("id")
-        new_id = id_map.get(old_id, old_id)
-        new_parent = id_map.get(op.get("parent_run_id")) if op.get("parent_run_id") else None
-
-        if op.get("operation") == "post":
-            try:
-                client.create_run(
-                    id=new_id,
-                    name=op.get("name"),
-                    run_type=op.get("run_type", "chain"),
-                    inputs=op.get("inputs", {}),
-                    start_time=shift_ts(op.get("start_time")),
-                    parent_run_id=new_parent,
-                    project_name=project,
-                    extra=op.get("extra", {}),
-                    tags=op.get("tags", []),
-                )
-                if not op.get("parent_run_id"):
-                    root_id = new_id
-            except Exception as e:
-                print(f"    Failed: {op.get('name')}: {e}")
-
-        elif op.get("operation") == "patch":
-            try:
-                client.update_run(
-                    run_id=new_id,
-                    end_time=shift_ts(op.get("end_time")),
-                    outputs=op.get("outputs", {}),
-                    error=op.get("error"),
-                )
-            except Exception as e:
-                print(f"    Failed patch: {op.get('name')}: {e}")
-
-    return root_id
-
-
-def upload_fixture_traces(project: str, data_dir: Path) -> dict[str, str]:
-    """Upload trace fixtures from jsonl files to LangSmith project.
-
-    Required for tasks like ls-multiskill-* that need pre-existing traces.
-    Returns mapping of original trace_id -> new trace_id.
-    """
-    client, error = _get_langsmith_client()
-    if error:
-        print(f"Could not upload traces: {error}")
-        return {}
-
-    id_mapping = {}
-    for jsonl_file in sorted(data_dir.glob("trace_*.jsonl")):
-        operations = [
-            json.loads(line) for line in jsonl_file.read_text().splitlines() if line.strip()
-        ]
-        if not operations:
-            continue
-
-        # Find root trace and extract query for logging
-        root = next(
-            (
-                op
-                for op in operations
-                if op.get("operation") == "post" and not op.get("parent_run_id")
-            ),
-            None,
-        )
-        old_id = root.get("id") if root else None
-        query = (
-            root.get("inputs", {}).get("messages", [{}])[0].get("content", "")[:40] if root else ""
-        )
-
-        try:
-            new_id = _replay_trace_operations(client, project, operations)
-            if new_id and old_id:
-                id_mapping[old_id] = new_id
-                print(f"  Uploaded: {query}...")
-        except Exception as e:
-            print(f"  Failed ({query}): {e}")
-
-    client.flush()
-    return id_mapping
-
-

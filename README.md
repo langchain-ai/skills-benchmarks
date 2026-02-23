@@ -181,8 +181,10 @@ Tasks prefixed with `ls-` query and create LangSmith resources. Important consid
 > **Warning: Orphaned resources on interrupt**
 >
 > If tests are interrupted (Ctrl+C), LangSmith resources may not be cleaned up:
-> - **Projects**: Delete `benchmark-main-*` projects older than a few hours
-> - **Datasets**: Delete `test-*` datasets with UUID suffixes
+> - **Projects**: Delete `benchmark-*` projects older than a few hours
+> - **Datasets**: Delete `bench-*` datasets with UUID suffixes
+>
+> Normal test completion auto-cleans these resources.
 
 ## Contributing
 

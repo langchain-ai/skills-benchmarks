@@ -197,8 +197,7 @@ def load_task(name: str, tasks_dir: Path | None = None) -> Task:
 
     # Parse setup config
     data_handlers = [
-        DataHandler(pattern=d["pattern"], handler=d["handler"])
-        for d in setup_data.get("data", [])
+        DataHandler(pattern=d["pattern"], handler=d["handler"]) for d in setup_data.get("data", [])
     ]
     setup = SetupConfig(
         data_handlers=data_handlers,

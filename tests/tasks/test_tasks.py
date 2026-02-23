@@ -33,9 +33,9 @@ import uuid
 from pathlib import Path
 
 import pytest
+from conftest import register_run_id_for_cleanup
 from langsmith import testing as ls_testing
 
-from conftest import register_run_id_for_cleanup
 from scaffold import NoiseTask, Treatment
 from scaffold.python import extract_events, parse_output
 from scaffold.python.external_data_handler import run_task_handlers

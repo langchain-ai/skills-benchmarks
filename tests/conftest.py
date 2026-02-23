@@ -839,7 +839,3 @@ def _save_artifacts(base_dir: Path, treatment_name: str, rep: int, test_dir: Pat
         except Exception as e:
             error_file = execution_dir / f"{ts_file.stem}_error.txt"
             error_file.write_text(str(e))
-
-
-
-

@@ -224,9 +224,7 @@ def run_handler(handler_name: str, **kwargs) -> Any:
     return HANDLERS[handler_name](**kwargs)
 
 
-def run_task_handlers(
-    data_handlers: list, data_dir: Path, project: str | None
-) -> dict[str, str]:
+def run_task_handlers(data_handlers: list, data_dir: Path, project: str | None) -> dict[str, str]:
     """Run all data handlers for a task.
 
     Args:

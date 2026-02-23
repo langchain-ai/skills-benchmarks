@@ -241,7 +241,11 @@ def build_treatment_skills(skill_configs: list[dict[str, Any]]) -> dict[str, dic
     skills = {}
 
     for cfg in skill_configs:
+        # Get or generate skill name
         name = cfg.get("name")
+        skill_dir = cfg.get("skill")
+        if not name and skill_dir:
+            name = skill_dir.replace("_", "-")
 
         # Option 1: Inline content (for custom skill compositions)
         if "content" in cfg:
@@ -249,9 +253,6 @@ def build_treatment_skills(skill_configs: list[dict[str, Any]]) -> dict[str, dic
             continue
 
         # Option 2: Load from skill directory
-        skill_dir = cfg.get("skill")
-        if not name:
-            name = skill_dir.replace("_", "-")
         variant = cfg.get("variant", "all")
         suffix = cfg.get("suffix", False)
         include_related = cfg.get("include_related", False)

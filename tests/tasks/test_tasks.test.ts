@@ -7,33 +7,50 @@
  * - Any treatment can be used with any task
  *
  * Usage:
- *   # Run all default task/treatment combinations
+ *   # Run all default task/treatment combinations (setup verification only)
  *   pnpm vitest tests/tasks/test_tasks.test.ts
  *
- *   # Run specific task with specific treatment
- *   TASK=ls-evaluator TREATMENT=LS_BASIC_PY pnpm vitest tests/tasks/test_tasks.test.ts
+ *   # Run specific task with specific treatment (full execution)
+ *   RUN_CLAUDE=true TASK=oss-fix-lg-persistence TREATMENT=OSSS_MIXED_20 pnpm vitest tests/tasks/test_tasks.test.ts
  *
  *   # Run specific task with multiple treatments (comma-separated)
- *   TASK=ls-evaluator TREATMENT=LS_BASIC_PY,LS_WORKFLOW_PY pnpm vitest tests/tasks/test_tasks.test.ts
+ *   RUN_CLAUDE=true TASK=ls-evaluator TREATMENT=LS_BASIC_PY,LS_WORKFLOW_PY pnpm vitest tests/tasks/test_tasks.test.ts
  *
  *   # Run with wildcard pattern (matches all treatments starting with prefix)
- *   TASK=ls-evaluator TREATMENT=LS_BASIC_* pnpm vitest tests/tasks/test_tasks.test.ts
+ *   RUN_CLAUDE=true TASK=ls-evaluator TREATMENT=LS_BASIC_* pnpm vitest tests/tasks/test_tasks.test.ts
  *
  *   # Run with parallelism
- *   pnpm vitest tests/tasks/test_tasks.test.ts --pool=threads --poolOptions.threads.maxThreads=4
+ *   RUN_CLAUDE=true pnpm vitest tests/tasks/test_tasks.test.ts --pool=threads --poolOptions.threads.maxThreads=4
  *
  *   # Filter with pattern matching
  *   pnpm vitest tests/tasks/test_tasks.test.ts -t "ls-evaluator"
  */
 
-import { describe, it, expect, beforeAll } from "vitest";
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { v4 as uuidv4 } from "uuid";
+import { existsSync } from "node:fs";
 import { listTasks, loadTask, type Task } from "../../scaffold/typescript/tasks.js";
 import {
   loadTreatments,
   buildTreatmentSkills,
+  buildNoiseTasks,
   type TreatmentConfig,
 } from "../../scaffold/typescript/treatments.js";
+import { type Treatment } from "../../scaffold/typescript/schema.js";
+import {
+  setupTest,
+  setupTestContext,
+  runClaude,
+  recordResult,
+  finalizeExperiment,
+  parseOutput,
+  extractEvents,
+} from "../fixtures.js";
+import {
+  runTaskHandlers,
+  cleanupNamespace,
+} from "../../scaffold/typescript/external_data_handler.js";
+import { verifyTestEnvironment } from "../fixtures.js";
 
 // =============================================================================
 // TEST CONFIGURATION
@@ -44,6 +61,10 @@ const CLAUDE_TIMEOUT = 600_000; // 10 minutes
 // Environment variable filters
 const TASK_FILTER = process.env.TASK || null;
 const TREATMENT_FILTER = process.env.TREATMENT || null;
+const RUN_CLAUDE = process.env.RUN_CLAUDE?.toLowerCase() === "true";
+
+// Track run_ids for cleanup
+const testRunIds: string[] = [];
 
 // =============================================================================
 // TEST GENERATION
@@ -145,6 +166,28 @@ describe("Task/Treatment Tests", () => {
 
   beforeAll(() => {
     allTreatments = loadTreatments();
+    if (RUN_CLAUDE) {
+      const env = verifyTestEnvironment();
+      if (!env.docker || !env.claude || !env.apiKeys) {
+        throw new Error("Environment not ready for Claude execution");
+      }
+    }
+  });
+
+  afterAll(async () => {
+    // Cleanup LangSmith resources
+    for (const runId of testRunIds) {
+      try {
+        await cleanupNamespace({ run_id: runId });
+      } catch {
+        // Ignore cleanup errors
+      }
+    }
+
+    // Finalize experiment if we ran Claude
+    if (RUN_CLAUDE) {
+      finalizeExperiment();
+    }
   });
 
   const testCases = generateTestCases();
@@ -170,37 +213,109 @@ describe("Task/Treatment Tests", () => {
 
         // Build skills
         const skills = buildTreatmentSkills(treatmentCfg.skills);
+        const noiseTasks = treatmentCfg.noise_tasks
+          ? buildNoiseTasks(treatmentCfg.noise_tasks)
+          : [];
 
         // Generate run_id for namespace isolation
         const runId = uuidv4();
+        testRunIds.push(runId);
 
-        // Build template variables
-        // TODO: Read setup.template_vars from task config (Python has this)
+        // Build template variables from task config
         const templateVars: Record<string, string> = { run_id: runId };
-        if (taskName === "ls-lang-evaluator") {
-          templateVars.py_dataset = `bench-sql-${runId}`;
-          templateVars.ts_dataset = `bench-support-${runId}`;
+        for (const [key, template] of Object.entries(task.setup.templateVars)) {
+          templateVars[key] = template.replace("{run_id}", runId);
         }
 
-        const prompt = task.renderPrompt(templateVars);
+        let prompt = task.renderPrompt(templateVars);
 
-        // TODO: Implement actual test execution
-        // This would involve:
-        // 1. Setting up test context (skills, claude_md, environment)
-        // 2. Running Claude with the prompt
-        // 3. Parsing output and running validators
-        // 4. Recording results
+        // Add noise tasks to prompt if any
+        if (noiseTasks.length > 0) {
+          const noisePrompts = noiseTasks
+            .map((nt) => `\n\nAdditional task:\n${nt.prompt}`)
+            .join("");
+          prompt = prompt + noisePrompts;
+        }
 
-        // For now, just verify the setup is correct
+        // Verify setup is correct
         expect(task.name).toBe(taskName);
         expect(treatmentCfg.name).toBe(treatmentName);
         expect(prompt).toBeTruthy();
         expect(runId).toBeTruthy();
 
-        // Log what would be tested
-        console.log(`[${taskName}] + [${treatmentName}]`);
-        console.log(`  Skills: ${Object.keys(skills).join(", ") || "none"}`);
+        if (!RUN_CLAUDE) {
+          // Setup verification only - log what would be tested
+          console.log(`[${taskName}] + [${treatmentName}]`);
+          console.log(`  Skills: ${Object.keys(skills).join(", ") || "none"}`);
+          console.log(`  Run ID: ${runId}`);
+          return;
+        }
+
+        // === FULL EXECUTION MODE ===
+
+        // Setup test context
+        const { testDir, logger } = setupTest("task_test");
+
+        // Run data handlers (upload traces, datasets, etc.)
+        const langsmithProject = process.env.LANGSMITH_PROJECT || null;
+        let traceIdMap: Record<string, string> = {};
+        if (task.dataDir && existsSync(task.dataDir)) {
+          traceIdMap = await runTaskHandlers(
+            task.setup.dataHandlers,
+            task.dataDir,
+            langsmithProject,
+            runId
+          );
+        }
+
+        // Setup test context with skills, claude_md, environment
+        setupTestContext(testDir, {
+          skills,
+          claudeMd: treatmentCfg.claude_md,
+          environmentDir: task.environmentDir || undefined,
+        });
+
+        console.log(`\n[${taskName}] + [${treatmentName}]`);
+        console.log(`  Test dir: ${testDir}`);
         console.log(`  Run ID: ${runId}`);
+        console.log(`  Skills: ${Object.keys(skills).join(", ") || "none"}`);
+
+        // Run Claude
+        const result = runClaude(testDir, prompt, {
+          timeout: 600,
+          logger,
+          treatmentName,
+        });
+
+        // Parse output and extract events
+        const parsed = parseOutput(result.stdout);
+        const events = extractEvents(parsed);
+
+        console.log(`  Duration: ${events.duration_seconds?.toFixed(0) || "?"}s`);
+        console.log(`  Turns: ${events.num_turns || "?"}`);
+        console.log(`  Skills invoked: ${events.skills_invoked?.join(", ") || "none"}`);
+
+        // Basic validation only - task-specific validators are Python and run via pytest
+        // Python test runner loads validators from task.load_validators() for full checks
+        const passed: string[] = [];
+        const failed: string[] = [];
+
+        if (events.skills_invoked && events.skills_invoked.length > 0) {
+          passed.push("skills_invoked");
+        }
+        if (result.returncode === 0) {
+          passed.push("claude_completed");
+        } else {
+          failed.push("claude_failed");
+        }
+
+        // Record results
+        recordResult(logger, treatmentName, events, passed, failed, testDir, runId);
+
+        // Assert no failures
+        if (failed.length > 0) {
+          throw new Error(`Validation failed: ${failed.join(", ")}`);
+        }
       },
       CLAUDE_TIMEOUT
     );

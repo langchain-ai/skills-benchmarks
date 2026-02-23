@@ -22,3 +22,4 @@ __pycache__
 node_modules/
 dist/
 .vitest_experiment_id*.pytest_docker_build.lock
+.vitest_experiment_id

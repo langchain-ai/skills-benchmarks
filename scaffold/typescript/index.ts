@@ -33,19 +33,36 @@ export {
 // Task loading
 export {
   TASKS_DIR,
+  type DataHandler,
+  type SetupConfig,
   type TaskConfig,
   type Task,
   listTasks,
   loadTask,
 } from "./tasks.js";
 
+// External data handlers
+export {
+  type HandlerArgs,
+  uploadTraces,
+  uploadDatasets,
+  cleanupNamespace,
+  runHandler,
+  runTaskHandlers,
+} from "./external_data_handler.js";
+
 // Treatment loading
 export {
+  TREATMENTS_FOLDER,
   SKILL_BASE,
+  MAIN_SKILL_BASE,
   NOISE_SKILL_BASE,
   type SkillConfigInput,
   type TreatmentConfig,
   type BuiltSkillConfig,
+  loadTreatmentsYaml,
+  loadTreatments,
+  listTreatments,
   loadTaskTreatments,
   getTaskTreatmentNames,
   buildNoiseTasks,

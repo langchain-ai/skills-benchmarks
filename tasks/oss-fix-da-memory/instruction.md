@@ -17,8 +17,6 @@ load_user_preferences(agent2, "alice")
 # Actual: "No preferences found" - data was lost!
 ```
 
-Note: The backend routes `/memory/` to persistent storage and `/memory/cache/` to temporary storage.
-
 ## Issue 2: Subagent can't access docs
 
 The main agent has `skills=["/project-docs/", "/coding-standards/"]`. But:

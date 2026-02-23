@@ -120,7 +120,7 @@ class ExperimentPlugin:
 
         Skips logging for script-only test runs (unit tests that don't need experiment logs).
         """
-        if _is_scripts_only(self.config):
+        if _is_unit_tests_only(self.config):
             return
 
         name = _get_experiment_name(session)
@@ -250,31 +250,24 @@ class ExperimentPlugin:
 # =============================================================================
 
 
-def _is_scripts_only(config) -> bool:
-    """Check if running ONLY script tests (unit tests that don't need experiment logs)."""
+def _is_unit_tests_only(config) -> bool:
+    """Check if running ONLY unit tests (scaffold/scripts - don't need experiment logs)."""
     args = [a for a in (config.args or []) if not a.startswith("-")]
     if not args:
         return False
-    return all("scripts" in arg for arg in args)
+    return all("scripts" in arg or "scaffold" in arg for arg in args)
 
 
 def _get_experiment_name(session) -> str:
-    """Determine experiment name from test path or task name."""
+    """Determine experiment name from task name parameter."""
     items = getattr(session, "items", None)
     if not items:
         return "experiment"
 
-    first_path = str(items[0].fspath)
-
-    # Check for task-based tests (tests/tasks/test_tasks.py)
-    if "tests/tasks" in first_path:
-        # Try to extract task name from test parameters
-        first_item = items[0]
-        if hasattr(first_item, "callspec") and "task_name" in first_item.callspec.params:
-            task_name = first_item.callspec.params["task_name"]
-            # Convert task name to short experiment prefix (e.g., "lc-basic" -> "lc_basic")
-            return task_name.replace("-", "_")
-        return "task_test"
+    # Extract task name from test parameters (e.g., "lc-basic" -> "lc_basic")
+    first_item = items[0]
+    if hasattr(first_item, "callspec") and "task_name" in first_item.callspec.params:
+        return first_item.callspec.params["task_name"].replace("-", "_")
 
     return "experiment"
 
@@ -344,7 +337,7 @@ def worker_id(request):
 @pytest.fixture(scope="session")
 def langsmith_project(worker_id, request):
     """Create isolated LangSmith project for trace uploads."""
-    if _is_scripts_only(request.config):
+    if _is_unit_tests_only(request.config):
         yield None
         return
 
@@ -384,7 +377,7 @@ def verify_environment(project_root, request):
 
     Skipped for script tests (unit tests that mock external services).
     """
-    if _is_scripts_only(request.config):
+    if _is_unit_tests_only(request.config):
         return
 
     load_dotenv(project_root / ".env")
@@ -413,7 +406,7 @@ def prebuild_docker_image(request):
     Uses file locking to ensure only one worker builds the image.
     Skipped for script tests (unit tests that don't need Docker).
     """
-    if _is_scripts_only(request.config):
+    if _is_unit_tests_only(request.config):
         yield
         return
 

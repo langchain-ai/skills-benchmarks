@@ -31,3 +31,8 @@ validators = ["LanguageValidator", "SyntaxValidator", "DatasetValidator", "Uploa
 [setup.template_vars]
 py_dataset = "bench-sql-{run_id}"
 ts_dataset = "bench-support-{run_id}"
+
+# Upload datasets so Claude can inspect them (naming: {type}_*_dataset.json → bench-{type}-{run_id})
+[[setup.data]]
+pattern = "*_dataset.json"
+handler = "upload_datasets"

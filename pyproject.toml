@@ -60,3 +60,4 @@ indent-style = "space"
 # Ignore logs directory which contains test files created by Claude during benchmark runs
 norecursedirs = ["logs", "node_modules", ".git"]
 testpaths = ["tests"]
+pythonpath = ["."]

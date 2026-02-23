@@ -749,7 +749,13 @@ def _save_artifacts(base_dir: Path, treatment_name: str, rep: int, test_dir: Pat
     execution_dir.mkdir(parents=True, exist_ok=True)
 
     # Files/dirs to exclude
-    exclude_files = {"chinook.db", "requirements.txt", "Dockerfile", "package.json", "tsconfig.json"}
+    exclude_files = {
+        "chinook.db",
+        "requirements.txt",
+        "Dockerfile",
+        "package.json",
+        "tsconfig.json",
+    }
     exclude_dirs = {".claude", "node_modules", "__pycache__"}
 
     # Recursively copy all files Claude generated/modified

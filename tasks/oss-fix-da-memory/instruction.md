@@ -8,7 +8,7 @@ We have a multi-agent system in `environment/agent_system.py` built with deepage
 # Session 1
 agent = create_agent_system()
 save_user_preferences(agent, "alice", prefs)
-# Message sent: "Save these preferences to /memory/cache/prefs-alice.json"
+# Saves to: /memory/cache/prefs-alice.json
 
 # Session 2 (restart the app)
 agent2 = create_agent_system()
@@ -16,6 +16,8 @@ load_user_preferences(agent2, "alice")
 # Expected: Returns the saved preferences
 # Actual: "No preferences found" - data was lost!
 ```
+
+Note: The backend routes `/memory/` to persistent storage and `/memory/cache/` to temporary storage.
 
 ## Issue 2: Subagent can't access docs
 

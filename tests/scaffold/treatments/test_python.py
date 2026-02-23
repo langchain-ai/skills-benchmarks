@@ -10,7 +10,6 @@ Tests mirror TypeScript test_treatments.test.ts for parity.
 """
 
 import pytest
-from pathlib import Path
 
 from scaffold.python.treatments import (
     TreatmentConfig,
@@ -19,8 +18,6 @@ from scaffold.python.treatments import (
     load_treatments,
     load_treatments_yaml,
 )
-from scaffold.python.validation import NOISE_TASK_PROMPTS
-
 
 # =============================================================================
 # FIXTURES

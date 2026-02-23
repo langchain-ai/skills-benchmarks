@@ -4,11 +4,10 @@ Tests task loading, TOML parsing, and template rendering.
 These tests use fixtures to verify behavior that should have parity with TypeScript.
 """
 
+
 import pytest
-from pathlib import Path
 
-from scaffold.python.tasks import load_task, list_tasks
-
+from scaffold.python.tasks import list_tasks, load_task
 
 # =============================================================================
 # FIXTURES - Mock task data for consistent testing

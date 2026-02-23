@@ -9,8 +9,8 @@ Tests cover:
 Tests also verify that incorrect implementations would fail by testing edge cases.
 """
 
+
 import pytest
-from pathlib import Path
 
 from scaffold.python.skill_parser import (
     format_section_with_tags,
@@ -25,7 +25,6 @@ from scaffold.python.skill_parser import (
     strip_by_tags,
     strip_lang_tags,
 )
-
 
 # =============================================================================
 # FIXTURES

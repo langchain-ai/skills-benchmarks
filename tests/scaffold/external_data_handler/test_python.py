@@ -1,8 +1,6 @@
 """Unit tests for external_data_handler module with mocked LangSmith client."""
 
 import json
-from datetime import UTC, datetime
-from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -17,7 +15,6 @@ from scaffold.python.external_data_handler import (
     upload_datasets,
     upload_traces,
 )
-
 
 # =============================================================================
 # FIXTURES
@@ -278,7 +275,7 @@ class TestUploadDatasets:
             "scaffold.python.external_data_handler._get_langsmith_client",
             return_value=(mock_client, None),
         ):
-            result = upload_datasets(tmp_path, run_id="xyz")
+            upload_datasets(tmp_path, run_id="xyz")
 
         assert mock_client.create_dataset.called
         # Should wrap single example in list

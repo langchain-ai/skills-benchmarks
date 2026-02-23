@@ -55,3 +55,8 @@ ignore = [
 [tool.ruff.format]
 quote-style = "double"
 indent-style = "space"
+
+[tool.pytest.ini_options]
+# Ignore logs directory which contains test files created by Claude during benchmark runs
+norecursedirs = ["logs", "node_modules", ".git"]
+testpaths = ["tests"]

@@ -159,7 +159,7 @@ def validate_dataset_upload(
     filename: str = "trajectory_dataset.json",
     upload_prefix: str = "test-",
 ) -> tuple[list[str], list[str]]:
-    """Verify dataset was uploaded to LangSmith.
+    """Verify dataset was uploaded to LangSmith and matches local file.
 
     Args:
         test_dir: Test working directory
@@ -171,6 +171,15 @@ def validate_dataset_upload(
         (passed, failed) lists
     """
     from scaffold.python.validation.langsmith import get_langsmith_client, safe_api_call
+
+    passed, failed = [], []
+
+    # Read local file to get example count
+    local_data, error = read_json_file(test_dir / filename)
+    if error:
+        return [], [f"Upload: local file error - {error}"]
+    local_examples = extract_examples(local_data)
+    local_count = len(local_examples)
 
     client, error = get_langsmith_client()
     if error:
@@ -192,8 +201,48 @@ def validate_dataset_upload(
         return [], [f"Upload: no dataset with prefix '{search_pattern}'"]
 
     recent = max(matching, key=lambda d: getattr(d, "created_at", d.name))
-    count = getattr(recent, "example_count", "?")
-    return [f"Upload: '{recent.name}' ({count} examples)"], []
+    remote_count = getattr(recent, "example_count", None)
+
+    passed.append(f"Upload: '{recent.name}' ({remote_count} examples)")
+
+    # Verify counts match
+    if remote_count is not None and remote_count != local_count:
+        failed.append(
+            f"Upload: count mismatch (local={local_count}, remote={remote_count})"
+        )
+        return passed, failed
+
+    # Fetch remote examples and compare content
+    remote_examples, error = safe_api_call(
+        lambda: list(client.list_examples(dataset_name=recent.name))
+    )
+    if error:
+        passed.append(f"Upload: count matches ({local_count}), content check skipped")
+        return passed, failed
+
+    # Compare trajectories
+    matches = 0
+    for local_ex in local_examples:
+        local_traj = _get_trajectory(local_ex)
+        if not local_traj:
+            continue
+
+        # Find matching remote example by comparing trajectories
+        for remote_ex in remote_examples:
+            remote_outputs = getattr(remote_ex, "outputs", {}) or {}
+            remote_traj = _get_trajectory({"outputs": remote_outputs})
+            if _to_tool_names(local_traj) == _to_tool_names(remote_traj):
+                matches += 1
+                break
+
+    if matches == local_count:
+        passed.append(f"Upload: content verified ({matches}/{local_count} match)")
+    elif matches > 0:
+        failed.append(f"Upload: partial match ({matches}/{local_count} examples)")
+    else:
+        failed.append(f"Upload: content mismatch (0/{local_count} trajectories match)")
+
+    return passed, failed
 
 
 def validate_trajectory_accuracy(

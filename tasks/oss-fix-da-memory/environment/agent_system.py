@@ -150,133 +150,10 @@ def deploy_service(agent, service: str):
     return result
 
 
-def test_persistence():
-    """Test that preferences persist across sessions.
-
-    BUG: Data saved to /memory/cache/ is LOST on restart!
-
-    The CompositeBackend routes look correct at first glance:
-        /memory/       -> StoreBackend (persistent)
-        /memory/cache/ -> StateBackend (ephemeral)
-
-    But CompositeBackend uses LONGEST-PREFIX matching, so when we save
-    to /memory/cache/prefs-alice.json, it matches /memory/cache/ (longer)
-    instead of /memory/ (shorter), making it ephemeral.
-
-    Example failing interaction:
-        Session 1: Save preferences to /memory/cache/prefs-alice.json
-        Session 2: Load preferences -> NOT FOUND (data was lost)
-
-    Returns True if persistence works, False otherwise.
-    """
-    import re
-
-    with open(__file__) as f:
-        source = f.read()
-
-    # Check what path is used for preferences
-    pref_path_match = re.search(r"/memory/cache/prefs", source)
-    if not pref_path_match:
-        print("PASS: Not using /memory/cache/ for preferences")
-        return True
-
-    # Check if /memory/cache/ routes to StateBackend (ephemeral)
-    routes_match = re.search(r"routes\s*=\s*\{([^}]+)\}", source, re.DOTALL)
-    if routes_match:
-        routes_content = routes_match.group(1)
-        # Check if /memory/cache/ uses StateBackend
-        if "/memory/cache/" in routes_content and "StateBackend" in routes_content:
-            # Check the order - is StateBackend associated with cache?
-            cache_state = re.search(r"/memory/cache/.*StateBackend", routes_content, re.DOTALL)
-            if cache_state:
-                print("FAIL: Preferences are not persisting across restarts")
-                return False
-
-    print("PASS: Persistence configuration looks correct")
-    return True
-
-
-def test_subagent_skills_inheritance():
-    """Test that subagents have skills configured.
-
-    BUG: Custom subagents DON'T inherit main agent's skills.
-
-    The main agent has skills=["/project-docs/", "/coding-standards/"]
-    which gives it access to project-docs/api-reference.md containing
-    the API key "PROJ-SK-7X9M2K".
-
-    However, when asking the researcher subagent to look up this key,
-    it fails because it doesn't have access to /project-docs/.
-
-    Example failing interaction:
-        User: "Use the researcher to find our API secret key"
-        Researcher: "I don't have access to project documentation"
-
-    FIX: Add "skills" key to each subagent dict to give them access.
-
-    Returns True if subagents have skills, False otherwise.
-    """
-    import os
-    import re
-
-    # Verify the skill file exists
-    skill_file = os.path.join(os.path.dirname(__file__), "project-docs", "api-reference.md")
-    if not os.path.exists(skill_file):
-        print("SKIP: Skill file not found")
-        return True
-
-    # Read this file and check the create_deep_agent call
-    with open(__file__) as f:
-        source = f.read()
-
-    # Find the main agent's skills
-    main_skills_match = re.search(r"skills=\[([^\]]+)\]", source)
-    if not main_skills_match:
-        print("SKIP: No main agent skills configured")
-        return True
-
-    # Find subagents section
-    subagent_start = source.find("subagents=[")
-    if subagent_start == -1:
-        print("SKIP: No subagents configured")
-        return True
-
-    subagents_section = source[subagent_start : subagent_start + 2000]
-
-    # Count subagent names
-    subagent_names = re.findall(r'"name":\s*"([^"]+)"', subagents_section)
-
-    # Check each subagent for skills
-    missing_skills = []
-    for name in subagent_names:
-        # Find this subagent's block and check for skills
-        pattern = rf'"name":\s*"{name}"[^}}]*'
-        match = re.search(pattern, subagents_section)
-        if match:
-            subagent_block = match.group(0)
-            if '"skills"' not in subagent_block:
-                missing_skills.append(name)
-
-    if missing_skills:
-        print(f"\nFAIL: Subagents can't access documentation ({', '.join(missing_skills)})")
-        return False
-
-    print("PASS: All subagents have skills configured")
-    return True
-
-
 if __name__ == "__main__":
     print("=" * 60)
-    print("Multi-Agent System Tests")
+    print("Multi-Agent System Demo")
     print("=" * 60)
-
-    # Test persistence (doesn't require API keys)
-    print("\n--- Test: Preference Persistence ---")
-    persistence_ok = test_persistence()
-
-    # Test subagent skills (doesn't require API keys)
-    print("\n--- Test: Subagent Skills Inheritance ---")
-    skills_ok = test_subagent_skills_inheritance()
 
     print("\n--- Creating agent system ---")
     try:
@@ -311,10 +188,3 @@ if __name__ == "__main__":
         print(f"Agent creation failed (expected without API keys): {e}")
 
     print("\n" + "=" * 60)
-    print("Summary:")
-    print("  Persistence test:", "PASSED" if persistence_ok else "FAILED")
-    print("  Skills inheritance test:", "PASSED" if skills_ok else "FAILED")
-    all_passed = persistence_ok and skills_ok
-    print("=" * 60)
-    if not all_passed:
-        exit(1)

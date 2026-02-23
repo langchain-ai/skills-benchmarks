@@ -9,7 +9,7 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { mkdtempSync, rmSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { loadTask, listTasks } from "../../scaffold/typescript/tasks.js";
+import { loadTask, listTasks } from "../../../scaffold/typescript/tasks.js";
 
 // =============================================================================
 // FIXTURES - Mock task data for consistent testing
@@ -196,6 +196,14 @@ describe("template rendering", () => {
     });
     expect(prompt).toContain("bench-test-abc123");
     expect(prompt).toContain("abc123");
+  });
+
+  it("renders prompt with unreplaced variables when missing", () => {
+    const task = loadTask("test-setup", getTasksDir());
+    // When variables are missing, they remain as {var_name} in the output
+    const prompt = task.renderPrompt();
+    expect(prompt).toContain("{dataset_name}");
+    expect(prompt).toContain("{run_id}");
   });
 });
 

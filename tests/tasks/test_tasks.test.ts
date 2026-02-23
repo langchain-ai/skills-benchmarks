@@ -295,8 +295,8 @@ describe("Task/Treatment Tests", () => {
         console.log(`  Turns: ${events.num_turns || "?"}`);
         console.log(`  Skills invoked: ${events.skills_invoked?.join(", ") || "none"}`);
 
-        // TODO: Run validators from task.load_validators()
-        // For now, basic validation
+        // Basic validation only - task-specific validators are Python and run via pytest
+        // Python test runner loads validators from task.load_validators() for full checks
         const passed: string[] = [];
         const failed: string[] = [];
 

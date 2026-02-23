@@ -175,6 +175,11 @@ describe("Task/Treatment Tests", () => {
   });
 
   afterAll(async () => {
+    // Skip cleanup if we didn't run Claude (verification mode only)
+    if (!RUN_CLAUDE) {
+      return;
+    }
+
     // Cleanup LangSmith resources
     for (const runId of testRunIds) {
       try {
@@ -184,10 +189,8 @@ describe("Task/Treatment Tests", () => {
       }
     }
 
-    // Finalize experiment if we ran Claude
-    if (RUN_CLAUDE) {
-      finalizeExperiment();
-    }
+    // Finalize experiment
+    finalizeExperiment();
   });
 
   const testCases = generateTestCases();
@@ -219,7 +222,9 @@ describe("Task/Treatment Tests", () => {
 
         // Generate run_id for namespace isolation
         const runId = uuidv4();
-        testRunIds.push(runId);
+        if (RUN_CLAUDE) {
+          testRunIds.push(runId);
+        }
 
         // Build template variables from task config
         const templateVars: Record<string, string> = { run_id: runId };

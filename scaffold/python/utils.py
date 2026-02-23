@@ -124,6 +124,15 @@ def run_claude_in_docker(
         return subprocess.CompletedProcess(cmd, 124, "", f"Timeout after {timeout}s")
 
 
+def setup_langsmith_hook(test_dir: Path, project: str = "claude-code-benchmark") -> bool:
+    """Set up LangSmith tracing hook for Claude Code."""
+    try:
+        run_shell("setup.sh", "setup-langsmith-hook", str(test_dir), project)
+        return True
+    except subprocess.CalledProcessError:
+        return False
+
+
 # =============================================================================
 # HELPERS
 # =============================================================================

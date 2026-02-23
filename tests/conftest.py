@@ -576,6 +576,11 @@ def setup_test_context(test_dir):
         if environment_dir and environment_dir.exists():
             run_shell("setup.sh", "copy-env", str(test_dir), str(environment_dir))
 
+        # Set up LangSmith tracing hook if enabled
+        if os.environ.get("TRACE_TO_LANGSMITH", "").lower() == "true":
+            project = os.environ.get("CC_LANGSMITH_PROJECT", "claude-code-benchmark")
+            run_shell("setup.sh", "setup-langsmith-hook", str(test_dir), project)
+
         return test_dir
 
     return _setup

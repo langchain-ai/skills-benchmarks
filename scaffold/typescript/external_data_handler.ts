@@ -12,16 +12,17 @@
 
 import { Client } from "langsmith";
 import { v4 as uuidv4 } from "uuid";
-import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { existsSync, globSync, readFileSync } from "node:fs";
 import { join, basename } from "node:path";
 import type { DataHandler } from "./tasks.js";
 
-// Simple glob helper using native fs
-function simpleGlob(dir: string, pattern: string): string[] {
+/**
+ * Glob files in a directory matching the pattern.
+ * Wrapper around Node.js globSync with sorted results.
+ */
+function matchFiles(dir: string, pattern: string): string[] {
   if (!existsSync(dir)) return [];
-  const files = readdirSync(dir);
-  const regex = new RegExp("^" + pattern.replace(/\*/g, ".*").replace(/\?/g, ".") + "$");
-  return files.filter((f) => regex.test(f)).map((f) => join(dir, f)).sort();
+  return globSync(join(dir, pattern)).sort();
 }
 
 // =============================================================================
@@ -165,7 +166,7 @@ export async function uploadTraces(args: HandlerArgs): Promise<Record<string, st
   const project = args.project || "default";
   const idMapping: Record<string, string> = {};
 
-  const jsonlFiles = simpleGlob(dataDir, "trace_*.jsonl");
+  const jsonlFiles = matchFiles(dataDir, "trace_*.jsonl");
   for (const jsonlFile of jsonlFiles) {
     const content = readFileSync(jsonlFile, "utf8");
     const operations: TraceOperation[] = content
@@ -213,7 +214,7 @@ export async function uploadDatasets(args: HandlerArgs): Promise<Record<string, 
   }
 
   const created: Record<string, string> = {};
-  const datasetFiles = simpleGlob(dataDir, "*_dataset.json");
+  const datasetFiles = matchFiles(dataDir, "*_dataset.json");
 
   for (const filePath of datasetFiles) {
     const fileName = basename(filePath);
@@ -344,7 +345,7 @@ export async function runTaskHandlers(
   }
 
   for (const handler of dataHandlers) {
-    const matches = simpleGlob(dataDir, handler.pattern);
+    const matches = matchFiles(dataDir, handler.pattern);
     if (matches.length > 0) {
       console.log(`\nRunning ${handler.handler}...`);
       const args: HandlerArgs = {

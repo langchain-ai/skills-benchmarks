@@ -70,17 +70,19 @@ export interface Task {
 /**
  * List available task names from the tasks directory.
  */
-export function listTasks(): string[] {
-  if (!existsSync(TASKS_DIR)) {
+export function listTasks(tasksDir?: string): string[] {
+  const dir = tasksDir || TASKS_DIR;
+  if (!existsSync(dir)) {
     return [];
   }
 
-  return readdirSync(TASKS_DIR, { withFileTypes: true })
+  return readdirSync(dir, { withFileTypes: true })
     .filter((dirent) => {
       if (!dirent.isDirectory()) return false;
-      // Must have task.toml to be a valid task
-      const tomlPath = join(TASKS_DIR, dirent.name, "task.toml");
-      return existsSync(tomlPath);
+      // Must have task.toml and instruction.md to be a valid task
+      const tomlPath = join(dir, dirent.name, "task.toml");
+      const instructionPath = join(dir, dirent.name, "instruction.md");
+      return existsSync(tomlPath) && existsSync(instructionPath);
     })
     .map((dirent) => dirent.name)
     .sort();
@@ -264,8 +266,9 @@ function tomlToTaskConfig(toml: Record<string, unknown>): TaskConfig {
 /**
  * Load a task by name.
  */
-export function loadTask(name: string): Task {
-  const taskPath = join(TASKS_DIR, name);
+export function loadTask(name: string, tasksDir?: string): Task {
+  const dir = tasksDir || TASKS_DIR;
+  const taskPath = join(dir, name);
 
   if (!existsSync(taskPath)) {
     throw new Error(`Task not found: ${name}`);

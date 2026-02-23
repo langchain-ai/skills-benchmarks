@@ -124,22 +124,32 @@ def _check_route_hierarchy_source(ctx: TestContext):
         return
 
     routes_content = composite_routes.group(1)
-    has_nested_ephemeral = (
+
+    # Check if /memory/cache/ uses StateBackend (ephemeral)
+    cache_is_ephemeral = (
         "StateBackend" in routes_content
-        and "/memory/" in routes_content
         and "/memory/cache/" in routes_content
+        and re.search(r"/memory/cache/.*StateBackend", routes_content, re.DOTALL)
     )
 
-    if not has_nested_ephemeral:
+    if not cache_is_ephemeral:
+        # Either no cache route, or cache uses StoreBackend - OK
         ctx.pass_test(TEST_NAME)
-    elif re.search(r"/memory/cache/.*StoreBackend", routes_content):
-        ctx.pass_test(TEST_NAME)
-    else:
+        return
+
+    # Cache is ephemeral - only a problem if prefs are saved there
+    # Look for actual path usage, not comments (match quotes or content strings)
+    prefs_use_cache = re.search(r'["\'].*?/memory/cache/prefs', ctx.source)
+
+    if prefs_use_cache:
         ctx.fail_test(
             TEST_NAME,
             "longer prefix routes take precedence - "
             "/memory/cache/ overrides /memory/, making cache ephemeral",
         )
+    else:
+        # Prefs don't use cache path, so ephemeral cache is fine
+        ctx.pass_test(TEST_NAME)
 
 
 # =============================================================================

@@ -160,6 +160,52 @@ def upload_traces(project: str, data_dir: Path, **kwargs) -> dict[str, str]:
     return id_mapping
 
 
+def upload_datasets(data_dir: Path, run_id: str, **kwargs) -> dict[str, str]:
+    """Upload dataset JSON files to LangSmith using naming convention.
+
+    File naming convention: {type}_*_dataset.json → bench-{type}-{run_id}
+    Example: sql_agent_trajectory_dataset.json → bench-sql-{run_id}
+
+    Args:
+        data_dir: Directory containing *_dataset.json files
+        run_id: Unique identifier for namespacing
+        **kwargs: Additional arguments (ignored)
+
+    Returns:
+        Mapping of file names to created dataset names
+    """
+    client, error = _get_langsmith_client()
+    if error:
+        print(f"Could not upload datasets: {error}")
+        return {}
+
+    data_dir = Path(data_dir) if not isinstance(data_dir, Path) else data_dir
+    created = {}
+
+    for file_path in sorted(data_dir.glob("*_dataset.json")):
+        # Extract type from filename: sql_agent_trajectory_dataset.json → sql
+        file_type = file_path.name.split("_")[0]
+        dataset_name = f"bench-{file_type}-{run_id}"
+
+        try:
+            examples = json.loads(file_path.read_text())
+            if not isinstance(examples, list):
+                examples = [examples]
+
+            # Create dataset and add examples
+            dataset = client.create_dataset(dataset_name=dataset_name)
+            inputs = [ex.get("inputs", {}) for ex in examples]
+            outputs = [ex.get("outputs", {}) for ex in examples]
+            client.create_examples(inputs=inputs, outputs=outputs, dataset_id=dataset.id)
+
+            created[file_path.name] = dataset_name
+            print(f"  Uploaded {len(examples)} examples to {dataset_name}")
+        except Exception as e:
+            print(f"  Failed to upload {file_path.name}: {e}")
+
+    return created
+
+
 def cleanup_namespace(run_id: str, **kwargs) -> dict[str, list[str]]:
     """Delete all LangSmith resources matching the run_id namespace.
 
@@ -213,6 +259,7 @@ def cleanup_namespace(run_id: str, **kwargs) -> dict[str, list[str]]:
 # Registry of available handlers
 HANDLERS = {
     "upload_traces": upload_traces,
+    "upload_datasets": upload_datasets,
     "cleanup_namespace": cleanup_namespace,
 }
 
@@ -224,25 +271,32 @@ def run_handler(handler_name: str, **kwargs) -> Any:
     return HANDLERS[handler_name](**kwargs)
 
 
-def run_task_handlers(data_handlers: list, data_dir: Path, project: str | None) -> dict[str, str]:
+def run_task_handlers(
+    data_handlers: list, data_dir: Path, project: str | None, run_id: str | None = None
+) -> dict[str, str]:
     """Run all data handlers for a task.
 
     Args:
         data_handlers: List of DataHandler objects from task config
         data_dir: Task's data directory
         project: LangSmith project name
+        run_id: Unique identifier for namespacing
 
     Returns:
         trace_id_map: Mapping of old trace IDs to new ones (from upload_traces)
     """
     trace_id_map = {}
-    if not project or not data_dir.exists():
+    if not data_dir.exists():
         return trace_id_map
 
     for handler in data_handlers:
         if list(data_dir.glob(handler.pattern)):
             print(f"\nRunning {handler.handler}...")
-            result = run_handler(handler.handler, project=project, data_dir=data_dir)
+            # Build handler kwargs from handler config
+            kwargs = {"project": project, "data_dir": data_dir, "run_id": run_id}
+            if hasattr(handler, "args") and handler.args:
+                kwargs.update(handler.args)
+            result = run_handler(handler.handler, **kwargs)
             if handler.handler == "upload_traces" and result:
                 trace_id_map = result
 

@@ -36,6 +36,7 @@ class DataHandler:
 
     pattern: str  # Glob pattern relative to task data dir (e.g., "trace_*.jsonl")
     handler: str  # Handler name (e.g., "upload_traces")
+    args: dict = field(default_factory=dict)  # Handler-specific arguments
 
 
 @dataclass
@@ -197,7 +198,8 @@ def load_task(name: str, tasks_dir: Path | None = None) -> Task:
 
     # Parse setup config
     data_handlers = [
-        DataHandler(pattern=d["pattern"], handler=d["handler"]) for d in setup_data.get("data", [])
+        DataHandler(pattern=d["pattern"], handler=d["handler"], args=d.get("args", {}))
+        for d in setup_data.get("data", [])
     ]
     setup = SetupConfig(
         data_handlers=data_handlers,

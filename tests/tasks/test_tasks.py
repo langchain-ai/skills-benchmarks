@@ -197,6 +197,7 @@ def test_task_treatment(task_name, treatment_name, fixtures):
         task.config.setup.data_handlers,
         task.data_dir,
         fixtures.langsmith_project,
+        run_id,
     )
 
     # Build template variables from config

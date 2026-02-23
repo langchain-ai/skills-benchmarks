@@ -17,13 +17,13 @@ From da_subagents:
 """
 
 import ast
+import importlib.util
 import json
+import os
 import re
 import sys
-import importlib.util
-import os
 from dataclasses import dataclass, field
-from typing import Optional, Any
+from typing import Any
 
 
 @dataclass
@@ -32,7 +32,7 @@ class TestContext:
 
     module_path: str
     source: str = ""
-    module: Optional[Any] = None
+    module: Any | None = None
     results: dict = field(default_factory=lambda: {"passed": [], "failed": [], "error": None})
 
     def load(self) -> bool:
@@ -235,7 +235,7 @@ def test_subagent_skills(ctx: TestContext):
     _check_subagent_skills_source(ctx)
 
 
-def _analyze_subagent_skills(captured_calls: list) -> Optional[str]:
+def _analyze_subagent_skills(captured_calls: list) -> str | None:
     """Analyze captured create_deep_agent calls for skills issues.
 
     Returns error message if issues found, None if OK.

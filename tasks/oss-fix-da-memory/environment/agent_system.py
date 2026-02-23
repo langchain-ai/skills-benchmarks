@@ -170,8 +170,8 @@ def test_subagent_skills_inheritance():
 
     Returns True if subagents have skills, False otherwise.
     """
-    import re
     import os
+    import re
 
     # Verify the skill file exists
     skill_file = os.path.join(os.path.dirname(__file__), "project-docs", "api-reference.md")
@@ -182,7 +182,7 @@ def test_subagent_skills_inheritance():
             print(f"Skill file exists: {skill_file}")
             print("  Contains API key: PROJ-SK-7X9M2K")
         else:
-            print(f"Skill file exists but missing expected content")
+            print("Skill file exists but missing expected content")
     else:
         print(f"Note: Skill file not found at {skill_file}")
 

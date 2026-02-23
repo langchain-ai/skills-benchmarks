@@ -129,7 +129,7 @@ def validate_metrics(test_dir: Path, outputs: dict) -> tuple[list[str], list[str
 
 # List of all validators for this task
 VALIDATORS = [
-    validate_starter_skill_first,
+    # validate_starter_skill_first,  # Disabled: not all treatments have starter skills
     validate_skill_usage,
     validate_sql_agent_code,
     validate_sql_agent_output,

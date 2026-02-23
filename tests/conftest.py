@@ -657,6 +657,10 @@ def _register_run_id_for_cleanup(run_id: str):
         _test_run_ids.append(run_id)
 
 
+# Public alias for test modules
+register_run_id_for_cleanup = _register_run_id_for_cleanup
+
+
 def _get_treatment_name(node) -> str:
     """Extract treatment name from pytest node."""
     nodeid = node.nodeid

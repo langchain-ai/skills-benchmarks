@@ -207,9 +207,7 @@ def validate_dataset_upload(
 
     # Verify counts match
     if remote_count is not None and remote_count != local_count:
-        failed.append(
-            f"Upload: count mismatch (local={local_count}, remote={remote_count})"
-        )
+        failed.append(f"Upload: count mismatch (local={local_count}, remote={remote_count})")
         return passed, failed
 
     # Fetch remote examples and compare content

@@ -45,41 +45,11 @@ npm install langsmith commander chalk cli-table3 dotenv openai
 - Each evaluator returns **ONE metric only**. For multiple metrics, create multiple evaluator functions.
 - Do NOT return `{"metric_name": value}` or lists of metrics - this will error.
 
-**CRITICAL - Local vs Uploaded:**
-- When running locally with `evaluate()`, `run` is a `RunTree` object - use `run.outputs` (attribute)
-- When uploaded to LangSmith, `run` is a dict - use `run["outputs"]` (subscript)
-- Handle both by checking: `run.outputs if hasattr(run, "outputs") else run.get("outputs", {})`
-
-<python>
-Basic evaluator function signature returning score dict.
-```python
-def evaluator_name(run, example):
-    """Evaluate using run/example - handles both RunTree and dict."""
-    # Handle both RunTree (local) and dict (uploaded)
-    run_outputs = run.outputs if hasattr(run, "outputs") else run.get("outputs", {}) or {}
-    example_outputs = example.outputs if hasattr(example, "outputs") else example.get("outputs", {}) or {}
-
-    actual = run_outputs.get("output", "")
-    expected = example_outputs.get("output", "")
-
-    score = 1.0 if actual == expected else 0.0
-    return {"score": score, "comment": "Matched" if score else "No match"}
-```
-</python>
-
-<typescript>
-Basic evaluator function signature returning score object.
-```javascript
-function evaluatorName(run, example) {
-  // TypeScript always uses attribute access
-  const actual = run.outputs?.output ?? "";  // Actual from run
-  const expected = example.outputs?.output ?? "";  // Reference from dataset
-
-  const score = actual === expected ? 1 : 0;
-  return { score, comment: score ? "Matched" : "No match" };
-}
-```
-</typescript>
+**CRITICAL - Local vs Uploaded (Python only):**
+- Local `evaluate()`: `run` is a `RunTree` object → use `run.outputs`
+- Uploaded to LangSmith: `run` is a dict → use `run["outputs"]`
+- Handle both: `run.outputs if hasattr(run, "outputs") else run.get("outputs", {})`
+- TypeScript always uses attribute access: `run.outputs?.field`
 </evaluator_format>
 
 <evaluator_types>
@@ -90,179 +60,82 @@ function evaluatorName(run, example) {
 <llm_judge>
 ## LLM as Judge Evaluators
 
-**NOTE:** LLM-as-Judge evaluators cannot be uploaded to LangSmith - they must be run locally with `evaluate(evaluators=[...])`. LangSmith's uploaded evaluator environment does not include LLM SDKs.
+**NOTE:** LLM-as-Judge can be uploaded to LangSmith using the "structured" evaluator format (configured via the LangSmith UI), but our upload script only supports code evaluators. For local development, use `evaluate(evaluators=[...])`.
 
 <python>
-Create an accuracy evaluator using structured output with LangChain.
 ```python
 from typing import TypedDict, Annotated
 from langchain_openai import ChatOpenAI
 
-class AccuracyGrade(TypedDict):
+class Grade(TypedDict):
     reasoning: Annotated[str, ..., "Explain your reasoning"]
     is_accurate: Annotated[bool, ..., "True if response is accurate"]
-    confidence: Annotated[float, ..., "Confidence 0.0-1.0"]
 
-judge = ChatOpenAI(model="gpt-4o-mini", temperature=0).with_structured_output(
-    AccuracyGrade, method="json_schema", strict=True
-)
+judge = ChatOpenAI(model="gpt-4o-mini", temperature=0).with_structured_output(Grade, method="json_schema", strict=True)
 
 async def accuracy_evaluator(run, example):
-    expected = example["outputs"].get('expected_response', '')
-    agent_output = run["outputs"].get('expected_response', '')
-
-    prompt = f"""Expected: {expected}
-Agent Output: {agent_output}
-Evaluate accuracy:"""
-
-    grade = await judge.ainvoke([{"role": "user", "content": prompt}])
-
-    return {
-        "accuracy": 1 if grade["is_accurate"] else 0,
-        "comment": f"{grade['reasoning']} (confidence: {grade['confidence']})"
-    }
+    run_outputs = run.outputs if hasattr(run, "outputs") else run.get("outputs", {}) or {}
+    example_outputs = example.outputs if hasattr(example, "outputs") else example.get("outputs", {}) or {}
+    grade = await judge.ainvoke([{"role": "user", "content": f"Expected: {example_outputs}\nActual: {run_outputs}\nIs this accurate?"}])
+    return {"score": 1 if grade["is_accurate"] else 0, "comment": grade["reasoning"]}
 ```
 </python>
-
-<typescript>
-Create an accuracy evaluator using JSON mode with OpenAI SDK.
-```javascript
-import OpenAI from "openai";
-
-const openai = new OpenAI();
-
-async function accuracyEvaluator(run, example) {
-  const expected = example.outputs?.expected_response ?? "";
-  const agentOutput = run.outputs?.expected_response ?? "";
-
-  const response = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
-    temperature: 0,
-    response_format: { type: "json_object" },
-    messages: [
-      {
-        role: "system",
-        content: `You are an evaluator. Respond with JSON: {"is_accurate": boolean, "reasoning": string, "confidence": number}`
-      },
-      {
-        role: "user",
-        content: `Expected: ${expected}\nAgent Output: ${agentOutput}\n\nIs the agent output accurate?`
-      }
-    ]
-  });
-
-  const grade = JSON.parse(response.choices[0].message.content);
-  return {
-    accuracy: grade.is_accurate ? 1 : 0,
-    comment: `${grade.reasoning} (confidence: ${grade.confidence})`
-  };
-}
-```
-</typescript>
 </llm_judge>
 
 <code_evaluators>
 ## Custom Code Evaluators
 
-### Trajectory Validation
-
-**Inspect your dataset first** to understand field names. The examples below use `trajectory` and `expected_trajectory` but your dataset may differ.
-
-**CRITICAL:** Your run function output must match the dataset schema. See `<fix-run-output-dataset-mismatch>` for common errors.
+**Inspect your dataset first** to understand field names. Your run function output must match the dataset schema.
 
 <python>
-Validate tool call sequence matches expected trajectory.
 ```python
 def trajectory_evaluator(run, example):
-    # Handle both RunTree (local) and dict (uploaded)
     run_outputs = run.outputs if hasattr(run, "outputs") else run.get("outputs", {}) or {}
     example_outputs = example.outputs if hasattr(example, "outputs") else example.get("outputs", {}) or {}
-
-    actual = run_outputs.get("trajectory", [])  # from run
-    expected = example_outputs.get("expected_trajectory", [])  # from dataset
-    exact = actual == expected
-    all_tools = set(expected).issubset(set(actual))
-    return {"score": 1 if exact else 0, "comment": f"Exact: {exact}, All tools: {all_tools}"}
+    actual = run_outputs.get("trajectory", [])
+    expected = example_outputs.get("expected_trajectory", [])
+    return {"score": 1 if actual == expected else 0, "comment": f"Expected {expected}, got {actual}"}
 ```
 </python>
-
-<typescript>
-Validate tool call sequence matches expected trajectory.
-```javascript
-function trajectoryEvaluator(run, example) {
-  const actual = run.outputs?.trajectory ?? [];  // Actual from run
-  const expected = example.outputs?.expected_trajectory ?? [];  // Reference from dataset
-  const exact = JSON.stringify(actual) === JSON.stringify(expected);
-  const allTools = expected.every(tool => actual.includes(tool));
-  return { score: exact ? 1 : 0, comment: `Exact: ${exact}, All tools: ${allTools}` };
-}
-```
-</typescript>
-
 </code_evaluators>
 
 <run_functions>
 ## Defining Run Functions
 
-Run functions execute your agent and return outputs that match your dataset schema. The `evaluate()` function calls your run function for each example in the dataset.
+Run functions execute your agent and return outputs matching your dataset schema. Field names must match exactly.
 
-### Basic Run Function (Final Response / Single Step)
-
-<python>
 ```python
 def run_agent(inputs: dict) -> dict:
-    """Run agent and return output matching dataset schema."""
     result = your_agent.invoke(inputs)
     return {"output": result}  # Field name must match dataset
 ```
-</python>
-
-<typescript>
-```javascript
-async function runAgent(inputs) {
-  const result = await yourAgent.invoke(inputs);
-  return { output: result };  // Field name must match dataset
-}
-```
-</typescript>
 
 ### Capturing Trajectories
 
-For trajectory evaluation, your run function must capture tool calls. How you do this depends on your agent framework.
+For trajectory evaluation, your run function must capture tool calls during execution.
 
-#### LangChain OSS Agents (LangGraph, Deep Agents)
+**LangGraph agents:** Use `stream_mode="debug"` with `subgraphs=True` to capture nested subagent tool calls.
 
-Use `stream_mode="debug"` with `subgraphs=True` to capture nested subagent tool calls.
-
-<python>
 ```python
 import uuid
 
 def run_agent_with_trajectory(agent, inputs: dict) -> dict:
-    """Capture trajectory from LangGraph/Deep Agents."""
     config = {"configurable": {"thread_id": f"eval-{uuid.uuid4()}"}}
     trajectory = []
 
-    for chunk in agent.stream(
-        inputs,
-        config=config,
-        stream_mode="debug",
-        subgraphs=True,  # Required to see inside subagents
-    ):
-        # Inspect chunk structure - format varies by agent
-        # Look for tool_call names in the payload
+    for chunk in agent.stream(inputs, config=config, stream_mode="debug", subgraphs=True):
+        # Chunk structure varies by agent - inspect to find tool_call names
+        # Example: chunk may contain {"payload": {"name": "tool_name", ...}}
         pass
 
-    return {"trajectory": trajectory}
+    return {"output": final_result, "trajectory": trajectory}
 ```
-</python>
 
-#### Custom / Non-LangChain Agents
+**Custom / Non-LangChain Agents:**
 
-For custom agents, use one of these approaches:
-
-- **Callbacks/Hooks**: If your framework supports execution callbacks, register a hook that records tool names on each invocation
-- **Parse execution logs**: After the run completes, extract tool names from structured logs or trace data
+1. **Inspect output first** - Run your agent and inspect the result structure. Trajectory data may already be included in the output (e.g., `result.tool_calls`, `result.steps`, etc.)
+2. **Callbacks/Hooks** - If your framework supports execution callbacks, register a hook that records tool names on each invocation
+3. **Parse execution logs** - As a last resort, extract tool names from structured logs or trace data
 
 The key is to capture the tool name at execution time, not at definition time.
 </run_functions>
@@ -273,10 +146,12 @@ The key is to capture the tool name at execution time, not at definition time.
 **IMPORTANT - Auto-Run Behavior:**
 Evaluators uploaded to a dataset **automatically run** when you run experiments on that dataset. You do NOT need to pass them to `evaluate()` - just run your agent against the dataset and the uploaded evaluators execute automatically.
 
-**IMPORTANT - Limited Environment:**
-LangSmith's uploaded evaluator environment has very few packages available. You **cannot** upload LLM-as-Judge evaluators that use `langchain`, `openai`, or other external SDKs. For LLM-as-Judge:
-- Run locally with `evaluate(evaluators=[my_llm_judge])` instead of uploading
-- Only upload simple custom code evaluators (exact match, trajectory validation, etc.)
+**IMPORTANT - Local vs Uploaded:**
+For offline evaluators (dataset-based), prefer running locally with `evaluate(evaluators=[...])` first. This gives you full package access and easier debugging. Only upload once evaluators are stable and you want auto-run on experiments.
+
+**IMPORTANT - Code vs Structured Evaluators:**
+- **Code evaluators** (what our script uploads): Run in a limited environment without external packages. Use for deterministic logic (exact match, trajectory validation).
+- **Structured evaluators** (LLM-as-Judge): Configured via LangSmith UI, use a specific payload format with model/prompt/schema. Our script does not support this format yet.
 
 **IMPORTANT - Choose the right target:**
 - `--dataset`: Offline evaluator with `(run, example)` signature - for comparing to expected values
@@ -284,55 +159,26 @@ LangSmith's uploaded evaluator environment has very few packages available. You 
 
 You must specify one. Global evaluators are not supported.
 
-<python>
-Upload, list, and delete evaluators using the Python CLI script.
 ```bash
+# Python: python upload_evaluators.py ...
+# TypeScript: npx tsx upload_evaluators.ts ...
+
 # List all evaluators
-python upload_evaluators.py list
+upload_evaluators.py list
 
-# Upload offline evaluator (attached to dataset, receives run + example)
-python upload_evaluators.py upload my_evaluators.py \
-  --name "Exact Match" \
-  --function exact_match \
-  --dataset "Skills: Final Response" \
-  --replace
+# Upload offline evaluator (attached to dataset)
+upload_evaluators.py upload my_evaluators.py \
+  --name "Trajectory Match" --function trajectory_evaluator \
+  --dataset "My Dataset" --replace
 
-# Upload online evaluator (attached to project, receives run only)
-python upload_evaluators.py upload my_evaluators.py \
-  --name "Quality Check" \
-  --function quality_check \
-  --project "Production Agent" \
-  --replace
+# Upload online evaluator (attached to project)
+upload_evaluators.py upload my_evaluators.py \
+  --name "Quality Check" --function quality_check \
+  --project "Production Agent" --replace
 
-# Delete an evaluator
-python upload_evaluators.py delete "Exact Match"
+# Delete
+upload_evaluators.py delete "Trajectory Match"
 ```
-</python>
-
-<typescript>
-Upload, list, and delete evaluators using the TypeScript CLI script.
-```bash
-# List all evaluators
-npx tsx upload_evaluators.ts list
-
-# Upload offline evaluator (attached to dataset, receives run + example)
-npx tsx upload_evaluators.ts upload my_evaluators.js \
-  --name "Exact Match" \
-  --function exactMatch \
-  --dataset "Skills: Final Response" \
-  --replace
-
-# Upload online evaluator (attached to project, receives run only)
-npx tsx upload_evaluators.ts upload my_evaluators.js \
-  --name "Quality Check" \
-  --function qualityCheck \
-  --project "Production Agent" \
-  --replace
-
-# Delete an evaluator
-npx tsx upload_evaluators.ts delete "Exact Match"
-```
-</typescript>
 
 **IMPORTANT - Safety Prompts:**
 - The script prompts for confirmation before destructive operations
@@ -351,136 +197,34 @@ npx tsx upload_evaluators.ts delete "Exact Match"
    - JavaScript: Use for TypeScript/Node.js agents
 </best_practices>
 
-<example_workflow>
-## Complete Evaluator Workflow
-
-1. **Create evaluator** - See `<code_evaluators>` for examples (exact match, trajectory)
-2. **Upload to LangSmith** - See `<upload>` for CLI commands
-3. **Define run function** - See `<run_functions>` for basic and trajectory examples
-4. **Run evaluation** - See `<running_evaluations>` below
-</example_workflow>
-
 <running_evaluations>
 ## Running Evaluations
 
-| Method | When to use | Evaluator receives |
-|--------|-------------|-------------------|
-| **Upload to LangSmith** | Production, auto-run on experiments | `dict` |
-| **Local `evaluate()`** | Development, testing | `RunTree` object |
+**Uploaded evaluators** auto-run when you run experiments - no code needed. **Local evaluators** are passed directly for development/testing.
 
-### Option 1: Uploaded Evaluators (Recommended for Production)
-
-Upload evaluators (see `<upload>`), then run - no evaluators needed in code:
-
-<python>
 ```python
 from langsmith import evaluate
 
-# Uploaded evaluators run automatically!
-results = evaluate(
-    run_agent,  # See <run_functions> for examples
-    data="My Dataset",
-    experiment_prefix="eval-v1",
-)
+# Uploaded evaluators run automatically
+results = evaluate(run_agent, data="My Dataset", experiment_prefix="eval-v1")
+
+# Or pass local evaluators for testing
+results = evaluate(run_agent, data="My Dataset", evaluators=[my_evaluator], experiment_prefix="eval-v1")
 ```
-</python>
-
-### Option 2: Local Evaluators (Development/Testing)
-
-Pass evaluators directly - useful for iterating on evaluator logic:
-
-<python>
-```python
-from langsmith import evaluate
-
-results = evaluate(
-    run_agent,
-    data="My Dataset",
-    evaluators=[my_evaluator],  # Local functions
-    experiment_prefix="eval-v1",
-)
-```
-</python>
-
-<typescript>
-```javascript
-import { evaluate } from "langsmith/evaluation";
-
-const results = await evaluate(runAgent, {
-  data: "My Dataset",
-  evaluators: [myEvaluator],
-  experimentPrefix: "eval-v1",
-});
-```
-</typescript>
 </running_evaluations>
 
-<fix-one-metric-per-evaluator>
-Each evaluator must return exactly one metric. For multiple metrics, create separate evaluator functions.
+<troubleshooting>
+## Common Issues
+
+**One metric per evaluator:** Return `{"score": value, "comment": "..."}`. For multiple metrics, create separate functions.
+
+**Field name mismatch:** Your run function output must match dataset schema exactly. Inspect dataset first with `client.read_example(example_id)`.
+
+**RunTree vs dict (Python):** Local `evaluate()` passes `RunTree`, uploaded evaluators receive `dict`. Handle both:
 ```python
-# WRONG - Will error: "Expected dict with 'score', got extra fields"
-return {
-    "accuracy": 0.9,
-    "completeness": 0.8,
-    "comment": "..."
-}
-
-# WRONG - Will error: "Expected a list of dicts or EvaluationResults"
-return [
-    {"key": "accuracy", "score": 0.9},
-    {"key": "completeness", "score": 0.8}
-]
-
-# CORRECT - One score per evaluator
-return {"score": 0.9, "comment": "Accuracy check passed"}
-
-# For multiple metrics, create separate functions:
-def accuracy_evaluator(run, example): ...
-def completeness_evaluator(run, example): ...
-```
-</fix-one-metric-per-evaluator>
-
-<fix-runtree-vs-dict>
-Handle both RunTree (local) and dict (uploaded) access patterns.
-```python
-# WRONG - Fails locally with: "'RunTree' object is not subscriptable"
-output = run["outputs"].get("output", "")
-
-# WRONG - Fails when uploaded: "'dict' object has no attribute 'outputs'"
-output = run.outputs.get("output", "")
-
-# CORRECT - Handle both
 run_outputs = run.outputs if hasattr(run, "outputs") else run.get("outputs", {}) or {}
-output = run_outputs.get("output", "")
 ```
-</fix-runtree-vs-dict>
-
-<fix-run-output-dataset-mismatch>
-Your run function output MUST match the schema expected by the dataset. Inspect your dataset examples first to understand what fields and structure are expected.
-
-Common issues:
-- **Wrong field names:** Dataset has `output`, you return `response`
-- **Missing fields:** Dataset expects `trajectory`, you only return `output`
-- **Different depth:** Dataset trajectory includes subagent calls, yours only has top-level
-
-```python
-# WRONG - Field name mismatch
-# Dataset expects: {"output": "..."}
-return {"response": result}  # Evaluator won't find the field!
-
-# WRONG - Trajectory depth mismatch
-# Dataset: {"trajectory": ["task", "tavily_search", "task"]}
-return {"trajectory": ["task", "task"]}  # Missing subagent internals!
-
-# CORRECT - Match dataset schema exactly
-# 1. Check dataset structure first:
-#    client.read_example(example_id)
-# 2. Return matching fields:
-return {"output": result, "trajectory": full_trajectory}
-
-# For trajectory capture, see "Capturing Trajectories" section above
-```
-</fix-run-output-dataset-mismatch>
+</troubleshooting>
 
 <resources>
 - [LangSmith Evaluation Concepts](https://docs.langchain.com/langsmith/evaluation-concepts)

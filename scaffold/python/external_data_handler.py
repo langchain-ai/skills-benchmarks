@@ -9,10 +9,13 @@ Available handlers:
 """
 
 import json
+import os
 import uuid
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
+
+import requests
 
 
 def _get_langsmith_client():
@@ -206,11 +209,58 @@ def upload_datasets(data_dir: Path, run_id: str, **kwargs) -> dict[str, str]:
     return created
 
 
+def _delete_evaluators_for_datasets(dataset_ids: set[str]) -> list[str]:
+    """Delete all evaluators attached to the given dataset IDs.
+
+    Args:
+        dataset_ids: Set of dataset IDs to find evaluators for
+
+    Returns:
+        List of deleted evaluator names
+    """
+    if not dataset_ids:
+        return []
+
+    api_key = os.environ.get("LANGSMITH_API_KEY")
+    api_url = os.environ.get("LANGSMITH_API_URL", "https://api.smith.langchain.com")
+
+    if not api_key:
+        return []
+
+    headers = {"x-api-key": api_key}
+    deleted = []
+
+    try:
+        response = requests.get(f"{api_url}/runs/rules", headers=headers)
+        if not response.ok:
+            return []
+
+        for rule in response.json():
+            rule_dataset_id = rule.get("dataset_id")
+            if rule_dataset_id and rule_dataset_id in dataset_ids:
+                rule_id = rule.get("id")
+                rule_name = rule.get("display_name", "unnamed")
+                try:
+                    del_resp = requests.delete(
+                        f"{api_url}/runs/rules/{rule_id}", headers=headers
+                    )
+                    if del_resp.ok:
+                        deleted.append(rule_name)
+                        print(f"  Deleted evaluator: {rule_name}")
+                except Exception as e:
+                    print(f"  Failed to delete evaluator {rule_name}: {e}")
+    except Exception as e:
+        print(f"  Error cleaning up evaluators: {e}")
+
+    return deleted
+
+
 def cleanup_namespace(run_id: str, **kwargs) -> dict[str, list[str]]:
     """Delete all LangSmith resources matching the run_id namespace.
 
     Finds and deletes:
     - Projects ending with -{run_id}
+    - Evaluators attached to datasets ending with -{run_id}
     - Datasets ending with -{run_id}
 
     Args:
@@ -224,7 +274,7 @@ def cleanup_namespace(run_id: str, **kwargs) -> dict[str, list[str]]:
         print(f"Could not cleanup namespace: {error}")
         return {}
 
-    deleted = {"projects": [], "datasets": []}
+    deleted = {"projects": [], "evaluators": [], "datasets": []}
     suffix = f"-{run_id}"
 
     # Delete matching projects
@@ -240,18 +290,28 @@ def cleanup_namespace(run_id: str, **kwargs) -> dict[str, list[str]]:
     except Exception as e:
         print(f"  Error listing projects: {e}")
 
-    # Delete matching datasets
+    # Find matching datasets and their IDs (needed for evaluator cleanup)
+    datasets_to_delete = []
     try:
         for dataset in client.list_datasets():
             if dataset.name.endswith(suffix):
-                try:
-                    client.delete_dataset(dataset_name=dataset.name)
-                    deleted["datasets"].append(dataset.name)
-                    print(f"  Deleted dataset: {dataset.name}")
-                except Exception as e:
-                    print(f"  Failed to delete dataset {dataset.name}: {e}")
+                datasets_to_delete.append((dataset.name, str(dataset.id)))
     except Exception as e:
         print(f"  Error listing datasets: {e}")
+
+    # Delete evaluators attached to matching datasets BEFORE deleting datasets
+    if datasets_to_delete:
+        dataset_ids = {ds_id for _, ds_id in datasets_to_delete}
+        deleted["evaluators"] = _delete_evaluators_for_datasets(dataset_ids)
+
+    # Delete matching datasets
+    for dataset_name, _ in datasets_to_delete:
+        try:
+            client.delete_dataset(dataset_name=dataset_name)
+            deleted["datasets"].append(dataset_name)
+            print(f"  Deleted dataset: {dataset_name}")
+        except Exception as e:
+            print(f"  Failed to delete dataset {dataset_name}: {e}")
 
     return deleted
 

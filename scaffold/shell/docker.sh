@@ -42,6 +42,10 @@ ENV_KEYS=(
     CC_LANGSMITH_API_KEY
     CC_LANGSMITH_PROJECT
     CC_LANGSMITH_DEBUG
+    # Experiment trace context (nest CC traces under experiment run)
+    CC_LS_TRACE_ID
+    CC_LS_PARENT_RUN_ID
+    CC_LS_DOTTED_ORDER
 )
 
 # =============================================================================

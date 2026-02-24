@@ -35,6 +35,7 @@ from pathlib import Path
 import pytest
 from conftest import register_run_id_for_cleanup
 from langsmith import testing as ls_testing
+from langsmith.run_helpers import get_current_run_tree
 
 from scaffold import NoiseTask, Treatment
 from scaffold.python import extract_events, parse_output
@@ -43,24 +44,14 @@ from scaffold.python.tasks import list_tasks, load_task
 from scaffold.python.treatments import build_treatment_skills, load_treatments
 from scaffold.python.validation import NOISE_TASK_DELIVERABLES, NOISE_TASK_PROMPTS
 
-
-def build_noise_tasks(noise_task_names: list[str]) -> list[NoiseTask]:
-    """Convert noise task names to NoiseTask objects."""
-    noise_tasks = []
-    for name in noise_task_names:
-        if name in NOISE_TASK_PROMPTS:
-            noise_tasks.append(
-                NoiseTask(
-                    prompt=NOISE_TASK_PROMPTS[name],
-                    deliverables=[NOISE_TASK_DELIVERABLES.get(name, "")],
-                )
-            )
-    return noise_tasks
-
-
 # Timeouts
 CLAUDE_TIMEOUT = 600  # 10 minutes for Claude to complete task
 PYTEST_TIMEOUT = 900  # 15 minutes total including setup/teardown
+
+
+# =============================================================================
+# PARAMETRIZE HELPERS
+# =============================================================================
 
 
 def expand_treatment_patterns(patterns: list[str], all_treatments: dict) -> list[str]:
@@ -141,6 +132,42 @@ def pytest_generate_tests(metafunc):
         metafunc.parametrize("task_name,treatment_name", params)
 
 
+# =============================================================================
+# TEST HELPERS
+# =============================================================================
+
+
+def build_noise_tasks(noise_task_names: list[str]) -> list[NoiseTask]:
+    """Convert noise task names to NoiseTask objects."""
+    noise_tasks = []
+    for name in noise_task_names:
+        if name in NOISE_TASK_PROMPTS:
+            noise_tasks.append(
+                NoiseTask(
+                    prompt=NOISE_TASK_PROMPTS[name],
+                    deliverables=[NOISE_TASK_DELIVERABLES.get(name, "")],
+                )
+            )
+    return noise_tasks
+
+
+def set_experiment_trace_env() -> list[str]:
+    """Set env vars so the stop hook nests CC traces under the experiment run.
+
+    Returns list of env var keys that were set (for cleanup).
+    """
+    run_tree = get_current_run_tree()
+    if not run_tree:
+        return []
+
+    os.environ["CC_LS_TRACE_ID"] = str(run_tree.trace_id)
+    os.environ["CC_LS_PARENT_RUN_ID"] = str(run_tree.id)
+    os.environ["CC_LS_DOTTED_ORDER"] = run_tree.dotted_order or ""
+    if run_tree.session_name:
+        os.environ["CC_LANGSMITH_PROJECT"] = run_tree.session_name
+    return ["CC_LS_TRACE_ID", "CC_LS_PARENT_RUN_ID", "CC_LS_DOTTED_ORDER", "CC_LANGSMITH_PROJECT"]
+
+
 def run_validators(validators: list, test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:
     """Run function-based validators and return combined results."""
     all_passed, all_failed = [], []
@@ -149,6 +176,11 @@ def run_validators(validators: list, test_dir: Path, outputs: dict) -> tuple[lis
         all_passed.extend(passed)
         all_failed.extend(failed)
     return all_passed, all_failed
+
+
+# =============================================================================
+# TEST
+# =============================================================================
 
 
 @pytest.mark.langsmith(
@@ -196,7 +228,7 @@ def test_task_treatment(task_name, treatment_name, fixtures):
     trace_id_map = run_task_handlers(
         task.config.setup.data_handlers,
         task.data_dir,
-        fixtures.langsmith_project,
+        fixtures.langsmith_env,
         run_id,
     )
 
@@ -221,8 +253,16 @@ def test_task_treatment(task_name, treatment_name, fixtures):
         }
     )
 
+    # Pass experiment trace context to Docker so stop_hook nests CC traces
+    # under the experiment run (visible when clicking the experiment row)
+    cc_env_keys = set_experiment_trace_env()
+
     # Run Claude
-    result = fixtures.run_claude(prompt, timeout=CLAUDE_TIMEOUT)
+    try:
+        result = fixtures.run_claude(prompt, timeout=CLAUDE_TIMEOUT)
+    finally:
+        for key in cc_env_keys:
+            os.environ.pop(key, None)
 
     # Parse output
     events = extract_events(parse_output(result.stdout))
@@ -230,7 +270,7 @@ def test_task_treatment(task_name, treatment_name, fixtures):
     # Run validators
     outputs = {
         "run_id": run_id,
-        "langsmith_project": fixtures.langsmith_project,
+        "langsmith_env": fixtures.langsmith_env,
         "treatment_name": treatment_name,
         "events": events,
         "noise_tasks": treatment_cfg.noise_tasks,

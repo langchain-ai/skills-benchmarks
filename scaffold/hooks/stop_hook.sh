@@ -46,8 +46,15 @@ PROJECT="${CC_LANGSMITH_PROJECT:-claude-code}"
 API_BASE="https://api.smith.langchain.com"
 STATE_FILE="${STATE_FILE:-$HOME/.claude/state/langsmith_state.json}"
 
+# Experiment trace context (nest CC traces under experiment run)
+EXPERIMENT_TRACE_ID="${CC_LS_TRACE_ID:-}"
+EXPERIMENT_RUN_ID="${CC_LS_PARENT_RUN_ID:-}"
+EXPERIMENT_DOTTED_ORDER="${CC_LS_DOTTED_ORDER:-}"
+
 # Global variables
 CURRENT_TURN_ID=""  # Track current turn run for cleanup on exit
+PARENT_RUN_ID=""    # Parent run that groups all turns
+PARENT_DOTTED_ORDER=""  # dotted_order of the parent run
 
 # Ensure state directory exists
 mkdir -p "$(dirname "$STATE_FILE")"
@@ -437,13 +444,22 @@ create_trace() {
     microseconds=$(get_microseconds)
     dotted_timestamp="${dotted_timestamp}${microseconds}Z"
 
-    # Create top-level turn run with dotted_order and trace_id
-    # For top-level run: trace_id = run_id
-    local turn_dotted_order="${dotted_timestamp}${turn_id}"
+    # Create turn run with dotted_order and trace_id
+    # If parent exists, nest under it; otherwise turn is the root
+    local turn_dotted_order
+    local turn_trace_id
+    if [ -n "$PARENT_RUN_ID" ]; then
+        turn_dotted_order="${PARENT_DOTTED_ORDER}.${dotted_timestamp}${turn_id}"
+        turn_trace_id="$EXPERIMENT_TRACE_ID"
+    else
+        turn_dotted_order="${dotted_timestamp}${turn_id}"
+        turn_trace_id="$turn_id"
+    fi
+
     local turn_data
     turn_data=$(jq -n \
         --arg id "$turn_id" \
-        --arg trace_id "$turn_id" \
+        --arg trace_id "$turn_trace_id" \
         --arg name "Claude Code" \
         --arg project "$PROJECT" \
         --arg session "$session_id" \
@@ -451,6 +467,7 @@ create_trace() {
         --argjson content "$user_content" \
         --arg turn "$turn_num" \
         --arg dotted_order "$turn_dotted_order" \
+        --arg parent_run_id "${PARENT_RUN_ID:-}" \
         '{
             id: $id,
             trace_id: $trace_id,
@@ -462,7 +479,9 @@ create_trace() {
             session_name: $project,
             extra: {metadata: {thread_id: $session}},
             tags: ["claude-code", ("turn-" + $turn)]
-        }')
+        }
+        | if $parent_run_id != "" then .parent_run_id = $parent_run_id else . end
+        ')
 
     posts_batch=$(echo "$posts_batch" | jq --argjson data "$turn_data" '. += [$data]')
 
@@ -548,10 +567,8 @@ create_trace() {
         fi
         local assistant_dotted_order="${turn_dotted_order}.${assistant_timestamp}${assistant_id}"
 
-        # Extract trace_id from parent dotted_order (UUID after the Z)
-        # Format: 20231215T120000123456Zuuid -> uuid
-        local trace_id
-        trace_id="${turn_dotted_order#*Z}"
+        # Use the turn's trace_id for all children
+        local trace_id="$turn_trace_id"
 
         local assistant_data
         assistant_data=$(jq -n \
@@ -763,7 +780,7 @@ create_trace() {
     turn_update=$(jq -n \
         --arg time "$turn_end" \
         --arg id "$turn_id" \
-        --arg trace_id "$turn_id" \
+        --arg trace_id "$turn_trace_id" \
         --arg dotted_order "$turn_dotted_order" \
         --argjson outputs "$turn_outputs" \
         '{
@@ -838,6 +855,49 @@ main() {
     local msg_count
     msg_count=$(echo "$new_messages" | wc -l)
     log "INFO" "Found $msg_count new messages"
+
+    # Create parent "Claude Code Session" run to group all turns.
+    # When experiment context is available, nest under the experiment run
+    # so CC traces appear in the experiment row's trace tree.
+    if [ -z "$PARENT_RUN_ID" ] && [ -n "$EXPERIMENT_RUN_ID" ]; then
+        PARENT_RUN_ID=$(uuidgen | tr '[:upper:]' '[:lower:]')
+        local parent_now
+        parent_now=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        local parent_dotted_timestamp
+        parent_dotted_timestamp=$(date -u +"%Y%m%dT%H%M%S")
+        local parent_microseconds
+        parent_microseconds=$(get_microseconds)
+        parent_dotted_timestamp="${parent_dotted_timestamp}${parent_microseconds}Z"
+
+        PARENT_DOTTED_ORDER="${EXPERIMENT_DOTTED_ORDER}.${parent_dotted_timestamp}${PARENT_RUN_ID}"
+
+        local parent_data
+        parent_data=$(jq -n \
+            --arg id "$PARENT_RUN_ID" \
+            --arg trace_id "$EXPERIMENT_TRACE_ID" \
+            --arg parent_run_id "$EXPERIMENT_RUN_ID" \
+            --arg name "Claude Code Session" \
+            --arg project "$PROJECT" \
+            --arg session "$session_id" \
+            --arg time "$parent_now" \
+            --arg dotted_order "$PARENT_DOTTED_ORDER" \
+            '{
+                id: $id,
+                trace_id: $trace_id,
+                parent_run_id: $parent_run_id,
+                name: $name,
+                run_type: "chain",
+                inputs: {},
+                start_time: $time,
+                dotted_order: $dotted_order,
+                session_name: $project,
+                extra: {metadata: {thread_id: $session}},
+                tags: ["claude-code", "session"]
+            }')
+
+        send_multipart_batch "post" "[$parent_data]" || true
+        log "INFO" "Created parent run $PARENT_RUN_ID under experiment $EXPERIMENT_RUN_ID"
+    fi
 
     # Group into turns
     local current_user=""
@@ -925,6 +985,27 @@ main() {
         turns=$((turns + 1))
         local turn_num=$((turn_count + turns))
         create_trace "$session_id" "$turn_num" "$current_user" "$current_assistants" "$current_tool_results" || true
+    fi
+
+    # Close parent run if one was created
+    if [ -n "$PARENT_RUN_ID" ]; then
+        local parent_end
+        parent_end=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+        local parent_update
+        parent_update=$(jq -n \
+            --arg id "$PARENT_RUN_ID" \
+            --arg trace_id "$EXPERIMENT_TRACE_ID" \
+            --arg dotted_order "$PARENT_DOTTED_ORDER" \
+            --arg time "$parent_end" \
+            '{
+                id: $id,
+                trace_id: $trace_id,
+                dotted_order: $dotted_order,
+                outputs: {},
+                end_time: $time
+            }')
+        send_multipart_batch "patch" "[$parent_update]" || true
+        log "INFO" "Closed parent run $PARENT_RUN_ID"
     fi
 
     # Update state

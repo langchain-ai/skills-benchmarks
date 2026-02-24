@@ -1,8 +1,8 @@
 """Unit tests for upload_evaluators.py."""
 
-import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
+import pytest
 
 # Mock rules for testing
 MOCK_RULES = [

@@ -12,8 +12,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Claude Code CLI and tsx globally
-RUN npm install -g @anthropic-ai/claude-code tsx
+# Install Claude Code CLI and tsx globally (version configurable via build arg)
+ARG CLAUDE_CODE_VERSION=latest
+RUN npm install -g @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION} tsx
 
 # Create workspace and install Python deps
 WORKDIR /workspace

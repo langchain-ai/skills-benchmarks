@@ -17,6 +17,9 @@ source "$SCRIPT_DIR/common.sh"
 # Image prefix for all benchmark images
 IMAGE_PREFIX="skillbench"
 
+# Claude Code version (configurable via env var, defaults to "latest")
+CLAUDE_CODE_VERSION="${CLAUDE_CODE_VERSION:-latest}"
+
 # Cross-platform timeout command (macOS uses gtimeout from coreutils)
 TIMEOUT_CMD=""
 if command -v gtimeout &> /dev/null; then
@@ -79,12 +82,17 @@ get_dockerfile_hash() {
     fi
 }
 
-# Get image name for a directory (based on Dockerfile hash)
+# Get image name for a directory (based on Dockerfile hash + Claude Code version)
 get_image_name() {
     local dir="$1"
     local hash
     hash=$(get_dockerfile_hash "$dir") || return 1
-    echo "${IMAGE_PREFIX}:${hash}"
+    # Include version in tag to cache different versions separately
+    if [[ "$CLAUDE_CODE_VERSION" == "latest" ]]; then
+        echo "${IMAGE_PREFIX}:${hash}"
+    else
+        echo "${IMAGE_PREFIX}:${hash}-cc${CLAUDE_CODE_VERSION}"
+    fi
 }
 
 # Check if image exists
@@ -119,8 +127,10 @@ docker_build() {
         return 0
     fi
 
-    # Build image
-    if docker build -t "$image_name" -f "$dockerfile" "$dir" >&2; then
+    # Build image (pass Claude Code version as build arg)
+    if docker build -t "$image_name" \
+        --build-arg CLAUDE_CODE_VERSION="$CLAUDE_CODE_VERSION" \
+        -f "$dockerfile" "$dir" >&2; then
         echo "$image_name"
         return 0
     else
@@ -329,6 +339,10 @@ Environment variables passed to containers:
   OPENAI_API_KEY, ANTHROPIC_API_KEY, LANGSMITH_API_KEY,
   LANGSMITH_PROJECT, LANGSMITH_TRACING, LANGSMITH_ENDPOINT,
   TAVILY_API_KEY
+
+Build configuration:
+  CLAUDE_CODE_VERSION  Version of Claude Code to install (default: latest)
+                       Example: CLAUDE_CODE_VERSION=2.1.29 ./docker.sh build <dir>
 EOF
         ;;
     esac

@@ -251,21 +251,77 @@ export async function uploadDatasets(args: HandlerArgs): Promise<Record<string, 
 }
 
 /**
+ * Delete all evaluators attached to the given dataset IDs.
+ */
+async function deleteEvaluatorsForDatasets(datasetIds: Set<string>): Promise<string[]> {
+  if (datasetIds.size === 0) return [];
+
+  const apiKey = process.env.LANGSMITH_API_KEY;
+  const apiUrl = process.env.LANGSMITH_API_URL || "https://api.smith.langchain.com";
+
+  if (!apiKey) return [];
+
+  const deleted: string[] = [];
+
+  try {
+    const response = await fetch(`${apiUrl}/runs/rules`, {
+      headers: { "x-api-key": apiKey },
+    });
+
+    if (!response.ok) return [];
+
+    const rules = (await response.json()) as Array<{
+      id: string;
+      display_name?: string;
+      dataset_id?: string;
+    }>;
+
+    for (const rule of rules) {
+      if (rule.dataset_id && datasetIds.has(rule.dataset_id)) {
+        const ruleName = rule.display_name || "unnamed";
+        try {
+          const delResp = await fetch(`${apiUrl}/runs/rules/${rule.id}`, {
+            method: "DELETE",
+            headers: { "x-api-key": apiKey },
+          });
+          if (delResp.ok) {
+            deleted.push(ruleName);
+            console.log(`  Deleted evaluator: ${ruleName}`);
+          }
+        } catch (e) {
+          console.log(`  Failed to delete evaluator ${ruleName}: ${e}`);
+        }
+      }
+    }
+  } catch (e) {
+    console.log(`  Error cleaning up evaluators: ${e}`);
+  }
+
+  return deleted;
+}
+
+/**
  * Delete all LangSmith resources matching the run_id namespace.
  */
-export async function cleanupNamespace(args: HandlerArgs): Promise<{ projects: string[]; datasets: string[] }> {
+export async function cleanupNamespace(
+  args: HandlerArgs
+): Promise<{ projects: string[]; evaluators: string[]; datasets: string[] }> {
   const { client, error } = getLangsmithClient();
   if (error || !client) {
     console.log(`Could not cleanup namespace: ${error}`);
-    return { projects: [], datasets: [] };
+    return { projects: [], evaluators: [], datasets: [] };
   }
 
   const runId = args.run_id;
   if (!runId) {
-    return { projects: [], datasets: [] };
+    return { projects: [], evaluators: [], datasets: [] };
   }
 
-  const deleted: { projects: string[]; datasets: string[] } = { projects: [], datasets: [] };
+  const deleted: { projects: string[]; evaluators: string[]; datasets: string[] } = {
+    projects: [],
+    evaluators: [],
+    datasets: [],
+  };
   const suffix = `-${runId}`;
 
   // Delete matching projects
@@ -286,21 +342,33 @@ export async function cleanupNamespace(args: HandlerArgs): Promise<{ projects: s
     console.log(`  Error listing projects: ${e}`);
   }
 
-  // Delete matching datasets
+  // Find matching datasets and their IDs (needed for evaluator cleanup)
+  const datasetsToDelete: Array<{ name: string; id: string }> = [];
   try {
     for await (const dataset of client.listDatasets()) {
       if (dataset.name.endsWith(suffix)) {
-        try {
-          await client.deleteDataset({ datasetName: dataset.name });
-          deleted.datasets.push(dataset.name);
-          console.log(`  Deleted dataset: ${dataset.name}`);
-        } catch (e) {
-          console.log(`  Failed to delete dataset ${dataset.name}: ${e}`);
-        }
+        datasetsToDelete.push({ name: dataset.name, id: dataset.id });
       }
     }
   } catch (e) {
     console.log(`  Error listing datasets: ${e}`);
+  }
+
+  // Delete evaluators attached to matching datasets BEFORE deleting datasets
+  if (datasetsToDelete.length > 0) {
+    const datasetIds = new Set(datasetsToDelete.map((d) => d.id));
+    deleted.evaluators = await deleteEvaluatorsForDatasets(datasetIds);
+  }
+
+  // Delete matching datasets
+  for (const { name } of datasetsToDelete) {
+    try {
+      await client.deleteDataset({ datasetName: name });
+      deleted.datasets.push(name);
+      console.log(`  Deleted dataset: ${name}`);
+    } catch (e) {
+      console.log(`  Failed to delete dataset ${name}: ${e}`);
+    }
   }
 
   return deleted;

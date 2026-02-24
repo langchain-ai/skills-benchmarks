@@ -401,6 +401,8 @@ export const SAMPLE_EVALUATORS = [
     id: "eval-001-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
     display_name: "response_quality",
     sampling_rate: 1.0,
+    dataset_id: null, // API returns dataset_id for individual rule
+    session_id: null, // API returns session_id for project
     code_evaluators: [
       {
         code: "def perform_eval(inputs, outputs, reference_outputs):\n    return {'score': 1.0}",
@@ -414,6 +416,8 @@ export const SAMPLE_EVALUATORS = [
     id: "eval-002-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
     display_name: "trajectory_match",
     sampling_rate: 0.5,
+    dataset_id: "dataset-001", // Attached to this dataset
+    session_id: null,
     code_evaluators: [
       {
         code: "def perform_eval(inputs, outputs, reference_outputs):\n    expected = reference_outputs.get('trajectory', [])\n    actual = outputs.get('trajectory', [])\n    return {'score': 1.0 if expected == actual else 0.0}",
@@ -422,6 +426,31 @@ export const SAMPLE_EVALUATORS = [
     ],
     target_dataset_ids: ["dataset-001"],
     target_project_ids: null,
+  },
+];
+
+/** Sample evaluators with multiple same names but different targets (for findEvaluator testing) */
+export const SAMPLE_EVALUATORS_SAME_NAME = [
+  {
+    id: "rule-1",
+    display_name: "Trajectory Match",
+    sampling_rate: 1.0,
+    dataset_id: "dataset-a",
+    session_id: null,
+  },
+  {
+    id: "rule-2",
+    display_name: "Trajectory Match",
+    sampling_rate: 1.0,
+    dataset_id: "dataset-b",
+    session_id: null,
+  },
+  {
+    id: "rule-3",
+    display_name: "Quality Check",
+    sampling_rate: 0.5,
+    dataset_id: null,
+    session_id: "project-x",
   },
 ];
 

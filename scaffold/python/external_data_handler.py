@@ -241,9 +241,7 @@ def _delete_evaluators_for_datasets(dataset_ids: set[str]) -> list[str]:
                 rule_id = rule.get("id")
                 rule_name = rule.get("display_name", "unnamed")
                 try:
-                    del_resp = requests.delete(
-                        f"{api_url}/runs/rules/{rule_id}", headers=headers
-                    )
+                    del_resp = requests.delete(f"{api_url}/runs/rules/{rule_id}", headers=headers)
                     if del_resp.ok:
                         deleted.append(rule_name)
                         print(f"  Deleted evaluator: {rule_name}")

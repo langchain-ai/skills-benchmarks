@@ -7,6 +7,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
   SAMPLE_EVALUATORS,
+  SAMPLE_EVALUATORS_SAME_NAME,
   TS_UPLOAD_EVALUATORS,
   runTsScript,
 } from "../fixtures.js";
@@ -293,5 +294,143 @@ describe("mocked API with fixtures", () => {
 
     // nonexistent should not
     expect(await evaluatorExists("nonexistent")).toBe(false);
+  });
+});
+
+// =============================================================================
+// findEvaluator Tests - Verify name AND target matching
+// =============================================================================
+
+describe("findEvaluator - name AND target matching", () => {
+  beforeEach(() => {
+    vi.stubEnv("LANGSMITH_API_KEY", "test-api-key-12345");
+    vi.stubEnv("LANGSMITH_API_URL", "https://api.smith.langchain.com");
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+    vi.unstubAllGlobals();
+  });
+
+  it("finds evaluator with matching name AND dataset_id", async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(SAMPLE_EVALUATORS_SAME_NAME),
+    });
+    vi.stubGlobal("fetch", mockFetch);
+
+    const { findEvaluator } =
+      await import("../../../skills/benchmarks/langsmith_evaluator/scripts/upload_evaluators.js");
+
+    const result = await findEvaluator("Trajectory Match", "dataset-a");
+
+    expect(result).not.toBeNull();
+    expect(result?.id).toBe("rule-1");
+    expect(result?.display_name).toBe("Trajectory Match");
+  });
+
+  it("finds correct evaluator among same names with different targets", async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(SAMPLE_EVALUATORS_SAME_NAME),
+    });
+    vi.stubGlobal("fetch", mockFetch);
+
+    const { findEvaluator } =
+      await import("../../../skills/benchmarks/langsmith_evaluator/scripts/upload_evaluators.js");
+
+    // Should find rule-2, not rule-1
+    const result = await findEvaluator("Trajectory Match", "dataset-b");
+
+    expect(result).not.toBeNull();
+    expect(result?.id).toBe("rule-2"); // Not rule-1!
+  });
+
+  it("returns null when name matches but target differs", async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(SAMPLE_EVALUATORS_SAME_NAME),
+    });
+    vi.stubGlobal("fetch", mockFetch);
+
+    const { findEvaluator } =
+      await import("../../../skills/benchmarks/langsmith_evaluator/scripts/upload_evaluators.js");
+
+    // "Trajectory Match" exists but not for dataset-c
+    const result = await findEvaluator("Trajectory Match", "dataset-c");
+
+    expect(result).toBeNull();
+  });
+
+  it("returns null when name not found", async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(SAMPLE_EVALUATORS_SAME_NAME),
+    });
+    vi.stubGlobal("fetch", mockFetch);
+
+    const { findEvaluator } =
+      await import("../../../skills/benchmarks/langsmith_evaluator/scripts/upload_evaluators.js");
+
+    const result = await findEvaluator("Nonexistent", "dataset-a");
+
+    expect(result).toBeNull();
+  });
+
+  it("finds evaluator with matching name AND project_id (session_id)", async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(SAMPLE_EVALUATORS_SAME_NAME),
+    });
+    vi.stubGlobal("fetch", mockFetch);
+
+    const { findEvaluator } =
+      await import("../../../skills/benchmarks/langsmith_evaluator/scripts/upload_evaluators.js");
+
+    // Quality Check is attached to project-x (via session_id)
+    const result = await findEvaluator("Quality Check", undefined, "project-x");
+
+    expect(result).not.toBeNull();
+    expect(result?.id).toBe("rule-3");
+  });
+});
+
+// =============================================================================
+// Replacement Logic Tests - Verify correct behavior
+// =============================================================================
+
+describe("replacement logic", () => {
+  beforeEach(() => {
+    vi.stubEnv("LANGSMITH_API_KEY", "test-api-key-12345");
+    vi.stubEnv("LANGSMITH_API_URL", "https://api.smith.langchain.com");
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+    vi.unstubAllGlobals();
+  });
+
+  it("replacement only deletes when name AND target match", async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(SAMPLE_EVALUATORS_SAME_NAME),
+    });
+    vi.stubGlobal("fetch", mockFetch);
+
+    const { findEvaluator } =
+      await import("../../../skills/benchmarks/langsmith_evaluator/scripts/upload_evaluators.js");
+
+    // Simulating: upload "Trajectory Match" --dataset dataset-c --replace
+    // Dataset-c doesn't have this evaluator, so find returns None
+    const existingC = await findEvaluator("Trajectory Match", "dataset-c");
+    expect(existingC).toBeNull(); // No match = no deletion, just create
+
+    // Simulating: upload "Trajectory Match" --dataset dataset-a --replace
+    // Dataset-a HAS this evaluator, so find returns it for deletion
+    const existingA = await findEvaluator("Trajectory Match", "dataset-a");
+    expect(existingA).not.toBeNull(); // Match found = delete this one before creating
+    expect(existingA?.id).toBe("rule-1");
   });
 });

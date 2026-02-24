@@ -28,7 +28,17 @@ npm install langsmith commander chalk cli-table3 dotenv openai
 </setup>
 
 <evaluator_format>
-Evaluators use `(run, example)` signature for offline (dataset) evaluations.
+## Offline vs Online Evaluators
+
+**Offline Evaluators** (attached to datasets):
+- Function signature: `(run, example)` - receives both run outputs and dataset example
+- Use case: Comparing agent outputs to expected values in a dataset
+- Upload with: `--dataset "Dataset Name"`
+
+**Online Evaluators** (attached to projects):
+- Function signature: `(run)` - receives only run outputs, NO example parameter
+- Use case: Real-time quality checks on production runs (no reference data)
+- Upload with: `--project "Project Name"`
 
 **CRITICAL - Return Format:**
 - Return `{"score": value, "comment": "..."}` - the metric key is auto-derived from the function name
@@ -77,30 +87,10 @@ function evaluatorName(run, example) {
 - **Custom Code** - Deterministic logic. Best for objective checks (exact match, trajectory validation, format compliance).
 </evaluator_types>
 
-<runtree_vs_dict>
-## RunTree vs Dict: Why Both Access Patterns?
-
-When evaluators run, the `run` parameter type differs based on context:
-
-| Context | `run` type | Access pattern |
-|---------|-----------|----------------|
-| Local `evaluate()` | `RunTree` object | `run.outputs` (attribute) |
-| Uploaded to LangSmith | `dict` | `run["outputs"]` (subscript) |
-
-**Why?**
-- **Local:** The SDK wraps execution in a `RunTree` class for live tracing (timing, nesting, metadata). Your evaluator receives this object directly.
-- **Uploaded:** Run data is fetched from the database as JSON, parsed into a Python dict.
-
-**The fix:** Always handle both:
-```python
-run_outputs = run.outputs if hasattr(run, "outputs") else run.get("outputs", {}) or {}
-```
-
-This pattern checks for attribute access first (RunTree), falls back to dict access.
-</runtree_vs_dict>
-
 <llm_judge>
 ## LLM as Judge Evaluators
+
+**NOTE:** LLM-as-Judge evaluators cannot be uploaded to LangSmith - they must be run locally with `evaluate(evaluators=[...])`. LangSmith's uploaded evaluator environment does not include LLM SDKs.
 
 <python>
 Create an accuracy evaluator using structured output with LangChain.
@@ -174,40 +164,9 @@ async function accuracyEvaluator(run, example) {
 <code_evaluators>
 ## Custom Code Evaluators
 
-### Exact Match
-
-**Field name:** Both run outputs and dataset examples use `output`.
-
-<python>
-Compare outputs with case-insensitive exact match.
-```python
-def exact_match_evaluator(run, example):
-    # Handle both RunTree (local) and dict (uploaded)
-    run_outputs = run.outputs if hasattr(run, "outputs") else run.get("outputs", {}) or {}
-    example_outputs = example.outputs if hasattr(example, "outputs") else example.get("outputs", {}) or {}
-
-    actual = run_outputs.get("output", "").strip().lower()  # from run
-    expected = example_outputs.get("output", "").strip().lower()  # from dataset
-    match = actual == expected
-    return {"score": 1 if match else 0, "comment": f"Match: {match}"}
-```
-</python>
-
-<typescript>
-Compare outputs with case-insensitive exact match.
-```javascript
-function exactMatchEvaluator(run, example) {
-  const actual = (run.outputs?.output ?? "").trim().toLowerCase();  // Actual from run
-  const expected = (example.outputs?.output ?? "").trim().toLowerCase();  // Reference from dataset
-  const match = actual === expected;
-  return { score: match ? 1 : 0, comment: `Match: ${match}` };
-}
-```
-</typescript>
-
 ### Trajectory Validation
 
-**Field name:** Both run outputs and dataset examples use `trajectory`.
+**Inspect your dataset first** to understand field names. The examples below use `trajectory` and `expected_trajectory` but your dataset may differ.
 
 **CRITICAL:** Your run function output must match the dataset schema. See `<fix-run-output-dataset-mismatch>` for common errors.
 
@@ -314,15 +273,38 @@ The key is to capture the tool name at execution time, not at definition time.
 **IMPORTANT - Auto-Run Behavior:**
 Evaluators uploaded to a dataset **automatically run** when you run experiments on that dataset. You do NOT need to pass them to `evaluate()` - just run your agent against the dataset and the uploaded evaluators execute automatically.
 
+**IMPORTANT - Limited Environment:**
+LangSmith's uploaded evaluator environment has very few packages available. You **cannot** upload LLM-as-Judge evaluators that use `langchain`, `openai`, or other external SDKs. For LLM-as-Judge:
+- Run locally with `evaluate(evaluators=[my_llm_judge])` instead of uploading
+- Only upload simple custom code evaluators (exact match, trajectory validation, etc.)
+
+**IMPORTANT - Choose the right target:**
+- `--dataset`: Offline evaluator with `(run, example)` signature - for comparing to expected values
+- `--project`: Online evaluator with `(run)` signature - for real-time quality checks
+
+You must specify one. Global evaluators are not supported.
+
 <python>
 Upload, list, and delete evaluators using the Python CLI script.
 ```bash
+# List all evaluators
 python upload_evaluators.py list
+
+# Upload offline evaluator (attached to dataset, receives run + example)
 python upload_evaluators.py upload my_evaluators.py \
   --name "Exact Match" \
   --function exact_match \
   --dataset "Skills: Final Response" \
   --replace
+
+# Upload online evaluator (attached to project, receives run only)
+python upload_evaluators.py upload my_evaluators.py \
+  --name "Quality Check" \
+  --function quality_check \
+  --project "Production Agent" \
+  --replace
+
+# Delete an evaluator
 python upload_evaluators.py delete "Exact Match"
 ```
 </python>
@@ -330,12 +312,24 @@ python upload_evaluators.py delete "Exact Match"
 <typescript>
 Upload, list, and delete evaluators using the TypeScript CLI script.
 ```bash
+# List all evaluators
 npx tsx upload_evaluators.ts list
+
+# Upload offline evaluator (attached to dataset, receives run + example)
 npx tsx upload_evaluators.ts upload my_evaluators.js \
   --name "Exact Match" \
   --function exactMatch \
   --dataset "Skills: Final Response" \
   --replace
+
+# Upload online evaluator (attached to project, receives run only)
+npx tsx upload_evaluators.ts upload my_evaluators.js \
+  --name "Quality Check" \
+  --function qualityCheck \
+  --project "Production Agent" \
+  --replace
+
+# Delete an evaluator
 npx tsx upload_evaluators.ts delete "Exact Match"
 ```
 </typescript>

@@ -60,7 +60,7 @@ npm install langsmith commander chalk cli-table3 dotenv openai
 <llm_judge>
 ## LLM as Judge Evaluators
 
-**NOTE:** LLM-as-Judge can be uploaded to LangSmith using the "structured" evaluator format (configured via the LangSmith UI), but our upload script only supports code evaluators. For local development, use `evaluate(evaluators=[...])`.
+**NOTE:** LLM-as-Judge upload is currently not supported by our script only supports code evaluators. For evaluations against a dataset, STRONGLY PREFER defining local evaluators to use with `evaluate(evaluators=[...])`.
 
 <python>
 ```python
@@ -147,7 +147,7 @@ The key is to capture the tool name at execution time, not at definition time.
 Evaluators uploaded to a dataset **automatically run** when you run experiments on that dataset. You do NOT need to pass them to `evaluate()` - just run your agent against the dataset and the uploaded evaluators execute automatically.
 
 **IMPORTANT - Local vs Uploaded:**
-For offline evaluators (dataset-based), prefer running locally with `evaluate(evaluators=[...])` first. This gives you full package access and easier debugging. Only upload once evaluators are stable and you want auto-run on experiments.
+Uploaded evaluators have very limited package access for security reasons! DO NOT upload evaluators that unless they only need to rely on standard Python / Javascript functionality, such as built-in packages. For dataset (offline) evaluators, prefer running locally with `evaluate(evaluators=[...])` first. This gives you full package access.
 
 **IMPORTANT - Code vs Structured Evaluators:**
 - **Code evaluators** (what our script uploads): Run in a limited environment without external packages. Use for deterministic logic (exact match, trajectory validation).

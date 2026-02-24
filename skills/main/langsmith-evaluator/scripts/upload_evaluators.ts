@@ -59,6 +59,8 @@ export interface Rule {
   id: string;
   display_name: string;
   sampling_rate: number;
+  dataset_id?: string;
+  session_id?: string;
   target_dataset_ids?: string[];
   target_project_ids?: string[];
 }
@@ -101,14 +103,8 @@ export async function findEvaluator(
   for (const rule of rules) {
     if (rule.display_name !== name) continue;
     // Check target matches (API uses session_id for project)
-    const ruleDataset = (rule as Record<string, unknown>).dataset_id as
-      | string
-      | undefined;
-    const ruleProject = (rule as Record<string, unknown>).session_id as
-      | string
-      | undefined;
-    if (datasetId && ruleDataset === datasetId) return rule;
-    if (projectId && ruleProject === projectId) return rule;
+    if (datasetId && rule.dataset_id === datasetId) return rule;
+    if (projectId && rule.session_id === projectId) return rule;
   }
   return null;
 }

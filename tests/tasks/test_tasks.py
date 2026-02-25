@@ -36,6 +36,7 @@ import pytest
 from conftest import register_run_id_for_cleanup
 from langsmith import testing as ls_testing
 from langsmith.run_helpers import get_current_run_tree
+from langsmith.run_helpers import trace as ls_trace
 
 from scaffold import NoiseTask, Treatment
 from scaffold.python import extract_events, parse_output
@@ -172,9 +173,16 @@ def run_validators(validators: list, test_dir: Path, outputs: dict) -> tuple[lis
     """Run function-based validators and return combined results."""
     all_passed, all_failed = [], []
     for validator in validators:
-        passed, failed = validator(test_dir, outputs)
-        all_passed.extend(passed)
-        all_failed.extend(failed)
+        with ls_trace(
+            name=validator.__name__,
+            inputs={
+                "treatment_name": outputs.get("treatment_name"),
+                "run_id": outputs.get("run_id"),
+            },
+        ):
+            passed, failed = validator(test_dir, outputs)
+            all_passed.extend(passed)
+            all_failed.extend(failed)
     return all_passed, all_failed
 
 
@@ -276,9 +284,19 @@ def test_task_treatment(task_name, treatment_name, fixtures):
         "noise_tasks": treatment_cfg.noise_tasks,
         "trace_id_map": trace_id_map,
     }
-    passed, failed = run_validators(validators, fixtures.test_dir, outputs)
+    # Wrap all validators — creates parent evaluator trace in "evaluators" project
+    with ls_testing.trace_feedback(name="Validation"):
+        passed, failed = run_validators(validators, fixtures.test_dir, outputs)
 
-    # Log outputs to LangSmith
+        # checks_pass_rate inside context → linked to evaluator trace
+        total_checks = len(passed) + len(failed)
+        if total_checks > 0:
+            ls_testing.log_feedback(
+                key="checks_pass_rate",
+                score=len(passed) / total_checks,
+            )
+
+    # Update outputs with final results
     ls_testing.log_outputs(
         {
             "skills_invoked": events.get("skills_invoked", []),
@@ -287,23 +305,15 @@ def test_task_treatment(task_name, treatment_name, fixtures):
         }
     )
 
-    # Log feedback scores to LangSmith
-    total_checks = len(passed) + len(failed)
+    # Duration/turns stay outside (Claude metrics, not validator results)
     duration = events.get("duration_seconds", 0)
     num_turns = events.get("num_turns", 0)
 
-    # Duration in seconds
     if duration:
         ls_testing.log_feedback(key="duration_seconds", score=float(duration))
 
-    # Number of turns
     if num_turns:
         ls_testing.log_feedback(key="num_turns", score=float(num_turns))
-
-    # Checks pass rate (percentage of validation checks passed)
-    if total_checks > 0:
-        checks_pass_rate = len(passed) / total_checks
-        ls_testing.log_feedback(key="checks_pass_rate", score=checks_pass_rate)
 
     # Record results
     fixtures.record_result(events, passed, failed, run_id=run_id)

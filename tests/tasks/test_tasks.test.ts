@@ -44,6 +44,7 @@ import {
   cleanupLangSmithProject,
   setExperimentTraceEnv,
   cleanupExperimentTraceEnv,
+  verifyTestEnvironment,
   runClaude,
   recordResult,
   finalizeExperiment,

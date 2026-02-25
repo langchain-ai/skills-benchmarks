@@ -264,6 +264,8 @@ uv run pytest tests/tasks/test_tasks.py --collect-only
 
 ### TypeScript (Vitest)
 
+> **Note:** The TypeScript test runner does not currently support function-based validators or LLM-as-judge evaluation. Validation logic (including `evaluate_with_schema` and `trace_feedback` evaluator tracing) is only available in the Python runner.
+
 ```bash
 # Run specific task + treatment
 TASK=ls-lang-tracing TREATMENT=LS_BASIC_PY pnpm vitest tests/tasks/test_tasks.test.ts

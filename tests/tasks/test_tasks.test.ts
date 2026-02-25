@@ -26,20 +26,25 @@
  *   pnpm vitest tests/tasks/test_tasks.test.ts -t "ls-evaluator"
  */
 
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import * as ls from "langsmith/vitest";
+import { beforeAll, afterAll, expect } from "vitest";
 import { v4 as uuidv4 } from "uuid";
 import { existsSync } from "node:fs";
-import { listTasks, loadTask, type Task } from "../../scaffold/typescript/tasks.js";
+import { listTasks, loadTask } from "../../scaffold/typescript/tasks.js";
 import {
   loadTreatments,
   buildTreatmentSkills,
   buildNoiseTasks,
   type TreatmentConfig,
 } from "../../scaffold/typescript/treatments.js";
-import { type Treatment } from "../../scaffold/typescript/schema.js";
 import {
   setupTest,
   setupTestContext,
+  setupLangSmithProject,
+  cleanupLangSmithProject,
+  setExperimentTraceEnv,
+  cleanupExperimentTraceEnv,
+  verifyTestEnvironment,
   runClaude,
   recordResult,
   finalizeExperiment,
@@ -50,7 +55,6 @@ import {
   runTaskHandlers,
   cleanupNamespace,
 } from "../../scaffold/typescript/external_data_handler.js";
-import { verifyTestEnvironment } from "../fixtures.js";
 
 // =============================================================================
 // TEST CONFIGURATION
@@ -84,7 +88,7 @@ interface TestCase {
  */
 function expandTreatmentPatterns(
   patterns: string[],
-  allTreatments: Record<string, TreatmentConfig>
+  allTreatments: Record<string, TreatmentConfig>,
 ): string[] {
   const treatmentNames = Object.keys(allTreatments);
   const expanded: string[] = [];
@@ -96,7 +100,7 @@ function expandTreatmentPatterns(
       const matches = treatmentNames.filter((t) => t.startsWith(prefix));
       if (matches.length === 0) {
         throw new Error(
-          `No treatments match pattern: ${pattern}. Available: ${treatmentNames.join(", ")}`
+          `No treatments match pattern: ${pattern}. Available: ${treatmentNames.join(", ")}`,
         );
       }
       expanded.push(...matches);
@@ -104,7 +108,7 @@ function expandTreatmentPatterns(
       // Exact match
       if (!(pattern in allTreatments)) {
         throw new Error(
-          `Treatment not found: ${pattern}. Available: ${treatmentNames.join(", ")}`
+          `Treatment not found: ${pattern}. Available: ${treatmentNames.join(", ")}`,
         );
       }
       expanded.push(pattern);
@@ -122,7 +126,7 @@ function generateTestCases(): TestCase[] {
   // Validate task filter
   if (TASK_FILTER && !allTasks.includes(TASK_FILTER)) {
     throw new Error(
-      `Task not found: ${TASK_FILTER}. Available: ${allTasks.join(", ")}`
+      `Task not found: ${TASK_FILTER}. Available: ${allTasks.join(", ")}`,
     );
   }
 
@@ -161,168 +165,234 @@ function generateTestCases(): TestCase[] {
 // TEST SUITE
 // =============================================================================
 
-describe("Task/Treatment Tests", () => {
-  let allTreatments: Record<string, TreatmentConfig>;
+const testSuiteName = process.env.LANGSMITH_TEST_SUITE || "skills-benchmark";
 
-  beforeAll(() => {
-    allTreatments = loadTreatments();
-    if (RUN_CLAUDE) {
-      const env = verifyTestEnvironment();
-      if (!env.docker || !env.claude || !env.apiKeys) {
-        throw new Error("Environment not ready for Claude execution");
+// Create isolated LangSmith project BEFORE ls.describe so the experiment
+// is created in our bench-project-{uuid} instead of a random project name.
+const langsmithInfo = RUN_CLAUDE ? setupLangSmithProject() : undefined;
+
+ls.describe(
+  testSuiteName,
+  () => {
+    let allTreatments: Record<string, TreatmentConfig>;
+
+    beforeAll(() => {
+      allTreatments = loadTreatments();
+      if (RUN_CLAUDE) {
+        const env = verifyTestEnvironment();
+        if (!env.docker || !env.claude || !env.apiKeys) {
+          throw new Error("Environment not ready for Claude execution");
+        }
+        // Register project runId for cleanup (deletes bench-project-{runId})
+        if (langsmithInfo) {
+          testRunIds.push(langsmithInfo.runId);
+        }
       }
-    }
-  });
+    });
 
-  afterAll(async () => {
-    // Skip cleanup if we didn't run Claude (verification mode only)
-    if (!RUN_CLAUDE) {
+    afterAll(async () => {
+      // Skip cleanup if we didn't run Claude (verification mode only)
+      if (!RUN_CLAUDE) {
+        return;
+      }
+
+      // Cleanup LangSmith resources
+      for (const runId of testRunIds) {
+        try {
+          await cleanupNamespace({ run_id: runId });
+        } catch {
+          // Ignore cleanup errors
+        }
+      }
+
+      // Restore LangSmith env vars
+      cleanupLangSmithProject();
+
+      // Finalize experiment
+      finalizeExperiment();
+    });
+
+    const testCases = generateTestCases();
+
+    if (testCases.length === 0) {
       return;
     }
 
-    // Cleanup LangSmith resources
-    for (const runId of testRunIds) {
-      try {
-        await cleanupNamespace({ run_id: runId });
-      } catch {
-        // Ignore cleanup errors
-      }
-    }
+    for (const { taskName, treatmentName } of testCases) {
+      ls.test(
+        `${taskName} + ${treatmentName}`,
+        { inputs: { task_name: taskName, treatment_name: treatmentName } },
+        async () => {
+          // Load task
+          const task = loadTask(taskName);
 
-    // Finalize experiment
-    finalizeExperiment();
-  });
+          // Load treatment
+          const treatmentCfg = allTreatments[treatmentName];
+          if (!treatmentCfg) {
+            throw new Error(`Treatment not found: ${treatmentName}`);
+          }
 
-  const testCases = generateTestCases();
+          // Build skills
+          const skills = buildTreatmentSkills(treatmentCfg.skills);
+          const noiseTasks = treatmentCfg.noise_tasks
+            ? buildNoiseTasks(treatmentCfg.noise_tasks)
+            : [];
 
-  // Skip if no test cases (e.g., task has no default_treatments)
-  if (testCases.length === 0) {
-    it.skip("No test cases generated", () => {});
-    return;
-  }
+          // Generate run_id for namespace isolation
+          const runId = uuidv4();
+          if (RUN_CLAUDE) {
+            testRunIds.push(runId);
+          }
 
-  for (const { taskName, treatmentName } of testCases) {
-    it(
-      `${taskName} + ${treatmentName}`,
-      async () => {
-        // Load task
-        const task = loadTask(taskName);
+          // Build template variables from task config
+          const templateVars: Record<string, string> = { run_id: runId };
+          for (const [key, template] of Object.entries(
+            task.setup.templateVars,
+          )) {
+            templateVars[key] = template.replace("{run_id}", runId);
+          }
 
-        // Load treatment
-        const treatmentCfg = allTreatments[treatmentName];
-        if (!treatmentCfg) {
-          throw new Error(`Treatment not found: ${treatmentName}`);
-        }
+          let prompt = task.renderPrompt(templateVars);
 
-        // Build skills
-        const skills = buildTreatmentSkills(treatmentCfg.skills);
-        const noiseTasks = treatmentCfg.noise_tasks
-          ? buildNoiseTasks(treatmentCfg.noise_tasks)
-          : [];
+          // Add noise tasks to prompt if any
+          if (noiseTasks.length > 0) {
+            const noisePrompts = noiseTasks
+              .map((nt) => `\n\nAdditional task:\n${nt.prompt}`)
+              .join("");
+            prompt = prompt + noisePrompts;
+          }
 
-        // Generate run_id for namespace isolation
-        const runId = uuidv4();
-        if (RUN_CLAUDE) {
-          testRunIds.push(runId);
-        }
+          // Verify setup is correct
+          expect(task.name).toBe(taskName);
+          expect(treatmentCfg.name).toBe(treatmentName);
+          expect(prompt).toBeTruthy();
+          expect(runId).toBeTruthy();
 
-        // Build template variables from task config
-        const templateVars: Record<string, string> = { run_id: runId };
-        for (const [key, template] of Object.entries(task.setup.templateVars)) {
-          templateVars[key] = template.replace("{run_id}", runId);
-        }
+          if (!RUN_CLAUDE) {
+            // Setup verification only - log what would be tested
+            console.log(`[${taskName}] + [${treatmentName}]`);
+            console.log(
+              `  Skills: ${Object.keys(skills).join(", ") || "none"}`,
+            );
+            console.log(`  Run ID: ${runId}`);
+            return;
+          }
 
-        let prompt = task.renderPrompt(templateVars);
+          // === FULL EXECUTION MODE ===
 
-        // Add noise tasks to prompt if any
-        if (noiseTasks.length > 0) {
-          const noisePrompts = noiseTasks
-            .map((nt) => `\n\nAdditional task:\n${nt.prompt}`)
-            .join("");
-          prompt = prompt + noisePrompts;
-        }
+          // Setup test context
+          const { testDir, logger } = setupTest("task_test");
 
-        // Verify setup is correct
-        expect(task.name).toBe(taskName);
-        expect(treatmentCfg.name).toBe(treatmentName);
-        expect(prompt).toBeTruthy();
-        expect(runId).toBeTruthy();
+          // Run data handlers (upload traces, datasets, etc.)
+          if (task.dataDir && existsSync(task.dataDir)) {
+            await runTaskHandlers(
+              task.setup.dataHandlers,
+              task.dataDir,
+              process.env.LANGSMITH_PROJECT || null,
+              runId,
+            );
+          }
 
-        if (!RUN_CLAUDE) {
-          // Setup verification only - log what would be tested
-          console.log(`[${taskName}] + [${treatmentName}]`);
-          console.log(`  Skills: ${Object.keys(skills).join(", ") || "none"}`);
+          // Setup test context with skills, claude_md, environment
+          setupTestContext(testDir, {
+            skills,
+            claudeMd: treatmentCfg.claude_md,
+            environmentDir: task.environmentDir || undefined,
+          });
+
+          console.log(`\n[${taskName}] + [${treatmentName}]`);
+          console.log(`  Test dir: ${testDir}`);
           console.log(`  Run ID: ${runId}`);
-          return;
-        }
+          console.log(`  Skills: ${Object.keys(skills).join(", ") || "none"}`);
 
-        // === FULL EXECUTION MODE ===
+          // Pass experiment trace context to Docker so stop_hook nests CC traces
+          // under the experiment run (visible when clicking the experiment row)
+          const ccEnvKeys = setExperimentTraceEnv();
 
-        // Setup test context
-        const { testDir, logger } = setupTest("task_test");
+          // Run Claude
+          let result: ReturnType<typeof runClaude>;
+          try {
+            result = runClaude(testDir, prompt, {
+              timeout: 600,
+              logger,
+              treatmentName,
+            });
+          } finally {
+            cleanupExperimentTraceEnv(ccEnvKeys);
+          }
 
-        // Run data handlers (upload traces, datasets, etc.)
-        const langsmithProject = process.env.LANGSMITH_PROJECT || null;
-        let traceIdMap: Record<string, string> = {};
-        if (task.dataDir && existsSync(task.dataDir)) {
-          traceIdMap = await runTaskHandlers(
-            task.setup.dataHandlers,
-            task.dataDir,
-            langsmithProject,
-            runId
+          // Parse output and extract events
+          const parsed = parseOutput(result.stdout);
+          const events = extractEvents(parsed);
+
+          console.log(
+            `  Duration: ${events.duration_seconds?.toFixed(0) || "?"}s`,
           );
-        }
+          console.log(`  Turns: ${events.num_turns || "?"}`);
+          console.log(
+            `  Skills invoked: ${events.skills_invoked?.join(", ") || "none"}`,
+          );
 
-        // Setup test context with skills, claude_md, environment
-        setupTestContext(testDir, {
-          skills,
-          claudeMd: treatmentCfg.claude_md,
-          environmentDir: task.environmentDir || undefined,
-        });
+          // Basic validation only - task-specific validators are Python and run via pytest
+          // Python test runner loads validators from task.load_validators() for full checks
+          const passed: string[] = [];
+          const failed: string[] = [];
 
-        console.log(`\n[${taskName}] + [${treatmentName}]`);
-        console.log(`  Test dir: ${testDir}`);
-        console.log(`  Run ID: ${runId}`);
-        console.log(`  Skills: ${Object.keys(skills).join(", ") || "none"}`);
+          if (events.skills_invoked && events.skills_invoked.length > 0) {
+            passed.push("skills_invoked");
+          }
+          if (result.returncode === 0) {
+            passed.push("claude_completed");
+          } else {
+            failed.push("claude_failed");
+          }
 
-        // Run Claude
-        const result = runClaude(testDir, prompt, {
-          timeout: 600,
-          logger,
-          treatmentName,
-        });
+          // Log outputs to LangSmith experiment
+          ls.logOutputs({
+            skills_invoked: events.skills_invoked || [],
+            passed_checks: passed,
+            failed_checks: failed,
+          });
 
-        // Parse output and extract events
-        const parsed = parseOutput(result.stdout);
-        const events = extractEvents(parsed);
+          // Log feedback scores to LangSmith experiment
+          const totalChecks = passed.length + failed.length;
+          const duration = events.duration_seconds || 0;
+          const numTurns = events.num_turns || 0;
 
-        console.log(`  Duration: ${events.duration_seconds?.toFixed(0) || "?"}s`);
-        console.log(`  Turns: ${events.num_turns || "?"}`);
-        console.log(`  Skills invoked: ${events.skills_invoked?.join(", ") || "none"}`);
+          if (duration) {
+            ls.logFeedback({ key: "duration_seconds", score: duration });
+          }
+          if (numTurns) {
+            ls.logFeedback({ key: "num_turns", score: numTurns });
+          }
+          if (totalChecks > 0) {
+            ls.logFeedback({
+              key: "checks_pass_rate",
+              score: passed.length / totalChecks,
+            });
+          }
 
-        // Basic validation only - task-specific validators are Python and run via pytest
-        // Python test runner loads validators from task.load_validators() for full checks
-        const passed: string[] = [];
-        const failed: string[] = [];
+          // Record results (local experiment logs)
+          recordResult(
+            logger,
+            treatmentName,
+            events,
+            passed,
+            failed,
+            testDir,
+            runId,
+          );
 
-        if (events.skills_invoked && events.skills_invoked.length > 0) {
-          passed.push("skills_invoked");
-        }
-        if (result.returncode === 0) {
-          passed.push("claude_completed");
-        } else {
-          failed.push("claude_failed");
-        }
-
-        // Record results
-        recordResult(logger, treatmentName, events, passed, failed, testDir, runId);
-
-        // Assert no failures
-        if (failed.length > 0) {
-          throw new Error(`Validation failed: ${failed.join(", ")}`);
-        }
-      },
-      CLAUDE_TIMEOUT
-    );
-  }
-});
+          // Assert no failures
+          if (failed.length > 0) {
+            throw new Error(`Validation failed: ${failed.join(", ")}`);
+          }
+        },
+        CLAUDE_TIMEOUT,
+      );
+    }
+  },
+  // Pass projectName so the experiment is created in our bench-project-{uuid}
+  // with a stable name like "skills-benchmark:a9e089bc" (like pytest does).
+  langsmithInfo ? { projectName: langsmithInfo.experimentName } : {},
+);

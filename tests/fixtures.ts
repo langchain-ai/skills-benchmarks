@@ -29,10 +29,13 @@ import { join, resolve, dirname } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { config as loadEnv } from "dotenv";
+import { v4 as uuidv4 } from "uuid";
+import { getCurrentRunTree } from "langsmith/traceable";
 
 import {
   runClaudeInDocker,
   runNodeInDocker,
+  runShell,
 } from "../scaffold/typescript/utils.js";
 import {
   ExperimentLogger,
@@ -52,6 +55,112 @@ export const PROJECT_ROOT = resolve(__dirname, "..");
 
 // Load .env file
 loadEnv({ path: join(PROJECT_ROOT, ".env") });
+
+// =============================================================================
+// LANGSMITH PROJECT ISOLATION
+// =============================================================================
+
+let savedLangSmithProject: string | undefined;
+let savedLangSmithExperiment: string | undefined;
+
+export interface LangSmithProjectInfo {
+  projectName: string;
+  experimentName: string;
+  /** The UUID used in bench-project-{runId} — register for cleanup. */
+  runId: string;
+}
+
+/**
+ * Create isolated LangSmith project for trace uploads.
+ * Matches Python's langsmith_env fixture: bench-project-{uuid}.
+ *
+ * Returns both the project name and a stable experiment name
+ * in the format "skills-benchmark:{shortid}" (like pytest).
+ */
+export function setupLangSmithProject(): LangSmithProjectInfo {
+  const runId = uuidv4();
+  const shortId = runId.slice(0, 8);
+  const projectName = `bench-project-${runId}`;
+  const testSuite = process.env.LANGSMITH_TEST_SUITE || "skills-benchmark";
+  const experimentName = `${testSuite}:${shortId}`;
+
+  savedLangSmithProject = process.env.LANGSMITH_PROJECT;
+  savedLangSmithExperiment = process.env.LANGSMITH_EXPERIMENT;
+
+  process.env.LANGSMITH_PROJECT = projectName;
+  process.env.LANGSMITH_EXPERIMENT = testSuite;
+
+  console.log(`\nLANGSMITH PROJECT: ${projectName}`);
+  console.log(`LANGSMITH EXPERIMENT: ${experimentName}\n`);
+  return { projectName, experimentName, runId };
+}
+
+/**
+ * Restore original LangSmith env vars.
+ */
+export function cleanupLangSmithProject(): void {
+  if (savedLangSmithProject !== undefined) {
+    process.env.LANGSMITH_PROJECT = savedLangSmithProject;
+  } else {
+    delete process.env.LANGSMITH_PROJECT;
+  }
+  if (savedLangSmithExperiment !== undefined) {
+    process.env.LANGSMITH_EXPERIMENT = savedLangSmithExperiment;
+  } else {
+    delete process.env.LANGSMITH_EXPERIMENT;
+  }
+}
+
+// =============================================================================
+// LANGSMITH TRACE CONTEXT
+// =============================================================================
+
+/**
+ * Set env vars so the stop hook nests CC traces under the experiment run.
+ * Matches Python's set_experiment_trace_env().
+ *
+ * Must be called inside a langsmith/vitest test function (traceable context).
+ * Returns list of env var keys that were set (for cleanup).
+ */
+export function setExperimentTraceEnv(): string[] {
+  try {
+    const runTree = getCurrentRunTree(true); // permitAbsentRunTree = true
+    if (!runTree) {
+      console.log(
+        "  [trace] No active run tree found — CC traces won't nest under experiment",
+      );
+      return [];
+    }
+
+    const keys: string[] = [];
+    process.env.CC_LS_TRACE_ID = String(runTree.trace_id);
+    keys.push("CC_LS_TRACE_ID");
+    process.env.CC_LS_PARENT_RUN_ID = String(runTree.id);
+    keys.push("CC_LS_PARENT_RUN_ID");
+    process.env.CC_LS_DOTTED_ORDER = runTree.dotted_order || "";
+    keys.push("CC_LS_DOTTED_ORDER");
+    if (runTree.project_name) {
+      process.env.CC_LANGSMITH_PROJECT = runTree.project_name;
+      keys.push("CC_LANGSMITH_PROJECT");
+    }
+    console.log(
+      `  [trace] Nesting CC traces under run ${runTree.id} (project: ${runTree.project_name})`,
+    );
+    return keys;
+  } catch (e) {
+    console.log(`  [trace] Failed to get run tree: ${e}`);
+    return [];
+  }
+}
+
+/**
+ * Clean up trace context env vars after Claude run.
+ */
+export function cleanupExperimentTraceEnv(keys: string[]): void {
+  for (const key of keys) {
+    delete process.env[key];
+  }
+}
 
 // =============================================================================
 // EXPERIMENT COORDINATION (for parallel workers)
@@ -103,7 +212,6 @@ function getOrCreateExperimentId(name: string): string {
 export interface TestContext {
   testDir: string;
   logger: ExperimentLogger;
-  cleanup: () => void;
 }
 
 let globalLogger: ExperimentLogger | null = null;
@@ -128,9 +236,6 @@ export function setupTest(experimentName: string): TestContext {
   return {
     testDir,
     logger: globalLogger,
-    cleanup: () => {
-      // Vitest handles cleanup via tmp directory
-    },
   };
 }
 
@@ -207,6 +312,14 @@ export function setupTestContext(testDir: string, options: SetupOptions): void {
       const dest = join(testDir, item);
       cpSync(src, dest, { recursive: true });
     }
+  }
+
+  // Set up LangSmith tracing hook if enabled (matches Python's conftest.py)
+  if (process.env.TRACE_TO_LANGSMITH?.toLowerCase() === "true") {
+    const project = process.env.CC_LANGSMITH_PROJECT || "claude-code-benchmark";
+    runShell("setup.sh", ["setup-langsmith-hook", testDir, project], {
+      check: false,
+    });
   }
 }
 

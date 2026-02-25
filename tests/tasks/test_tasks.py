@@ -175,7 +175,10 @@ def run_validators(validators: list, test_dir: Path, outputs: dict) -> tuple[lis
     for validator in validators:
         with ls_trace(
             name=validator.__name__,
-            inputs={"treatment_name": outputs.get("treatment_name"), "run_id": outputs.get("run_id")},
+            inputs={
+                "treatment_name": outputs.get("treatment_name"),
+                "run_id": outputs.get("run_id"),
+            },
         ):
             passed, failed = validator(test_dir, outputs)
             all_passed.extend(passed)

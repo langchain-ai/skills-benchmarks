@@ -11,6 +11,8 @@ import time
 from pathlib import Path
 
 from dotenv import load_dotenv
+from langsmith.run_helpers import tracing_context
+from pydantic import BaseModel, Field
 
 load_dotenv(Path(__file__).parent.parent.parent / ".env")
 
@@ -241,23 +243,20 @@ def get_eval_model(model: str = None, temperature: float = 0):
     )
 
 
+class EvalResult(BaseModel):
+    """Structured output for LLM-based evaluation."""
+
+    passed: bool = Field(description="Whether output meets expectations")
+    reason: str = Field(description="Brief explanation")
+
+
 def evaluate_with_schema(prompt: str, model: str = None) -> dict:
     """Evaluate with structured output. Returns {"pass": bool, "reason": str}."""
-    from pydantic import BaseModel, Field
-
-    class EvalResult(BaseModel):
-        passed: bool = Field(description="Whether output meets expectations")
-        reason: str = Field(description="Brief explanation")
-
-    original_project = os.environ.get("LANGSMITH_PROJECT")
-    os.environ["LANGSMITH_PROJECT"] = "skills-validation"
     try:
-        result = get_eval_model(model).with_structured_output(EvalResult).invoke(prompt)
+        # Detach from parent trace context (e.g. ls_test) so evaluator traces
+        # go to "skills-validation" instead of inheriting the experiment project.
+        with tracing_context(project_name="skills-validation", parent=False):
+            result = get_eval_model(model).with_structured_output(EvalResult).invoke(prompt)
         return {"pass": result.passed, "reason": result.reason}
     except Exception as e:
         return {"pass": False, "reason": f"eval error: {str(e)[:30]}"}
-    finally:
-        if original_project:
-            os.environ["LANGSMITH_PROJECT"] = original_project
-        else:
-            os.environ.pop("LANGSMITH_PROJECT", None)

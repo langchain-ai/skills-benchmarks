@@ -335,7 +335,7 @@ def worker_id(request):
 
 
 @pytest.fixture(scope="session")
-def langsmith_project(worker_id, request):
+def langsmith_env(worker_id, request):
     """Create isolated LangSmith project for trace uploads."""
     if _is_unit_tests_only(request.config):
         yield None
@@ -346,7 +346,13 @@ def langsmith_project(worker_id, request):
     _register_run_id_for_cleanup(run_id)
 
     old_project = os.environ.get("LANGSMITH_PROJECT")
+    old_experiment = os.environ.get("LANGSMITH_EXPERIMENT")
     os.environ["LANGSMITH_PROJECT"] = project_name
+    # Decouple experiment name from temp project so experiments use a stable prefix
+    # (e.g. "skills-benchmark" instead of "bench-project-{uuid}")
+    os.environ["LANGSMITH_EXPERIMENT"] = os.environ.get(
+        "LANGSMITH_TEST_SUITE", "skills-benchmark"
+    )
     print(f"\nLANGSMITH PROJECT: {project_name}\n")
 
     yield project_name
@@ -355,6 +361,10 @@ def langsmith_project(worker_id, request):
         os.environ["LANGSMITH_PROJECT"] = old_project
     elif "LANGSMITH_PROJECT" in os.environ:
         del os.environ["LANGSMITH_PROJECT"]
+    if old_experiment:
+        os.environ["LANGSMITH_EXPERIMENT"] = old_experiment
+    elif "LANGSMITH_EXPERIMENT" in os.environ:
+        del os.environ["LANGSMITH_EXPERIMENT"]
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -620,7 +630,7 @@ def record_result(test_dir, experiment_logger, request):
 @pytest.fixture(scope="function")
 def fixtures(
     verify_environment,
-    langsmith_project,
+    langsmith_env,
     test_dir,
     setup_test_context,
     run_claude,
@@ -635,7 +645,7 @@ def fixtures(
             fixtures.record_result(events, passed, failed)
     """
     return SimpleNamespace(
-        langsmith_project=langsmith_project,
+        langsmith_env=langsmith_env,
         test_dir=test_dir,
         setup_test_context=setup_test_context,
         run_claude=run_claude,

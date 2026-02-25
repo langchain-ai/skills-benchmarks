@@ -281,13 +281,6 @@ def test_task_treatment(task_name, treatment_name, fixtures):
         "noise_tasks": treatment_cfg.noise_tasks,
         "trace_id_map": trace_id_map,
     }
-    # Log initial outputs so trace_feedback gets inputs
-    ls_testing.log_outputs(
-        {
-            "skills_invoked": events.get("skills_invoked", []),
-        }
-    )
-
     # Wrap all validators — creates parent evaluator trace in "evaluators" project
     with ls_testing.trace_feedback(name="Validation"):
         passed, failed = run_validators(validators, fixtures.test_dir, outputs)

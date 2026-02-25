@@ -11,7 +11,6 @@ import time
 from pathlib import Path
 
 from dotenv import load_dotenv
-from langsmith.run_helpers import tracing_context
 from pydantic import BaseModel, Field
 
 load_dotenv(Path(__file__).parent.parent.parent / ".env")
@@ -253,10 +252,7 @@ class EvalResult(BaseModel):
 def evaluate_with_schema(prompt: str, model: str = None) -> dict:
     """Evaluate with structured output. Returns {"pass": bool, "reason": str}."""
     try:
-        # Detach from parent trace context (e.g. ls_test) so evaluator traces
-        # go to "skills-validation" instead of inheriting the experiment project.
-        with tracing_context(project_name="skills-validation", parent=False):
-            result = get_eval_model(model).with_structured_output(EvalResult).invoke(prompt)
+        result = get_eval_model(model).with_structured_output(EvalResult).invoke(prompt)
         return {"pass": result.passed, "reason": result.reason}
     except Exception as e:
         return {"pass": False, "reason": f"eval error: {str(e)[:30]}"}

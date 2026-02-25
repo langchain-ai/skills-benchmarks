@@ -81,8 +81,7 @@ export function setupLangSmithProject(): LangSmithProjectInfo {
   const runId = uuidv4();
   const shortId = runId.slice(0, 8);
   const projectName = `bench-project-${runId}`;
-  const testSuite =
-    process.env.LANGSMITH_TEST_SUITE || "skills-benchmark";
+  const testSuite = process.env.LANGSMITH_TEST_SUITE || "skills-benchmark";
   const experimentName = `${testSuite}:${shortId}`;
 
   savedLangSmithProject = process.env.LANGSMITH_PROJECT;
@@ -127,7 +126,9 @@ export function setExperimentTraceEnv(): string[] {
   try {
     const runTree = getCurrentRunTree(true); // permitAbsentRunTree = true
     if (!runTree) {
-      console.log("  [trace] No active run tree found — CC traces won't nest under experiment");
+      console.log(
+        "  [trace] No active run tree found — CC traces won't nest under experiment",
+      );
       return [];
     }
 
@@ -142,7 +143,9 @@ export function setExperimentTraceEnv(): string[] {
       process.env.CC_LANGSMITH_PROJECT = runTree.project_name;
       keys.push("CC_LANGSMITH_PROJECT");
     }
-    console.log(`  [trace] Nesting CC traces under run ${runTree.id} (project: ${runTree.project_name})`);
+    console.log(
+      `  [trace] Nesting CC traces under run ${runTree.id} (project: ${runTree.project_name})`,
+    );
     return keys;
   } catch (e) {
     console.log(`  [trace] Failed to get run tree: ${e}`);
@@ -209,7 +212,6 @@ function getOrCreateExperimentId(name: string): string {
 export interface TestContext {
   testDir: string;
   logger: ExperimentLogger;
-  cleanup: () => void;
 }
 
 let globalLogger: ExperimentLogger | null = null;
@@ -234,9 +236,6 @@ export function setupTest(experimentName: string): TestContext {
   return {
     testDir,
     logger: globalLogger,
-    cleanup: () => {
-      // Vitest handles cleanup via tmp directory
-    },
   };
 }
 
@@ -317,8 +316,7 @@ export function setupTestContext(testDir: string, options: SetupOptions): void {
 
   // Set up LangSmith tracing hook if enabled (matches Python's conftest.py)
   if (process.env.TRACE_TO_LANGSMITH?.toLowerCase() === "true") {
-    const project =
-      process.env.CC_LANGSMITH_PROJECT || "claude-code-benchmark";
+    const project = process.env.CC_LANGSMITH_PROJECT || "claude-code-benchmark";
     runShell("setup.sh", ["setup-langsmith-hook", testDir, project], {
       check: false,
     });

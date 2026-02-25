@@ -26,10 +26,15 @@
  *   pnpm vitest tests/tasks/test_tasks.test.ts -t "ls-evaluator"
  */
 
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import * as ls from "langsmith/vitest";
+import { beforeAll, afterAll, expect } from "vitest";
 import { v4 as uuidv4 } from "uuid";
 import { existsSync } from "node:fs";
-import { listTasks, loadTask, type Task } from "../../scaffold/typescript/tasks.js";
+import {
+  listTasks,
+  loadTask,
+  type Task,
+} from "../../scaffold/typescript/tasks.js";
 import {
   loadTreatments,
   buildTreatmentSkills,
@@ -40,6 +45,10 @@ import { type Treatment } from "../../scaffold/typescript/schema.js";
 import {
   setupTest,
   setupTestContext,
+  setupLangSmithProject,
+  cleanupLangSmithProject,
+  setExperimentTraceEnv,
+  cleanupExperimentTraceEnv,
   runClaude,
   recordResult,
   finalizeExperiment,
@@ -84,7 +93,7 @@ interface TestCase {
  */
 function expandTreatmentPatterns(
   patterns: string[],
-  allTreatments: Record<string, TreatmentConfig>
+  allTreatments: Record<string, TreatmentConfig>,
 ): string[] {
   const treatmentNames = Object.keys(allTreatments);
   const expanded: string[] = [];
@@ -96,7 +105,7 @@ function expandTreatmentPatterns(
       const matches = treatmentNames.filter((t) => t.startsWith(prefix));
       if (matches.length === 0) {
         throw new Error(
-          `No treatments match pattern: ${pattern}. Available: ${treatmentNames.join(", ")}`
+          `No treatments match pattern: ${pattern}. Available: ${treatmentNames.join(", ")}`,
         );
       }
       expanded.push(...matches);
@@ -104,7 +113,7 @@ function expandTreatmentPatterns(
       // Exact match
       if (!(pattern in allTreatments)) {
         throw new Error(
-          `Treatment not found: ${pattern}. Available: ${treatmentNames.join(", ")}`
+          `Treatment not found: ${pattern}. Available: ${treatmentNames.join(", ")}`,
         );
       }
       expanded.push(pattern);
@@ -122,7 +131,7 @@ function generateTestCases(): TestCase[] {
   // Validate task filter
   if (TASK_FILTER && !allTasks.includes(TASK_FILTER)) {
     throw new Error(
-      `Task not found: ${TASK_FILTER}. Available: ${allTasks.join(", ")}`
+      `Task not found: ${TASK_FILTER}. Available: ${allTasks.join(", ")}`,
     );
   }
 
@@ -161,18 +170,30 @@ function generateTestCases(): TestCase[] {
 // TEST SUITE
 // =============================================================================
 
-describe("Task/Treatment Tests", () => {
-  let allTreatments: Record<string, TreatmentConfig>;
+const testSuiteName = process.env.LANGSMITH_TEST_SUITE || "skills-benchmark";
 
-  beforeAll(() => {
-    allTreatments = loadTreatments();
-    if (RUN_CLAUDE) {
-      const env = verifyTestEnvironment();
-      if (!env.docker || !env.claude || !env.apiKeys) {
-        throw new Error("Environment not ready for Claude execution");
+// Create isolated LangSmith project BEFORE ls.describe so the experiment
+// is created in our bench-project-{uuid} instead of a random project name.
+const langsmithInfo = RUN_CLAUDE ? setupLangSmithProject() : undefined;
+
+ls.describe(
+  testSuiteName,
+  () => {
+    let allTreatments: Record<string, TreatmentConfig>;
+
+    beforeAll(() => {
+      allTreatments = loadTreatments();
+      if (RUN_CLAUDE) {
+        const env = verifyTestEnvironment();
+        if (!env.docker || !env.claude || !env.apiKeys) {
+          throw new Error("Environment not ready for Claude execution");
+        }
+        // Register project runId for cleanup (deletes bench-project-{runId})
+        if (langsmithInfo) {
+          testRunIds.push(langsmithInfo.runId);
+        }
       }
-    }
-  });
+    });
 
   afterAll(async () => {
     // Skip cleanup if we didn't run Claude (verification mode only)
@@ -189,6 +210,9 @@ describe("Task/Treatment Tests", () => {
       }
     }
 
+    // Restore LangSmith env vars
+    cleanupLangSmithProject();
+
     // Finalize experiment
     finalizeExperiment();
   });
@@ -197,13 +221,16 @@ describe("Task/Treatment Tests", () => {
 
   // Skip if no test cases (e.g., task has no default_treatments)
   if (testCases.length === 0) {
-    it.skip("No test cases generated", () => {});
+    ls.test("No test cases generated", { inputs: { skip: true } }, () => {
+      // noop — skipped
+    });
     return;
   }
 
   for (const { taskName, treatmentName } of testCases) {
-    it(
+    ls.test(
       `${taskName} + ${treatmentName}`,
+      { inputs: { task_name: taskName, treatment_name: treatmentName } },
       async () => {
         // Load task
         const task = loadTask(taskName);
@@ -269,7 +296,7 @@ describe("Task/Treatment Tests", () => {
             task.setup.dataHandlers,
             task.dataDir,
             langsmithProject,
-            runId
+            runId,
           );
         }
 
@@ -285,20 +312,33 @@ describe("Task/Treatment Tests", () => {
         console.log(`  Run ID: ${runId}`);
         console.log(`  Skills: ${Object.keys(skills).join(", ") || "none"}`);
 
+        // Pass experiment trace context to Docker so stop_hook nests CC traces
+        // under the experiment run (visible when clicking the experiment row)
+        const ccEnvKeys = setExperimentTraceEnv();
+
         // Run Claude
-        const result = runClaude(testDir, prompt, {
-          timeout: 600,
-          logger,
-          treatmentName,
-        });
+        let result: ReturnType<typeof runClaude>;
+        try {
+          result = runClaude(testDir, prompt, {
+            timeout: 600,
+            logger,
+            treatmentName,
+          });
+        } finally {
+          cleanupExperimentTraceEnv(ccEnvKeys);
+        }
 
         // Parse output and extract events
         const parsed = parseOutput(result.stdout);
         const events = extractEvents(parsed);
 
-        console.log(`  Duration: ${events.duration_seconds?.toFixed(0) || "?"}s`);
+        console.log(
+          `  Duration: ${events.duration_seconds?.toFixed(0) || "?"}s`,
+        );
         console.log(`  Turns: ${events.num_turns || "?"}`);
-        console.log(`  Skills invoked: ${events.skills_invoked?.join(", ") || "none"}`);
+        console.log(
+          `  Skills invoked: ${events.skills_invoked?.join(", ") || "none"}`,
+        );
 
         // Basic validation only - task-specific validators are Python and run via pytest
         // Python test runner loads validators from task.load_validators() for full checks
@@ -314,15 +354,54 @@ describe("Task/Treatment Tests", () => {
           failed.push("claude_failed");
         }
 
-        // Record results
-        recordResult(logger, treatmentName, events, passed, failed, testDir, runId);
+        // Log outputs to LangSmith experiment
+        ls.logOutputs({
+          skills_invoked: events.skills_invoked || [],
+          passed_checks: passed,
+          failed_checks: failed,
+        });
+
+        // Log feedback scores to LangSmith experiment
+        const totalChecks = passed.length + failed.length;
+        const duration = events.duration_seconds || 0;
+        const numTurns = events.num_turns || 0;
+
+        if (duration) {
+          ls.logFeedback({ key: "duration_seconds", score: duration });
+        }
+        if (numTurns) {
+          ls.logFeedback({ key: "num_turns", score: numTurns });
+        }
+        if (totalChecks > 0) {
+          ls.logFeedback({
+            key: "checks_pass_rate",
+            score: passed.length / totalChecks,
+          });
+        }
+
+        // Record results (local experiment logs)
+        recordResult(
+          logger,
+          treatmentName,
+          events,
+          passed,
+          failed,
+          testDir,
+          runId,
+        );
 
         // Assert no failures
         if (failed.length > 0) {
           throw new Error(`Validation failed: ${failed.join(", ")}`);
         }
       },
-      CLAUDE_TIMEOUT
+      CLAUDE_TIMEOUT,
     );
   }
-});
+  },
+  // Pass projectName so the experiment is created in our bench-project-{uuid}
+  // with a stable name like "skills-benchmark:a9e089bc" (like pytest does).
+  langsmithInfo
+    ? { projectName: langsmithInfo.experimentName }
+    : {},
+);

@@ -142,7 +142,13 @@ pnpm vitest tests/tasks/test_tasks.test.ts --pool=threads --poolOptions.threads.
 
 ## Results
 
-Results are saved to `logs/experiments/<experiment_id>/`:
+### LangSmith
+
+Results are tracked as [LangSmith experiments](https://docs.smith.langchain.com/evaluation). Each pytest invocation creates an experiment under the `skills-benchmark` dataset, where every task/treatment combination becomes a row with logged inputs, outputs, and feedback scores (pass rate, duration, turns). When `TRACE_TO_LANGSMITH=true`, Claude Code traces are nested under experiment rows — click a row to see the full session trace (all turns, LLM calls, and tool calls). See `.env.example` for configuration.
+
+### Local
+
+Results are also saved to `logs/experiments/<experiment_id>/`:
 
 ```
 logs/experiments/experiment_20260217_143052/

@@ -46,7 +46,7 @@ def validate_trace(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]
 def validate_scripts(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:
     """Track which skill scripts Claude used (informational)."""
     events = outputs.get("events", {}) if outputs else {}
-    return check_skill_scripts(test_dir, outputs, events)
+    return check_skill_scripts(outputs, events)
 
 
 VALIDATORS = [

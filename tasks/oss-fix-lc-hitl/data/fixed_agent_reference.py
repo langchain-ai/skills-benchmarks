@@ -66,9 +66,7 @@ def process_request(message: str, thread_id: str = "default") -> dict:
     """Process a user request through the agent."""
     # FIX 3: Pass thread_id config for state tracking
     config = {"configurable": {"thread_id": thread_id}}
-    result = agent.invoke(
-        {"messages": [{"role": "user", "content": message}]}, config=config
-    )
+    result = agent.invoke({"messages": [{"role": "user", "content": message}]}, config=config)
     return result
 
 

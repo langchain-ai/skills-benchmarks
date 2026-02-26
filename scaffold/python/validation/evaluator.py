@@ -217,13 +217,13 @@ def validate_evaluator_patterns(
             failed.append("Python: missing return dict with score")
 
         # Check for run outputs access
-        if re.search(r'run\[.outputs.\]|run\.outputs|run\.get\(.outputs', content):
+        if re.search(r"run\[.outputs.\]|run\.outputs|run\.get\(.outputs", content):
             passed.append("Python: accesses run outputs")
         else:
             failed.append("Python: missing run outputs access")
 
         # Check for example outputs access
-        if re.search(r'example\[.outputs.\]|example\.outputs|example\.get\(.outputs', content):
+        if re.search(r"example\[.outputs.\]|example\.outputs|example\.get\(.outputs", content):
             passed.append("Python: accesses example outputs")
         else:
             failed.append("Python: missing example outputs access")
@@ -235,7 +235,7 @@ def validate_evaluator_patterns(
     JS_ARROW_SIGNATURE = re.compile(
         r"=\s*\(\s*run\s*(:\s*\w+)?\s*,\s*example\s*(:\s*\w+)?\s*\)\s*=>"
     )
-    JS_RETURN_SCORE = re.compile(r"return\s*\{[^}]*\w+\s*:")
+    JS_RETURN_SCORE = re.compile(r"return\s*\{[^}]*(?:\w+\s*:|score)")
 
     js_path = find_evaluator_file(test_dir, javascript_dir, ["ts", "js"])
     if js_path:
@@ -367,9 +367,9 @@ def _strip_ts_module_syntax(content: str) -> str:
     Keeps all TypeScript type syntax (interfaces, annotations) intact
     since tsx handles them natively.
     """
-    content = re.sub(r'^\s*import\s+.*?;\s*$', '', content, flags=re.MULTILINE)
-    content = re.sub(r'\bexport\s+default\s+', '', content)
-    content = re.sub(r'\bexport\s+', '', content)
+    content = re.sub(r"^\s*import\s+.*?;\s*$", "", content, flags=re.MULTILINE)
+    content = re.sub(r"\bexport\s+default\s+", "", content)
+    content = re.sub(r"\bexport\s+", "", content)
     return content
 
 
@@ -534,9 +534,7 @@ def validate_evaluator_upload(
         # The datasets (e.g. bench-be-{run_id}, bench-fe-{run_id}) are created fresh
         # per test run, so any rule attached to them was uploaded by Claude.
         matching = [
-            r
-            for r in rules
-            if run_id in (r.get("dataset_name") or r.get("display_name") or "")
+            r for r in rules if run_id in (r.get("dataset_name") or r.get("display_name") or "")
         ]
 
         if not matching:

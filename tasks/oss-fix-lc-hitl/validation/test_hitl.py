@@ -163,7 +163,7 @@ def test_dangerous_action_interrupts(ctx: TestContext):
             else:
                 ctx.fail_test(
                     TEST_NAME,
-                    f"no interrupt detected — expected __interrupt__ in result",
+                    "no interrupt detected — expected __interrupt__ in result",
                 )
     except Exception as e:
         ctx.fail_test(TEST_NAME, str(e))

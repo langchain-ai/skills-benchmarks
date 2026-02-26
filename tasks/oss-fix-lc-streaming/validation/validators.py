@@ -18,8 +18,3 @@ validate_execution = make_execution_validator(
 VALIDATORS = [
     validate_execution,
 ]
-
-
-def run_all_validators(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:
-    """Run the main execution validator and return results."""
-    return validate_execution(test_dir, outputs)

@@ -54,13 +54,3 @@ VALIDATORS = [
     validate_trace,
     validate_scripts,
 ]
-
-
-def run_all_validators(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:
-    """Run all validators and return combined results."""
-    all_passed, all_failed = [], []
-    for validator in VALIDATORS:
-        passed, failed = validator(test_dir, outputs)
-        all_passed.extend(passed)
-        all_failed.extend(failed)
-    return all_passed, all_failed

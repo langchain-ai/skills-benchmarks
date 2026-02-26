@@ -235,7 +235,7 @@ def validate_evaluator_patterns(
     JS_ARROW_SIGNATURE = re.compile(
         r"=\s*\(\s*run\s*(:\s*\w+)?\s*,\s*example\s*(:\s*\w+)?\s*\)\s*=>"
     )
-    JS_RETURN_SCORE = re.compile(r"return\s*\{[^}]*\w+\s*:")
+    JS_RETURN_SCORE = re.compile(r"return\s*\{[^}]*(?:\w+\s*:|score)")
 
     js_path = find_evaluator_file(test_dir, javascript_dir, ["ts", "js"])
     if js_path:

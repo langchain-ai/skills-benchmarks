@@ -334,7 +334,7 @@ def worker_id(request):
     return "master"
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def langsmith_env(worker_id, request):
     """Create isolated LangSmith project for trace uploads."""
     if _is_unit_tests_only(request.config):

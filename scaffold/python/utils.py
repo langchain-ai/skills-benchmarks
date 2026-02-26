@@ -381,8 +381,10 @@ class EvalResult(BaseModel):
 def evaluate_with_schema(prompt: str, model: str = None) -> dict:
     """Evaluate with structured output. Returns {"pass": bool, "reason": str}."""
     try:
+        # Suppress langchain/pydantic serialization warning — the parsed field type
+        # on AIMessage doesn't match EvalResult, but the result is correct.
         with warnings.catch_warnings():
-            warnings.filterwarnings("ignore", category=UserWarning, module="pydantic")
+            warnings.filterwarnings("ignore", message="Pydantic serializer warnings")
             result = get_eval_model(model).with_structured_output(EvalResult).invoke(prompt)
         return {"pass": result.passed, "reason": result.reason}
     except Exception as e:

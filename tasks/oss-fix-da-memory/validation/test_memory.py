@@ -158,32 +158,68 @@ def _check_route_hierarchy_source(ctx: TestContext):
 
 
 def test_persistent_path_routing(ctx: TestContext):
-    """Check that persistent data uses correct paths.
+    """Check that persistent data doesn't use an ephemeral route.
 
     Bug: Code saves preferences to /memory/cache/ which matches the ephemeral
-    StateBackend route, instead of /memory/ which uses persistent StoreBackend.
+    StateBackend route (longest-prefix match), instead of a persistent route.
+
+    Valid fixes include:
+    - Change path from /memory/cache/prefs to /memory/prefs (avoids ephemeral route)
+    - Remove /memory/cache/ route or change it to StoreBackend
+    - Any other approach that ensures prefs don't hit an ephemeral backend
     """
     TEST_NAME = "persistent_path_routing"
 
-    buggy_path = r"/memory/cache/prefs"
-    correct_path_patterns = [
-        r"/memory/prefs",
-        r"/memory/user",
-        r"/persistent/",
-    ]
+    # Extract all /memory/...prefs... paths from source (handles f-strings, plain strings)
+    pref_paths = set()
+    for match in re.finditer(r"(/memory/[^\s\"'{}]*prefs[^\s\"'{}]*)", ctx.source):
+        pref_paths.add(match.group(1))
 
-    has_buggy_path = re.search(buggy_path, ctx.source)
-    has_correct_path = any(re.search(p, ctx.source) for p in correct_path_patterns)
-    routes_buggy = re.search(r"/memory/cache/.*StateBackend", ctx.source, re.DOTALL)
-
-    if not has_buggy_path or has_correct_path or not routes_buggy:
+    if not pref_paths:
+        # Prefs path was completely changed or removed
         ctx.pass_test(TEST_NAME)
-    else:
-        ctx.fail_test(
-            TEST_NAME,
-            "/memory/cache/ matches longer prefix than /memory/, "
-            "so files there are ephemeral - use /memory/ directly or fix routes",
+        return
+
+    # Extract route definitions to see what's ephemeral
+    ephemeral_prefixes = set()
+    routes_match = re.search(r"routes\s*=\s*\{([^}]+)\}", ctx.source, re.DOTALL)
+    if routes_match:
+        routes_content = routes_match.group(1)
+        for route_match in re.finditer(
+            r'["\']([^"\']+)["\']\s*:\s*StateBackend', routes_content
+        ):
+            ephemeral_prefixes.add(route_match.group(1))
+
+    # Check if any pref path would match an ephemeral route (longest-prefix)
+    for pref_path in pref_paths:
+        matching_ephemeral = [
+            prefix for prefix in ephemeral_prefixes if pref_path.startswith(prefix)
+        ]
+        if not matching_ephemeral:
+            continue
+
+        # Check if there's a persistent route with an even longer prefix
+        persistent_prefixes = set()
+        if routes_match:
+            for route_match in re.finditer(
+                r'["\']([^"\']+)["\']\s*:\s*StoreBackend', routes_match.group(1)
+            ):
+                persistent_prefixes.add(route_match.group(1))
+
+        longest_match = max(
+            [p for p in (ephemeral_prefixes | persistent_prefixes) if pref_path.startswith(p)],
+            key=len,
+            default="",
         )
+        if longest_match in ephemeral_prefixes:
+            ctx.fail_test(
+                TEST_NAME,
+                f"{pref_path} resolves to ephemeral route '{longest_match}' "
+                f"(longest-prefix match) - preferences will be lost on restart",
+            )
+            return
+
+    ctx.pass_test(TEST_NAME)
 
 
 # =============================================================================

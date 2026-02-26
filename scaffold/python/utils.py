@@ -11,10 +11,11 @@ import subprocess
 import time
 from pathlib import Path
 
-from dotenv import load_dotenv
-from pydantic import BaseModel, Field
-
-load_dotenv(Path(__file__).parent.parent.parent / ".env")
+try:
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).parent.parent.parent / ".env")
+except ImportError:
+    pass  # dotenv not available in Docker — env vars set by docker.sh
 
 SHELL_DIR = Path(__file__).parent.parent / "shell"
 SCAFFOLD_PYTHON_DIR = Path(__file__).parent
@@ -370,16 +371,22 @@ def get_eval_model(model: str = None, temperature: float = 0):
     )
 
 
-class EvalResult(BaseModel):
-    """Structured output for LLM-based evaluation."""
+def _get_eval_result_class():
+    from pydantic import BaseModel, Field
 
-    passed: bool = Field(description="Whether output meets expectations")
-    reason: str = Field(description="Brief explanation")
+    class EvalResult(BaseModel):
+        """Structured output for LLM-based evaluation."""
+
+        passed: bool = Field(description="Whether output meets expectations")
+        reason: str = Field(description="Brief explanation")
+
+    return EvalResult
 
 
 def evaluate_with_schema(prompt: str, model: str = None) -> dict:
     """Evaluate with structured output. Returns {"pass": bool, "reason": str}."""
     try:
+        EvalResult = _get_eval_result_class()
         result = (
             get_eval_model(model)
             .with_structured_output(EvalResult, method="json_mode")

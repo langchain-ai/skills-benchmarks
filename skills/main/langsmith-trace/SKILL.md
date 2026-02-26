@@ -103,7 +103,11 @@ const retrieveDocs = traceable(async (query: string): Promise<string[]> => {
 }, { name: "retrieve_docs" });
 
 const generateAnswer = traceable(async (question: string, docs: string[]): Promise<string> => {
-  return await client.chat.completions.create(...);
+  const resp = await client.chat.completions.create({
+    model: "gpt-4o-mini",
+    messages: [{ role: "user", content: `${question}\nContext: ${docs.join("\n")}` }],
+  });
+  return resp.choices[0].message.content || "";
 }, { name: "generate_answer" });
 
 const ragPipeline = traceable(async (question: string): Promise<string> => {

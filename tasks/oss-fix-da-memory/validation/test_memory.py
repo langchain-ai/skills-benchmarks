@@ -293,9 +293,7 @@ def _check_subagent_skills_source(ctx: TestContext):
     # Look at next 2000 chars for subagent definitions
     section = ctx.source[subagent_start : subagent_start + 2000]
     # Only check researcher — it explicitly needs doc skills per the task instruction
-    researcher_match = re.search(
-        r'"name"\s*:\s*"researcher".*?(?="name"|$)', section, re.DOTALL
-    )
+    researcher_match = re.search(r'"name"\s*:\s*"researcher".*?(?="name"|$)', section, re.DOTALL)
     if not researcher_match:
         ctx.pass_test(TEST_NAME)
     elif re.search(r'"skills"\s*:\s*\[', researcher_match.group()):

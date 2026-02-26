@@ -480,6 +480,6 @@ console.log(result.messages[result.messages.length - 1].content); // Last messag
 <related_skills>
 - **langgraph-fundamentals**: For custom graph-based agents with StateGraph
 - **langgraph-persistence**: For advanced persistence patterns with checkpointers
-- **langchain-output**: For structured output with Zod models
+- **langchain-middleware**: For structured output with Zod models
 - **langchain-rag**: For RAG pipelines with vector stores
 </related_skills>

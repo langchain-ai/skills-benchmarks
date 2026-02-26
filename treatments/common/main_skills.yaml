@@ -23,7 +23,7 @@ ALL_MAIN_SKILLS:
     - **langchain-dependencies** - Invoke when setting up a NEW project or debugging package versions, installation, or dependency issues
     - **langchain-fundamentals** - Invoke for create_agent, @tool decorator, middleware patterns
     - **langchain-rag** - Invoke for RAG pipelines, vector stores, embeddings
-    - **langchain-output** - Invoke for structured output with Pydantic
+    - **langchain-middleware** - Invoke for structured output with Pydantic
 
     ### LangGraph Skills
     - **langgraph-fundamentals** - Invoke for StateGraph, state schemas, reducers
@@ -66,9 +66,9 @@ ALL_MAIN_SKILLS:
     - skill: langchain-rag
       base: main
       name: langchain-rag
-    - skill: langchain-output
+    - skill: langchain-middleware
       base: main
-      name: langchain-output
+      name: langchain-middleware
     # LangGraph (3 skills)
     - skill: langgraph-fundamentals
       base: main

@@ -329,6 +329,54 @@ const agent = createAgent({
 </typescript>
 </ex-error-middleware>
 
+<structured_output>
+## Structured Output
+
+Get typed, validated responses from agents using `response_format` or `with_structured_output()`.
+
+<python>
+```python
+from langchain.agents import create_agent
+from pydantic import BaseModel, Field
+
+class ContactInfo(BaseModel):
+    name: str
+    email: str
+    phone: str = Field(description="Phone number with area code")
+
+# Option 1: Agent with structured output
+agent = create_agent(model="gpt-4.1", tools=[search], response_format=ContactInfo)
+result = agent.invoke({"messages": [{"role": "user", "content": "Find contact for John"}]})
+print(result["structured_response"])  # ContactInfo(name='John', ...)
+
+# Option 2: Model-level structured output (no agent needed)
+from langchain_openai import ChatOpenAI
+model = ChatOpenAI(model="gpt-4.1")
+structured_model = model.with_structured_output(ContactInfo)
+response = structured_model.invoke("Extract: John, john@example.com, 555-1234")
+# ContactInfo(name='John', email='john@example.com', phone='555-1234')
+```
+</python>
+<typescript>
+```typescript
+import { ChatOpenAI } from "@langchain/openai";
+import { z } from "zod";
+
+const ContactInfo = z.object({
+  name: z.string(),
+  email: z.string().email(),
+  phone: z.string().describe("Phone number with area code"),
+});
+
+// Model-level structured output
+const model = new ChatOpenAI({ model: "gpt-4.1" });
+const structuredModel = model.withStructuredOutput(ContactInfo);
+const response = await structuredModel.invoke("Extract: John, john@example.com, 555-1234");
+// { name: 'John', email: 'john@example.com', phone: '555-1234' }
+```
+</typescript>
+</structured_output>
+
 <model_config>
 ## Model Configuration
 
@@ -548,6 +596,6 @@ console.log(result.messages[result.messages.length - 1].content); // Last messag
 <related_skills>
 - **langgraph-fundamentals**: For custom graph-based agents with StateGraph
 - **langgraph-persistence**: For advanced persistence patterns with checkpointers
-- **langchain-output**: For structured output with Pydantic/Zod models
+- **langchain-middleware**: For HITL approval, custom middleware, and structured output
 - **langchain-rag**: For RAG pipelines with vector stores
 </related_skills>

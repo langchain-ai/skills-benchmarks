@@ -1,6 +1,6 @@
 ---
-name: LangChain Structured Output & HITL
-description: "INVOKE THIS SKILL when you need structured/typed output from LLMs OR human-in-the-loop approval. Covers with_structured_output(), Pydantic schemas, union types for multiple formats, and HITL middleware. CRITICAL: Fixes for accessing structured response wrong, missing field descriptions, and Pydantic v1 vs v2."
+name: LangChain Middleware & HITL
+description: "INVOKE THIS SKILL when you need human-in-the-loop approval, custom middleware, or structured output. Covers HumanInTheLoopMiddleware for human approval of dangerous tool calls, creating custom middleware with hooks, Command resume patterns, and structured output with Pydantic/Zod. CRITICAL: Fixes for missing checkpointer with HITL, wrong resume syntax, and accessing structured response incorrectly."
 ---
 
 <overview>

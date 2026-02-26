@@ -18,10 +18,11 @@ from scaffold.python.validation import (
 )
 
 # Functions that must be traced
+# Note: lookup_order is a @tool function — LangChain auto-traces tools,
+# so explicit traceable() is redundant and not required
 REQUIRED_FUNCTIONS = [
     "classify_intent",
     "extract_entities",
-    "lookup_order",
     "generate_response",
     "handle_support_request",
 ]

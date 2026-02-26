@@ -261,11 +261,12 @@ def _analyze_subagent_skills(captured_calls: list) -> str | None:
         if not (subagents and main_skills):
             continue
 
+        # Only check researcher — it explicitly needs doc skills per the task instruction
         missing = []
         for sub in subagents:
             if isinstance(sub, dict):
                 name = sub.get("name", "unnamed")
-                if "skills" not in sub or not sub.get("skills"):
+                if name == "researcher" and ("skills" not in sub or not sub.get("skills")):
                     missing.append(name)
 
         if missing:
@@ -291,17 +292,17 @@ def _check_subagent_skills_source(ctx: TestContext):
 
     # Look at next 2000 chars for subagent definitions
     section = ctx.source[subagent_start : subagent_start + 2000]
-    subagent_count = len(re.findall(r'"name"\s*:', section))
-    skills_count = len(re.findall(r'"skills"\s*:\s*\[', section))
-
-    if subagent_count == 0:
+    # Only check researcher — it explicitly needs doc skills per the task instruction
+    researcher_match = re.search(r'"name"\s*:\s*"researcher".*?(?="name"|$)', section, re.DOTALL)
+    if not researcher_match:
         ctx.pass_test(TEST_NAME)
-    elif skills_count >= subagent_count:
+    elif re.search(r'"skills"\s*:\s*\[', researcher_match.group()):
         ctx.pass_test(TEST_NAME)
     else:
         ctx.fail_test(
             TEST_NAME,
-            "custom subagents don't inherit main agent's skills - specify skills explicitly",
+            "custom subagents don't inherit main agent's skills - "
+            "specify skills explicitly (missing on: researcher)",
         )
 
 

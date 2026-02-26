@@ -164,8 +164,10 @@ def read_json_file(path: Path) -> tuple:
         return None, f"invalid JSON: {e}"
 
 
-def get_field(obj: dict, *keys, default=None):
+def get_field(obj, *keys, default=None):
     """Get first matching field from dict."""
+    if not isinstance(obj, dict):
+        return default
     for key in keys:
         if key in obj:
             return obj[key]
@@ -225,7 +227,7 @@ def safe_api_call(func, skip_msg: str = "skipped"):
         msg = str(e).lower()
         if "429" in msg or "rate limit" in msg:
             return None, f"{skip_msg} (rate limited)"
-        return None, f"{skip_msg} ({str(e)[:40]})"
+        return None, f"{skip_msg} ({str(e)[:100]})"
 
 
 # =============================================================================

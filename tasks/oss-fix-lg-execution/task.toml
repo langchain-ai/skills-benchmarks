@@ -1,0 +1,21 @@
+[metadata]
+name = "oss-fix-lg-execution"
+description = "Fix Send API fan-out, interrupt, and resume bugs in a LangGraph pipeline"
+difficulty = "medium"
+category = "langgraph"
+tags = ["send", "fan-out", "interrupt", "reducer", "bug-fix"]
+default_treatments = [
+    "CONTROL",
+    "ALL_MAIN_SKILLS",
+]
+
+[template]
+required = []
+
+[environment]
+description = "Python workspace with broken_pipeline.py - a LangGraph data processing pipeline with bugs: only fans out first task, missing reducer for parallel results, no interrupt for review, no checkpointer, wrong resume syntax. LangGraph and LangChain dependencies installed."
+timeout_sec = 600
+
+[validation]
+# Execution-based validation - actually runs the code and checks behavior
+validators = ["ExecutionValidator", "SendValidator", "InterruptValidator"]

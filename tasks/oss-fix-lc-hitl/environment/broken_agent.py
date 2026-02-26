@@ -63,9 +63,7 @@ def process_request(message: str, thread_id: str = "default") -> dict:
 def resume_after_approval(thread_id: str = "default") -> dict:
     """Resume the agent after human approval of a dangerous action."""
     # BUG 4: Passes new input instead of resuming — starts over
-    result = agent.invoke(
-        {"messages": [{"role": "user", "content": "I approve the action"}]}
-    )
+    result = agent.invoke({"messages": [{"role": "user", "content": "I approve the action"}]})
     return result
 
 

@@ -133,7 +133,7 @@ Execute tools and pass results back.
 ```python
 from langchain_openai import ChatOpenAI
 from langchain.tools import tool
-from langchain.schema.messages import ToolMessage
+from langchain_core.messages import ToolMessage
 
 @tool
 def get_weather(location: str) -> str:
@@ -390,7 +390,7 @@ console.log(response.tool_calls);
 Create ToolMessage with correct tool_call_id.
 
 ```python
-from langchain.schema.messages import ToolMessage
+from langchain_core.messages import ToolMessage
 
 # Tool messages link back to the tool call that requested them
 tool_message = ToolMessage(
@@ -440,7 +440,7 @@ Handle tool errors gracefully.
 ```python
 from langchain_openai import ChatOpenAI
 from langchain.tools import tool
-from langchain.schema.messages import ToolMessage
+from langchain_core.messages import ToolMessage
 
 @tool
 def risky_tool(data: str = None) -> str:

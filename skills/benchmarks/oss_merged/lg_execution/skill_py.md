@@ -30,7 +30,7 @@ LangGraph provides execution control patterns for complex agent orchestration:
 ```python
 from langchain.tools import tool
 from langchain.chat_models import init_chat_model
-from langchain.messages import ToolMessage
+from langchain_core.messages import ToolMessage
 from langgraph.graph import StateGraph, START, END
 from typing import Annotated
 import operator

@@ -256,17 +256,17 @@ const agent = createAgent({
 Custom error handling middleware:
 
 ```typescript
-import { createAgent, wrapToolCall } from "langchain";
+import { createAgent, createMiddleware } from "langchain";
 
 // Custom error handling middleware
-const errorHandler = wrapToolCall({
+const errorHandler = createMiddleware({
   name: "ErrorHandler",
-  wrapToolCall: async (toolCall, handler) => {
+  wrapToolCall: async (request, handler) => {
     try {
-      return await handler(toolCall);
+      return await handler(request);
     } catch (error) {
       return {
-        ...toolCall,
+        ...request.toolCall,
         content: `Tool error: ${error.message}`,
       };
     }

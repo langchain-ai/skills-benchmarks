@@ -21,7 +21,7 @@ Agents combine language models with tools to create systems that can reason, act
 | Basic agent with tools | `create_agent(model, tools)` | Search, calculator |
 | Custom system instructions | Add `system_prompt` | Domain-specific behavior |
 | Persistence across sessions | Add `checkpointer` | Multi-turn conversations |
-| Human approval for sensitive ops | Add `human_in_the_loop_middleware` | DB writes, emails |
+| Human approval for sensitive ops | Add `HumanInTheLoopMiddleware` | DB writes, emails |
 
 </agent-configuration-selection>
 
@@ -195,7 +195,7 @@ print(response.tool_calls)
 ```python
 from langchain_openai import ChatOpenAI
 from langchain.tools import tool
-from langchain.schema.messages import ToolMessage
+from langchain_core.messages import ToolMessage
 
 @tool
 def get_weather(location: str) -> str:
@@ -435,16 +435,12 @@ agent.invoke({"messages": [{"role": "user", "content": "What's my name?"}]}, con
 <fix-infinite-loop>
 ```python
 # PROBLEM: No clear stopping condition
-agent = create_agent(model="gpt-4.1", tools=[search])
-result = agent.invoke({
-    "messages": [{"role": "user", "content": "Keep searching until perfect"}]
-})
+result = agent.invoke({"messages": [("user", "Keep searching until perfect")]})
 
-# SOLUTION: Set max iterations
-agent = create_agent(
-    model="gpt-4.1",
-    tools=[search],
-    max_iterations=10,  # Stop after 10 tool calls
+# SOLUTION: Set recursion_limit in config
+result = agent.invoke(
+    {"messages": [("user", "Keep searching until perfect")]},
+    config={"recursion_limit": 10},  # Stop after 10 steps
 )
 ```
 </fix-infinite-loop>

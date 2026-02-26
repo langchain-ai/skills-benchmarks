@@ -231,27 +231,7 @@ const retriever = vectorStore.asRetriever({
   searchType: "similarity", // or "mmr" for maximum marginal relevance
 });
 
-// Use in a chain
-import { ChatOpenAI } from "@langchain/openai";
-import { createRetrievalChain } from "langchain/chains/retrieval";
-import { createStuffDocumentsChain } from "langchain/chains/combine_documents";
-import { ChatPromptTemplate } from "@langchain/core/prompts";
-
-const llm = new ChatOpenAI();
-const prompt = ChatPromptTemplate.fromTemplate(`
-Answer based on context:
-{context}
-
-Question: {input}
-`);
-
-const combineDocsChain = await createStuffDocumentsChain({ llm, prompt });
-const chain = await createRetrievalChain({
-  retriever,
-  combineDocsChain,
-});
-
-const result = await chain.invoke({ input: "What is LangChain?" });
+const results = await retriever.invoke("What is LangChain?");
 ```
 </ex-retriever>
 

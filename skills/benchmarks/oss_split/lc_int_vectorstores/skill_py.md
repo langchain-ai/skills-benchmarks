@@ -223,10 +223,7 @@ vectorstore.add_texts(
 <ex-as-retriever>
 ```python
 from langchain_community.vectorstores import FAISS
-from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate
-from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain.chains import create_retrieval_chain
+from langchain_openai import OpenAIEmbeddings
 
 # Create vector store
 vectorstore = FAISS.from_documents(documents, OpenAIEmbeddings())
@@ -237,20 +234,7 @@ retriever = vectorstore.as_retriever(
     search_kwargs={"k": 4}
 )
 
-# Use in a chain
-llm = ChatOpenAI()
-prompt = ChatPromptTemplate.from_template("""
-Answer based on context:
-{context}
-
-Question: {input}
-""")
-
-document_chain = create_stuff_documents_chain(llm, prompt)
-retrieval_chain = create_retrieval_chain(retriever, document_chain)
-
-result = retrieval_chain.invoke({"input": "What is LangChain?"})
-print(result["answer"])
+results = retriever.invoke("What is LangChain?")
 ```
 </ex-as-retriever>
 

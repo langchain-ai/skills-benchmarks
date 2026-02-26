@@ -218,10 +218,10 @@ for await (const chunk of graph.stream(
 <ex-stream-custom-data>
 Emit custom progress updates from within nodes using the stream writer.
 ```typescript
-import { getStreamWriter } from "@langchain/langgraph";
+import { getWriter } from "@langchain/langgraph";
 
 const myNode = async (state: typeof State.State) => {
-  const writer = getStreamWriter();
+  const writer = getWriter();
   writer("Processing step 1...");
   // Do work
   writer("Complete!");

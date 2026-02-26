@@ -16,7 +16,7 @@ Multimodal support lets you work with images, audio, video, and other non-text d
 <ex-basic-image-input-url>
 ```python
 from langchain_openai import ChatOpenAI
-from langchain.schema.messages import HumanMessage
+from langchain_core.messages import HumanMessage
 
 model = ChatOpenAI(model="gpt-4.1")
 
@@ -33,7 +33,7 @@ print(response.content)
 <ex-base64-image-input>
 ```python
 from langchain_openai import ChatOpenAI
-from langchain.schema.messages import HumanMessage
+from langchain_core.messages import HumanMessage
 import base64
 
 model = ChatOpenAI(model="gpt-4.1")
@@ -68,7 +68,7 @@ message = HumanMessage(content_blocks=[
 <ex-pdf-document-analysis>
 ```python
 from langchain_anthropic import ChatAnthropic
-from langchain.schema.messages import HumanMessage
+from langchain_core.messages import HumanMessage
 import base64
 
 model = ChatAnthropic(model="claude-sonnet-4-5-20250929")
@@ -110,7 +110,7 @@ for block in response.content_blocks:
 <ex-vision-with-claude>
 ```python
 from langchain_anthropic import ChatAnthropic
-from langchain.schema.messages import HumanMessage
+from langchain_core.messages import HumanMessage
 
 model = ChatAnthropic(model="claude-sonnet-4-5-20250929")
 
@@ -126,7 +126,7 @@ response = model.invoke([message])
 <ex-vision-with-gemini>
 ```python
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.schema.messages import HumanMessage
+from langchain_core.messages import HumanMessage
 
 model = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
 

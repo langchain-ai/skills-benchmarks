@@ -289,7 +289,7 @@ console.log(response.tool_calls);
 <python>
 Execute tool calls from the model response and pass results back for final answer.
 ```python
-from langchain.schema.messages import ToolMessage
+from langchain_core.messages import ToolMessage
 
 # Step 1: Model decides to call tool
 messages = [{"role": "user", "content": "What's the weather in NYC?"}]
@@ -620,13 +620,16 @@ await agent.invoke({ messages: [...] }, config);
 
 <fix-infinite-loop>
 <python>
-Set max_iterations to prevent agents from looping indefinitely.
+Set recursion_limit in invoke config to prevent agents from looping indefinitely.
 ```python
 # PROBLEM: No stopping condition
-agent = create_agent(model="gpt-4.1", tools=[search])
+result = agent.invoke({"messages": [("user", "Do research")]})
 
-# SOLUTION
-agent = create_agent(model="gpt-4.1", tools=[search], max_iterations=10)
+# SOLUTION: Set recursion_limit in config
+result = agent.invoke(
+    {"messages": [("user", "Do research")]},
+    config={"recursion_limit": 10},
+)
 ```
 </python>
 </fix-infinite-loop>

@@ -35,7 +35,7 @@ result = agent.invoke({"messages": [("user", "Search for LangChain docs")]})
 **Key Imports:**
 - `from langchain.agents import create_agent` - Agent factory
 - `from langchain_core.tools import tool` - Tool decorator
-- `from langchain.agents import human_in_the_loop_middleware` - Human approval
+- `from langchain.agents.middleware import HumanInTheLoopMiddleware` - Human approval
 </quick_start>
 
 <create_agent>
@@ -108,8 +108,7 @@ result = agent.invoke({"messages": [{"role": "user", "content": "What's my name?
 | `tools` | List of tools | `[search, calculator]` |
 | `system_prompt` | Agent instructions | `"You are a helpful assistant"` |
 | `checkpointer` | State persistence | `MemorySaver()` |
-| `middleware` | Processing hooks | `[human_in_the_loop_middleware]` |
-| `max_iterations` | Loop limit | `10` |
+| `middleware` | Processing hooks | `[HumanInTheLoopMiddleware]` |
 | `response_format` | Structured output | Pydantic model |
 </create_agent>
 
@@ -217,7 +216,8 @@ Middleware intercepts the agent loop to add human approval, error handling, logg
 Require human approval before executing sensitive tools:
 
 ```python
-from langchain.agents import create_agent, human_in_the_loop_middleware
+from langchain.agents import create_agent
+from langchain.agents.middleware import HumanInTheLoopMiddleware
 
 @tool
 def delete_record(record_id: str) -> str:
@@ -233,8 +233,8 @@ agent = create_agent(
     model="anthropic:claude-sonnet-4-5",
     tools=[delete_record, search],
     middleware=[
-        human_in_the_loop_middleware(
-            tools_requiring_approval=["delete_record"]
+        HumanInTheLoopMiddleware(
+            interrupt_on={"delete_record": True}
         )
     ],
 )
@@ -247,7 +247,8 @@ agent = create_agent(
 Catch and handle tool errors gracefully:
 
 ```python
-from langchain.agents import create_agent, wrap_tool_call
+from langchain.agents import create_agent
+from langchain.agents.middleware import wrap_tool_call
 
 @wrap_tool_call
 async def error_handler(tool_call, handler):
@@ -271,7 +272,7 @@ agent = create_agent(
 Log all tool calls for debugging:
 
 ```python
-from langchain.agents import wrap_tool_call
+from langchain.agents.middleware import wrap_tool_call
 
 @wrap_tool_call
 async def logging_middleware(tool_call, handler):
@@ -424,16 +425,12 @@ agent.invoke({"messages": [{"role": "user", "content": "What's my name?"}]}, con
 <fix-infinite-loop>
 ```python
 # WRONG: No iteration limit - could loop forever
-agent = create_agent(model="anthropic:claude-sonnet-4-5", tools=[search])
-result = agent.invoke({
-    "messages": [{"role": "user", "content": "Keep searching until you find everything"}]
-})
+result = agent.invoke({"messages": [("user", "Do research")]})
 
-# CORRECT: Set max_iterations
-agent = create_agent(
-    model="anthropic:claude-sonnet-4-5",
-    tools=[search],
-    max_iterations=10,  # Stop after 10 tool calls
+# CORRECT: Set recursion_limit in config
+result = agent.invoke(
+    {"messages": [("user", "Do research")]},
+    config={"recursion_limit": 10},  # Stop after 10 steps
 )
 ```
 </fix-infinite-loop>

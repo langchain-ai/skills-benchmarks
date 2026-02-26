@@ -35,8 +35,9 @@ Evaluators use `(run, example)` signature for offline (dataset) evaluations.
 ```python
 def evaluator_name(run, example):
     """Evaluate using run/example dicts."""
-    agent_response = run["outputs"].get("expected_response", "")
-    expected = example["outputs"].get("expected_response", "")
+    # Field names (e.g. "response") must match your dataset schema
+    agent_response = run["outputs"].get("response", "")
+    expected = example["outputs"].get("response", "")
 
     return {
         "metric_name": 0.85,      # Metric name as key directly
@@ -48,8 +49,9 @@ def evaluator_name(run, example):
 
 ```javascript
 function evaluatorName(run, example) {
-  const agentResponse = run.outputs?.expected_response ?? "";
-  const expected = example.outputs?.expected_response ?? "";
+  // Field names (e.g. "response") must match your dataset schema
+  const agentResponse = run.outputs?.response ?? "";
+  const expected = example.outputs?.response ?? "";
 
   const score = agentResponse === expected ? 1 : 0;
   return { metric_name: score, comment: "Reason..." };
@@ -80,8 +82,8 @@ judge = ChatOpenAI(model="gpt-4o-mini", temperature=0).with_structured_output(
 )
 
 async def accuracy_evaluator(run, example):
-    expected = example["outputs"].get('expected_response', '')
-    agent_output = run["outputs"].get('expected_response', '')
+    expected = example["outputs"].get('response', '')
+    agent_output = run["outputs"].get('response', '')
 
     prompt = f"""Expected: {expected}
 Agent Output: {agent_output}
@@ -103,8 +105,8 @@ import OpenAI from "openai";
 const openai = new OpenAI();
 
 async function accuracyEvaluator(run, example) {
-  const expected = example.outputs?.expected_response ?? "";
-  const agentOutput = run.outputs?.expected_response ?? "";
+  const expected = example.outputs?.response ?? "";
+  const agentOutput = run.outputs?.response ?? "";
 
   const response = await openai.chat.completions.create({
     model: "gpt-4o-mini",
@@ -136,8 +138,8 @@ async function accuracyEvaluator(run, example) {
 
 ```python
 def exact_match_evaluator(run, example):
-    output = run["outputs"].get("expected_response", "").strip().lower()
-    expected = example["outputs"].get("expected_response", "").strip().lower()
+    output = run["outputs"].get("response", "").strip().lower()
+    expected = example["outputs"].get("response", "").strip().lower()
     match = output == expected
     return {"exact_match": 1 if match else 0, "comment": f"Match: {match}"}
 ```
@@ -146,8 +148,8 @@ def exact_match_evaluator(run, example):
 
 ```javascript
 function exactMatchEvaluator(run, example) {
-  const output = (run.outputs?.expected_response ?? "").trim().toLowerCase();
-  const expected = (example.outputs?.expected_response ?? "").trim().toLowerCase();
+  const output = (run.outputs?.response ?? "").trim().toLowerCase();
+  const expected = (example.outputs?.response ?? "").trim().toLowerCase();
   const match = output === expected;
   return { exact_match: match ? 1 : 0, comment: `Match: ${match}` };
 }
@@ -219,7 +221,7 @@ npx tsx upload_evaluators.ts delete "Exact Match"
    - Final Response → LLM as Judge for quality
    - Trajectory → Custom Code for sequence
 3. **Use async for LLM judges** - Enables parallel evaluation
-4. **Test evaluators independently** - Validate on known good/bad examples first
+4. **Test evaluators before uploading** - Run evaluator on sample inputs/outputs locally. Verify field names (e.g. `run.outputs.response`) match the actual dataset schema
 5. **Choose the right language**
    - Python: Use for Python agents, langchain integrations
    - JavaScript: Use for TypeScript/Node.js agents
@@ -231,8 +233,8 @@ npx tsx upload_evaluators.ts delete "Exact Match"
 ```bash
 cat > evaluators.py <<'EOF'
 def exact_match(run, example):
-    output = run["outputs"].get("expected_response", "").strip().lower()
-    expected = example["outputs"].get("expected_response", "").strip().lower()
+    output = run["outputs"].get("response", "").strip().lower()
+    expected = example["outputs"].get("response", "").strip().lower()
     match = output == expected
     return {"exact_match": 1 if match else 0, "comment": f"Match: {match}"}
 EOF
@@ -249,8 +251,8 @@ python upload_evaluators.py upload evaluators.py \
 ```bash
 cat > evaluators.js <<'EOF'
 function exactMatch(run, example) {
-  const output = (run.outputs?.expected_response ?? "").trim().toLowerCase();
-  const expected = (example.outputs?.expected_response ?? "").trim().toLowerCase();
+  const output = (run.outputs?.response ?? "").trim().toLowerCase();
+  const expected = (example.outputs?.response ?? "").trim().toLowerCase();
   const match = output === expected;
   return { exact_match: match ? 1 : 0, comment: `Match: ${match}` };
 }
@@ -274,7 +276,7 @@ client = Client()
 
 def run_agent(inputs: dict) -> dict:
     result = your_agent.invoke(inputs)
-    return {"expected_response": result}
+    return {"response": result}
 
 results = await client.aevaluate(
     run_agent,
@@ -294,7 +296,7 @@ const client = new Client();
 
 async function runAgent(inputs) {
   const result = await yourAgent.invoke(inputs);
-  return { expected_response: result };
+  return { response: result };
 }
 
 const results = await client.evaluate(

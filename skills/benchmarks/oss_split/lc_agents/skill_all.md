@@ -416,7 +416,8 @@ const result = await agent.invoke({
 Custom error handling middleware:
 
 ```python
-from langchain.agents import create_agent, wrap_tool_call
+from langchain.agents import create_agent
+from langchain.agents.middleware import wrap_tool_call
 
 # Custom error handling middleware
 @wrap_tool_call
@@ -442,17 +443,17 @@ agent = create_agent(
 Custom error handling middleware:
 
 ```typescript
-import { createAgent, wrapToolCall } from "langchain";
+import { createAgent, createMiddleware } from "langchain";
 
 // Custom error handling middleware
-const errorHandler = wrapToolCall({
+const errorHandler = createMiddleware({
   name: "ErrorHandler",
-  wrapToolCall: async (toolCall, handler) => {
+  wrapToolCall: async (request, handler) => {
     try {
-      return await handler(toolCall);
+      return await handler(request);
     } catch (error) {
       return {
-        ...toolCall,
+        ...request.toolCall,
         content: `Tool error: ${error.message}`,
       };
     }
@@ -491,14 +492,20 @@ What Agents CANNOT Configure:
 Limit iterations to prevent runaway agents:
 
 ```python
-agent = create_agent(model="gpt-4.1", tools=[search], max_iterations=10)
+result = agent.invoke(
+    {"messages": [("user", "Do research")]},
+    config={"recursion_limit": 10},
+)
 ```
 </python>
 <typescript>
 Limit iterations to prevent runaway agents:
 
 ```typescript
-const agent = createAgent({ model: "gpt-4.1", tools: [searchTool], maxIterations: 10 });
+const result = await agent.invoke(
+  { messages: [["user", "Do research"]] },
+  { recursionLimit: 10 },
+);
 ```
 </typescript>
 </fix-infinite-loop>

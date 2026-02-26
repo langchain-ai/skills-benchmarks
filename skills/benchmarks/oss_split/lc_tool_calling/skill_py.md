@@ -81,7 +81,7 @@ print(response.tool_calls)
 ```python
 from langchain_openai import ChatOpenAI
 from langchain.tools import tool
-from langchain.schema.messages import ToolMessage
+from langchain_core.messages import ToolMessage
 
 @tool
 def get_weather(location: str) -> str:
@@ -190,7 +190,7 @@ print(response.tool_calls)
 
 <ex-tool-message-structure>
 ```python
-from langchain.schema.messages import ToolMessage
+from langchain_core.messages import ToolMessage
 
 # Tool messages link back to the tool call that requested them
 tool_message = ToolMessage(
@@ -213,7 +213,7 @@ result = get_weather.invoke({
 ```python
 from langchain_openai import ChatOpenAI
 from langchain.tools import tool
-from langchain.schema.messages import ToolMessage
+from langchain_core.messages import ToolMessage
 
 @tool
 def risky_tool(data: str = None) -> str:

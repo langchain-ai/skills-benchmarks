@@ -11,7 +11,7 @@ Build production agents using `create_agent()`, middleware patterns, and the `@t
 **Modern LangChain Agent Pattern:**
 
 ```typescript
-import { createAgent } from "@langchain/langgraph/prebuilt";
+import { createAgent } from "langchain";
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 
@@ -38,9 +38,9 @@ const result = await agent.invoke({ messages: [["user", "Search for LangChain do
 ```
 
 **Key Imports:**
-- `import { createAgent } from "@langchain/langgraph/prebuilt"` - Agent factory
+- `import { createAgent } from "langchain"` - Agent factory
 - `import { tool } from "@langchain/core/tools"` - Tool function
-- `import { humanInTheLoopMiddleware } from "@langchain/langgraph/prebuilt"` - Human approval
+- `import { humanInTheLoopMiddleware } from "langchain"` - Human approval
 </quick_start>
 
 <create_agent>
@@ -51,7 +51,7 @@ const result = await agent.invoke({ messages: [["user", "Search for LangChain do
 ### Basic Agent
 
 ```typescript
-import { createAgent } from "@langchain/langgraph/prebuilt";
+import { createAgent } from "langchain";
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
 
@@ -96,7 +96,7 @@ console.log(result.messages[result.messages.length - 1].content);
 ### Agent with Persistence
 
 ```typescript
-import { createAgent } from "@langchain/langgraph/prebuilt";
+import { createAgent } from "langchain";
 import { MemorySaver } from "@langchain/langgraph";
 
 const checkpointer = new MemorySaver();
@@ -244,7 +244,7 @@ Middleware intercepts the agent loop to add human approval, error handling, logg
 Require human approval before executing sensitive tools:
 
 ```typescript
-import { createAgent, humanInTheLoopMiddleware } from "@langchain/langgraph/prebuilt";
+import { createAgent, humanInTheLoopMiddleware } from "langchain";
 
 const deleteRecord = tool(
   async ({ recordId }) => {
@@ -278,17 +278,20 @@ const agent = createAgent({
 Catch and handle tool errors gracefully:
 
 ```typescript
-import { createAgent, wrapToolCall } from "@langchain/langgraph/prebuilt";
+import { createAgent, createMiddleware } from "langchain";
 
-const errorHandler = wrapToolCall(async (toolCall, handler) => {
-  try {
-    return await handler(toolCall);
-  } catch (error) {
-    return {
-      ...toolCall,
-      content: `Tool error: ${error}. Please try a different approach.`,
-    };
-  }
+const errorHandler = createMiddleware({
+  name: "ErrorHandler",
+  wrapToolCall: async (request, handler) => {
+    try {
+      return await handler(request);
+    } catch (error) {
+      return {
+        ...request.toolCall,
+        content: `Tool error: ${error}. Please try a different approach.`,
+      };
+    }
+  },
 });
 
 const agent = createAgent({
@@ -303,13 +306,16 @@ const agent = createAgent({
 Log all tool calls for debugging:
 
 ```typescript
-import { wrapToolCall } from "@langchain/langgraph/prebuilt";
+import { createMiddleware } from "langchain";
 
-const loggingMiddleware = wrapToolCall(async (toolCall, handler) => {
-  console.log(`Calling tool: ${toolCall.name} with args:`, toolCall.args);
-  const result = await handler(toolCall);
-  console.log(`Tool result: ${result.content?.slice(0, 100)}...`);
-  return result;
+const loggingMiddleware = createMiddleware({
+  name: "LoggingMiddleware",
+  wrapToolCall: async (request, handler) => {
+    console.log(`Calling tool: ${request.toolCall.name} with args:`, request.toolCall.args);
+    const result = await handler(request);
+    console.log(`Tool result: ${result.content?.slice(0, 100)}...`);
+    return result;
+  },
 });
 ```
 </middleware>

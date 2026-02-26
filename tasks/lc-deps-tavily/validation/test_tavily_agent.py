@@ -97,7 +97,7 @@ def check_outputs_metadata():
     passed.append(f"Duration: {events.get('duration_seconds', 0) or 0:.0f}s")
     passed.append(f"Tool calls: {len(events.get('tool_calls', []))}")
 
-    p, f = validate_starter_skill_first(None, outputs)
+    p, f = validate_starter_skill_first(outputs)
     passed.extend(p)
     failed.extend(f)
     p2, _ = validate_skill_invoked(outputs, "langchain-dependencies", required=False)

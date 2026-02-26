@@ -13,7 +13,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from scaffold.python.validation.core import validate_skill_scripts
+from scaffold.python.validation.scripts import validate_skill_scripts
 from scaffold.python.validation.dataset import (
     validate_dataset_structure,
     validate_dataset_upload,
@@ -163,7 +163,7 @@ def run_tests(dataset_file):
             data_dir=test_dir,
         ),
         check_upload(test_dir, outputs),
-        validate_skill_scripts(test_dir, outputs, outputs.get("events", {})),
+        validate_skill_scripts(outputs, outputs.get("events", {})),
     ]:
         passed.extend(p)
         failed.extend(f)

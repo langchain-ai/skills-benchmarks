@@ -9,7 +9,7 @@ Usage: python test_dataset.py <dataset_file>
 import json
 import sys
 
-from scaffold.python.validation.core import validate_skill_scripts
+from scaffold.python.validation.scripts import validate_skill_scripts
 from scaffold.python.validation.dataset import (
     validate_dataset_structure,
     validate_dataset_upload,
@@ -61,7 +61,7 @@ def run_tests(dataset_file):
 
     # Script tracking
     events = outputs.get("events", {})
-    p, f = validate_skill_scripts(test_dir, outputs, events)
+    p, f = validate_skill_scripts(outputs, events)
     passed.extend(p)
     failed.extend(f)
 

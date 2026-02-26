@@ -31,9 +31,9 @@ def read_json_file(path: Path) -> tuple[dict | list | None, str | None]:
         return None, str(e)
 
 
-def validate_dataset_structure(
-    test_dir: Path,
-    outputs: dict,
+def check_dataset_structure(
+    test_dir: Path = None,
+    outputs: dict = None,
     filename: str = "trajectory_dataset.json",
     min_examples: int = 1,
     dataset_type: str = "trajectory",
@@ -41,23 +41,10 @@ def validate_dataset_structure(
 ) -> tuple[list[str], list[str]]:
     """Validate dataset file structure.
 
-    Checks:
-    - File exists and is valid JSON
-    - Contains expected number of examples
-    - Examples have required fields (inputs, outputs)
-    - For trajectory type: examples have trajectory data
-
-    Args:
-        test_dir: Test working directory
-        outputs: Outputs dict
-        filename: Dataset filename
-        min_examples: Minimum number of examples required
-        dataset_type: "trajectory" or "single_step"
-        required_fields: Override default required fields
-
-    Returns:
-        (passed, failed) lists
+    Checks file exists, is valid JSON, has enough examples with
+    required fields, and (for trajectory type) has trajectory data.
     """
+    test_dir = test_dir or Path(".")
     passed, failed = [], []
     required_fields = required_fields or ["inputs", "outputs"]
 
@@ -131,24 +118,16 @@ def _get_trajectory(ex: dict) -> list:
     return []
 
 
-def validate_dataset_upload(
-    test_dir: Path,
-    outputs: dict,
+def check_dataset_upload(
+    test_dir: Path = None,
+    outputs: dict = None,
     filename: str = "trajectory_dataset.json",
     upload_prefix: str = "test-",
 ) -> tuple[list[str], list[str]]:
-    """Verify dataset was uploaded to LangSmith and matches local file.
-
-    Args:
-        test_dir: Test working directory
-        outputs: Outputs dict containing run_id
-        filename: Local dataset filename
-        upload_prefix: Prefix for dataset names in LangSmith
-
-    Returns:
-        (passed, failed) lists
-    """
-    from scaffold.python.validation.langsmith import get_langsmith_client, safe_api_call
+    """Verify dataset was uploaded to LangSmith and matches local file."""
+    test_dir = test_dir or Path(".")
+    outputs = outputs or {}
+    from scaffold.python.utils import get_langsmith_client, safe_api_call
 
     passed, failed = [], []
 
@@ -221,28 +200,16 @@ def validate_dataset_upload(
     return passed, failed
 
 
-def validate_trajectory_accuracy(
-    test_dir: Path,
-    outputs: dict,
+def check_trajectory_accuracy(
+    test_dir: Path = None,
+    outputs: dict = None,
     filename: str = "trajectory_dataset.json",
     expected_filename: str = "expected_dataset.json",
     data_dir: Path | None = None,
 ) -> tuple[list[str], list[str]]:
-    """Validate dataset content matches ground truth.
-
-    Compares actual dataset against expected ground truth to ensure
-    trajectories are accurate.
-
-    Args:
-        test_dir: Test working directory
-        outputs: Outputs dict (may contain trace_id_map for remapped IDs)
-        filename: Actual dataset filename
-        expected_filename: Ground truth filename
-        data_dir: Directory containing expected file
-
-    Returns:
-        (passed, failed) lists
-    """
+    """Validate dataset content matches ground truth."""
+    test_dir = test_dir or Path(".")
+    outputs = outputs or {}
     passed, failed = [], []
     data_dir = data_dir or (test_dir.parent / "data")
 

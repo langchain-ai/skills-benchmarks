@@ -6,6 +6,7 @@ Shell scripts (scaffold/shell/) are the source of truth.
 import json
 import os
 import random
+import shutil
 import subprocess
 import time
 from pathlib import Path
@@ -16,6 +17,7 @@ from pydantic import BaseModel, Field
 load_dotenv(Path(__file__).parent.parent.parent / ".env")
 
 SHELL_DIR = Path(__file__).parent.parent / "shell"
+SCAFFOLD_PYTHON_DIR = Path(__file__).parent
 
 
 def run_shell(
@@ -29,30 +31,20 @@ def run_shell(
 
 
 # =============================================================================
-# DOCKER (via docker.sh)
+# DOCKER: Low-level (thin wrappers around docker.sh)
 # =============================================================================
 
 
 def check_docker_available() -> bool:
-    """Check if Docker is available."""
+    """Check if Docker daemon is reachable."""
     try:
         return run_shell("docker.sh", "check", check=False, timeout=10).returncode == 0
     except (subprocess.TimeoutExpired, FileNotFoundError):
         return False
 
 
-def check_claude_available() -> bool:
-    """Check if Claude CLI is available."""
-    try:
-        return (
-            subprocess.run(["claude", "--version"], capture_output=True, timeout=10).returncode == 0
-        )
-    except (subprocess.TimeoutExpired, FileNotFoundError):
-        return False
-
-
 def build_docker_image(test_dir: Path, force: bool = False, verbose: bool = False) -> str | None:
-    """Build Docker image (cached by Dockerfile hash)."""
+    """Build Docker image for test_dir (cached by Dockerfile hash). Returns image name or None."""
     try:
         args = ["build", str(test_dir)] + (["--force"] if force else [])
         result = run_shell("docker.sh", *args, timeout=300, check=False)
@@ -61,37 +53,96 @@ def build_docker_image(test_dir: Path, force: bool = False, verbose: bool = Fals
         return None
 
 
-def run_in_docker(
-    test_dir: Path, command: list, timeout: int = 120, env_vars: dict = None, image_name: str = None
-) -> subprocess.CompletedProcess:
-    """Run command in Docker container."""
-    old_env = {k: os.environ.get(k) for k in (env_vars or {})}
-    for k, v in (env_vars or {}).items():
-        os.environ[k] = v
-    try:
-        return run_shell("docker.sh", "run", str(test_dir), *command, timeout=timeout, check=False)
-    finally:
-        for k, v in old_env.items():
-            if v is None:
-                os.environ.pop(k, None)
-            else:
-                os.environ[k] = v
-
-
-def run_python_in_docker(
-    test_dir: Path, script_name: str, timeout: int = 120, args: list = None
+def _docker_run_script(
+    mode: str, test_dir: Path, script_name: str, timeout: int = 120, args: list = None
 ) -> tuple[bool, str]:
-    """Run Python script in Docker. Returns (success, output)."""
+    """Run a script in Docker. Returns (success, combined_output).
+
+    Args:
+        mode: docker.sh subcommand ("run-python" or "run-node")
+    """
     if not check_docker_available():
         return False, "Docker not available"
     try:
-        cmd = ["run-python", str(test_dir), script_name] + (args or [])
+        cmd = [mode, str(test_dir), script_name] + (args or [])
         result = run_shell("docker.sh", *cmd, timeout=timeout, check=False)
         return result.returncode == 0, result.stdout + result.stderr
     except subprocess.TimeoutExpired:
         return False, f"Timeout ({timeout}s)"
     except Exception as e:
         return False, str(e)
+
+
+def run_python_in_docker(
+    test_dir: Path, script_name: str, timeout: int = 120, args: list = None
+) -> tuple[bool, str]:
+    """Run Python script in Docker. Returns (success, output)."""
+    return _docker_run_script("run-python", test_dir, script_name, timeout, args)
+
+
+def run_node_in_docker(
+    test_dir: Path, script_name: str, timeout: int = 120, args: list = None
+) -> tuple[bool, str]:
+    """Run Node.js/TypeScript script in Docker. Returns (success, output)."""
+    return _docker_run_script("run-node", test_dir, script_name, timeout, args)
+
+
+def run_claude_in_docker(
+    test_dir: Path, prompt: str, timeout: int = 300, model: str = None
+) -> subprocess.CompletedProcess:
+    """Run Claude CLI in Docker. Returns CompletedProcess."""
+    if not check_docker_available():
+        raise RuntimeError("Docker not available")
+    cmd = ["run-claude", str(test_dir), prompt, "--timeout", str(timeout)]
+    if model:
+        cmd.extend(["--model", model])
+    try:
+        return run_shell("docker.sh", *cmd, timeout=timeout + 30, check=False)
+    except subprocess.TimeoutExpired:
+        return subprocess.CompletedProcess(cmd, 124, "", f"Timeout after {timeout}s")
+
+
+# =============================================================================
+# DOCKER: Eval orchestration (copy files → run test → parse JSON)
+# =============================================================================
+
+
+def _copy_scaffold_to_docker(test_dir: Path):
+    """Copy scaffold/python/{utils.py,validation/} into test_dir preserving import paths.
+
+    After this, test scripts can use the same imports as host code:
+        from scaffold.python.validation import validate_langsmith_trace
+    """
+
+    dest = test_dir / "scaffold" / "python"
+    dest.mkdir(parents=True, exist_ok=True)
+    (test_dir / "scaffold" / "__init__.py").touch()
+    (dest / "__init__.py").touch()
+    shutil.copy(SCAFFOLD_PYTHON_DIR / "utils.py", dest / "utils.py")
+    validation_src = SCAFFOLD_PYTHON_DIR / "validation"
+    validation_dest = dest / "validation"
+    if validation_src.is_dir():
+        shutil.copytree(validation_src, validation_dest, dirs_exist_ok=True)
+
+
+def _parse_json_output(output: str) -> dict | None:
+    """Extract a JSON dict from command output (handles pretty-printed and single-line)."""
+    # Try full output first (pretty-printed JSON)
+    try:
+        result = json.loads(output.strip())
+        if isinstance(result, dict):
+            return result
+    except (json.JSONDecodeError, ValueError):
+        pass
+    # Fall back to last JSON line
+    for line in reversed(output.strip().splitlines()):
+        try:
+            result = json.loads(line)
+            if isinstance(result, dict):
+                return result
+        except (json.JSONDecodeError, ValueError):
+            continue
+    return None
 
 
 def run_eval_in_docker(
@@ -102,8 +153,16 @@ def run_eval_in_docker(
     timeout: int = 120,
     data_dir: Path | None = None,
 ) -> dict:
-    """Copy eval dir contents to test_dir, run test script in Docker, return parsed JSON results."""
-    import shutil
+    """Copy files into test_dir, run test script in Docker, return parsed JSON results.
+
+    Copies into test_dir:
+    - All files from eval_dir (test scripts, helpers)
+    - All files from data_dir if provided (ground truth, test cases)
+    - scaffold/python/validation/ package (so test scripts can import helpers)
+
+    The test script receives module_names as positional args and must print
+    a JSON dict with "passed" and "failed" lists to stdout.
+    """
 
     for f in eval_dir.iterdir():
         if f.is_file():
@@ -112,24 +171,12 @@ def run_eval_in_docker(
         for f in data_dir.iterdir():
             if f.is_file():
                 shutil.copy(f, test_dir / f.name)
+    _copy_scaffold_to_docker(test_dir)
     args = [module_names] if isinstance(module_names, str) else module_names
-    success, output = run_python_in_docker(
-        test_dir, test_script, timeout=timeout, args=args
-    )
-    # Try full output first (handles pretty-printed JSON), then line-by-line
-    try:
-        result = json.loads(output.strip())
-        if isinstance(result, dict):
-            return result
-    except json.JSONDecodeError:
-        pass
-    for line in reversed(output.strip().splitlines()):
-        try:
-            result = json.loads(line)
-            if isinstance(result, dict):
-                return result
-        except json.JSONDecodeError:
-            continue
+    success, output = run_python_in_docker(test_dir, test_script, timeout=timeout, args=args)
+    result = _parse_json_output(output)
+    if result is not None:
+        return result
     return {"error": f"No JSON output. success={success}, output={output[:300]}"}
 
 
@@ -140,18 +187,24 @@ def make_execution_validator(
     timeout: int = 120,
     data_dir: Path | None = None,
 ):
-    """Create a standard execution validator that runs test script(s) in Docker.
+    """Create a validator that runs test script(s) in Docker.
+
+    This is the standard way to build validators. Write a test script that
+    outputs {"passed": [...], "failed": [...]} JSON, then wire it up:
+
+        validate_execution = make_execution_validator(
+            eval_dir=Path(__file__).parent,
+            test_script="test_memory.py",
+            module_file="agent_system.py",
+        )
 
     Args:
         eval_dir: Directory containing test scripts (typically Path(__file__).parent).
-        test_script: Name(s) of test script(s) to run (e.g., "test_memory.py" or
-            ["test_memory.py", "test_routing.py"]). Results are aggregated.
-        module_file: Name(s) of module file(s) Claude should fix (e.g., "agent_system.py"
-            or ["backend/sql_agent.py", "frontend/support_bot.ts"]). All are checked
+        test_script: Name(s) of test script(s) to run. Results are aggregated.
+        module_file: Name(s) of module file(s) Claude should fix. All are checked
             for existence and passed as args to each test script.
         timeout: Docker execution timeout in seconds.
-        data_dir: Optional directory containing ground truth / test case data to copy
-            into Docker (e.g., Path(__file__).parent.parent / "data").
+        data_dir: Optional directory with ground truth / test case data to copy.
     """
     test_scripts = [test_script] if isinstance(test_script, str) else test_script
     module_files = [module_file] if isinstance(module_file, str) else module_file
@@ -163,10 +216,17 @@ def make_execution_validator(
                 failed.append(f"Module file not found: {test_dir / mf}")
         if failed:
             return passed, failed
+        # Serialize outputs so test scripts can access run_id, events, etc.
+        if outputs:
+            (test_dir / "_outputs.json").write_text(json.dumps(outputs, default=str))
         for script in test_scripts:
             results = run_eval_in_docker(
-                test_dir, eval_dir, script, module_files,
-                timeout=timeout, data_dir=data_dir,
+                test_dir,
+                eval_dir,
+                script,
+                module_files,
+                timeout=timeout,
+                data_dir=data_dir,
             )
             passed.extend(results.get("passed", []))
             failed.extend(results.get("failed", []))
@@ -177,35 +237,19 @@ def make_execution_validator(
     return validate_execution
 
 
-def run_node_in_docker(
-    test_dir: Path, script_name: str, timeout: int = 120, args: list = None
-) -> tuple[bool, str]:
-    """Run Node.js/TypeScript script in Docker. Returns (success, output)."""
-    if not check_docker_available():
-        return False, "Docker not available"
-    try:
-        cmd = ["run-node", str(test_dir), script_name] + (args or [])
-        result = run_shell("docker.sh", *cmd, timeout=timeout, check=False)
-        return result.returncode == 0, result.stdout + result.stderr
-    except subprocess.TimeoutExpired:
-        return False, f"Timeout ({timeout}s)"
-    except Exception as e:
-        return False, str(e)
+# =============================================================================
+# ENVIRONMENT CHECKS & SETUP
+# =============================================================================
 
 
-def run_claude_in_docker(
-    test_dir: Path, prompt: str, timeout: int = 300, model: str = None
-) -> subprocess.CompletedProcess:
-    """Run Claude CLI in Docker container."""
-    if not check_docker_available():
-        raise RuntimeError("Docker not available")
-    cmd = ["run-claude", str(test_dir), prompt, "--timeout", str(timeout)]
-    if model:
-        cmd.extend(["--model", model])
+def check_claude_available() -> bool:
+    """Check if Claude CLI is installed."""
     try:
-        return run_shell("docker.sh", *cmd, timeout=timeout + 30, check=False)
-    except subprocess.TimeoutExpired:
-        return subprocess.CompletedProcess(cmd, 124, "", f"Timeout after {timeout}s")
+        return (
+            subprocess.run(["claude", "--version"], capture_output=True, timeout=10).returncode == 0
+        )
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        return False
 
 
 def setup_langsmith_hook(test_dir: Path, project: str = "claude-code-benchmark") -> bool:
@@ -337,7 +381,19 @@ class EvalResult(BaseModel):
 def evaluate_with_schema(prompt: str, model: str = None) -> dict:
     """Evaluate with structured output. Returns {"pass": bool, "reason": str}."""
     try:
-        result = get_eval_model(model).with_structured_output(EvalResult).invoke(prompt)
+        result = (
+            get_eval_model(model)
+            .with_structured_output(EvalResult, method="json_mode")
+            .invoke(
+                [
+                    {
+                        "role": "system",
+                        "content": 'Evaluate the output. Respond as JSON: {"passed": bool, "reason": "..."}',
+                    },
+                    {"role": "user", "content": prompt},
+                ]
+            )
+        )
         return {"pass": result.passed, "reason": result.reason}
     except Exception as e:
         return {"pass": False, "reason": f"eval error: {str(e)[:30]}"}

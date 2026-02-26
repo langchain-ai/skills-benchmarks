@@ -6,13 +6,9 @@ Structure:
 - scaffold/typescript/ - TypeScript equivalents for parity
 
 Usage:
-    from scaffold import Treatment, NoiseTask, Validator
-    from scaffold.python import ExperimentLogger, parse_output, extract_events
+    from scaffold import Treatment, NoiseTask
+    from scaffold.python.utils import make_execution_validator
     from scaffold.python.tasks import load_task, list_tasks
-    from scaffold.python.treatments import load_task_treatments, build_treatment_skills
-
-    # Function-based validators (preferred)
-    from scaffold import validate_python_tracing, validate_code_execution
 """
 
 # Re-export task utilities from python subpackage
@@ -20,21 +16,35 @@ Usage:
 from .python import (
     NOISE_TASK_DELIVERABLES,
     NOISE_TASK_PROMPTS,
-    MetricsCollector,
     # Schema
     NoiseTask,
-    NoiseTaskValidator,
-    OutputQualityValidator,
-    PythonFileValidator,
-    SkillInvokedValidator,
     Treatment,
-    # Class-based validators (legacy)
-    Validator,
-    # Function-based validators (preferred)
+    # Validation helpers
     ValidatorFn,
     build_docker_image,
     check_claude_available,
+    check_code_execution,
+    check_dataset_structure,
+    check_dataset_upload,
     check_docker_available,
+    check_evaluator_exists,
+    check_evaluator_logic,
+    check_evaluator_patterns,
+    check_evaluator_syntax,
+    check_evaluator_upload,
+    check_file_exists,
+    check_langsmith_trace,
+    check_language_syntax,
+    check_no_pattern,
+    check_noise_outputs,
+    check_pattern,
+    check_python_execution,
+    check_python_tracing,
+    check_skill_invoked,
+    check_skill_scripts,
+    check_trajectory_accuracy,
+    check_typescript_execution,
+    check_typescript_tracing,
     compose_validators,
     evaluate_with_schema,
     extract_examples,
@@ -44,40 +54,18 @@ from .python import (
     get_langsmith_client,
     get_nested_field,
     get_noise_task_prompts,
+    make_execution_validator,
     normalize_score,
     read_json_file,
     retry_with_backoff,
     run_claude_in_docker,
-    run_in_docker,
+    run_eval_in_docker,
     run_node_in_docker,
     run_python_in_docker,
-    make_execution_validator,
-    run_eval_in_docker,
     # Utils
     run_shell,
     run_validators,
     safe_api_call,
-    validate_code_execution,
-    validate_dataset_structure,
-    validate_dataset_upload,
-    validate_evaluator_exists,
-    validate_evaluator_logic,
-    validate_evaluator_patterns,
-    validate_evaluator_syntax,
-    validate_evaluator_upload,
-    validate_file_exists,
-    validate_langsmith_trace,
-    validate_language_syntax,
-    validate_no_pattern,
-    validate_noise_outputs,
-    validate_pattern,
-    validate_python_execution,
-    validate_python_tracing,
-    validate_skill_invoked,
-    validate_skill_scripts,
-    validate_trajectory_accuracy,
-    validate_typescript_execution,
-    validate_typescript_tracing,
 )
 from .python.tasks import Task, TaskConfig, list_tasks, load_task
 from .python.treatments import (
@@ -109,38 +97,31 @@ __all__ = [
     # Schema
     "NoiseTask",
     "Treatment",
-    # Class-based validators (legacy)
-    "Validator",
-    "SkillInvokedValidator",
-    "PythonFileValidator",
-    "NoiseTaskValidator",
-    "MetricsCollector",
-    "OutputQualityValidator",
-    # Function-based validators (preferred)
+    # Validation helpers
     "ValidatorFn",
     "compose_validators",
     "run_validators",
-    "validate_file_exists",
-    "validate_pattern",
-    "validate_no_pattern",
-    "validate_python_tracing",
-    "validate_typescript_tracing",
-    "validate_language_syntax",
-    "validate_code_execution",
-    "validate_python_execution",
-    "validate_typescript_execution",
-    "validate_langsmith_trace",
-    "validate_evaluator_upload",
-    "validate_dataset_structure",
-    "validate_dataset_upload",
-    "validate_trajectory_accuracy",
-    "validate_evaluator_exists",
-    "validate_evaluator_syntax",
-    "validate_evaluator_patterns",
-    "validate_evaluator_logic",
-    "validate_skill_invoked",
-    "validate_noise_outputs",
-    "validate_skill_scripts",
+    "check_file_exists",
+    "check_pattern",
+    "check_no_pattern",
+    "check_python_tracing",
+    "check_typescript_tracing",
+    "check_language_syntax",
+    "check_code_execution",
+    "check_python_execution",
+    "check_typescript_execution",
+    "check_langsmith_trace",
+    "check_evaluator_upload",
+    "check_dataset_structure",
+    "check_dataset_upload",
+    "check_trajectory_accuracy",
+    "check_evaluator_exists",
+    "check_evaluator_syntax",
+    "check_evaluator_patterns",
+    "check_evaluator_logic",
+    "check_skill_invoked",
+    "check_noise_outputs",
+    "check_skill_scripts",
     "get_noise_task_prompts",
     "NOISE_TASK_DELIVERABLES",
     "NOISE_TASK_PROMPTS",

@@ -8,7 +8,7 @@ from pathlib import Path
 from scaffold.python.utils import run_node_in_docker, run_python_in_docker
 
 
-def validate_python_execution(
+def check_python_execution(
     test_dir: Path,
     filepath: str = "backend/sql_agent.py",
     timeout: int = 120,
@@ -41,7 +41,7 @@ def validate_python_execution(
     return passed, failed
 
 
-def validate_typescript_execution(
+def check_typescript_execution(
     test_dir: Path,
     filepath: str = "frontend/support_bot.ts",
     timeout: int = 120,
@@ -74,7 +74,7 @@ def validate_typescript_execution(
     return passed, failed
 
 
-def validate_code_execution(
+def check_code_execution(
     test_dir: Path,
     python_file: str = "backend/sql_agent.py",
     typescript_file: str = "frontend/support_bot.ts",
@@ -94,12 +94,12 @@ def validate_code_execution(
     all_passed, all_failed = [], []
 
     # Python execution
-    py_passed, py_failed = validate_python_execution(test_dir, python_file, timeout)
+    py_passed, py_failed = check_python_execution(test_dir, python_file, timeout)
     all_passed.extend(py_passed)
     all_failed.extend(py_failed)
 
     # TypeScript execution
-    ts_passed, ts_failed = validate_typescript_execution(test_dir, typescript_file, timeout)
+    ts_passed, ts_failed = check_typescript_execution(test_dir, typescript_file, timeout)
     all_passed.extend(ts_passed)
     all_failed.extend(ts_failed)
 

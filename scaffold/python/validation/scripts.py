@@ -4,8 +4,6 @@ Tracks which skill scripts Claude used during a task.
 This is informational - doesn't fail, just records patterns.
 """
 
-from pathlib import Path
-
 # Known skill scripts by language
 PY_SCRIPTS = [
     "query_traces.py",
@@ -22,8 +20,7 @@ TS_SCRIPTS = [
 ]
 
 
-def validate_skill_scripts(
-    test_dir: Path,
+def check_skill_scripts(
     outputs: dict,
     events: dict | None = None,
     py_scripts: list[str] | None = None,
@@ -32,9 +29,6 @@ def validate_skill_scripts(
     """Track which skill scripts Claude used (Python vs TypeScript).
 
     This validator doesn't fail - it just records usage patterns for analysis.
-    Key insight: Did Claude use the correct language script for each task?
-    - When working on Python agent: should use .py scripts
-    - When working on TypeScript agent: should use .ts scripts
 
     Args:
         test_dir: Test working directory (unused but matches signature)

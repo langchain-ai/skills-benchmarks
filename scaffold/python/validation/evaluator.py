@@ -13,7 +13,7 @@ import json
 import re
 from pathlib import Path
 
-from scaffold.python.validation.langsmith import get_langsmith_client
+from scaffold.python.utils import get_langsmith_client
 
 
 def find_evaluator_file(
@@ -76,7 +76,7 @@ def find_evaluator_function(content: str, language: str) -> tuple[str | None, st
         return None, "no (run, example) function found"
 
 
-def validate_evaluator_exists(
+def check_evaluator_exists(
     test_dir: Path,
     outputs: dict,
     python_dir: str = "backend",
@@ -112,7 +112,7 @@ def validate_evaluator_exists(
     return passed, failed
 
 
-def validate_evaluator_syntax(
+def check_evaluator_syntax(
     test_dir: Path,
     outputs: dict,
     python_dir: str = "backend",
@@ -170,7 +170,7 @@ def _basic_js_syntax_check(content: str) -> bool:
     return has_function and has_return
 
 
-def validate_evaluator_patterns(
+def check_evaluator_patterns(
     test_dir: Path,
     outputs: dict,
     python_dir: str = "backend",
@@ -267,7 +267,7 @@ def validate_evaluator_patterns(
     return passed, failed
 
 
-def validate_evaluator_logic(
+def check_evaluator_logic(
     test_dir: Path,
     outputs: dict,
     python_dir: str = "backend",
@@ -495,7 +495,7 @@ def _parse_evaluator_results(output: str, success: bool, lang: str) -> tuple[lis
     )
 
 
-def validate_evaluator_upload(
+def check_evaluator_upload(
     test_dir: Path,
     outputs: dict,
     upload_prefix: str = "test-",

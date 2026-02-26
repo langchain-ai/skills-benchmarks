@@ -12,17 +12,15 @@ from langgraph.types import Send
 from typing_extensions import TypedDict
 
 
-# BUG 1: No reducer on results - parallel workers crash
 class PipelineState(TypedDict):
     tasks: list[str]
-    results: list  # Should be Annotated[list, operator.add]
+    results: list
     summary: str
     status: str
 
 
 def fan_out(state: PipelineState):
     """Distribute tasks to parallel workers."""
-    # BUG 2: Only sends first task instead of all tasks
     return [Send("process_task", {"task": state["tasks"][0]})]
 
 
@@ -34,7 +32,6 @@ def process_task(state: dict) -> dict:
 
 def review(state: PipelineState) -> dict:
     """Review results before finalizing."""
-    # BUG 2: No interrupt - should pause for human review when many results
     return {"status": "approved"}
 
 
@@ -54,13 +51,11 @@ builder.add_edge("process_task", "review")
 builder.add_edge("review", "summarize")
 builder.add_edge("summarize", END)
 
-# BUG 3: No checkpointer - can't pause/resume for review
 graph = builder.compile()
 
 
 def run_pipeline(tasks: list[str], thread_id: str = "default") -> dict:
     """Run the data processing pipeline."""
-    # BUG 4: No thread_id in config
     result = graph.invoke(
         {
             "tasks": tasks,
@@ -74,7 +69,6 @@ def run_pipeline(tasks: list[str], thread_id: str = "default") -> dict:
 
 def resume_after_review(thread_id: str = "default") -> dict:
     """Resume pipeline after human review."""
-    # BUG 5: Passes new input instead of Command(resume=...)
     result = graph.invoke(
         {
             "tasks": [],
@@ -89,7 +83,6 @@ def resume_after_review(thread_id: str = "default") -> dict:
 if __name__ == "__main__":
     print("=== Data Processing Pipeline ===\n")
 
-    # This will crash with InvalidUpdateError due to missing reducer
     try:
         result = run_pipeline(["task_a", "task_b", "task_c"])
         print(f"Results: {result.get('results')}")

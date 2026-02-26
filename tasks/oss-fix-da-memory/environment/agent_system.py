@@ -49,7 +49,7 @@ def create_agent_system():
             default=StateBackend(rt),
             routes={
                 "/memory/": StoreBackend(rt),
-                "/memory/cache/": StateBackend(rt),  # Temp cache under memory
+                "/memory/cache/": StateBackend(rt),
             },
         )
 

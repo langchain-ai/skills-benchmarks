@@ -97,14 +97,12 @@ builder.add_conditional_edges(
     {"respond": END},  # Only one path, could be more flexible
 )
 
-# Compile without persistence - every conversation is fresh
 graph = builder.compile()
 
 
 def chat(user_message: str) -> str:
     """Process a user message and return the bot's response.
 
-    Note: Each call starts fresh - no memory of previous calls.
     """
     result = graph.invoke({"messages": [user_message], "context": {}, "current_step": "start"})
 

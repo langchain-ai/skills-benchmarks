@@ -207,10 +207,11 @@ def main():
     module_name, func_name, test_cases_file = sys.argv[1:4]
     dataset_file = sys.argv[4] if len(sys.argv) > 4 else None
 
-    # Add script directory to path so evaluator module can be imported
-    script_dir = str(Path(__file__).parent.resolve())
-    if script_dir not in sys.path:
-        sys.path.insert(0, script_dir)
+    # Add cwd to path so evaluator module can be imported
+    # (cwd is set to the evaluator's directory by the test script)
+    cwd = str(Path.cwd())
+    if cwd not in sys.path:
+        sys.path.insert(0, cwd)
 
     # Import evaluator function
     module = importlib.import_module(module_name)

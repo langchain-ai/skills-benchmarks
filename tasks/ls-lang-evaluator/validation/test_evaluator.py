@@ -227,7 +227,7 @@ def _parse_eval_results(output, success, lang):
                 pass
     if success:
         return [f"{lang} logic: executed"], []
-    return [], [f"{lang} logic: execution failed"]
+    return [], [f"{lang} logic: execution failed - {output[:150]}"]
 
 
 def run_tests(py_dir, js_dir):

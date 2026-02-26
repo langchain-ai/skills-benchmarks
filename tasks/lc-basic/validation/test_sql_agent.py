@@ -65,7 +65,7 @@ def check_output(filepath):
     """Run agent and evaluate output quality."""
     passed, failed = [], []
     try:
-        r = subprocess.run(["python", filepath], capture_output=True, text=True, timeout=120)
+        r = subprocess.run([sys.executable, filepath], capture_output=True, text=True, timeout=120)
     except Exception as e:
         return [], [f"SQL Agent: execution error - {str(e)[:80]}"]
 

@@ -154,18 +154,18 @@ def check_python_logic(py_dir, test_cases_file):
     if error:
         return [], [f"Python logic: {error}"]
 
-    if not Path(test_cases_file).exists():
+    test_cases = Path(test_cases_file).resolve()
+    if not test_cases.exists():
         return ["Python logic: no test cases"], []
 
-    # Use eval_runner.py (copied by run_eval_in_docker)
-    runner = Path("eval_runner.py")
+    runner = Path("eval_runner.py").resolve()
     if not runner.exists():
         return ["Python logic: no eval_runner.py"], []
 
     module_name = py.name.replace(".py", "")
     try:
         r = subprocess.run(
-            ["python", str(runner), module_name, func_name, test_cases_file],
+            [sys.executable, str(runner), module_name, func_name, str(test_cases)],
             capture_output=True,
             text=True,
             timeout=60,
@@ -187,17 +187,17 @@ def check_js_logic(js_dir, test_cases_file):
     if error:
         return [], [f"JavaScript logic: {error}"]
 
-    if not Path(test_cases_file).exists():
+    test_cases = Path(test_cases_file).resolve()
+    if not test_cases.exists():
         return ["JavaScript logic: no test cases"], []
 
-    # Use eval_runner.ts (copied by run_eval_in_docker)
-    runner = Path("eval_runner.ts")
+    runner = Path("eval_runner.ts").resolve()
     if not runner.exists():
         return ["JavaScript logic: no eval_runner.ts"], []
 
     try:
         r = subprocess.run(
-            ["npx", "tsx", str(runner), js.name, func_name, test_cases_file],
+            ["npx", "tsx", str(runner), js.name, func_name, str(test_cases)],
             capture_output=True,
             text=True,
             timeout=60,

@@ -158,7 +158,7 @@ def check_execution(py_file, ts_file):
     passed, failed = [], []
 
     try:
-        r = subprocess.run(["python", py_file], capture_output=True, text=True, timeout=60)
+        r = subprocess.run([sys.executable, py_file], capture_output=True, text=True, timeout=60)
         if r.returncode == 0:
             passed.append(f"Python: {py_file} executes successfully")
         else:

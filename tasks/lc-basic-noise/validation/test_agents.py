@@ -58,7 +58,7 @@ def check_agent_code(filepath, label):
 def check_agent_output(filepath, label, eval_prompt):
     passed, failed = [], []
     try:
-        r = subprocess.run(["python", filepath], capture_output=True, text=True, timeout=120)
+        r = subprocess.run([sys.executable, filepath], capture_output=True, text=True, timeout=120)
     except Exception as e:
         return [], [f"{label}: execution error - {str(e)[:80]}"]
 

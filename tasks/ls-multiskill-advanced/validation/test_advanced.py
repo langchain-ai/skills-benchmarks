@@ -93,7 +93,7 @@ def check_evaluator_logic(test_dir):
         return ["Evaluator logic: skipped (no test cases)"], []
 
     module_name = path.name.replace(".py", "")
-    args = ["python", str(runner), module_name, func_name, "evaluator_test_cases.json"]
+    args = [sys.executable, str(runner), module_name, func_name, "evaluator_test_cases.json"]
     if (test_dir / "trajectory_dataset.json").exists():
         args.append("trajectory_dataset.json")
 

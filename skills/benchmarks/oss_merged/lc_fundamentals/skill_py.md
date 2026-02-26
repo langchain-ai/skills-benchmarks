@@ -242,6 +242,33 @@ agent = create_agent(
 # Agent will pause and ask for approval before calling delete_record
 ```
 
+### Resuming After HITL Interrupt
+
+When middleware interrupts, the result contains `__interrupt__`. Resume with `Command(resume=...)`:
+
+```python
+from langgraph.types import Command
+
+config = {"configurable": {"thread_id": "session-1"}}
+
+# Initial request triggers interrupt on dangerous tool
+result = agent.invoke(
+    {"messages": [{"role": "user", "content": "Delete record 123"}]}, config=config
+)
+
+# Check for interrupt
+if "__interrupt__" in result:
+    print("Approval needed:", result["__interrupt__"])
+
+    # Approve and resume
+    result = agent.invoke(
+        Command(resume={"decisions": [{"type": "approve"}]}), config=config
+    )
+    # Other options:
+    # Command(resume={"decisions": [{"type": "reject", "message": "Not allowed"}]})
+    # Command(resume={"decisions": [{"type": "edit", "args": {"record_id": "456"}}]})
+```
+
 ### Error Handling Middleware
 
 Catch and handle tool errors gracefully:

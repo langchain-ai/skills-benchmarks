@@ -9,11 +9,11 @@ Usage: python test_dataset.py <dataset_file>
 import json
 import sys
 
-from scaffold.python.validation.scripts import validate_skill_scripts
+from scaffold.python.validation.scripts import check_skill_scripts
 from scaffold.python.validation.dataset import (
-    validate_dataset_structure,
-    validate_dataset_upload,
-    validate_trajectory_accuracy,
+    check_dataset_structure,
+    check_dataset_upload,
+    check_trajectory_accuracy,
 )
 
 
@@ -31,7 +31,7 @@ def run_tests(dataset_file):
     test_dir = Path(".")
 
     # Structure check
-    p, f = validate_dataset_structure(
+    p, f = check_dataset_structure(
         test_dir, outputs,
         filename=dataset_file,
         min_examples=1,
@@ -41,7 +41,7 @@ def run_tests(dataset_file):
     failed.extend(f)
 
     # Accuracy check against ground truth (data dir files copied by factory)
-    p, f = validate_trajectory_accuracy(
+    p, f = check_trajectory_accuracy(
         test_dir, outputs,
         filename=dataset_file,
         expected_filename="expected_dataset.json",
@@ -51,7 +51,7 @@ def run_tests(dataset_file):
     failed.extend(f)
 
     # Upload check
-    p, f = validate_dataset_upload(
+    p, f = check_dataset_upload(
         test_dir, outputs,
         filename=dataset_file,
         upload_prefix="bench-",
@@ -61,7 +61,7 @@ def run_tests(dataset_file):
 
     # Script tracking
     events = outputs.get("events", {})
-    p, f = validate_skill_scripts(outputs, events)
+    p, f = check_skill_scripts(outputs, events)
     passed.extend(p)
     failed.extend(f)
 

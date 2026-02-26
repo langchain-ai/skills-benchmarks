@@ -11,7 +11,7 @@ import subprocess
 import sys
 
 from scaffold.python.utils import evaluate_with_schema
-from scaffold.python.validation.core import validate_noise_outputs, validate_skill_invoked
+from scaffold.python.validation.core import check_noise_outputs, check_skill_invoked
 
 MODERN_PATTERNS = {
     "from langchain.agents import create_agent": "imports create_agent from langchain.agents",
@@ -85,14 +85,14 @@ def check_outputs_metadata():
     passed.append(f"Duration: {events.get('duration_seconds', 0) or 0:.0f}s")
     passed.append(f"Tool calls: {len(events.get('tool_calls', []))}")
 
-    p, _ = validate_skill_invoked(outputs, "langchain-agents", required=False)
+    p, _ = check_skill_invoked(outputs, "langchain-agents", required=False)
     passed.extend(p)
 
     # Check noise deliverables
     noise_tasks = outputs.get("noise_tasks", [])
     if not noise_tasks:
         noise_tasks = ["docker_patterns", "react_components", "api_docs"]
-    np, nf = validate_noise_outputs(noise_tasks)
+    np, nf = check_noise_outputs(noise_tasks)
     passed.extend(np)
     failed.extend(nf)
 

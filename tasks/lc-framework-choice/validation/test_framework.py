@@ -14,7 +14,7 @@ import ast
 import json
 import sys
 
-from scaffold.python.validation.core import validate_skill_invoked, validate_starter_skill_first
+from scaffold.python.validation.core import check_skill_invoked, check_starter_skill_first
 
 
 def check_file(filepath, label, checks):
@@ -112,9 +112,9 @@ def check_outputs_metadata():
     passed.append(f"Duration: {events.get('duration_seconds', 0) or 0:.0f}s")
     passed.append(f"Tool calls: {len(events.get('tool_calls', []))}")
 
-    p, f = validate_starter_skill_first(outputs)
+    p, f = check_starter_skill_first(outputs)
     passed.extend(p)
-    p2, _ = validate_skill_invoked(outputs, "framework-selection", required=False)
+    p2, _ = check_skill_invoked(outputs, "framework-selection", required=False)
     passed.extend(p2)
 
     return passed, f

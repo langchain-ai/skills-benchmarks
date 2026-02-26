@@ -218,7 +218,6 @@ def test_task_treatment(task_name, treatment_name, fixtures):
         skills=skills,
         claude_md=treatment_cfg.claude_md if treatment_cfg.claude_md else None,
         noise_tasks=noise_tasks,
-        validators=[],  # We use function-based validators directly
     )
 
     # Setup test context with task's environment

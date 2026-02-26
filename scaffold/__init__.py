@@ -48,7 +48,6 @@ from .python import (
     read_json_file,
     retry_with_backoff,
     run_claude_in_docker,
-    run_in_docker,
     run_node_in_docker,
     run_python_in_docker,
     make_execution_validator,

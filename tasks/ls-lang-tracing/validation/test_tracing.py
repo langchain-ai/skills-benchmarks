@@ -6,8 +6,6 @@ Python and TypeScript files. Runs inside Docker via make_execution_validator.
 Usage: python test_tracing.py <python_file> <typescript_file>
 """
 
-import ast
-import importlib.util
 import json
 import re
 import subprocess
@@ -170,9 +168,7 @@ def check_execution(py_file, ts_file):
 
     # TypeScript execution via npx tsx
     try:
-        r = subprocess.run(
-            ["npx", "tsx", ts_file], capture_output=True, text=True, timeout=60
-        )
+        r = subprocess.run(["npx", "tsx", ts_file], capture_output=True, text=True, timeout=60)
         if r.returncode == 0:
             passed.append(f"TypeScript: {ts_file} executes successfully")
         else:

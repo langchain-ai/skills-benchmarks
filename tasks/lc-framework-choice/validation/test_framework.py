@@ -50,7 +50,9 @@ def _uses_create_agent(content, label):
 
 def _no_react_agent(content, label):
     if "from langgraph.prebuilt import create_react_agent" in content:
-        return [], [f"{label}: uses create_react_agent from LangGraph (should use create_agent for simple agent)"]
+        return [], [
+            f"{label}: uses create_react_agent from LangGraph (should use create_agent for simple agent)"
+        ]
     return [], []
 
 
@@ -77,7 +79,9 @@ def _uses_agent_not_langgraph(content, label):
     uses_deep_agent = "create_deep_agent" in content
     uses_langgraph = "StateGraph" in content
     if uses_langgraph:
-        f.append(f"{label}: uses LangGraph StateGraph (middleware/hooks are not a LangGraph concept)")
+        f.append(
+            f"{label}: uses LangGraph StateGraph (middleware/hooks are not a LangGraph concept)"
+        )
     if uses_create_agent or uses_deep_agent:
         which = "create_agent" if uses_create_agent else "create_deep_agent"
         p.append(f"{label}: correctly uses {which} for hook/middleware pattern")
@@ -124,11 +128,31 @@ def run_tests(*files):
     passed, failed = [], []
 
     file_checks = [
-        (files[0] if len(files) > 0 else "qa_agent.py", "QA Agent", [_uses_create_agent, _no_react_agent, _no_stategraph]),
-        (files[1] if len(files) > 1 else "approval_pipeline.py", "Approval Pipeline", [_uses_stategraph]),
-        (files[2] if len(files) > 2 else "middleware_agent.py", "Middleware Agent", [_uses_agent_not_langgraph]),
-        (files[3] if len(files) > 3 else "research_assistant.py", "Research Assistant", [_uses_deep_agent]),
-        (files[4] if len(files) > 4 else "personal_assistant.py", "Personal Assistant", [_deep_agent_not_langgraph]),
+        (
+            files[0] if len(files) > 0 else "qa_agent.py",
+            "QA Agent",
+            [_uses_create_agent, _no_react_agent, _no_stategraph],
+        ),
+        (
+            files[1] if len(files) > 1 else "approval_pipeline.py",
+            "Approval Pipeline",
+            [_uses_stategraph],
+        ),
+        (
+            files[2] if len(files) > 2 else "middleware_agent.py",
+            "Middleware Agent",
+            [_uses_agent_not_langgraph],
+        ),
+        (
+            files[3] if len(files) > 3 else "research_assistant.py",
+            "Research Assistant",
+            [_uses_deep_agent],
+        ),
+        (
+            files[4] if len(files) > 4 else "personal_assistant.py",
+            "Personal Assistant",
+            [_deep_agent_not_langgraph],
+        ),
     ]
 
     for filepath, label, checks in file_checks:

@@ -13,13 +13,13 @@ import subprocess
 import sys
 from pathlib import Path
 
-from scaffold.python.validation.scripts import check_skill_scripts
 from scaffold.python.validation.dataset import (
     check_dataset_structure,
     check_dataset_upload,
     check_trajectory_accuracy,
 )
 from scaffold.python.validation.evaluator import find_evaluator_function
+from scaffold.python.validation.scripts import check_skill_scripts
 
 
 def check_evaluator_exists(test_dir):
@@ -75,7 +75,6 @@ def check_evaluator_structure(test_dir):
 
 def check_evaluator_logic(test_dir):
     """Run evaluator against test cases using eval_runner.py."""
-    passed, failed = [], []
     path = _find_evaluator(test_dir)
     if not path:
         return [], []
@@ -110,7 +109,7 @@ def check_evaluator_logic(test_dir):
             except json.JSONDecodeError:
                 pass
         if r.returncode == 0:
-            return [], [f"Evaluator logic: no structured output from eval_runner"]
+            return [], ["Evaluator logic: no structured output from eval_runner"]
         return [], [f"Evaluator logic: execution failed - {(r.stderr or output)[:100]}"]
     except Exception as e:
         return [], [f"Evaluator logic: {str(e)[:50]}"]
@@ -123,7 +122,8 @@ def check_upload(test_dir, outputs):
     if _find_evaluator(test_dir):
         passed.append("Upload: local evaluator file exists")
     p, f = check_dataset_upload(
-        test_dir, outputs,
+        test_dir,
+        outputs,
         filename="trajectory_dataset.json",
         upload_prefix="bench-",
     )
@@ -143,7 +143,8 @@ def run_tests(dataset_file):
 
     for p, f in [
         check_dataset_structure(
-            test_dir, outputs,
+            test_dir,
+            outputs,
             filename=dataset_file,
             min_examples=1,
             dataset_type="trajectory",
@@ -153,7 +154,8 @@ def run_tests(dataset_file):
         check_evaluator_structure(test_dir),
         check_evaluator_logic(test_dir),
         check_trajectory_accuracy(
-            test_dir, outputs,
+            test_dir,
+            outputs,
             filename=dataset_file,
             expected_filename="expected_dataset.json",
             data_dir=test_dir,

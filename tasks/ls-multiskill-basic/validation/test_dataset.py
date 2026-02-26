@@ -9,12 +9,12 @@ Usage: python test_dataset.py <dataset_file>
 import json
 import sys
 
-from scaffold.python.validation.scripts import check_skill_scripts
 from scaffold.python.validation.dataset import (
     check_dataset_structure,
     check_dataset_upload,
     check_trajectory_accuracy,
 )
+from scaffold.python.validation.scripts import check_skill_scripts
 
 
 def run_tests(dataset_file):
@@ -32,7 +32,8 @@ def run_tests(dataset_file):
 
     # Structure check
     p, f = check_dataset_structure(
-        test_dir, outputs,
+        test_dir,
+        outputs,
         filename=dataset_file,
         min_examples=1,
         dataset_type="trajectory",
@@ -42,7 +43,8 @@ def run_tests(dataset_file):
 
     # Accuracy check against ground truth (data dir files copied by factory)
     p, f = check_trajectory_accuracy(
-        test_dir, outputs,
+        test_dir,
+        outputs,
         filename=dataset_file,
         expected_filename="expected_dataset.json",
         data_dir=test_dir,
@@ -52,7 +54,8 @@ def run_tests(dataset_file):
 
     # Upload check
     p, f = check_dataset_upload(
-        test_dir, outputs,
+        test_dir,
+        outputs,
         filename=dataset_file,
         upload_prefix="bench-",
     )

@@ -102,7 +102,6 @@ def run_claude_in_docker(
         return subprocess.CompletedProcess(cmd, 124, "", f"Timeout after {timeout}s")
 
 
-
 # =============================================================================
 # DOCKER: Eval orchestration (copy files → run test → parse JSON)
 # =============================================================================
@@ -174,9 +173,7 @@ def run_eval_in_docker(
                 shutil.copy(f, test_dir / f.name)
     _copy_scaffold_to_docker(test_dir)
     args = [module_names] if isinstance(module_names, str) else module_names
-    success, output = run_python_in_docker(
-        test_dir, test_script, timeout=timeout, args=args
-    )
+    success, output = run_python_in_docker(test_dir, test_script, timeout=timeout, args=args)
     result = _parse_json_output(output)
     if result is not None:
         return result
@@ -224,8 +221,12 @@ def make_execution_validator(
             (test_dir / "_outputs.json").write_text(json.dumps(outputs, default=str))
         for script in test_scripts:
             results = run_eval_in_docker(
-                test_dir, eval_dir, script, module_files,
-                timeout=timeout, data_dir=data_dir,
+                test_dir,
+                eval_dir,
+                script,
+                module_files,
+                timeout=timeout,
+                data_dir=data_dir,
             )
             passed.extend(results.get("passed", []))
             failed.extend(results.get("failed", []))
@@ -383,10 +384,15 @@ def evaluate_with_schema(prompt: str, model: str = None) -> dict:
         result = (
             get_eval_model(model)
             .with_structured_output(EvalResult, method="json_mode")
-            .invoke([
-                {"role": "system", "content": 'Evaluate the output. Respond as JSON: {"passed": bool, "reason": "..."}'},
-                {"role": "user", "content": prompt},
-            ])
+            .invoke(
+                [
+                    {
+                        "role": "system",
+                        "content": 'Evaluate the output. Respond as JSON: {"passed": bool, "reason": "..."}',
+                    },
+                    {"role": "user", "content": prompt},
+                ]
+            )
         )
         return {"pass": result.passed, "reason": result.reason}
     except Exception as e:

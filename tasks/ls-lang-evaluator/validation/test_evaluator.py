@@ -120,10 +120,9 @@ def check_patterns(py_dir, js_dir):
     js = find_evaluator(js_dir, ["ts", "js"])
     if js:
         content = js.read_text()
-        has_sig = (
-            re.search(r"function\s+\w+\s*\(\s*run\s*(:\s*\w+)?\s*,\s*example", content)
-            or re.search(r"=\s*\(\s*run\s*(:\s*\w+)?\s*,\s*example\s*(:\s*\w+)?\s*\)\s*=>", content)
-        )
+        has_sig = re.search(
+            r"function\s+\w+\s*\(\s*run\s*(:\s*\w+)?\s*,\s*example", content
+        ) or re.search(r"=\s*\(\s*run\s*(:\s*\w+)?\s*,\s*example\s*(:\s*\w+)?\s*\)\s*=>", content)
         if has_sig:
             passed.append("JavaScript: has (run, example) signature")
         else:
@@ -167,7 +166,9 @@ def check_python_logic(py_dir, test_cases_file):
     try:
         r = subprocess.run(
             ["python", str(runner), module_name, func_name, test_cases_file],
-            capture_output=True, text=True, timeout=60,
+            capture_output=True,
+            text=True,
+            timeout=60,
             cwd=str(py.parent),
         )
         return _parse_eval_results(r.stdout + r.stderr, r.returncode == 0, "Python")
@@ -197,7 +198,9 @@ def check_js_logic(js_dir, test_cases_file):
     try:
         r = subprocess.run(
             ["npx", "tsx", str(runner), js.name, func_name, test_cases_file],
-            capture_output=True, text=True, timeout=60,
+            capture_output=True,
+            text=True,
+            timeout=60,
             cwd=str(js.parent),
         )
         return _parse_eval_results(r.stdout + r.stderr, r.returncode == 0, "JavaScript")

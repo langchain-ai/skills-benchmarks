@@ -4,7 +4,6 @@ Provides the NoiseTask and Treatment dataclasses for defining experimental condi
 """
 
 from dataclasses import dataclass, field
-from pathlib import Path
 
 
 @dataclass
@@ -23,6 +22,7 @@ class Treatment:
     skills: dict[str, list[str]] = field(default_factory=dict)
     claude_md: str | None = None
     noise_tasks: list[NoiseTask] = field(default_factory=list)
+
     def build_prompt(self, base_prompt: str, task2_prompt: str = None) -> str:
         """Build experiment prompt, inserting noise tasks if present."""
         if not self.noise_tasks:
@@ -37,4 +37,3 @@ class Treatment:
             parts.append(f"{len(parts) + 1}. {task2_prompt}")
 
         return "Complete these tasks in order:\n\n" + "\n\n".join(parts)
-

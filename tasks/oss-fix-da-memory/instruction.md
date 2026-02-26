@@ -1,47 +1,25 @@
 # Fix: Multi-Agent System Issues
 
-We have a multi-agent system in `environment/agent_system.py` built with deepagents. Users are reporting multiple problems:
+We have a multi-agent system in `agent_system.py` built with deepagents. Users are reporting several problems — the tool implementations are fine, the issues are in how the agent system is configured.
 
-## Issue 1: Preferences don't persist
+You may want to reference deepagents documentation on memory backends, subagent configuration, and agent lifecycle management.
 
-```python
-# Session 1
-agent = create_agent_system()
-save_user_preferences(agent, "alice", prefs)
-# Saves to: /memory/cache/prefs-alice.json
+## Bug Reports
 
-# Session 2 (restart the app)
-agent2 = create_agent_system()
-load_user_preferences(agent2, "alice")
-# Expected: Returns the saved preferences
-# Actual: "No preferences found" - data was lost!
-```
+**1. "My preferences disappear after restarting the app"**
 
-## Issue 2: Subagent can't access docs
+Users save preferences but after restarting, the data is gone. It seems like it's being saved somewhere but not persisting across sessions.
 
-The main agent has `skills=["/project-docs/", "/coding-standards/"]`. But:
+**2. "The research subagent can't access our documentation"**
 
-```python
-research_topic(agent, "info from project-docs")
-# Expected: Researcher subagent accesses /project-docs/ and returns info
-# Actual: "I don't have access to project documentation"
-```
+The main agent can access project docs and coding standards, but when the researcher subagent tries, it says it doesn't have access.
 
-## Issue 3: Deployment skips approval
+**3. "Deployments go through without approval"**
 
-The deployer subagent has `interrupt_on` configured for `deploy_to_prod` but:
+Production deployments are supposed to require human approval, but they go through immediately without pausing.
 
-```python
-deploy_service(agent, "payment-api")
-# Expected: Pauses for human approval before calling deploy_to_prod
-# Actual: "Deployed payment-api to production" - no approval requested!
-```
+## Expected Behavior
 
-## Your Task
-
-Fix all the issues. We've identified in previous testing that the tool implementations (`search_papers`, `deploy_to_prod`, etc.) work as intended - the bugs are in the agent configuration in `create_agent_system()`.
-
-After your fixes:
-1. User preferences should persist across app restarts (data saved in one session should be loadable in a new session)
-2. Subagents should have access to the same skills/knowledge as the main agent
-3. The deployer should pause for human approval before executing `deploy_to_prod`
+1. Preferences saved in one session should be loadable in a new session
+2. The researcher subagent should be able to access the main agent's documentation skills
+3. The deployer should pause and request approval before executing production deployments

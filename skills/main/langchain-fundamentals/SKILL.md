@@ -165,169 +165,21 @@ const calculate = tool(
 <middleware>
 ## Middleware for Agent Control
 
-Middleware intercepts the agent loop to add human approval, error handling, logging, etc. A deep understanding of middleware patterns is essential for production agents — the examples below cover the basics.
+Middleware intercepts the agent loop to add human approval, error handling, logging, and more. A deep understanding of middleware is essential for production agents — use `HumanInTheLoopMiddleware` (Python) / `humanInTheLoopMiddleware` (TypeScript) for approval workflows, and `@wrap_tool_call` (Python) / `createMiddleware` (TypeScript) for custom hooks.
+
+Key imports:
+```python
+from langchain.agents.middleware import HumanInTheLoopMiddleware, wrap_tool_call
+```
+```typescript
+import { humanInTheLoopMiddleware, createMiddleware } from "langchain";
+```
+
+Key patterns:
+- **HITL**: `middleware=[HumanInTheLoopMiddleware(interrupt_on={"dangerous_tool": True})]` — requires `checkpointer` + `thread_id`
+- **Resume after interrupt**: `agent.invoke(Command(resume={"decisions": [{"type": "approve"}]}), config=config)`
+- **Custom middleware**: `@wrap_tool_call` decorator (Python) or `createMiddleware({ wrapToolCall: ... })` (TypeScript)
 </middleware>
-
-<ex-hitl-middleware>
-<python>
-Require human approval before executing sensitive tools like delete operations.
-```python
-from langchain.agents import create_agent
-from langchain.agents.middleware import HumanInTheLoopMiddleware
-
-@tool
-def delete_record(record_id: str) -> str:
-    """Delete a database record permanently.
-
-    Args:
-        record_id: ID of record to delete
-    """
-    db.delete(record_id)
-    return f"Deleted record {record_id}"
-
-agent = create_agent(
-    model="anthropic:claude-sonnet-4-5",
-    tools=[delete_record, search],
-    middleware=[
-        HumanInTheLoopMiddleware(
-            interrupt_on={"delete_record": True}
-        )
-    ],
-)
-```
-</python>
-<typescript>
-Require human approval before executing sensitive tools like delete operations.
-```typescript
-import { createAgent, humanInTheLoopMiddleware } from "langchain";
-
-const deleteRecord = tool(
-  async ({ recordId }) => {
-    await db.delete(recordId);
-    return `Deleted record ${recordId}`;
-  },
-  {
-    name: "delete_record",
-    description: "Delete a database record permanently.",
-    schema: z.object({ recordId: z.string().describe("ID of record to delete") }),
-  }
-);
-
-const agent = createAgent({
-  model: "anthropic:claude-sonnet-4-5",
-  tools: [deleteRecord, search],
-  middleware: [
-    humanInTheLoopMiddleware({
-      toolsRequiringApproval: ["delete_record"],
-    }),
-  ],
-});
-```
-</typescript>
-
-### Resuming After HITL Interrupt
-
-When middleware interrupts, the result contains `__interrupt__`. Resume with `Command(resume=...)`:
-
-<python>
-```python
-from langgraph.types import Command
-
-config = {"configurable": {"thread_id": "session-1"}}
-
-# Initial request triggers interrupt on dangerous tool
-result = agent.invoke(
-    {"messages": [{"role": "user", "content": "Delete record 123"}]}, config=config
-)
-
-# Check for interrupt
-if "__interrupt__" in result:
-    print("Approval needed:", result["__interrupt__"])
-
-    # Approve and resume
-    result = agent.invoke(
-        Command(resume={"decisions": [{"type": "approve"}]}), config=config
-    )
-    # Other options:
-    # Command(resume={"decisions": [{"type": "reject", "message": "Not allowed"}]})
-    # Command(resume={"decisions": [{"type": "edit", "args": {"record_id": "456"}}]})
-```
-</python>
-<typescript>
-```typescript
-import { Command } from "@langchain/langgraph";
-
-const config = { configurable: { thread_id: "session-1" } };
-
-// Initial request triggers interrupt on dangerous tool
-const result = await agent.invoke(
-  { messages: [{ role: "user", content: "Delete record 123" }] }, config
-);
-
-// Check for interrupt
-if ("__interrupt__" in result) {
-  console.log("Approval needed:", result.__interrupt__);
-
-  // Approve and resume
-  const resumed = await agent.invoke(
-    new Command({ resume: { decisions: [{ type: "approve" }] } }), config
-  );
-}
-```
-</typescript>
-</ex-hitl-middleware>
-
-<ex-error-middleware>
-<python>
-Catch and handle tool errors gracefully with custom middleware.
-```python
-from langchain.agents import create_agent
-from langchain.agents.middleware import wrap_tool_call
-
-@wrap_tool_call
-async def error_handler(tool_call, handler):
-    try:
-        return await handler(tool_call)
-    except Exception as error:
-        return {
-            **tool_call,
-            "content": f"Tool error: {str(error)}. Please try a different approach.",
-        }
-
-agent = create_agent(
-    model="anthropic:claude-sonnet-4-5",
-    tools=[risky_tool],
-    middleware=[error_handler],
-)
-```
-</python>
-<typescript>
-Catch and handle tool errors gracefully with custom middleware.
-```typescript
-import { createAgent, createMiddleware } from "langchain";
-
-const errorHandler = createMiddleware({
-  name: "ErrorHandler",
-  wrapToolCall: async (request, handler) => {
-    try {
-      return await handler(request);
-    } catch (error) {
-      return {
-        ...request.toolCall,
-        content: `Tool error: ${error}. Please try a different approach.`,
-      };
-    }
-  },
-});
-
-const agent = createAgent({
-  model: "anthropic:claude-sonnet-4-5",
-  tools: [riskyTool],
-  middleware: [errorHandler],
-});
-```
-</typescript>
-</ex-error-middleware>
 
 <structured_output>
 ## Structured Output
@@ -388,60 +240,6 @@ agent = create_agent(model=ChatAnthropic(model="claude-sonnet-4-5", temperature=
 ```
 </model_config>
 
-<ex-custom-middleware>
-## Defining Custom Middleware
-
-Middleware hooks: `before_model`, `after_model`, `wrap_tool_call`, `before_agent`, `after_agent`, `wrap_model_call`.
-
-<python>
-```python
-from langchain.agents.middleware import wrap_tool_call
-
-# @wrap_tool_call creates middleware from a function
-@wrap_tool_call
-async def retry_on_error(request, handler):
-    """Retry failed tool calls once before giving up."""
-    try:
-        return await handler(request)
-    except Exception:
-        return await handler(request)  # Retry once
-
-# Apply to specific tools only
-@wrap_tool_call(tools=[flaky_api_tool], name="RetryFlaky")
-async def retry_flaky(request, handler):
-    return await handler(request)
-
-agent = create_agent(
-    model="anthropic:claude-sonnet-4-5",
-    tools=[flaky_api_tool, stable_tool],
-    middleware=[retry_on_error],
-)
-```
-</python>
-<typescript>
-```typescript
-import { createMiddleware } from "langchain";
-
-// createMiddleware accepts hook functions
-const retryOnError = createMiddleware({
-  name: "RetryOnError",
-  wrapToolCall: async (request, handler) => {
-    try {
-      return await handler(request);
-    } catch {
-      return await handler(request); // Retry once
-    }
-  },
-});
-
-const agent = createAgent({
-  model: "anthropic:claude-sonnet-4-5",
-  tools: [flakyApiTool, stableTool],
-  middleware: [retryOnError],
-});
-```
-</typescript>
-</ex-custom-middleware>
 
 <fix-missing-tool-description>
 <python>

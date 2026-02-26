@@ -31,7 +31,7 @@ def read_json_file(path: Path) -> tuple[dict | list | None, str | None]:
         return None, str(e)
 
 
-def validate_dataset_structure(
+def check_dataset_structure(
     test_dir: Path = None,
     outputs: dict = None,
     filename: str = "trajectory_dataset.json",
@@ -118,7 +118,7 @@ def _get_trajectory(ex: dict) -> list:
     return []
 
 
-def validate_dataset_upload(
+def check_dataset_upload(
     test_dir: Path = None,
     outputs: dict = None,
     filename: str = "trajectory_dataset.json",
@@ -127,7 +127,7 @@ def validate_dataset_upload(
     """Verify dataset was uploaded to LangSmith and matches local file."""
     test_dir = test_dir or Path(".")
     outputs = outputs or {}
-    from scaffold.python.validation.langsmith import get_langsmith_client, safe_api_call
+    from scaffold.python.utils import get_langsmith_client, safe_api_call
 
     passed, failed = [], []
 
@@ -200,7 +200,7 @@ def validate_dataset_upload(
     return passed, failed
 
 
-def validate_trajectory_accuracy(
+def check_trajectory_accuracy(
     test_dir: Path = None,
     outputs: dict = None,
     filename: str = "trajectory_dataset.json",

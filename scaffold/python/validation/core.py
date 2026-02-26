@@ -23,7 +23,7 @@ def load_outputs(path: str = "_outputs.json") -> dict:
         return {}
 
 
-def validate_file_exists(test_dir: Path, filepath: str) -> tuple[list[str], list[str]]:
+def check_file_exists(test_dir: Path, filepath: str) -> tuple[list[str], list[str]]:
     """Check that a file exists.
 
     Args:
@@ -39,7 +39,7 @@ def validate_file_exists(test_dir: Path, filepath: str) -> tuple[list[str], list
     return [], [f"File missing: {filepath}"]
 
 
-def validate_pattern(
+def check_pattern(
     filepath: Path,
     pattern: str,
     description: str,
@@ -65,7 +65,7 @@ def validate_pattern(
     return [], [f"Missing: {description}"]
 
 
-def validate_no_pattern(
+def check_no_pattern(
     filepath: Path,
     pattern: str,
     description: str,
@@ -135,7 +135,7 @@ def run_validators(
     return all_passed, all_failed
 
 
-def validate_starter_skill_first(
+def check_starter_skill_first(
     outputs: dict,
 ) -> tuple[list[str], list[str]]:
     """Check that langchain-oss-primer or framework-selection was invoked first.
@@ -173,7 +173,7 @@ def validate_starter_skill_first(
     ]
 
 
-def validate_skill_invoked(
+def check_skill_invoked(
     outputs: dict,
     skill_name: str,
     required: bool = False,
@@ -228,7 +228,7 @@ def get_noise_task_prompts(noise_tasks: list[str]) -> list[str]:
     return [NOISE_TASK_PROMPTS[name] for name in noise_tasks if name in NOISE_TASK_PROMPTS]
 
 
-def validate_noise_outputs(
+def check_noise_outputs(
     noise_tasks: list[str],
     test_dir: Path = None,
 ) -> tuple[list[str], list[str]]:

@@ -22,7 +22,7 @@ TS_SCRIPTS = [
 ]
 
 
-def validate_skill_scripts(
+def check_skill_scripts(
     outputs: dict,
     events: dict | None = None,
     py_scripts: list[str] | None = None,

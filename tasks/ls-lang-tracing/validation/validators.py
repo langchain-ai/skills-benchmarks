@@ -10,8 +10,8 @@ from pathlib import Path
 
 from scaffold.python.utils import make_execution_validator
 from scaffold.python.validation import (
-    validate_langsmith_trace,
-    validate_skill_scripts,
+    check_langsmith_trace,
+    check_skill_scripts,
 )
 
 # Functions that must be traced
@@ -35,7 +35,7 @@ validate_execution = make_execution_validator(
 # Host-side only (needs LangSmith API)
 def validate_trace(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:
     """Validate that a trace was created in LangSmith."""
-    return validate_langsmith_trace(
+    return check_langsmith_trace(
         test_dir,
         outputs,
         trace_id_file="trace_id.txt",
@@ -46,7 +46,7 @@ def validate_trace(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]
 def validate_scripts(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:
     """Track which skill scripts Claude used (informational)."""
     events = outputs.get("events", {}) if outputs else {}
-    return validate_skill_scripts(test_dir, outputs, events)
+    return check_skill_scripts(test_dir, outputs, events)
 
 
 VALIDATORS = [

@@ -1,30 +1,18 @@
-"""Function-based validation utilities for benchmark tasks.
+"""Validation helpers for test scripts.
 
-This package provides composable validation functions organized by domain:
-- core: Basic utilities (file exists, pattern matching, compose)
-- tracing: Python/TypeScript LangSmith tracing validation + API verification
-- docker: Docker-based code execution validation
-- langsmith: LangSmith API client helpers
-- dataset: Dataset structure and trajectory validation
-- evaluator: Evaluator validation (syntax, patterns, logic, upload)
+These are helper functions used by test scripts running inside Docker.
+They are NOT standalone validators — use make_execution_validator to
+wire test scripts into the benchmark infrastructure.
+
+Modules:
+- core: File checks, pattern matching, skill tracking, noise outputs
+- tracing: LangSmith tracing pattern checks + API verification
+- docker: Code execution checks
+- dataset: Dataset structure, upload, and accuracy checks
+- evaluator: Evaluator file checks and logic execution
 - scripts: Skill script usage tracking
 
-Each validator function returns (passed: list[str], failed: list[str]).
-
-Usage:
-    from scaffold.python.validation import (
-        validate_python_tracing,
-        validate_typescript_tracing,
-        validate_code_execution,
-    )
-
-    # In task validators.py
-    def validate_tracing(test_dir: Path, outputs: dict):
-        passed, failed = [], []
-        py_p, py_f = validate_python_tracing(test_dir, "backend/agent.py")
-        passed.extend(py_p)
-        failed.extend(py_f)
-        return passed, failed
+Each helper returns (passed: list[str], failed: list[str]).
 """
 
 from scaffold.python.validation.core import (
@@ -34,44 +22,41 @@ from scaffold.python.validation.core import (
     compose_validators,
     get_noise_task_prompts,
     run_validators,
-    validate_file_exists,
-    validate_no_pattern,
-    validate_noise_outputs,
-    validate_pattern,
-    validate_skill_invoked,
-    validate_starter_skill_first,
+    check_file_exists,
+    check_no_pattern,
+    check_noise_outputs,
+    check_pattern,
+    check_skill_invoked,
+    check_starter_skill_first,
 )
 from scaffold.python.validation.dataset import (
     extract_examples,
     get_field,
     get_nested_field,
-    validate_dataset_structure,
-    validate_dataset_upload,
-    validate_trajectory_accuracy,
+    check_dataset_structure,
+    check_dataset_upload,
+    check_trajectory_accuracy,
 )
 from scaffold.python.validation.docker import (
-    validate_code_execution,
-    validate_python_execution,
-    validate_typescript_execution,
+    check_code_execution,
+    check_python_execution,
+    check_typescript_execution,
 )
 from scaffold.python.validation.evaluator import (
     find_evaluator_function,
-    validate_evaluator_exists,
-    validate_evaluator_logic,
-    validate_evaluator_patterns,
-    validate_evaluator_syntax,
-    validate_evaluator_upload,
+    check_evaluator_exists,
+    check_evaluator_logic,
+    check_evaluator_patterns,
+    check_evaluator_syntax,
+    check_evaluator_upload,
 )
-from scaffold.python.validation.langsmith import (
-    get_langsmith_client,
-    safe_api_call,
-)
-from scaffold.python.validation.scripts import validate_skill_scripts
+from scaffold.python.utils import get_langsmith_client, safe_api_call
+from scaffold.python.validation.scripts import check_skill_scripts
 from scaffold.python.validation.tracing import (
-    validate_langsmith_trace,
-    validate_language_syntax,
-    validate_python_tracing,
-    validate_typescript_tracing,
+    check_langsmith_trace,
+    check_language_syntax,
+    check_python_tracing,
+    check_typescript_tracing,
 )
 
 __all__ = [
@@ -79,24 +64,24 @@ __all__ = [
     "ValidatorFn",
     "compose_validators",
     "run_validators",
-    "validate_file_exists",
-    "validate_pattern",
-    "validate_no_pattern",
-    "validate_skill_invoked",
-    "validate_starter_skill_first",
-    "validate_noise_outputs",
+    "check_file_exists",
+    "check_pattern",
+    "check_no_pattern",
+    "check_skill_invoked",
+    "check_starter_skill_first",
+    "check_noise_outputs",
     "get_noise_task_prompts",
     "NOISE_TASK_DELIVERABLES",
     "NOISE_TASK_PROMPTS",
     # Tracing
-    "validate_python_tracing",
-    "validate_typescript_tracing",
-    "validate_language_syntax",
-    "validate_langsmith_trace",
+    "check_python_tracing",
+    "check_typescript_tracing",
+    "check_language_syntax",
+    "check_langsmith_trace",
     # Docker
-    "validate_code_execution",
-    "validate_python_execution",
-    "validate_typescript_execution",
+    "check_code_execution",
+    "check_python_execution",
+    "check_typescript_execution",
     # LangSmith
     "get_langsmith_client",
     "safe_api_call",
@@ -104,16 +89,16 @@ __all__ = [
     "extract_examples",
     "get_field",
     "get_nested_field",
-    "validate_dataset_structure",
-    "validate_dataset_upload",
-    "validate_trajectory_accuracy",
+    "check_dataset_structure",
+    "check_dataset_upload",
+    "check_trajectory_accuracy",
     # Evaluator
     "find_evaluator_function",
-    "validate_evaluator_exists",
-    "validate_evaluator_syntax",
-    "validate_evaluator_patterns",
-    "validate_evaluator_logic",
-    "validate_evaluator_upload",
+    "check_evaluator_exists",
+    "check_evaluator_syntax",
+    "check_evaluator_patterns",
+    "check_evaluator_logic",
+    "check_evaluator_upload",
     # Scripts
-    "validate_skill_scripts",
+    "check_skill_scripts",
 ]

@@ -10,8 +10,8 @@ from pathlib import Path
 
 from scaffold.python.utils import make_execution_validator
 from scaffold.python.validation import (
-    validate_evaluator_upload,
-    validate_skill_scripts,
+    check_evaluator_upload,
+    check_skill_scripts,
 )
 
 # Runs in Docker: existence, syntax, patterns, logic for both languages
@@ -26,13 +26,13 @@ validate_execution = make_execution_validator(
 # Host-side only (needs LangSmith API)
 def validate_upload(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:
     """Validate that evaluators were uploaded to LangSmith."""
-    return validate_evaluator_upload(test_dir, outputs)
+    return check_evaluator_upload(test_dir, outputs)
 
 
 def validate_scripts(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:
     """Track which skill scripts Claude used (informational)."""
     events = outputs.get("events", {}) if outputs else {}
-    return validate_skill_scripts(test_dir, outputs, events)
+    return check_skill_scripts(test_dir, outputs, events)
 
 
 # Order: execution checks (most important) → upload → scripts (informational)

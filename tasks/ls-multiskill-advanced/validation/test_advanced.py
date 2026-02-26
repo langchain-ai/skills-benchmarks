@@ -13,11 +13,11 @@ import subprocess
 import sys
 from pathlib import Path
 
-from scaffold.python.validation.scripts import validate_skill_scripts
+from scaffold.python.validation.scripts import check_skill_scripts
 from scaffold.python.validation.dataset import (
-    validate_dataset_structure,
-    validate_dataset_upload,
-    validate_trajectory_accuracy,
+    check_dataset_structure,
+    check_dataset_upload,
+    check_trajectory_accuracy,
 )
 from scaffold.python.validation.evaluator import find_evaluator_function
 
@@ -126,7 +126,7 @@ def check_upload(test_dir, outputs):
         passed.append("Upload: local dataset file exists")
     if _find_evaluator(test_dir):
         passed.append("Upload: local evaluator file exists")
-    p, f = validate_dataset_upload(
+    p, f = check_dataset_upload(
         test_dir, outputs,
         filename="trajectory_dataset.json",
         upload_prefix="bench-",
@@ -146,7 +146,7 @@ def run_tests(dataset_file):
         outputs = {}
 
     for p, f in [
-        validate_dataset_structure(
+        check_dataset_structure(
             test_dir, outputs,
             filename=dataset_file,
             min_examples=1,
@@ -156,14 +156,14 @@ def run_tests(dataset_file):
         check_evaluator_syntax(test_dir),
         check_evaluator_structure(test_dir),
         check_evaluator_logic(test_dir),
-        validate_trajectory_accuracy(
+        check_trajectory_accuracy(
             test_dir, outputs,
             filename=dataset_file,
             expected_filename="expected_dataset.json",
             data_dir=test_dir,
         ),
         check_upload(test_dir, outputs),
-        validate_skill_scripts(outputs, outputs.get("events", {})),
+        check_skill_scripts(outputs, outputs.get("events", {})),
     ]:
         passed.extend(p)
         failed.extend(f)

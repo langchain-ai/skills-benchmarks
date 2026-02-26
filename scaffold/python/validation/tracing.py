@@ -10,7 +10,7 @@ Validates that code has correct LangSmith tracing patterns:
 import re
 from pathlib import Path
 
-from scaffold.python.validation.langsmith import get_langsmith_client
+from scaffold.python.utils import get_langsmith_client
 
 # UUID pattern for trace IDs
 UUID_PATTERN = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", re.I)
@@ -22,7 +22,7 @@ def _to_camel_case(snake_str: str) -> str:
     return components[0] + "".join(x.title() for x in components[1:])
 
 
-def validate_python_tracing(
+def check_python_tracing(
     test_dir: Path,
     filepath: str = "backend/sql_agent.py",
     required_functions: list[str] | None = None,
@@ -86,7 +86,7 @@ def validate_python_tracing(
     return passed, failed
 
 
-def validate_typescript_tracing(
+def check_typescript_tracing(
     test_dir: Path,
     filepath: str = "frontend/support_bot.ts",
     required_functions: list[str] | None = None,
@@ -164,7 +164,7 @@ def validate_typescript_tracing(
     return passed, failed
 
 
-def validate_language_syntax(
+def check_language_syntax(
     test_dir: Path,
     python_file: str = "backend/sql_agent.py",
     typescript_file: str = "frontend/support_bot.ts",
@@ -219,7 +219,7 @@ def validate_language_syntax(
     return passed, failed
 
 
-def validate_langsmith_trace(
+def check_langsmith_trace(
     test_dir: Path,
     outputs: dict,
     trace_id_file: str = "trace_id.txt",

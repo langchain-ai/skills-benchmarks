@@ -350,61 +350,7 @@ const graph = new StateGraph(State)
 </ex-command-state-and-routing>
 
 <ex-map-reduce-with-send>
-<python>
-Send creates parallel workers; reducer accumulates their results.
-```python
-from langgraph.graph import StateGraph, START, END
-from langgraph.types import Send
-from typing import Annotated
-import operator
-
-class State(TypedDict):
-    items: list[str]
-    results: Annotated[list, operator.add]  # Accumulates from parallel workers
-
-def fan_out(state: State):
-    return [Send("worker", {"item": item}) for item in state["items"]]
-
-def worker(state: dict) -> dict:
-    return {"results": [f"Processed: {state['item']}"]}
-
-graph = (
-    StateGraph(State)
-    .add_node("worker", worker)
-    .add_conditional_edges(START, fan_out, ["worker"])
-    .add_edge("worker", END)
-    .compile()
-)
-# invoke({"items": ["a", "b", "c"]}) -> results: ["Processed: a", "Processed: b", "Processed: c"]
-```
-</python>
-<typescript>
-Map items to Send objects for parallel execution.
-```typescript
-import { StateGraph, StateSchema, START, END, Send, ReducedValue } from "@langchain/langgraph";
-import { z } from "zod";
-
-const State = new StateSchema({
-  items: z.array(z.string()),
-  results: new ReducedValue(z.array(z.string()).default(() => []), {
-    reducer: (current, update) => current.concat(update)
-  }),
-});
-
-const fanOut = (state: typeof State.State) =>
-  state.items.map((item) => new Send("worker", { item }));
-
-const worker = async (state: { item: string }) =>
-  ({ results: [`Processed: ${state.item}`] });
-
-const graph = new StateGraph(State)
-  .addNode("worker", worker)
-  .addConditionalEdges(START, fanOut, ["worker"])
-  .addEdge("worker", END)
-  .compile();
-// invoke({ items: ["a", "b", "c"] }) -> results: ["Processed: a", "Processed: b", "Processed: c"]
-```
-</typescript>
+Fan-out with Send: return `[Send("worker", {...})]` from a conditional edge to spawn parallel workers. Requires a reducer on the results field. A deep understanding of Send and execution patterns is essential for complex workflows.
 </ex-map-reduce-with-send>
 
 <ex-graph-with-loop>

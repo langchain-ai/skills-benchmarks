@@ -30,7 +30,7 @@ Agents combine language models with tools to create systems that can reason abou
 |------|---------------|---------|
 | Basic agent with tools | `create_agent(model, tools)` | Search, calculator, weather |
 | Custom system instructions | Add `system_prompt` | Domain-specific behavior |
-| Human approval for sensitive operations | Add `human_in_the_loop_middleware` | Database writes, emails |
+| Human approval for sensitive operations | Add `HumanInTheLoopMiddleware` | Database writes, emails |
 | Persistence across sessions | Add `checkpointer` | Multi-turn conversations |
 | Structured output format | Add `response_format` | Extract contact info, parse forms |
 
@@ -228,7 +228,8 @@ agent = create_agent(
 
 <ex-error-handling>
 ```python
-from langchain.agents import create_agent, wrap_tool_call
+from langchain.agents import create_agent
+from langchain.agents.middleware import wrap_tool_call
 
 # Custom error handling middleware
 @wrap_tool_call
@@ -309,11 +310,10 @@ result = agent.invoke({
     "messages": [{"role": "user", "content": "Keep searching until perfect"}]
 })
 
-# CORRECT: Solution: Set max iterations
-agent = create_agent(
-    model="gpt-4.1",
-    tools=[search],
-    max_iterations=10,  # Stop after 10 tool calls
+# CORRECT: Set recursion_limit in config
+result = agent.invoke(
+    {"messages": [("user", "Keep searching until perfect")]},
+    config={"recursion_limit": 10},  # Stop after 10 steps
 )
 ```
 </fix-infinite-loop>

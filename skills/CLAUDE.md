@@ -12,6 +12,7 @@ This project uses skills that contain up-to-date patterns and working reference 
 - **langsmith-evaluator** - Invoke for ANY evaluator creation
 
 ### LangChain Skills
+- **langchain-dependencies** - Invoke when setting up a NEW project or debugging package versions, installation, or dependency issues
 - **langchain-fundamentals** - Invoke for create_agent, @tool decorator, middleware patterns
 - **langchain-rag** - Invoke for RAG pipelines, vector stores, embeddings
 - **langchain-output** - Invoke for structured output with Pydantic

@@ -332,7 +332,7 @@ async def process_large_file(filepath: str, runtime) -> str:
 
 <ex-structured-tool>
 ```python
-from langchain.tools import StructuredTool
+from langchain_core.tools import StructuredTool
 from pydantic import BaseModel, Field
 
 class CalculatorInput(BaseModel):

@@ -74,12 +74,13 @@ def validate_scripts(test_dir: Path, outputs: dict) -> tuple[list[str], list[str
 
 
 # List of all validators for this task
+# Order: existence → logic/upload (most important) → patterns/syntax (informational)
 VALIDATORS = [
     validate_language_correct,
-    validate_syntax_correct,
-    validate_patterns_correct,
     validate_logic_correct,
     validate_upload,
+    validate_patterns_correct,
+    validate_syntax_correct,
     validate_scripts,
 ]
 

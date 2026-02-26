@@ -1,4 +1,4 @@
-# LangChain/LangGraph environment for skill benchmarks
+# LangChain environment for oss-fix-lc-hitl task
 FROM python:3.13-slim
 
 # Install system dependencies including Node.js for Claude Code
@@ -19,6 +19,13 @@ RUN npm install -g @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}
 # Copy and install Python dependencies
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
+
+# Create non-root user for security
+RUN useradd -m -s /bin/bash benchuser
+USER benchuser
+
+# Set working directory
+WORKDIR /workspace
 
 # Default command
 CMD ["python"]

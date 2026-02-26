@@ -85,7 +85,7 @@ Best for single-purpose agents in a ReACT style with a fixed tool set. No built-
 | **QA / Chatbot** | Answer questions, summarise, classify. One job, done well. | LLM + optional retrieval |
 | **SQL Agent** | Query a database, return structured results | `SQLDatabase`, `create_sql_agent` |
 | **Search Agent** | Look up information, return findings | `TavilySearchResults`, `DuckDuckGoSearch` |
-| **RAG Agent** | Retrieve from a vector store, ground answers in documents | retriever + `create_retrieval_chain` |
+| **RAG Agent** | Retrieve from a vector store, ground answers in documents | retriever tool + `create_agent` |
 | **Data Analysis Agent** | Load, transform, and summarise structured data | `PythonREPL`, pandas tools |
 | **Tool-calling Agent** | Call APIs, run code, or chain arbitrary tools | custom `@tool` functions |
 

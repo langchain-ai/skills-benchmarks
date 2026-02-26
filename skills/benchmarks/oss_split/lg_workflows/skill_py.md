@@ -89,7 +89,7 @@ print(result)  # {'data': 'HELLO', 'validated': True, 'processed': True}
 ```python
 from langchain.tools import tool
 from langchain.chat_models import init_chat_model
-from langchain.messages import SystemMessage, ToolMessage
+from langchain_core.messages import SystemMessage, ToolMessage
 from langgraph.graph import StateGraph, START, END
 from typing import Annotated
 import operator

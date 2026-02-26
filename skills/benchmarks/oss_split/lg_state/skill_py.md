@@ -101,7 +101,7 @@ print(result)  # {'input': 'hello', 'processed': 'HELLO', 'count': 1}
 ```python
 from typing import Annotated
 import operator
-from langchain.messages import BaseMessage, HumanMessage, AIMessage
+from langchain_core.messages import BaseMessage, HumanMessage, AIMessage
 
 class MessagesState(TypedDict):
     messages: Annotated[list[BaseMessage], operator.add]

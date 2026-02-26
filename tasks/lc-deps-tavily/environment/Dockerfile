@@ -22,6 +22,7 @@ RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
 # Create non-root user for security
 RUN useradd -m -s /bin/bash benchuser
+
 USER benchuser
 
 # Set working directory

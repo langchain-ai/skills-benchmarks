@@ -52,7 +52,7 @@ Complete RAG pipeline:
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 from langchain_community.vectorstores import InMemoryVectorStore
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain.schema import Document
+from langchain_core.documents import Document
 
 # 1. Load documents (example: in-memory text)
 docs = [
@@ -295,7 +295,7 @@ const retriever = vectorStore.asRetriever({
 Filter search by metadata:
 
 ```python
-from langchain.schema import Document
+from langchain_core.documents import Document
 
 docs = [
     Document(page_content="Python programming guide", metadata={"language": "python", "topic": "programming"}),

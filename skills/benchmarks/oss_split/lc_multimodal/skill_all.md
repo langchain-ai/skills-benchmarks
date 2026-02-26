@@ -44,7 +44,7 @@ Send image URL to GPT-4.1 for analysis.
 
 ```python
 from langchain_openai import ChatOpenAI
-from langchain.schema.messages import HumanMessage
+from langchain_core.messages import HumanMessage
 
 model = ChatOpenAI(model="gpt-4.1")
 
@@ -89,7 +89,7 @@ Load local image as base64 for GPT-4.1.
 
 ```python
 from langchain_openai import ChatOpenAI
-from langchain.schema.messages import HumanMessage
+from langchain_core.messages import HumanMessage
 import base64
 
 model = ChatOpenAI(model="gpt-4.1")
@@ -182,7 +182,7 @@ Analyze PDF document with Claude.
 
 ```python
 from langchain_anthropic import ChatAnthropic
-from langchain.schema.messages import HumanMessage
+from langchain_core.messages import HumanMessage
 import base64
 
 model = ChatAnthropic(model="claude-sonnet-4-5-20250929")
@@ -302,7 +302,7 @@ Extract data from chart image with Claude.
 
 ```python
 from langchain_anthropic import ChatAnthropic
-from langchain.schema.messages import HumanMessage
+from langchain_core.messages import HumanMessage
 
 model = ChatAnthropic(model="claude-sonnet-4-5-20250929")
 
@@ -350,7 +350,7 @@ Identify objects in image with Gemini.
 
 ```python
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain.schema.messages import HumanMessage
+from langchain_core.messages import HumanMessage
 
 model = ChatGoogleGenerativeAI(model="gemini-2.5-flash")
 

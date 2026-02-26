@@ -28,10 +28,9 @@ JavaScript evaluators use `(run, example)` signature for offline (dataset) evalu
 
 ```javascript
 function evaluatorName(run, example) {
-  // run contains the agent's actual outputs
-  // example contains the expected outputs from the dataset
-  const agentResponse = run.outputs?.expected_response ?? "";
-  const expected = example.outputs?.expected_response ?? "";
+  // Field names (e.g. "response") must match your dataset schema
+  const agentResponse = run.outputs?.response ?? "";
+  const expected = example.outputs?.response ?? "";
 
   const score = agentResponse === expected ? 1 : 0;
   return { metric_name: score, comment: "Reason..." };
@@ -64,8 +63,8 @@ import OpenAI from "openai";
 const openai = new OpenAI();
 
 async function accuracyEvaluator(run, example) {
-  const expected = example.outputs?.expected_response ?? "";
-  const agentOutput = run.outputs?.expected_response ?? "";
+  const expected = example.outputs?.response ?? "";
+  const agentOutput = run.outputs?.response ?? "";
 
   const response = await openai.chat.completions.create({
     model: "gpt-4o-mini",
@@ -97,8 +96,8 @@ async function accuracyEvaluator(run, example) {
 
 ```javascript
 function exactMatchEvaluator(run, example) {
-  const output = (run.outputs?.expected_response ?? "").trim().toLowerCase();
-  const expected = (example.outputs?.expected_response ?? "").trim().toLowerCase();
+  const output = (run.outputs?.response ?? "").trim().toLowerCase();
+  const expected = (example.outputs?.response ?? "").trim().toLowerCase();
   const match = output === expected;
   return { exact_match: match ? 1 : 0, comment: `Match: ${match}` };
 }
@@ -171,7 +170,7 @@ npx tsx upload_evaluators.ts delete "Exact Match"
    - Final Response → LLM as Judge for quality
    - Trajectory → Custom Code for sequence
 3. **Handle missing fields gracefully** - Use `??` or optional chaining
-4. **Test evaluators locally first** - Validate on known good/bad examples before uploading
+4. **Test evaluators before uploading** - Run evaluator on sample inputs/outputs locally. Verify field names (e.g. `run.outputs.response`) match the actual dataset schema
 </best_practices>
 
 <example_workflow>
@@ -182,8 +181,8 @@ Complete workflow to create and upload a JavaScript evaluator:
 cat > evaluators.js <<'EOF'
 function exactMatch(run, example) {
   // Check if output exactly matches expected
-  const output = (run.outputs?.expected_response ?? "").trim().toLowerCase();
-  const expected = (example.outputs?.expected_response ?? "").trim().toLowerCase();
+  const output = (run.outputs?.response ?? "").trim().toLowerCase();
+  const expected = (example.outputs?.response ?? "").trim().toLowerCase();
   const match = output === expected;
   return { exact_match: match ? 1 : 0, comment: `Match: ${match}` };
 }
@@ -208,7 +207,7 @@ const client = new Client();
 
 async function runAgent(inputs) {
   const result = await yourAgent.invoke(inputs);
-  return { expected_response: result };
+  return { response: result };
 }
 
 const results = await client.evaluate(

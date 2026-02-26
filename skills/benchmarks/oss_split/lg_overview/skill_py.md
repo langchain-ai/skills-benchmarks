@@ -75,7 +75,7 @@ Inspired by Google's Pregel system:
 ```python
 from langchain.tools import tool
 from langchain.chat_models import init_chat_model
-from langchain.messages import SystemMessage, HumanMessage
+from langchain_core.messages import SystemMessage, HumanMessage
 from langgraph.graph import StateGraph, START, END
 from typing_extensions import TypedDict, Annotated
 import operator

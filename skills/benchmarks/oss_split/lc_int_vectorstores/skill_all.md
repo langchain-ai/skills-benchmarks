@@ -427,14 +427,11 @@ await vectorStore.addTexts(
 <ex-retriever>
 <python>
 
-Vector store as retriever in RAG chain.
+Vector store as retriever.
 
 ```python
 from langchain_community.vectorstores import FAISS
-from langchain_openai import OpenAIEmbeddings, ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate
-from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain.chains import create_retrieval_chain
+from langchain_openai import OpenAIEmbeddings
 
 # Create vector store
 vectorstore = FAISS.from_documents(documents, OpenAIEmbeddings())
@@ -445,27 +442,14 @@ retriever = vectorstore.as_retriever(
     search_kwargs={"k": 4}
 )
 
-# Use in a chain
-llm = ChatOpenAI()
-prompt = ChatPromptTemplate.from_template("""
-Answer based on context:
-{context}
-
-Question: {input}
-""")
-
-document_chain = create_stuff_documents_chain(llm, prompt)
-retrieval_chain = create_retrieval_chain(retriever, document_chain)
-
-result = retrieval_chain.invoke({"input": "What is LangChain?"})
-print(result["answer"])
+results = retriever.invoke("What is LangChain?")
 ```
 
 </python>
 
 <typescript>
 
-Vector store as retriever in RAG chain.
+Vector store as retriever.
 
 ```typescript
 import { MemoryVectorStore } from "langchain/vectorstores/memory";
@@ -482,27 +466,7 @@ const retriever = vectorStore.asRetriever({
   searchType: "similarity", // or "mmr" for maximum marginal relevance
 });
 
-// Use in a chain
-import { ChatOpenAI } from "@langchain/openai";
-import { createRetrievalChain } from "langchain/chains/retrieval";
-import { createStuffDocumentsChain } from "langchain/chains/combine_documents";
-import { ChatPromptTemplate } from "@langchain/core/prompts";
-
-const llm = new ChatOpenAI();
-const prompt = ChatPromptTemplate.fromTemplate(`
-Answer based on context:
-{context}
-
-Question: {input}
-`);
-
-const combineDocsChain = await createStuffDocumentsChain({ llm, prompt });
-const chain = await createRetrievalChain({
-  retriever,
-  combineDocsChain,
-});
-
-const result = await chain.invoke({ input: "What is LangChain?" });
+const results = await retriever.invoke("What is LangChain?");
 ```
 
 </typescript>

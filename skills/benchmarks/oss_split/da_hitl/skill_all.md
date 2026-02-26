@@ -178,7 +178,7 @@ Approve a pending tool call:
 ```python
 from deepagents import create_deep_agent
 from langgraph.checkpoint.memory import MemorySaver
-from langchain.schema import Command
+from langgraph.types import Command
 
 agent = create_deep_agent(
     interrupt_on={"write_file": True},
@@ -223,7 +223,7 @@ Modify tool arguments before executing:
 ```python
 from deepagents import create_deep_agent
 from langgraph.checkpoint.memory import MemorySaver
-from langchain.schema import Command
+from langgraph.types import Command
 
 agent = create_deep_agent(
     interrupt_on={"execute_sql": True},
@@ -311,7 +311,7 @@ Reject and provide feedback to agent:
 ```python
 from deepagents import create_deep_agent
 from langgraph.checkpoint.memory import MemorySaver
-from langchain.schema import Command
+from langgraph.types import Command
 
 agent = create_deep_agent(
     interrupt_on={"deploy_code": True},

@@ -1,10 +1,10 @@
-# Main skills treatment - all 12 production main skills
+# Main skills treatment - all 13 production main skills
 #
-# Just the core 12 main skills without any primer/starter skills.
+# Just the core 13 main skills without any primer/starter skills.
 # For treatments with primer skills, see main_extras.yaml.
 
 ALL_MAIN_SKILLS:
-  description: "All 12 production main skills + comprehensive CLAUDE.md"
+  description: "All 13 production main skills + comprehensive CLAUDE.md"
   claude_md: |
     # LangChain + LangSmith + DeepAgents Development Guide
 
@@ -20,6 +20,7 @@ ALL_MAIN_SKILLS:
     - **langsmith-evaluator** - Invoke for ANY evaluator creation
 
     ### LangChain Skills
+    - **langchain-dependencies** - Invoke when setting up a NEW project or debugging package versions, installation, or dependency issues
     - **langchain-fundamentals** - Invoke for create_agent, @tool decorator, middleware patterns
     - **langchain-rag** - Invoke for RAG pipelines, vector stores, embeddings
     - **langchain-output** - Invoke for structured output with Pydantic
@@ -55,7 +56,10 @@ ALL_MAIN_SKILLS:
     - skill: langsmith-evaluator
       base: main
       name: langsmith-evaluator
-    # LangChain (3 skills)
+    # LangChain (4 skills)
+    - skill: langchain-dependencies
+      base: main
+      name: langchain-dependencies
     - skill: langchain-fundamentals
       base: main
       name: langchain-fundamentals

@@ -1,8 +1,8 @@
 # Main skill primer treatments
 #
-# MAIN_SINGLE_PRIMER: All 12 main skills + langchain-oss-primer (has claude_md)
-# MAIN_SPLIT_PRIMER_CLAUDE: All 12 main skills + framework-selection + langchain-dependencies (has claude_md)
-# MAIN_SPLIT_PRIMER: All 12 main skills + framework-selection + langchain-dependencies (no claude_md)
+# MAIN_SINGLE_PRIMER: All 13 main skills + langchain-oss-primer (has claude_md)
+# MAIN_SPLIT_PRIMER_CLAUDE: All 13 main skills + framework-selection (has claude_md)
+# MAIN_SPLIT_PRIMER: All 13 main skills + framework-selection (no claude_md)
 
 _main_claude_md: &main_claude_md |
   # LangChain + LangSmith + DeepAgents Development Guide
@@ -19,6 +19,7 @@ _main_claude_md: &main_claude_md |
   - **langsmith-evaluator** - Invoke for ANY evaluator creation
 
   ### LangChain Skills
+  - **langchain-dependencies** - Invoke when setting up a NEW project or debugging package versions, installation, or dependency issues
   - **langchain-fundamentals** - Invoke for create_agent, @tool decorator, middleware patterns
   - **langchain-rag** - Invoke for RAG pipelines, vector stores, embeddings
   - **langchain-output** - Invoke for structured output with Pydantic
@@ -45,7 +46,7 @@ _main_claude_md: &main_claude_md |
   Each skill includes reference scripts in `scripts/` - use these instead of writing from scratch.
 
 MAIN_SINGLE_PRIMER:
-  description: "All 12 main skills + langchain-oss-primer"
+  description: "All 13 main skills + langchain-oss-primer"
   claude_md: *main_claude_md
   skills:
     # LangSmith (3 skills)
@@ -58,7 +59,10 @@ MAIN_SINGLE_PRIMER:
     - skill: langsmith-evaluator
       base: main
       name: langsmith-evaluator
-    # LangChain (3 skills)
+    # LangChain (4 skills)
+    - skill: langchain-dependencies
+      base: main
+      name: langchain-dependencies
     - skill: langchain-fundamentals
       base: main
       name: langchain-fundamentals
@@ -93,7 +97,7 @@ MAIN_SINGLE_PRIMER:
       name: langchain-oss-primer
 
 MAIN_SPLIT_PRIMER_CLAUDE:
-  description: "All 12 main skills + framework-selection + langchain-dependencies"
+  description: "All 13 main skills + framework-selection"
   claude_md: *main_claude_md
   skills:
     # LangSmith (3 skills)
@@ -106,7 +110,10 @@ MAIN_SPLIT_PRIMER_CLAUDE:
     - skill: langsmith-evaluator
       base: main
       name: langsmith-evaluator
-    # LangChain (3 skills)
+    # LangChain (4 skills)
+    - skill: langchain-dependencies
+      base: main
+      name: langchain-dependencies
     - skill: langchain-fundamentals
       base: main
       name: langchain-fundamentals
@@ -139,11 +146,9 @@ MAIN_SPLIT_PRIMER_CLAUDE:
     # Primer
     - skill: framework-selection
       name: framework-selection
-    - skill: langchain-dependencies
-      name: langchain-dependencies
 
 MAIN_SPLIT_PRIMER:
-  description: "All 12 main skills + framework-selection + langchain-dependencies (no claude_md)"
+  description: "All 13 main skills + framework-selection (no claude_md)"
   skills:
     # LangSmith (3 skills)
     - skill: langsmith-trace
@@ -155,7 +160,10 @@ MAIN_SPLIT_PRIMER:
     - skill: langsmith-evaluator
       base: main
       name: langsmith-evaluator
-    # LangChain (3 skills)
+    # LangChain (4 skills)
+    - skill: langchain-dependencies
+      base: main
+      name: langchain-dependencies
     - skill: langchain-fundamentals
       base: main
       name: langchain-fundamentals
@@ -188,5 +196,3 @@ MAIN_SPLIT_PRIMER:
     # Primer
     - skill: framework-selection
       name: framework-selection
-    - skill: langchain-dependencies
-      name: langchain-dependencies

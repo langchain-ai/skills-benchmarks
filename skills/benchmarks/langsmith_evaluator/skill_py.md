@@ -34,8 +34,9 @@ def evaluator_name(run, example):
         run: Dict with run["outputs"] containing agent outputs
         example: Dict with example["outputs"] containing expected outputs
     """
-    agent_response = run["outputs"].get("expected_response", "")
-    expected = example["outputs"].get("expected_response", "")
+    # Field names (e.g. "response") must match your dataset schema
+    agent_response = run["outputs"].get("response", "")
+    expected = example["outputs"].get("response", "")
 
     return {
         "metric_name": 0.85,      # Metric name as key directly
@@ -67,8 +68,8 @@ judge = ChatOpenAI(model="gpt-4o-mini", temperature=0).with_structured_output(
 )
 
 async def accuracy_evaluator(run, example):
-    expected = example["outputs"].get('expected_response', '')
-    agent_output = run["outputs"].get('expected_response', '')
+    expected = example["outputs"].get('response', '')
+    agent_output = run["outputs"].get('response', '')
 
     prompt = f"""Expected: {expected}
 Agent Output: {agent_output}
@@ -88,8 +89,8 @@ Evaluate accuracy:"""
 
 ```python
 def exact_match_evaluator(run, example):
-    output = run["outputs"].get("expected_response", "").strip().lower()
-    expected = example["outputs"].get("expected_response", "").strip().lower()
+    output = run["outputs"].get("response", "").strip().lower()
+    expected = example["outputs"].get("response", "").strip().lower()
     match = output == expected
     return {"exact_match": 1 if match else 0, "comment": f"Match: {match}"}
 ```
@@ -117,7 +118,7 @@ client = Client()
 
 def run_agent(inputs: dict) -> dict:
     result = your_agent.invoke(inputs)
-    return {"expected_response": result}
+    return {"response": result}
 
 results = await client.aevaluate(
     run_agent,
@@ -158,7 +159,7 @@ python upload_evaluators.py delete "Trajectory Match"
    - Final Response → LLM as Judge for quality
    - Trajectory → Custom Code for sequence
 3. **Use async for LLM judges** - Enables parallel evaluation
-4. **Test evaluators independently** - Validate on known good/bad examples first
+4. **Test evaluators before uploading** - Run evaluator on sample inputs/outputs locally. Verify field names (e.g. `run["outputs"]["response"]`) match the actual dataset schema
 </best_practices>
 
 <example_workflow>
@@ -169,8 +170,8 @@ Complete workflow to create and upload an evaluator:
 cat > evaluators.py <<'EOF'
 def exact_match(run, example):
     """Check if output exactly matches expected."""
-    output = run["outputs"].get("expected_response", "").strip().lower()
-    expected = example["outputs"].get("expected_response", "").strip().lower()
+    output = run["outputs"].get("response", "").strip().lower()
+    expected = example["outputs"].get("response", "").strip().lower()
     match = output == expected
     return {"exact_match": 1 if match else 0, "comment": f"Match: {match}"}
 EOF

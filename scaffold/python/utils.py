@@ -94,6 +94,24 @@ def run_python_in_docker(
         return False, str(e)
 
 
+SCAFFOLD_PYTHON_DIR = Path(__file__).parent
+
+
+def _copy_scaffold_to_docker(test_dir: Path):
+    """Copy scaffold/python/validation and utils into test_dir preserving import paths."""
+    import shutil
+
+    dest = test_dir / "scaffold" / "python"
+    dest.mkdir(parents=True, exist_ok=True)
+    (test_dir / "scaffold" / "__init__.py").touch()
+    (dest / "__init__.py").touch()
+    shutil.copy(SCAFFOLD_PYTHON_DIR / "utils.py", dest / "utils.py")
+    validation_src = SCAFFOLD_PYTHON_DIR / "validation"
+    validation_dest = dest / "validation"
+    if validation_src.is_dir():
+        shutil.copytree(validation_src, validation_dest, dirs_exist_ok=True)
+
+
 def run_eval_in_docker(
     test_dir: Path,
     eval_dir: Path,
@@ -112,6 +130,7 @@ def run_eval_in_docker(
         for f in data_dir.iterdir():
             if f.is_file():
                 shutil.copy(f, test_dir / f.name)
+    _copy_scaffold_to_docker(test_dir)
     args = [module_names] if isinstance(module_names, str) else module_names
     success, output = run_python_in_docker(
         test_dir, test_script, timeout=timeout, args=args
@@ -163,6 +182,9 @@ def make_execution_validator(
                 failed.append(f"Module file not found: {test_dir / mf}")
         if failed:
             return passed, failed
+        # Serialize outputs so test scripts can access run_id, events, etc.
+        if outputs:
+            (test_dir / "_outputs.json").write_text(json.dumps(outputs, default=str))
         for script in test_scripts:
             results = run_eval_in_docker(
                 test_dir, eval_dir, script, module_files,

@@ -100,22 +100,18 @@ def check_evaluator_logic(test_dir):
 
     try:
         r = subprocess.run(args, capture_output=True, text=True, timeout=60, cwd=str(test_dir))
-        output = r.stdout + r.stderr
-        for line in output.split("\n"):
-            if line.startswith("EVALUATOR_RESULTS:"):
-                results = json.loads(line.replace("EVALUATOR_RESULTS:", ""))
-                passed_count = sum(1 for r in results if r.get("passed"))
-                total = len(results)
-                msg = f"Evaluator logic: {passed_count}/{total} tests"
-                if passed_count == total:
-                    return [msg + " passed"], []
-                elif passed_count > total // 2:
-                    return [msg + " (partial)"], []
-                else:
-                    return [], [msg + " passed"]
+        output = r.stdout.strip()
+        # eval_runner.py outputs standard JSON: {"passed": [...], "failed": [...]}
+        if output:
+            try:
+                result = json.loads(output)
+                if isinstance(result, dict):
+                    return result.get("passed", []), result.get("failed", [])
+            except json.JSONDecodeError:
+                pass
         if r.returncode == 0:
-            return ["Evaluator logic: executed"], []
-        return [], [f"Evaluator logic: execution failed"]
+            return [], [f"Evaluator logic: no structured output from eval_runner"]
+        return [], [f"Evaluator logic: execution failed - {(r.stderr or output)[:100]}"]
     except Exception as e:
         return [], [f"Evaluator logic: {str(e)[:50]}"]
 

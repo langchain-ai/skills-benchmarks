@@ -39,6 +39,8 @@ from .utils import (
     run_node_in_docker,
     run_python_in_docker,
     run_shell,
+    make_execution_validator,
+    run_eval_in_docker,
 )
 
 # Function-based validators (preferred) - from validation/ package
@@ -136,6 +138,9 @@ __all__ = [
     "build_docker_image",
     "run_in_docker",
     "run_python_in_docker",
+    "make_execution_validator",
+    "make_output_validator",
+    "run_eval_in_docker",
     "run_node_in_docker",
     "run_claude_in_docker",
     "retry_with_backoff",

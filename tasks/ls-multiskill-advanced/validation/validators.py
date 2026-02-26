@@ -9,7 +9,7 @@ a Python evaluator from LangSmith traces.
 import ast
 from pathlib import Path
 
-from scaffold.python.utils import run_python_in_docker
+from scaffold.python.utils import run_eval_in_docker
 from scaffold.python.validation import (
     find_evaluator_function,
     validate_dataset_structure,
@@ -138,10 +138,6 @@ def validate_upload(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]
 
 def validate_evaluator_logic(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:
     """Run evaluator on test cases to verify it works correctly."""
-    import json
-
-    passed, failed = [], []
-
     # Find evaluator file
     evaluator_path = test_dir / "trajectory_evaluator.py"
     if not evaluator_path.exists():
@@ -157,64 +153,25 @@ def validate_evaluator_logic(test_dir: Path, outputs: dict) -> tuple[list[str], 
     if error:
         return [], [f"Evaluator logic: {error}"]
 
-    # Copy eval_runner.py to test directory
     validation_dir = Path(__file__).parent
-    runner_src = validation_dir / "eval_runner.py"
-    runner_dst = test_dir / "_eval_runner.py"
-    if not runner_src.exists():
-        return ["Evaluator logic: skipped (no eval_runner.py)"], []
+    data_dir = validation_dir.parent / "data"
+    module_name = evaluator_path.name.replace(".py", "")
 
-    runner_dst.write_text(runner_src.read_text())
+    # Build args: module_name, func_name, test_cases_file, [dataset_file]
+    args = [module_name, func_name, "evaluator_test_cases.json"]
+    if (test_dir / "trajectory_dataset.json").exists():
+        args.append("trajectory_dataset.json")
 
-    # Use ground truth test cases
-    dataset_path = test_dir / "trajectory_dataset.json"
-    test_cases_path = validation_dir.parent / "data" / "evaluator_test_cases.json"
+    results = run_eval_in_docker(
+        test_dir, validation_dir, "eval_runner.py", args,
+        timeout=60, data_dir=data_dir,
+    )
 
-    try:
-        module_name = evaluator_path.name.replace(".py", "")
-        args = [module_name, func_name, "evaluator_test_cases.json"]
-
-        # Copy test cases
-        if test_cases_path.exists():
-            (test_dir / "evaluator_test_cases.json").write_text(test_cases_path.read_text())
-        else:
-            return ["Evaluator logic: skipped (no test cases)"], []
-
-        # Add dataset path for dynamic test generation
-        if dataset_path.exists():
-            args.append("trajectory_dataset.json")
-
-        success, output = run_python_in_docker(test_dir, "_eval_runner.py", timeout=60, args=args)
-
-        # Parse results
-        for line in output.split("\n"):
-            if line.startswith("EVALUATOR_RESULTS:"):
-                try:
-                    results = json.loads(line.replace("EVALUATOR_RESULTS:", ""))
-                    passed_count = sum(1 for r in results if r.get("passed"))
-                    total = len(results)
-                    msg = f"Evaluator logic: {passed_count}/{total} tests"
-                    if passed_count == total:
-                        passed.append(msg + " passed")
-                    elif passed_count > total // 2:
-                        passed.append(msg + " (partial)")
-                    else:
-                        failed.append(msg + " passed")
-                    return passed, failed
-                except json.JSONDecodeError:
-                    pass
-
-        if success:
-            passed.append("Evaluator logic: executed")
-        else:
-            failed.append(f"Evaluator logic: execution failed - {output[:100]}")
-
-    except Exception as e:
-        failed.append(f"Evaluator logic: {str(e)[:50]}")
-    finally:
-        runner_dst.unlink(missing_ok=True)
-        (test_dir / "evaluator_test_cases.json").unlink(missing_ok=True)
-
+    passed, failed = [], []
+    passed.extend(results.get("passed", []))
+    failed.extend(results.get("failed", []))
+    if results.get("error") and not passed and not failed:
+        failed.append(f"Evaluator logic: {results['error']}")
     return passed, failed
 
 

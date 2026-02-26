@@ -84,7 +84,6 @@ Tasks are decoupled from treatments - any treatment can be used with any task. E
 | `lc-basic-noise` | langchain | Skill retention with noise distractors |
 | `lc-deps-tavily` | langchain | Fix broken LangChain dependencies |
 | `lc-framework-choice` | langchain | Framework selection task |
-| `lc-version-confusion` | langchain | Modernize legacy LangChain code |
 | `oss-fix-lg-persistence` | langgraph | Fix LangGraph persistence bugs |
 | `oss-fix-lc-streaming` | langchain | Fix LangChain streaming bugs |
 | `oss-fix-da-memory` | deepagents | Fix Deep Agents memory bugs |

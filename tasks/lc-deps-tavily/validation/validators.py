@@ -12,11 +12,13 @@ from pathlib import Path
 from scaffold.python.utils import evaluate_with_schema, run_python_in_docker
 from scaffold.python.validation import validate_skill_invoked, validate_starter_skill_first
 
-# Correct import patterns for langchain-tavily
-CORRECT_TAVILY_IMPORTS = {
-    "from langchain.tools import TavilySearchResults": "uses correct langchain.tools path",
-    "TavilySearchResults": "uses TavilySearchResults tool",
-}
+# Correct import patterns for langchain-tavily (any of these is acceptable)
+CORRECT_TAVILY_IMPORT_PATHS = [
+    "from langchain_tavily import TavilySearch",
+    "from langchain_tavily import TavilySearchResults",
+    "from langchain.tools import TavilySearchResults",
+]
+CORRECT_TAVILY_TOOL_NAMES = ["TavilySearch", "TavilySearchResults"]
 
 # Wrong/deprecated import patterns that should NOT be present
 WRONG_TAVILY_IMPORTS = {
@@ -28,39 +30,42 @@ WRONG_TAVILY_IMPORTS = {
 def validate_fixed_agent_code(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:
     """Validate fixed agent has correct dependency imports and patterns."""
     passed, failed = [], []
-    path = test_dir / "fixed_agent.py"
+    path = test_dir / "agent.py"
 
     if not path.exists():
-        return [], ["Fixed Agent: fixed_agent.py not created"]
+        return [], ["Agent: agent.py not created"]
 
     content = path.read_text()
-    passed.append("Fixed Agent: fixed_agent.py created")
+    passed.append("Agent: agent.py created")
 
     # Check syntax
     try:
         ast.parse(content)
-        passed.append("Fixed Agent: valid syntax")
+        passed.append("Agent: valid syntax")
     except SyntaxError as e:
-        return passed, failed + [f"Fixed Agent: syntax error line {e.lineno}"]
+        return passed, failed + [f"Agent: syntax error line {e.lineno}"]
 
-    # Check correct import patterns
-    found_correct = []
-    missing_correct = []
-    for pattern, desc in CORRECT_TAVILY_IMPORTS.items():
-        if pattern in content:
-            found_correct.append(desc)
-        else:
-            missing_correct.append(desc)
+    # Check correct import path (any accepted path is fine)
+    import_found = False
+    for path_pattern in CORRECT_TAVILY_IMPORT_PATHS:
+        if path_pattern in content:
+            passed.append(f"Agent: uses {path_pattern}")
+            import_found = True
+            break
+    if not import_found:
+        failed.append("Agent: missing correct Tavily import path")
 
-    if found_correct:
-        passed.append(f"Fixed Agent: {', '.join(found_correct[:3])}")
-    if missing_correct:
-        failed.extend(f"Fixed Agent: missing {desc}" for desc in missing_correct)
+    # Check Tavily tool class is used
+    tool_found = any(name in content for name in CORRECT_TAVILY_TOOL_NAMES)
+    if tool_found:
+        passed.append("Agent: uses Tavily search tool")
+    else:
+        failed.append("Agent: missing Tavily search tool usage")
 
     # Check wrong import patterns
     for pattern, desc in WRONG_TAVILY_IMPORTS.items():
         if pattern in content:
-            failed.append(f"Fixed Agent: {desc}")
+            failed.append(f"Agent: {desc}")
 
     return passed, failed
 
@@ -68,16 +73,16 @@ def validate_fixed_agent_code(test_dir: Path, outputs: dict) -> tuple[list[str],
 def validate_fixed_agent_output(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:
     """Validate fixed agent runs and produces output."""
     passed, failed = [], []
-    path = test_dir / "fixed_agent.py"
+    path = test_dir / "agent.py"
 
     if not path.exists():
         return [], []  # Already handled by code validator
 
-    success, output = run_python_in_docker(test_dir, "fixed_agent.py")
+    success, output = run_python_in_docker(test_dir, "agent.py")
     if not success:
-        return [], [f"Fixed Agent: runtime error - {output[:100]}"]
+        return [], [f"Agent: runtime error - {output[:100]}"]
 
-    passed.append(f"Fixed Agent: produced output ({len(output)} chars)")
+    passed.append(f"Agent: produced output ({len(output)} chars)")
 
     # LLM evaluation of output quality
     prompt = f"""Evaluate this program output.
@@ -91,7 +96,7 @@ Does this demonstrate the expected behavior?"""
 
     result = evaluate_with_schema(prompt)
     quality = "GOOD" if result["pass"] else "LOW"
-    passed.append(f"Fixed Agent quality [{quality}]: {result['reason']}")
+    passed.append(f"Agent quality [{quality}]: {result['reason']}")
 
     return passed, failed
 

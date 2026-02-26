@@ -9,6 +9,7 @@ import random
 import shutil
 import subprocess
 import time
+import warnings
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -380,7 +381,9 @@ class EvalResult(BaseModel):
 def evaluate_with_schema(prompt: str, model: str = None) -> dict:
     """Evaluate with structured output. Returns {"pass": bool, "reason": str}."""
     try:
-        result = get_eval_model(model).with_structured_output(EvalResult).invoke(prompt)
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=UserWarning, module="pydantic")
+            result = get_eval_model(model).with_structured_output(EvalResult).invoke(prompt)
         return {"pass": result.passed, "reason": result.reason}
     except Exception as e:
         return {"pass": False, "reason": f"eval error: {str(e)[:30]}"}

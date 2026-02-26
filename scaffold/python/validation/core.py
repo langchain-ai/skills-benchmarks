@@ -3,12 +3,24 @@
 Basic utilities for file and pattern validation that can be composed together.
 """
 
+import json
 import re
 from collections.abc import Callable
 from pathlib import Path
 
 # Type alias for validator functions
 ValidatorFn = Callable[[Path, dict], tuple[list[str], list[str]]]
+
+
+def load_outputs(path: str = "_outputs.json") -> dict:
+    """Load the outputs dict serialized by make_execution_validator.
+
+    Returns empty dict if file not found (e.g. running outside factory).
+    """
+    try:
+        return json.loads(Path(path).read_text())
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
 
 
 def validate_file_exists(test_dir: Path, filepath: str) -> tuple[list[str], list[str]]:
@@ -124,7 +136,6 @@ def run_validators(
 
 
 def validate_starter_skill_first(
-    test_dir: "Path",
     outputs: dict,
 ) -> tuple[list[str], list[str]]:
     """Check that langchain-oss-primer or framework-selection was invoked first.
@@ -132,15 +143,6 @@ def validate_starter_skill_first(
     Skipped (informational) when:
     - No skills were invoked (e.g. CONTROL treatment)
     - Treatment is ALL_MAIN_SKILLS (starter skills not included in that treatment)
-
-    Fails if skills were invoked and the first was not a starter skill.
-
-    Args:
-        test_dir: Test working directory (unused, required for validator signature)
-        outputs: Outputs dict containing events and treatment_name
-
-    Returns:
-        (passed, failed) lists
     """
     # Skip for ALL_MAIN_SKILLS — starter skills are not part of that treatment
     treatment_name = (outputs or {}).get("treatment_name", "")
@@ -227,19 +229,12 @@ def get_noise_task_prompts(noise_tasks: list[str]) -> list[str]:
 
 
 def validate_noise_outputs(
-    test_dir: Path,
     noise_tasks: list[str],
+    test_dir: Path = None,
 ) -> tuple[list[str], list[str]]:
-    """Validate that noise task deliverables were created.
-
-    Args:
-        test_dir: Test working directory
-        noise_tasks: List of noise task names (e.g., ["docker_patterns", "react_components"])
-
-    Returns:
-        (passed, failed) lists
-    """
+    """Validate that noise task deliverables were created."""
     passed, failed = [], []
+    test_dir = test_dir or Path(".")
 
     for task_name in noise_tasks:
         deliverable = NOISE_TASK_DELIVERABLES.get(task_name)

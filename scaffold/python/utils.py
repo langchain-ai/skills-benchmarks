@@ -6,6 +6,7 @@ Shell scripts (scaffold/shell/) are the source of truth.
 import json
 import os
 import random
+import shutil
 import subprocess
 import time
 from pathlib import Path
@@ -113,7 +114,6 @@ def _copy_scaffold_to_docker(test_dir: Path):
     After this, test scripts can use the same imports as host code:
         from scaffold.python.validation import validate_langsmith_trace
     """
-    import shutil
 
     dest = test_dir / "scaffold" / "python"
     dest.mkdir(parents=True, exist_ok=True)
@@ -164,7 +164,6 @@ def run_eval_in_docker(
     The test script receives module_names as positional args and must print
     a JSON dict with "passed" and "failed" lists to stdout.
     """
-    import shutil
 
     for f in eval_dir.iterdir():
         if f.is_file():

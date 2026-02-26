@@ -92,7 +92,7 @@ def check_outputs_metadata():
     noise_tasks = outputs.get("noise_tasks", [])
     if not noise_tasks:
         noise_tasks = ["docker_patterns", "react_components", "api_docs"]
-    np, nf = validate_noise_outputs(None, noise_tasks)
+    np, nf = validate_noise_outputs(noise_tasks)
     passed.extend(np)
     failed.extend(nf)
 

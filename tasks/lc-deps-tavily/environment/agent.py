@@ -1,13 +1,11 @@
 """LangChain agent with Tavily web search."""
 
-import os
 from dotenv import load_dotenv
-
-load_dotenv()
-
+from langchain.agents import AgentExecutor, create_react_agent
 from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_openai import ChatOpenAI
-from langchain.agents import create_react_agent, AgentExecutor
+
+load_dotenv()
 
 
 def run_agent(query: str) -> str:

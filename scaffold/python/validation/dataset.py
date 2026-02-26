@@ -6,29 +6,7 @@ Validates dataset structure, trajectory accuracy, and LangSmith uploads.
 import json
 from pathlib import Path
 
-
-def get_field(obj: dict, *fields) -> any:
-    """Get first matching field from object."""
-    if not isinstance(obj, dict):
-        return None
-    for field in fields:
-        if field in obj:
-            return obj[field]
-    return None
-
-
-def get_nested_field(obj: dict, paths: list[str], fields: list[str]) -> any:
-    """Get field from nested locations."""
-    if not isinstance(obj, dict):
-        return None
-    # Try each path
-    for path in paths:
-        current = obj.get(path)
-        if isinstance(current, dict):
-            result = get_field(current, *fields)
-            if result is not None:
-                return result
-    return None
+from scaffold.python.utils import get_field, get_nested_field
 
 
 def extract_examples(data) -> list:

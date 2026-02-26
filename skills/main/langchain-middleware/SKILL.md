@@ -4,170 +4,14 @@ description: "INVOKE THIS SKILL when you need human-in-the-loop approval, custom
 ---
 
 <overview>
-Two critical patterns for production agents:
+Middleware patterns for production LangChain agents:
 
-1. **Structured Output**: Transform unstructured model responses into validated, typed data
-2. **Human-in-the-Loop**: Add human oversight to agent tool calls, pausing for approval
+- **HumanInTheLoopMiddleware** / **humanInTheLoopMiddleware**: Pause before dangerous tool calls for human approval
+- **Custom middleware**: Intercept tool calls for error handling, logging, retry logic
+- **Command resume**: Continue execution after human decisions (approve, edit, reject)
 
-**Key Concepts:**
-- **response_format**: Define expected output schema
-- **with_structured_output()**: Model method for direct structured output
-- **HumanInTheLoopMiddleware**: Pauses execution for human decisions
+**Requirements:** Checkpointer + thread_id config for all HITL workflows.
 </overview>
-
-<when-to-use-structured-output>
-
-| Use Case | Use Structured Output? |
-|----------|----------------------|
-| Extract contact info, dates | Yes |
-| Form filling | Yes |
-| API integration | Yes |
-| Open-ended Q&A | No |
-
-</when-to-use-structured-output>
-
----
-
-## Structured Output
-
-<ex-basic-structured-output>
-<python>
-Extract contact information from text using a Pydantic schema with email validation.
-```python
-from langchain.agents import create_agent
-from pydantic import BaseModel, Field
-
-class ContactInfo(BaseModel):
-    name: str
-    email: str = Field(pattern=r"^[^@]+@[^@]+\.[^@]+$")
-    phone: str
-
-agent = create_agent(model="gpt-4", response_format=ContactInfo)
-
-result = agent.invoke({
-    "messages": [{"role": "user", "content": "Extract: John Doe, john@example.com, (555) 123-4567"}]
-})
-print(result["structured_response"])
-# ContactInfo(name='John Doe', email='john@example.com', phone='(555) 123-4567')
-```
-</python>
-<typescript>
-Extract contact information from text using a Zod schema with email validation.
-```typescript
-import { ChatOpenAI } from "@langchain/openai";
-import { z } from "zod";
-
-const ContactInfo = z.object({
-  name: z.string(),
-  email: z.string().email(),
-  phone: z.string(),
-});
-
-const model = new ChatOpenAI({ model: "gpt-4" });
-const structuredModel = model.withStructuredOutput(ContactInfo);
-
-const response = await structuredModel.invoke(
-  "Extract: John Doe, john@example.com, (555) 123-4567"
-);
-console.log(response);
-// { name: 'John Doe', email: 'john@example.com', phone: '(555) 123-4567' }
-```
-</typescript>
-</ex-basic-structured-output>
-
-<ex-model-direct-structured-output>
-<python>
-Get movie details as a validated Pydantic object using with_structured_output().
-```python
-from langchain_openai import ChatOpenAI
-from pydantic import BaseModel, Field
-
-class Movie(BaseModel):
-    """Movie information."""
-    title: str = Field(description="Movie title")
-    year: int = Field(description="Release year")
-    director: str
-    rating: float = Field(ge=0, le=10)
-
-model = ChatOpenAI(model="gpt-4")
-structured_model = model.with_structured_output(Movie)
-
-response = structured_model.invoke("Tell me about Inception")
-print(response)
-# Movie(title="Inception", year=2010, director="Christopher Nolan", rating=8.8)
-```
-</python>
-<typescript>
-Get movie details as a validated Zod object using withStructuredOutput().
-```typescript
-import { ChatOpenAI } from "@langchain/openai";
-import { z } from "zod";
-
-const Movie = z.object({
-  title: z.string().describe("Movie title"),
-  year: z.number().describe("Release year"),
-  director: z.string(),
-  rating: z.number().min(0).max(10),
-});
-
-const model = new ChatOpenAI({ model: "gpt-4" });
-const structuredModel = model.withStructuredOutput(Movie);
-
-const response = await structuredModel.invoke("Tell me about Inception");
-// { title: "Inception", year: 2010, director: "Christopher Nolan", rating: 8.8 }
-```
-</typescript>
-</ex-model-direct-structured-output>
-
-<ex-enum-and-literal-types>
-<python>
-Define a classification schema with constrained enum values using Literal types.
-```python
-from pydantic import BaseModel, Field
-from typing import Literal
-
-class Classification(BaseModel):
-    category: Literal["urgent", "normal", "low"]
-    sentiment: Literal["positive", "neutral", "negative"]
-    confidence: float = Field(ge=0, le=1)
-```
-</python>
-<typescript>
-Define a classification schema with constrained enum values using z.enum().
-```typescript
-import { z } from "zod";
-
-const Classification = z.object({
-  category: z.enum(["urgent", "normal", "low"]),
-  sentiment: z.enum(["positive", "neutral", "negative"]),
-  confidence: z.number().min(0).max(1),
-});
-```
-</typescript>
-</ex-enum-and-literal-types>
-
-<ex-complex-nested-schema>
-<python>
-Define a complex schema with nested objects and validated fields.
-```python
-from pydantic import BaseModel, Field
-from typing import List, Optional
-
-class Address(BaseModel):
-    street: str
-    city: str
-    state: str
-    zip: str
-
-class Person(BaseModel):
-    name: str
-    age: int = Field(gt=0)
-    email: str
-    address: Address
-    tags: List[str] = Field(default_factory=list)
-```
-</python>
-</ex-complex-nested-schema>
 
 ---
 
@@ -343,79 +187,16 @@ agent = create_agent(
 <boundaries>
 ### What You CAN Configure
 
-**Structured Output:**
-- Schema structure: Any valid Pydantic/Zod model
-- Field validation: Types, ranges, regex, etc.
-
-**HITL:**
-- Which tools require approval
+- Which tools require approval (per-tool policies)
 - Allowed decisions per tool (approve, edit, reject)
+- Custom middleware hooks: `before_model`, `after_model`, `wrap_tool_call`, `before_agent`, `after_agent`
+- Tool-specific middleware (apply only to certain tools)
+
+### What You CANNOT Configure
+
+- Interrupt after tool execution (must be before)
+- Skip checkpointer requirement for HITL
 </boundaries>
-
-<fix-accessing-response-wrong>
-<python>
-Access structured output using the correct key.
-```python
-# WRONG
-print(result["response"])  # KeyError!
-
-# CORRECT
-print(result["structured_response"])
-```
-</python>
-<typescript>
-With withStructuredOutput, response IS the structured data.
-```typescript
-const response = await structuredModel.invoke("...");
-console.log(response);  // Directly the parsed object
-```
-</typescript>
-</fix-accessing-response-wrong>
-
-<fix-missing-descriptions>
-<python>
-Add field descriptions to guide the model on expected formats.
-```python
-# WRONG: No descriptions
-class Data(BaseModel):
-    date: str
-    amount: float
-
-# CORRECT
-class Data(BaseModel):
-    date: str = Field(description="Date in YYYY-MM-DD format")
-    amount: float = Field(description="Amount in USD")
-```
-</python>
-<typescript>
-Add field descriptions to guide the model on expected formats.
-```typescript
-// WRONG
-const Data = z.object({ date: z.string(), amount: z.number() });
-
-// CORRECT
-const Data = z.object({
-  date: z.string().describe("Date in YYYY-MM-DD format"),
-  amount: z.number().describe("Amount in USD"),
-});
-```
-</typescript>
-</fix-missing-descriptions>
-
-<fix-not-using-correct-type-hints>
-<python>
-Use proper type hints for Pydantic fields for correct schema generation.
-```python
-# WRONG: Missing type hints
-class Data(BaseModel):
-    items = []  # No type hint!
-
-# CORRECT
-class Data(BaseModel):
-    items: List[str] = Field(default_factory=list)
-```
-</python>
-</fix-not-using-correct-type-hints>
 
 <fix-missing-checkpointer>
 <python>

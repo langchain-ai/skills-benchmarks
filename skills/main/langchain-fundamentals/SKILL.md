@@ -165,7 +165,7 @@ const calculate = tool(
 <middleware>
 ## Middleware for Agent Control
 
-Middleware intercepts the agent loop to add human approval, error handling, logging, etc.
+Middleware intercepts the agent loop to add human approval, error handling, logging, etc. A deep understanding of middleware patterns is essential for production agents — the examples below cover the basics.
 </middleware>
 
 <ex-hitl-middleware>

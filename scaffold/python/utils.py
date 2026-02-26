@@ -94,6 +94,89 @@ def run_python_in_docker(
         return False, str(e)
 
 
+def run_eval_in_docker(
+    test_dir: Path,
+    eval_dir: Path,
+    test_script: str,
+    module_names: str | list[str],
+    timeout: int = 120,
+    data_dir: Path | None = None,
+) -> dict:
+    """Copy eval dir contents to test_dir, run test script in Docker, return parsed JSON results."""
+    import shutil
+
+    for f in eval_dir.iterdir():
+        if f.is_file():
+            shutil.copy(f, test_dir / f.name)
+    if data_dir and data_dir.is_dir():
+        for f in data_dir.iterdir():
+            if f.is_file():
+                shutil.copy(f, test_dir / f.name)
+    args = [module_names] if isinstance(module_names, str) else module_names
+    success, output = run_python_in_docker(
+        test_dir, test_script, timeout=timeout, args=args
+    )
+    # Try full output first (handles pretty-printed JSON), then line-by-line
+    try:
+        result = json.loads(output.strip())
+        if isinstance(result, dict):
+            return result
+    except json.JSONDecodeError:
+        pass
+    for line in reversed(output.strip().splitlines()):
+        try:
+            result = json.loads(line)
+            if isinstance(result, dict):
+                return result
+        except json.JSONDecodeError:
+            continue
+    return {"error": f"No JSON output. success={success}, output={output[:300]}"}
+
+
+def make_execution_validator(
+    eval_dir: Path,
+    test_script: str | list[str],
+    module_file: str | list[str],
+    timeout: int = 120,
+    data_dir: Path | None = None,
+):
+    """Create a standard execution validator that runs test script(s) in Docker.
+
+    Args:
+        eval_dir: Directory containing test scripts (typically Path(__file__).parent).
+        test_script: Name(s) of test script(s) to run (e.g., "test_memory.py" or
+            ["test_memory.py", "test_routing.py"]). Results are aggregated.
+        module_file: Name(s) of module file(s) Claude should fix (e.g., "agent_system.py"
+            or ["backend/sql_agent.py", "frontend/support_bot.ts"]). All are checked
+            for existence and passed as args to each test script.
+        timeout: Docker execution timeout in seconds.
+        data_dir: Optional directory containing ground truth / test case data to copy
+            into Docker (e.g., Path(__file__).parent.parent / "data").
+    """
+    test_scripts = [test_script] if isinstance(test_script, str) else test_script
+    module_files = [module_file] if isinstance(module_file, str) else module_file
+
+    def validate_execution(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:
+        passed, failed = [], []
+        for mf in module_files:
+            if not (test_dir / mf).exists():
+                failed.append(f"Module file not found: {test_dir / mf}")
+        if failed:
+            return passed, failed
+        for script in test_scripts:
+            results = run_eval_in_docker(
+                test_dir, eval_dir, script, module_files,
+                timeout=timeout, data_dir=data_dir,
+            )
+            passed.extend(results.get("passed", []))
+            failed.extend(results.get("failed", []))
+            if results.get("error") and not results.get("passed") and not results.get("failed"):
+                failed.append(f"Test execution error ({script}): {results['error']}")
+        return passed, failed
+
+    return validate_execution
+
+
 def run_node_in_docker(
     test_dir: Path, script_name: str, timeout: int = 120, args: list = None
 ) -> tuple[bool, str]:

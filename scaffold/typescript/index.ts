@@ -146,6 +146,8 @@ export {
   buildDockerImage,
   runInDocker,
   runNodeInDocker,
+  runEvalInDocker,
+  makeExecutionValidator,
   runClaudeInDocker,
   verifyEnvironment,
   createTempDir,

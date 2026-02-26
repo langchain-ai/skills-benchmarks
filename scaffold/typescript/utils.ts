@@ -3,7 +3,7 @@
  */
 
 import { spawnSync, type SpawnSyncOptions } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { copyFileSync, existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { config as loadEnv } from "dotenv";
@@ -183,6 +183,89 @@ export function runScriptInDocker(
   if (scriptName.endsWith(".ts") || scriptName.endsWith(".js"))
     return runNodeInDocker(testDir, scriptName, options);
   return [false, `Unsupported file type: ${scriptName}`];
+}
+
+/** Copy eval dir contents to testDir, run test script in Docker, return parsed JSON results. */
+export function runEvalInDocker(
+  testDir: string,
+  evalDir: string,
+  testScript: string,
+  moduleNames: string | string[],
+  options: { timeout?: number; dataDir?: string } = {},
+): Record<string, unknown> {
+  const { timeout = 120, dataDir } = options;
+  const resolvedTestDir = resolve(testDir);
+  for (const dir of [evalDir, dataDir]) {
+    if (!dir || !existsSync(dir)) continue;
+    for (const entry of readdirSync(dir)) {
+      const src = join(dir, entry);
+      if (statSync(src).isFile()) {
+        copyFileSync(src, join(resolvedTestDir, entry));
+      }
+    }
+  }
+  const args = Array.isArray(moduleNames) ? moduleNames : [moduleNames];
+  const [success, output] = runPythonInDocker(testDir, testScript, {
+    timeout,
+    args,
+  });
+  // Try full output first (handles pretty-printed JSON), then line-by-line
+  try {
+    const full = JSON.parse(output.trim());
+    if (full && typeof full === "object" && !Array.isArray(full)) {
+      return full as Record<string, unknown>;
+    }
+  } catch {
+    // fall through to line-by-line
+  }
+  const lines = output.trim().split("\n");
+  for (let i = lines.length - 1; i >= 0; i--) {
+    try {
+      const parsed = JSON.parse(lines[i]);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        return parsed as Record<string, unknown>;
+      }
+    } catch {
+      continue;
+    }
+  }
+  return {
+    error: `No JSON output. success=${success}, output=${output.slice(0, 300)}`,
+  };
+}
+
+/** Create a standard execution validator that runs test script(s) in Docker. */
+export function makeExecutionValidator(
+  evalDir: string,
+  testScript: string | string[],
+  moduleFile: string | string[],
+  options: { timeout?: number; dataDir?: string } = {},
+): (testDir: string, outputs: Record<string, unknown>) => { passed: string[]; failed: string[] } {
+  const { timeout = 120, dataDir } = options;
+  const testScripts = Array.isArray(testScript) ? testScript : [testScript];
+  const moduleFiles = Array.isArray(moduleFile) ? moduleFile : [moduleFile];
+  return (testDir: string, _outputs: Record<string, unknown>) => {
+    const passed: string[] = [];
+    const failed: string[] = [];
+    for (const mf of moduleFiles) {
+      if (!existsSync(join(resolve(testDir), mf))) {
+        failed.push(`Module file not found: ${join(resolve(testDir), mf)}`);
+      }
+    }
+    if (failed.length > 0) return { passed, failed };
+    for (const script of testScripts) {
+      const results = runEvalInDocker(testDir, evalDir, script, moduleFiles, {
+        timeout,
+        dataDir,
+      });
+      passed.push(...((results.passed as string[]) || []));
+      failed.push(...((results.failed as string[]) || []));
+      if (results.error && !results.passed && !results.failed) {
+        failed.push(`Test execution error (${script}): ${results.error}`);
+      }
+    }
+    return { passed, failed };
+  };
 }
 
 /** Run Claude CLI in Docker container. */

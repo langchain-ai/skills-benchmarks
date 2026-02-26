@@ -228,8 +228,20 @@ def main():
     # Run tests
     results = [run_test_case(eval_func, tc) for tc in test_cases]
 
-    # Output results (parsed by validator)
-    print("EVALUATOR_RESULTS:" + json.dumps(results))
+    # Output in standard format for run_eval_in_docker
+    passed_count = sum(1 for r in results if r.get("passed"))
+    total = len(results)
+    passed = []
+    failed = []
+    msg = f"Evaluator logic: {passed_count}/{total} tests"
+    if passed_count == total:
+        passed.append(msg + " passed")
+    elif passed_count > total // 2:
+        passed.append(msg + " (partial)")
+    else:
+        failed.append(msg + " passed")
+
+    print(json.dumps({"passed": passed, "failed": failed, "error": None}))
 
 
 if __name__ == "__main__":

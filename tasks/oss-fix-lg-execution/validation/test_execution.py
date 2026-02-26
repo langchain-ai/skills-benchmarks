@@ -238,9 +238,6 @@ def run_tests(module_path: str) -> dict:
     """Run all tests against the module."""
     ctx = TestContext(module_path=module_path)
 
-    if not ctx.load():
-        return ctx.results
-
     tests = [
         test_fan_out_works,
         test_results_match_tasks,
@@ -248,6 +245,12 @@ def run_tests(module_path: str) -> dict:
         test_resume_after_review,
         test_summary_correct,
     ]
+
+    if not ctx.load():
+        for test_fn in tests:
+            test_name = test_fn.__name__.replace("test_", "")
+            ctx.fail_test(test_name, f"import failed: {ctx.results['error']}")
+        return ctx.results
 
     for test_fn in tests:
         try:

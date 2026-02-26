@@ -288,9 +288,6 @@ def run_tests(module_path: str) -> dict:
     """
     ctx = TestContext(module_path=module_path)
 
-    if not ctx.load():
-        return ctx.results
-
     # Run each test
     tests = [
         test_has_checkpointer,
@@ -300,6 +297,12 @@ def run_tests(module_path: str) -> dict:
         test_remembers_name,
         test_thread_isolation,
     ]
+
+    if not ctx.load():
+        for test_fn in tests:
+            test_name = test_fn.__name__.replace("test_", "")
+            ctx.fail_test(test_name, f"import failed: {ctx.results['error']}")
+        return ctx.results
 
     for test_fn in tests:
         try:

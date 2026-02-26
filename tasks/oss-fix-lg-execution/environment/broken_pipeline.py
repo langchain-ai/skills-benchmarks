@@ -7,9 +7,9 @@ Issues reported by users:
 - "When I try to resume after reviewing, it starts over from scratch"
 """
 
-from typing_extensions import TypedDict
-from langgraph.graph import StateGraph, START, END
+from langgraph.graph import END, START, StateGraph
 from langgraph.types import Send
+from typing_extensions import TypedDict
 
 
 # BUG 1: No reducer on results - parallel workers crash
@@ -61,24 +61,28 @@ graph = builder.compile()
 def run_pipeline(tasks: list[str], thread_id: str = "default") -> dict:
     """Run the data processing pipeline."""
     # BUG 4: No thread_id in config
-    result = graph.invoke({
-        "tasks": tasks,
-        "results": [],
-        "summary": "",
-        "status": "",
-    })
+    result = graph.invoke(
+        {
+            "tasks": tasks,
+            "results": [],
+            "summary": "",
+            "status": "",
+        }
+    )
     return result
 
 
 def resume_after_review(thread_id: str = "default") -> dict:
     """Resume pipeline after human review."""
     # BUG 5: Passes new input instead of Command(resume=...)
-    result = graph.invoke({
-        "tasks": [],
-        "results": [],
-        "summary": "",
-        "status": "approved",
-    })
+    result = graph.invoke(
+        {
+            "tasks": [],
+            "results": [],
+            "summary": "",
+            "status": "approved",
+        }
+    )
     return result
 
 

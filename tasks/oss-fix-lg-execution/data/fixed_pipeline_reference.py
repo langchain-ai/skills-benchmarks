@@ -32,11 +32,13 @@ def process_task(state: dict) -> dict:
 # FIX 3: Added interrupt for human review
 def review(state: PipelineState) -> dict:
     """Review results before finalizing."""
-    answer = interrupt({
-        "question": "Approve these results?",
-        "count": len(state.get("results", [])),
-        "results": state.get("results", []),
-    })
+    answer = interrupt(
+        {
+            "question": "Approve these results?",
+            "count": len(state.get("results", [])),
+            "results": state.get("results", []),
+        }
+    )
     if answer == "reject":
         return {"status": "rejected"}
     return {"status": "approved"}

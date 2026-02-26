@@ -380,12 +380,13 @@ class EvalResult(BaseModel):
 def evaluate_with_schema(prompt: str, model: str = None) -> dict:
     """Evaluate with structured output. Returns {"pass": bool, "reason": str}."""
     try:
-        # Use json_mode to avoid pydantic serialization warning from OpenAI's
-        # ParsedChatCompletion.parsed field type mismatch with our EvalResult.
         result = (
             get_eval_model(model)
             .with_structured_output(EvalResult, method="json_mode")
-            .invoke(prompt)
+            .invoke([
+                {"role": "system", "content": 'Evaluate the output. Respond as JSON: {"passed": bool, "reason": "..."}'},
+                {"role": "user", "content": prompt},
+            ])
         )
         return {"pass": result.passed, "reason": result.reason}
     except Exception as e:

@@ -217,17 +217,13 @@ def validate_evaluator_patterns(
             failed.append("Python: missing return dict with score")
 
         # Check for run outputs access
-        if 'run["outputs"]' in content or "run['outputs']" in content or "run.outputs" in content:
+        if re.search(r'run\[.outputs.\]|run\.outputs|run\.get\(.outputs', content):
             passed.append("Python: accesses run outputs")
         else:
             failed.append("Python: missing run outputs access")
 
         # Check for example outputs access
-        if (
-            'example["outputs"]' in content
-            or "example['outputs']" in content
-            or "example.outputs" in content
-        ):
+        if re.search(r'example\[.outputs.\]|example\.outputs|example\.get\(.outputs', content):
             passed.append("Python: accesses example outputs")
         else:
             failed.append("Python: missing example outputs access")
@@ -257,13 +253,13 @@ def validate_evaluator_patterns(
         else:
             failed.append("JavaScript: missing return object with score")
 
-        # Check for outputs access
-        if "run.outputs" in content:
+        # Check for outputs access (dot, optional chaining, or bracket notation)
+        if re.search(r'run[.?]+outputs|run\[["\']outputs', content):
             passed.append("JavaScript: accesses run.outputs")
         else:
             failed.append("JavaScript: missing run.outputs access")
 
-        if "example.outputs" in content:
+        if re.search(r'example[.?]+outputs|example\[["\']outputs', content):
             passed.append("JavaScript: accesses example.outputs")
         else:
             failed.append("JavaScript: missing example.outputs access")
@@ -365,6 +361,18 @@ def _test_python_evaluator(
         runner_dst.unlink(missing_ok=True)
 
 
+def _strip_ts_module_syntax(content: str) -> str:
+    """Strip import/export statements for embedding in a single-file harness.
+
+    Keeps all TypeScript type syntax (interfaces, annotations) intact
+    since tsx handles them natively.
+    """
+    content = re.sub(r'^\s*import\s+.*?;\s*$', '', content, flags=re.MULTILINE)
+    content = re.sub(r'\bexport\s+default\s+', '', content)
+    content = re.sub(r'\bexport\s+', '', content)
+    return content
+
+
 def _test_js_evaluator(
     path: Path,
     test_dir: Path,
@@ -372,7 +380,7 @@ def _test_js_evaluator(
     data_dir: Path,
     run_node_fn,
 ) -> tuple[list[str], list[str]]:
-    """Test JavaScript evaluator using inline test harness in Docker."""
+    """Test JavaScript/TypeScript evaluator using inline test harness in Docker."""
     content = path.read_text()
     func_name, error = find_evaluator_function(content, "javascript")
     if error:
@@ -385,11 +393,22 @@ def _test_js_evaluator(
 
     test_cases = json.loads(test_cases_path.read_text())
 
+    is_ts = path.suffix == ".ts"
+
+    # Build evaluator loading section
+    if is_ts:
+        # For .ts: strip module syntax and embed directly (tsx handles TS natively)
+        stripped = _strip_ts_module_syntax(content)
+        evaluator_load = stripped
+    else:
+        # For .js: use existing eval() approach
+        evaluator_load = f"""const fs = require('fs');
+const evaluatorCode = fs.readFileSync('{path.name}', 'utf8');
+eval(evaluatorCode);"""
+
     # Create test harness script
     test_script = f"""
-const fs = require('fs');
-const evaluatorCode = fs.readFileSync('{path.name}', 'utf8');
-eval(evaluatorCode);
+{evaluator_load}
 
 const testCases = {json.dumps(test_cases)};
 
@@ -439,11 +458,12 @@ const results = testCases.map(tc => {{
 console.log("EVALUATOR_RESULTS:" + JSON.stringify(results));
 """
 
-    test_file = path.parent / "_test_evaluator.js"
+    harness_ext = ".ts" if is_ts else ".js"
+    test_file = path.parent / f"_test_evaluator{harness_ext}"
     try:
         test_file.write_text(test_script)
         success, output = run_node_fn(
-            test_dir, f"{path.parent.name}/_test_evaluator.js", timeout=60
+            test_dir, f"{path.parent.name}/_test_evaluator{harness_ext}", timeout=60
         )
         return _parse_evaluator_results(output, success, "JavaScript")
     except Exception as e:
@@ -510,8 +530,14 @@ def validate_evaluator_upload(
         data = response.json()
         rules = data if isinstance(data, list) else data.get("rules", [])
 
-        # Search for any evaluator containing the run_id
-        matching = [r for r in rules if run_id in r.get("display_name", "")]
+        # Search for evaluators attached to datasets whose name contains the run_id.
+        # The datasets (e.g. bench-be-{run_id}, bench-fe-{run_id}) are created fresh
+        # per test run, so any rule attached to them was uploaded by Claude.
+        matching = [
+            r
+            for r in rules
+            if run_id in (r.get("dataset_name") or r.get("display_name") or "")
+        ]
 
         if not matching:
             return [], [f"Upload: no evaluator with run_id '{run_id}' found"]

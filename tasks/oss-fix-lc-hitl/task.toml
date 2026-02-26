@@ -1,0 +1,21 @@
+[metadata]
+name = "oss-fix-lc-hitl"
+description = "Fix human-in-the-loop approval workflow bugs in a LangChain agent"
+difficulty = "medium"
+category = "langchain"
+tags = ["hitl", "middleware", "checkpointer", "approval", "bug-fix"]
+default_treatments = [
+    "CONTROL",
+    "ALL_MAIN_SKILLS",
+]
+
+[template]
+required = []
+
+[environment]
+description = "Python workspace with broken_agent.py - a LangChain document management agent with 4 bugs: missing checkpointer, no HITL middleware for dangerous tools, no thread_id config, and wrong resume syntax. LangChain, langchain-openai, and langgraph dependencies installed."
+timeout_sec = 600
+
+[validation]
+# Execution-based validation - actually runs the code and checks behavior
+validators = ["HITLValidator", "ApprovalValidator", "PersistenceValidator"]

@@ -381,7 +381,9 @@ Chunk size 500-1500 is typically good.
 # WRONG: Too small (loses context) or too large (hits limits)
 splitter = RecursiveCharacterTextSplitter(chunk_size=50)
 splitter = RecursiveCharacterTextSplitter(chunk_size=10000)
+```
 
+```python
 # CORRECT
 splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
 ```
@@ -391,7 +393,9 @@ Chunk size 500-1500 is typically good.
 ```typescript
 // WRONG: Too small or too large
 const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 50 });
+```
 
+```typescript
 // CORRECT
 const splitter = new RecursiveCharacterTextSplitter({ chunkSize: 1000, chunkOverlap: 200 });
 ```
@@ -404,7 +408,9 @@ Use overlap (10-20% of chunk size) to maintain context at boundaries.
 ```python
 # WRONG: No overlap - context breaks at boundaries
 splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+```
 
+```python
 # CORRECT: 10-20% overlap
 splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
 ```
@@ -417,7 +423,9 @@ Use persistent vector store instead of in-memory to avoid data loss.
 ```python
 # WRONG: InMemory - lost on restart
 vectorstore = InMemoryVectorStore.from_documents(docs, embeddings)
+```
 
+```python
 # CORRECT
 vectorstore = Chroma.from_documents(docs, embeddings, persist_directory="./chroma_db")
 ```
@@ -427,7 +435,9 @@ Use persistent vector store instead of in-memory to avoid data loss.
 ```typescript
 // WRONG: Memory - lost on restart
 const vectorstore = await MemoryVectorStore.fromDocuments(docs, embeddings);
+```
 
+```typescript
 // CORRECT
 const vectorstore = await Chroma.fromDocuments(docs, embeddings, { collectionName: "my-collection" });
 ```
@@ -441,7 +451,9 @@ Use the same embedding model for indexing and querying.
 # WRONG: Different embeddings for index and query - incompatible!
 vectorstore = Chroma.from_documents(docs, OpenAIEmbeddings(model="text-embedding-3-small"))
 retriever = vectorstore.as_retriever(embeddings=OpenAIEmbeddings(model="text-embedding-3-large"))
+```
 
+```python
 # CORRECT: Same model
 embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 vectorstore = Chroma.from_documents(docs, embeddings)
@@ -464,7 +476,9 @@ Explicitly allow deserialization when loading FAISS indexes.
 ```python
 # WRONG: Will raise error
 loaded_store = FAISS.load_local("./faiss_index", embeddings)
+```
 
+```python
 # CORRECT
 loaded_store = FAISS.load_local("./faiss_index", embeddings, allow_dangerous_deserialization=True)
 ```
@@ -480,7 +494,9 @@ pc.create_index(name="idx", dimension=1536, metric="cosine")
 vectorstore = PineconeVectorStore.from_documents(
     docs, OpenAIEmbeddings(model="text-embedding-3-small", dimensions=512), index=pc.Index("idx")
 )  # Error: dimension mismatch!
+```
 
+```python
 # CORRECT: Match dimensions
 embeddings = OpenAIEmbeddings()  # Default 1536
 ```
@@ -491,11 +507,13 @@ embeddings = OpenAIEmbeddings()  # Default 1536
 <python>
 Use specific packages instead of deprecated langchain imports.
 ```python
-# WRONG: Deprecated
+# WRONG: Deprecated — these imports no longer exist in langchain 1.x
 from langchain.vectorstores import FAISS
 from langchain.document_loaders import PyPDFLoader
+```
 
-# CORRECT
+```python
+# CORRECT: Use dedicated package imports
 from langchain_community.vectorstores import FAISS
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_chroma import Chroma

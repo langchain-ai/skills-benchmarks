@@ -250,7 +250,9 @@ Clear descriptions help the agent know when to use each tool.
 def bad_tool(input: str) -> str:
     """Does stuff."""
     return "result"
+```
 
+```python
 # CORRECT: Clear, specific description with Args
 @tool
 def search(query: str) -> str:
@@ -273,7 +275,9 @@ const badTool = tool(async ({ input }) => "result", {
   description: "Does stuff.", // Too vague!
   schema: z.object({ input: z.string() }),
 });
+```
 
+```typescript
 // CORRECT: Clear, specific description
 const search = tool(async ({ query }) => webSearch(query), {
   name: "search",
@@ -295,7 +299,9 @@ agent = create_agent(model="anthropic:claude-sonnet-4-5", tools=[search])
 agent.invoke({"messages": [{"role": "user", "content": "I'm Bob"}]})
 agent.invoke({"messages": [{"role": "user", "content": "What's my name?"}]})
 # Agent doesn't remember!
+```
 
+```python
 # CORRECT: Add checkpointer and thread_id
 from langgraph.checkpoint.memory import MemorySaver
 
@@ -318,7 +324,9 @@ const agent = createAgent({ model: "anthropic:claude-sonnet-4-5", tools: [search
 await agent.invoke({ messages: [{ role: "user", content: "I'm Bob" }] });
 await agent.invoke({ messages: [{ role: "user", content: "What's my name?" }] });
 // Agent doesn't remember!
+```
 
+```typescript
 // CORRECT: Add checkpointer and thread_id
 import { MemorySaver } from "@langchain/langgraph";
 
@@ -341,7 +349,9 @@ Set recursion_limit in the invoke config to prevent runaway agent loops.
 ```python
 # WRONG: No iteration limit - could loop forever
 result = agent.invoke({"messages": [("user", "Do research")]})
+```
 
+```python
 # CORRECT: Set recursion_limit in config
 result = agent.invoke(
     {"messages": [("user", "Do research")]},
@@ -354,7 +364,9 @@ Set recursionLimit in the invoke config to prevent runaway agent loops.
 ```typescript
 // WRONG: No iteration limit
 const result = await agent.invoke({ messages: [["user", "Do research"]] });
+```
 
+```typescript
 // CORRECT: Set recursionLimit in config
 const result = await agent.invoke(
   { messages: [["user", "Do research"]] },
@@ -371,7 +383,9 @@ Access the messages array from the result, not result.content directly.
 # WRONG: Trying to access result.content directly
 result = agent.invoke({"messages": [{"role": "user", "content": "Hello"}]})
 print(result.content)  # AttributeError!
+```
 
+```python
 # CORRECT: Access messages from result dict
 result = agent.invoke({"messages": [{"role": "user", "content": "Hello"}]})
 print(result["messages"][-1].content)  # Last message content
@@ -383,7 +397,9 @@ Access the messages array from the result, not result.content directly.
 // WRONG: Trying to access result.content directly
 const result = await agent.invoke({ messages: [{ role: "user", content: "Hello" }] });
 console.log(result.content); // undefined!
+```
 
+```typescript
 // CORRECT: Access messages from result object
 const result = await agent.invoke({ messages: [{ role: "user", content: "Hello" }] });
 console.log(result.messages[result.messages.length - 1].content); // Last message content

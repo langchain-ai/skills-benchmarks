@@ -208,7 +208,9 @@ HITL middleware requires a checkpointer to persist state.
 ```python
 # WRONG
 agent = create_agent(model="gpt-4.1", tools=[send_email], middleware=[HumanInTheLoopMiddleware({...})])
+```
 
+```python
 # CORRECT
 agent = create_agent(
     model="gpt-4.1", tools=[send_email],
@@ -225,7 +227,9 @@ const agent = createAgent({
   model: "anthropic:claude-sonnet-4-5", tools: [sendEmail],
   middleware: [humanInTheLoopMiddleware({ interruptOn: { send_email: true } })],
 });
+```
 
+```typescript
 // CORRECT: Add checkpointer
 const agent = createAgent({
   model: "anthropic:claude-sonnet-4-5", tools: [sendEmail],
@@ -242,7 +246,9 @@ Always provide thread_id when using HITL to track conversation state.
 ```python
 # WRONG
 agent.invoke(input)  # No config!
+```
 
+```python
 # CORRECT
 agent.invoke(input, config={"configurable": {"thread_id": "user-123"}})
 ```
@@ -255,7 +261,9 @@ Use Command class to resume execution after an interrupt.
 ```python
 # WRONG
 agent.invoke({"resume": {"decisions": [...]}})
+```
 
+```python
 # CORRECT
 from langgraph.types import Command
 agent.invoke(Command(resume={"decisions": [{"type": "approve"}]}), config=config)
@@ -266,7 +274,9 @@ Use Command class to resume execution after an interrupt.
 ```typescript
 // WRONG
 await agent.invoke({ resume: { decisions: [...] } });
+```
 
+```typescript
 // CORRECT
 import { Command } from "@langchain/langgraph";
 await agent.invoke(new Command({ resume: { decisions: [{ type: "approve" }] } }), config);

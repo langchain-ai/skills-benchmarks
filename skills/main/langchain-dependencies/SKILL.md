@@ -323,7 +323,9 @@ Never start a new project on LangChain 0.3. It is maintenance-only until Decembe
 ```
 # WRONG: legacy, no new features, security patches only
 langchain>=0.3,<0.4
+```
 
+```
 # CORRECT: LangChain 1.0 LTS
 langchain>=1.0,<2.0
 ```
@@ -334,7 +336,9 @@ langchain>=1.0,<2.0
 ```
 # WRONG: allows minor-version updates that may be breaking
 langchain-community>=0.4
+```
 
+```
 # CORRECT: pin to exact minor series
 langchain-community>=0.4.0,<0.5.0
 ```
@@ -346,7 +350,9 @@ Community tool packages like `langchain-tavily` and vector store integrations re
 ```
 # RISKY: old pin may be incompatible with LangChain 1.0
 langchain-tavily==0.0.1
+```
 
+```
 # BETTER: allow latest within the current major
 langchain-tavily>=0.1
 ```
@@ -361,7 +367,9 @@ from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_community.tools import WikipediaQueryRun
 from langchain_community.vectorstores import Chroma
 from langchain_community.vectorstores import Pinecone
+```
 
+```python
 # CORRECT — use dedicated package imports
 from langchain_tavily import TavilySearch                  # pip: langchain-tavily (TavilySearchResults is deprecated)
 from langchain_community.tools import WikipediaQueryRun  # no dedicated pkg yet
@@ -385,7 +393,9 @@ Each entry shows the correct package and import path. If a dedicated package exi
     "@langchain/langgraph": "^1.0.0"
   }
 }
+```
 
+```json
 // CORRECT: always list @langchain/core explicitly
 {
   "dependencies": {

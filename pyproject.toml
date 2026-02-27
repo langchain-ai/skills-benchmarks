@@ -27,6 +27,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "ruff>=0.8.0",
+    "responses>=0.25.0",
 ]
 
 [tool.setuptools]

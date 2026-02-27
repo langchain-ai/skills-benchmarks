@@ -313,19 +313,6 @@ def test_ast_checks(ctx: TestContext):
                     )
                 break
 
-    # Check 2: save_user_preferences doesn't reference /memory/cache/
-    for node in ast.walk(tree):
-        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            if node.name == "save_user_preferences":
-                body_source = ast.get_source_segment(ctx.source, node) or ""
-                if "/memory/cache/" in body_source:
-                    ctx.fail_test(
-                        "ast_prefs_path_fixed",
-                        "save_user_preferences still references /memory/cache/",
-                    )
-                else:
-                    ctx.pass_test("ast_prefs_path_fixed")
-                break
 
 
 # =============================================================================

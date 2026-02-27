@@ -27,7 +27,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
 import type { NoiseTask } from "./schema.js";
-import { NOISE_TASK_PROMPTS, NOISE_TASK_DELIVERABLES } from "./validation.js";
+import { NOISE_TASK_PROMPTS, NOISE_TASK_DELIVERABLES } from "./validation/core.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);

@@ -109,9 +109,7 @@ def test_prefs_persist(ctx: TestContext):
             backend = backend_fn(InMemoryStore())
             if hasattr(backend, "sorted_routes"):
                 # Extract the prefs path from source
-                pref_paths = re.findall(
-                    r"(/memory/[^\s\"'{}]*prefs[^\s\"'{}]*)", ctx.source
-                )
+                pref_paths = re.findall(r"(/memory/[^\s\"'{}]*prefs[^\s\"'{}]*)", ctx.source)
                 if not pref_paths:
                     ctx.pass_test(TEST_NAME)
                     return
@@ -225,9 +223,7 @@ def _check_subagent_skills_source(ctx: TestContext):
         return
 
     section = ctx.source[subagent_start : subagent_start + 2000]
-    researcher_match = re.search(
-        r'"name"\s*:\s*"researcher".*?(?="name"|$)', section, re.DOTALL
-    )
+    researcher_match = re.search(r'"name"\s*:\s*"researcher".*?(?="name"|$)', section, re.DOTALL)
     if not researcher_match:
         ctx.pass_test(TEST_NAME)
     elif re.search(r'"skills"\s*:\s*\[', researcher_match.group()):
@@ -268,8 +264,7 @@ def test_interrupt_checkpointer(ctx: TestContext):
         else:
             ctx.fail_test(
                 TEST_NAME,
-                "interrupt_on requires checkpointer on main agent — "
-                "add checkpointer=MemorySaver()",
+                "interrupt_on requires checkpointer on main agent — add checkpointer=MemorySaver()",
             )
     else:
         ctx.pass_test(TEST_NAME)
@@ -312,7 +307,6 @@ def test_ast_checks(ctx: TestContext):
                         "create_deep_agent call missing checkpointer= keyword",
                     )
                 break
-
 
 
 # =============================================================================

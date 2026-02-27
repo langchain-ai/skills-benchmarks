@@ -16,12 +16,14 @@ export {
   NOISE_TASK_PROMPTS,
   NOISE_TASK_DELIVERABLES,
   // Functions
+  loadOutputs,
   checkFileExists,
   checkPattern,
   checkNoPattern,
   composeValidators,
   runValidators,
   checkSkillInvoked,
+  checkStarterSkillFirst,
   getNoiseTaskPrompts,
   checkNoiseOutputs,
 } from "./core.js";

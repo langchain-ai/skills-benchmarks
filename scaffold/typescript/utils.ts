@@ -3,7 +3,7 @@
  */
 
 import { spawnSync, type SpawnSyncOptions } from "node:child_process";
-import { copyFileSync, existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { config as loadEnv } from "dotenv";
@@ -157,7 +157,20 @@ export function runScriptInDocker(
   return [false, `Unsupported file type: ${scriptName}`];
 }
 
-/** Copy eval dir contents to testDir, run test script in Docker, return parsed JSON results. */
+/** Copy scaffold/typescript/{utils,validation} into testDir preserving import paths. */
+function copyScaffoldToDocker(testDir: string): void {
+  const scaffoldDir = resolve(__dirname);
+  const dest = join(testDir, "scaffold", "typescript");
+  mkdirSync(dest, { recursive: true });
+  copyFileSync(join(scaffoldDir, "utils.ts"), join(dest, "utils.ts"));
+  const validationSrc = join(scaffoldDir, "validation");
+  const validationDest = join(dest, "validation");
+  if (existsSync(validationSrc)) {
+    cpSync(validationSrc, validationDest, { recursive: true });
+  }
+}
+
+/** Copy eval dir + data dir + scaffold into testDir, run test script in Docker, return parsed JSON. */
 export function runEvalInDocker(
   testDir: string,
   evalDir: string,
@@ -176,6 +189,7 @@ export function runEvalInDocker(
       }
     }
   }
+  copyScaffoldToDocker(resolvedTestDir);
   const args = Array.isArray(moduleNames) ? moduleNames : [moduleNames];
   const [success, output] = runPythonInDocker(testDir, testScript, {
     timeout,
@@ -216,7 +230,7 @@ export function makeExecutionValidator(
   const { timeout = 120, dataDir } = options;
   const testScripts = Array.isArray(testScript) ? testScript : [testScript];
   const moduleFiles = Array.isArray(moduleFile) ? moduleFile : [moduleFile];
-  return (testDir: string, _outputs: Record<string, unknown>) => {
+  return (testDir: string, outputs: Record<string, unknown>) => {
     const passed: string[] = [];
     const failed: string[] = [];
     for (const mf of moduleFiles) {
@@ -225,6 +239,10 @@ export function makeExecutionValidator(
       }
     }
     if (failed.length > 0) return { passed, failed };
+    // Serialize outputs so test scripts can access run_id, events, etc.
+    if (outputs) {
+      writeFileSync(join(resolve(testDir), "_outputs.json"), JSON.stringify(outputs));
+    }
     for (const script of testScripts) {
       const results = runEvalInDocker(testDir, evalDir, script, moduleFiles, {
         timeout,

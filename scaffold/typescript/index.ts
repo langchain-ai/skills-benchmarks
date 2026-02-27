@@ -71,6 +71,8 @@ export {
   composeValidators,
   runValidators,
   checkSkillInvoked,
+  checkStarterSkillFirst,
+  loadOutputs,
   getNoiseTaskPrompts,
   checkNoiseOutputs,
   checkCodeExecution,

@@ -101,9 +101,7 @@ graph = builder.compile()
 
 
 def chat(user_message: str) -> str:
-    """Process a user message and return the bot's response.
-
-    """
+    """Process a user message and return the bot's response."""
     result = graph.invoke({"messages": [user_message], "context": {}, "current_step": "start"})
 
     responses = result.get("messages", [])

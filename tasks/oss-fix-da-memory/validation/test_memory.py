@@ -1,22 +1,14 @@
-"""Execution-based tests for deep agents memory/subagent fixes.
+"""Behavioral tests for deep agents memory/subagent fixes.
 
-These tests verify actual behavior by inspecting the agent configuration
-and testing the routing logic.
+These tests execute the code and verify actual behavior — not just source patterns.
+We patch create_deep_agent to capture the config, then test:
+1. Backend routing: does the prefs path resolve to persistent storage?
+2. Subagent skills: does the researcher subagent have explicit skills?
+3. Interrupt + checkpointer: is checkpointer configured when interrupt_on is used?
 
-The broken code has bugs from multiple skill areas:
-
-From da_memory:
-1. CompositeBackend longest-prefix routing - /memory/cache/ matches more specific route
-   than /memory/, so files saved there use StateBackend (ephemeral) not StoreBackend
-2. Path choice for persistence - should use /memory/ directly, not /memory/cache/
-
-From da_subagents:
-3. Skill inheritance asymmetry - custom subagents DON'T inherit main agent's skills
-   (only general-purpose subagent does)
-4. Subagent interrupts require checkpointer - interrupt_on without checkpointer won't work
+Usage: python test_memory.py <path_to_agent_system.py>
 """
 
-import ast
 import importlib.util
 import json
 import os
@@ -33,16 +25,15 @@ class TestContext:
     module_path: str
     source: str = ""
     module: Any | None = None
+    captured_config: dict = field(default_factory=dict)
     results: dict = field(default_factory=lambda: {"passed": [], "failed": [], "error": None})
 
     def load(self) -> bool:
-        """Load source and module. Returns True if successful."""
-        # Add module directory to path
+        """Load source, import module with patched create_deep_agent."""
         module_dir = os.path.dirname(os.path.abspath(self.module_path))
         if module_dir not in sys.path:
             sys.path.insert(0, module_dir)
 
-        # Read source
         try:
             with open(self.module_path) as f:
                 self.source = f.read()
@@ -50,232 +41,174 @@ class TestContext:
             self.results["error"] = f"Failed to read file: {e}"
             return False
 
-        # Parse AST to validate syntax
+        # Patch create_deep_agent to capture kwargs without needing API keys
         try:
-            ast.parse(self.source)
-        except SyntaxError as e:
-            self.results["error"] = f"Syntax error in file: {e}"
-            return False
+            import deepagents
 
-        # Try to import module
-        try:
-            spec = importlib.util.spec_from_file_location("agent_system", self.module_path)
-            self.module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(self.module)
-        except Exception:
-            self.module = None
+            original = deepagents.create_deep_agent
+            captured = {}
+
+            def capture_create(*args, **kwargs):
+                captured.update(kwargs)
+                # Return a mock that won't crash
+                return type("MockAgent", (), {"invoke": lambda *a, **k: {}})()
+
+            deepagents.create_deep_agent = capture_create
+            try:
+                if "agent_system" in sys.modules:
+                    del sys.modules["agent_system"]
+                spec = importlib.util.spec_from_file_location("agent_system", self.module_path)
+                self.module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(self.module)
+                if hasattr(self.module, "create_agent_system"):
+                    self.module.create_agent_system()
+                self.captured_config = captured
+            finally:
+                deepagents.create_deep_agent = original
+        except Exception as e:
+            self.results["error"] = f"Failed to import module: {e}"
+            return False
 
         return True
 
     def pass_test(self, name: str):
-        """Mark a test as passed."""
         self.results["passed"].append(name)
 
     def fail_test(self, name: str, reason: str):
-        """Mark a test as failed with reason."""
         self.results["failed"].append(f"{name}: {reason}")
 
 
 # =============================================================================
-# Test 1: Route Hierarchy
+# Test 1: Prefs path resolves to persistent backend
 # =============================================================================
 
 
-def test_route_hierarchy(ctx: TestContext):
-    """Check that /memory/cache/ doesn't override /memory/ with ephemeral storage.
+def _resolve_backend(path, sorted_routes, default_backend):
+    """Simulate CompositeBackend longest-prefix routing."""
+    for prefix, backend in sorted_routes:
+        if path.startswith(prefix):
+            return type(backend).__name__, prefix
+    return type(default_backend).__name__, "(default)"
 
-    Bug: CompositeBackend uses longest-prefix matching, so /memory/cache/
-    matches before /memory/, making cache storage ephemeral when it shouldn't be.
+
+def test_prefs_persist(ctx: TestContext):
+    """Verify preferences path resolves to persistent (StoreBackend) storage.
+
+    Tests the actual backend routing by instantiating the backend_factory
+    from the code and checking what backend a prefs path resolves to.
+    Falls back to source analysis if execution-based check isn't possible.
     """
-    TEST_NAME = "route_hierarchy_correct"
+    TEST_NAME = "prefs_use_persistent_storage"
 
-    # Try execution-based check first
-    if ctx.module and hasattr(ctx.module, "create_agent_system"):
+    # Try behavioral: instantiate the backend and test routing
+    backend_fn = ctx.captured_config.get("backend")
+    if callable(backend_fn):
         try:
-            agent = ctx.module.create_agent_system()
-            backend = getattr(agent, "backend", None) or getattr(agent, "_backend", None)
+            from langgraph.store.memory import InMemoryStore
 
-            if backend and hasattr(backend, "sorted_routes"):
-                for prefix, backend_instance in backend.sorted_routes:
-                    backend_type = type(backend_instance).__name__
-                    if "/memory/cache/" in prefix and "State" in backend_type:
+            backend = backend_fn(InMemoryStore())
+            if hasattr(backend, "sorted_routes"):
+                # Extract the prefs path from source
+                pref_paths = re.findall(r"(/memory/[^\s\"'{}]*prefs[^\s\"'{}]*)", ctx.source)
+                if not pref_paths:
+                    ctx.pass_test(TEST_NAME)
+                    return
+
+                for pref_path in pref_paths:
+                    backend_type, matched_prefix = _resolve_backend(
+                        pref_path, backend.sorted_routes, backend.default
+                    )
+                    if "State" in backend_type:
                         ctx.fail_test(
                             TEST_NAME,
-                            "longer prefix routes take precedence - "
-                            "/memory/cache/ overrides /memory/, making cache ephemeral",
+                            f"'{pref_path}' routes to {backend_type} via '{matched_prefix}' "
+                            f"(ephemeral) — preferences lost on restart",
                         )
                         return
                 ctx.pass_test(TEST_NAME)
                 return
         except Exception:
-            pass  # Fall back to source check
+            pass  # Fall through to source-based check
 
     # Source-based fallback
-    _check_route_hierarchy_source(ctx)
+    _check_prefs_persist_source(ctx)
 
 
-def _check_route_hierarchy_source(ctx: TestContext):
-    """Source-based route hierarchy check."""
-    TEST_NAME = "route_hierarchy_correct"
-    composite_routes = re.search(r"routes\s*=\s*\{([^}]+)\}", ctx.source, re.DOTALL)
+def _check_prefs_persist_source(ctx: TestContext):
+    """Source-based fallback for prefs persistence check."""
+    TEST_NAME = "prefs_use_persistent_storage"
 
-    if not composite_routes:
+    pref_paths = set()
+    for match in re.finditer(r"(/memory/[^\s\"'{}]*prefs[^\s\"'{}]*)", ctx.source):
+        pref_paths.add(match.group(1))
+
+    if not pref_paths:
         ctx.pass_test(TEST_NAME)
         return
 
-    routes_content = composite_routes.group(1)
+    # Extract ephemeral routes
+    ephemeral_prefixes = set()
+    persistent_prefixes = set()
+    routes_match = re.search(r"routes\s*=\s*\{([^}]+)\}", ctx.source, re.DOTALL)
+    if routes_match:
+        for m in re.finditer(r'["\']([^"\']+)["\']\s*:\s*StateBackend', routes_match.group(1)):
+            ephemeral_prefixes.add(m.group(1))
+        for m in re.finditer(r'["\']([^"\']+)["\']\s*:\s*StoreBackend', routes_match.group(1)):
+            persistent_prefixes.add(m.group(1))
 
-    # Check if /memory/cache/ uses StateBackend (ephemeral)
-    cache_is_ephemeral = (
-        "StateBackend" in routes_content
-        and "/memory/cache/" in routes_content
-        and re.search(r"/memory/cache/.*StateBackend", routes_content, re.DOTALL)
-    )
+    for pref_path in pref_paths:
+        all_matches = [
+            p for p in (ephemeral_prefixes | persistent_prefixes) if pref_path.startswith(p)
+        ]
+        if not all_matches:
+            continue
+        longest = max(all_matches, key=len)
+        if longest in ephemeral_prefixes:
+            ctx.fail_test(
+                TEST_NAME,
+                f"'{pref_path}' resolves to ephemeral route '{longest}' "
+                f"(longest-prefix match) — preferences lost on restart",
+            )
+            return
 
-    if not cache_is_ephemeral:
-        # Either no cache route, or cache uses StoreBackend - OK
-        ctx.pass_test(TEST_NAME)
-        return
-
-    # Cache is ephemeral - only a problem if prefs are saved there
-    # Look for actual path usage, not comments (match quotes or content strings)
-    prefs_use_cache = re.search(r'["\'].*?/memory/cache/prefs', ctx.source)
-
-    if prefs_use_cache:
-        ctx.fail_test(
-            TEST_NAME,
-            "longer prefix routes take precedence - "
-            "/memory/cache/ overrides /memory/, making cache ephemeral",
-        )
-    else:
-        # Prefs don't use cache path, so ephemeral cache is fine
-        ctx.pass_test(TEST_NAME)
-
-
-# =============================================================================
-# Test 2: Persistent Path Routing
-# =============================================================================
-
-
-def test_persistent_path_routing(ctx: TestContext):
-    """Check that persistent data uses correct paths.
-
-    Bug: Code saves preferences to /memory/cache/ which matches the ephemeral
-    StateBackend route, instead of /memory/ which uses persistent StoreBackend.
-    """
-    TEST_NAME = "persistent_path_routing"
-
-    buggy_path = r"/memory/cache/prefs"
-    correct_path_patterns = [
-        r"/memory/prefs",
-        r"/memory/user",
-        r"/persistent/",
-    ]
-
-    has_buggy_path = re.search(buggy_path, ctx.source)
-    has_correct_path = any(re.search(p, ctx.source) for p in correct_path_patterns)
-    routes_buggy = re.search(r"/memory/cache/.*StateBackend", ctx.source, re.DOTALL)
-
-    if not has_buggy_path or has_correct_path or not routes_buggy:
-        ctx.pass_test(TEST_NAME)
-    else:
-        ctx.fail_test(
-            TEST_NAME,
-            "/memory/cache/ matches longer prefix than /memory/, "
-            "so files there are ephemeral - use /memory/ directly or fix routes",
-        )
+    ctx.pass_test(TEST_NAME)
 
 
 # =============================================================================
-# Test 3: Subagent Skills Inheritance
+# Test 2: Subagent skills
 # =============================================================================
 
 
 def test_subagent_skills(ctx: TestContext):
-    """Check that subagents have explicit skills configuration.
+    """Verify researcher subagent has explicit skills configuration.
 
-    Bug: Custom subagents DON'T inherit main agent's skills.
-    Only the general-purpose subagent does.
+    Custom subagents don't inherit the main agent's skills — they need
+    skills specified explicitly in their config dict.
     """
     TEST_NAME = "subagent_skills_explicit"
 
-    # Try execution-based check by patching create_deep_agent
-    try:
-        captured_calls = []
-        original_create = None
+    subagents = ctx.captured_config.get("subagents", [])
+    main_skills = ctx.captured_config.get("skills", [])
 
-        def capture_create(*args, **kwargs):
-            captured_calls.append(kwargs)
-            if original_create:
-                return original_create(*args, **kwargs)
-            return None
-
-        import deepagents
-
-        original_create = deepagents.create_deep_agent
-        deepagents.create_deep_agent = capture_create
-
-        try:
-            # Clear cached import and reload
-            if "agent_system" in sys.modules:
-                del sys.modules["agent_system"]
-
-            spec = importlib.util.spec_from_file_location("agent_system", ctx.module_path)
-            module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(module)
-
-            if hasattr(module, "create_agent_system"):
-                try:
-                    module.create_agent_system()
-                except Exception:
-                    pass  # May fail without API keys
-
-            # Analyze captured calls
-            if captured_calls:
-                result = _analyze_subagent_skills(captured_calls)
-                if result:
-                    ctx.fail_test(TEST_NAME, result)
-                else:
-                    ctx.pass_test(TEST_NAME)
-                return
-
-        finally:
-            deepagents.create_deep_agent = original_create
-
-    except ImportError:
-        pass  # deepagents not available
-
-    # Fall back to source check
-    _check_subagent_skills_source(ctx)
-
-
-def _analyze_subagent_skills(captured_calls: list) -> str | None:
-    """Analyze captured create_deep_agent calls for skills issues.
-
-    Returns error message if issues found, None if OK.
-    """
-    for kwargs in captured_calls:
-        subagents = kwargs.get("subagents", [])
-        main_skills = kwargs.get("skills", [])
-
-        if not (subagents and main_skills):
-            continue
-
-        # Only check researcher — it explicitly needs doc skills per the task instruction
-        missing = []
+    # Behavioral check: inspect captured config
+    if subagents and main_skills:
         for sub in subagents:
-            if isinstance(sub, dict):
-                name = sub.get("name", "unnamed")
-                if name == "researcher" and ("skills" not in sub or not sub.get("skills")):
-                    missing.append(name)
+            if isinstance(sub, dict) and sub.get("name") == "researcher":
+                if "skills" in sub and sub["skills"]:
+                    ctx.pass_test(TEST_NAME)
+                else:
+                    ctx.fail_test(
+                        TEST_NAME,
+                        "researcher subagent missing 'skills' — custom subagents "
+                        "don't inherit main agent's skills, specify explicitly",
+                    )
+                return
+        # No researcher found
+        ctx.pass_test(TEST_NAME)
+        return
 
-        if missing:
-            return (
-                f"custom subagents don't inherit main agent's skills - "
-                f"specify skills explicitly (missing on: {', '.join(missing)})"
-            )
-
-    return None
+    # Source-based fallback
+    _check_subagent_skills_source(ctx)
 
 
 def _check_subagent_skills_source(ctx: TestContext):
@@ -285,14 +218,11 @@ def _check_subagent_skills_source(ctx: TestContext):
     subagent_start = ctx.source.find("subagents=[")
     if subagent_start == -1:
         subagent_start = ctx.source.find("subagents = [")
-
     if subagent_start == -1:
         ctx.pass_test(TEST_NAME)
         return
 
-    # Look at next 2000 chars for subagent definitions
     section = ctx.source[subagent_start : subagent_start + 2000]
-    # Only check researcher — it explicitly needs doc skills per the task instruction
     researcher_match = re.search(r'"name"\s*:\s*"researcher".*?(?="name"|$)', section, re.DOTALL)
     if not researcher_match:
         ctx.pass_test(TEST_NAME)
@@ -301,36 +231,82 @@ def _check_subagent_skills_source(ctx: TestContext):
     else:
         ctx.fail_test(
             TEST_NAME,
-            "custom subagents don't inherit main agent's skills - "
-            "specify skills explicitly (missing on: researcher)",
+            "researcher subagent missing 'skills' — custom subagents "
+            "don't inherit main agent's skills, specify explicitly",
         )
 
 
 # =============================================================================
-# Test 4: Interrupt Requires Checkpointer
+# Test 3: Interrupt requires checkpointer
 # =============================================================================
 
 
 def test_interrupt_checkpointer(ctx: TestContext):
-    """Check that interrupt_on has a checkpointer configured.
+    """Verify interrupt_on has a checkpointer configured.
 
-    Bug: Using interrupt_on without checkpointer silently fails -
-    the interrupt won't actually pause execution.
+    Without a checkpointer, interrupt_on silently does nothing — the agent
+    won't actually pause for human approval.
     """
     TEST_NAME = "interrupt_has_checkpointer"
 
-    has_interrupt = re.search(r"interrupt_on", ctx.source)
-    has_checkpointer = re.search(r"checkpointer\s*=", ctx.source)
+    # Behavioral check: inspect captured config
+    has_interrupt = False
+    for sub in ctx.captured_config.get("subagents", []):
+        if isinstance(sub, dict) and sub.get("interrupt_on"):
+            has_interrupt = True
+            break
 
-    if not has_interrupt:
-        ctx.pass_test(TEST_NAME)
-    elif has_checkpointer:
-        ctx.pass_test(TEST_NAME)
+    has_checkpointer = "checkpointer" in ctx.captured_config
+
+    if has_interrupt or re.search(r"interrupt_on", ctx.source):
+        if has_checkpointer or re.search(r"checkpointer\s*=", ctx.source):
+            ctx.pass_test(TEST_NAME)
+        else:
+            ctx.fail_test(
+                TEST_NAME,
+                "interrupt_on requires checkpointer on main agent — add checkpointer=MemorySaver()",
+            )
     else:
-        ctx.fail_test(
-            TEST_NAME,
-            "interrupt_on requires checkpointer on main agent - add checkpointer=MemorySaver()",
-        )
+        ctx.pass_test(TEST_NAME)
+
+
+# =============================================================================
+# Test 4: AST verification — code was actually changed
+# =============================================================================
+
+
+def test_ast_checks(ctx: TestContext):
+    """Verify key fixes are present in the source via AST inspection.
+
+    These complement the behavioral checks — the behavioral tests verify
+    the config is correct, these verify the code was actually modified.
+    """
+    import ast
+
+    try:
+        tree = ast.parse(ctx.source)
+    except SyntaxError:
+        return  # Already caught by load()
+
+    # Check 1: create_deep_agent called with checkpointer keyword
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call):
+            func = node.func
+            name = ""
+            if isinstance(func, ast.Name):
+                name = func.id
+            elif isinstance(func, ast.Attribute):
+                name = func.attr
+            if name == "create_deep_agent":
+                kw_names = [kw.arg for kw in node.keywords]
+                if "checkpointer" in kw_names:
+                    ctx.pass_test("ast_has_checkpointer_kwarg")
+                else:
+                    ctx.fail_test(
+                        "ast_has_checkpointer_kwarg",
+                        "create_deep_agent call missing checkpointer= keyword",
+                    )
+                break
 
 
 # =============================================================================
@@ -339,18 +315,13 @@ def test_interrupt_checkpointer(ctx: TestContext):
 
 
 def run_tests(module_path: str) -> dict:
-    """Run all tests against the module.
-
-    Returns dict with test results: {passed: [], failed: [], error: str|None}
-    """
     ctx = TestContext(module_path=module_path)
 
-    # Run each test
     tests = [
-        test_route_hierarchy,
-        test_persistent_path_routing,
+        test_prefs_persist,
         test_subagent_skills,
         test_interrupt_checkpointer,
+        test_ast_checks,
     ]
 
     if not ctx.load():
@@ -374,11 +345,6 @@ if __name__ == "__main__":
         print("Usage: python test_memory.py <path_to_agent_system.py>")
         sys.exit(1)
 
-    module_path = sys.argv[1]
-    results = run_tests(module_path)
-
+    results = run_tests(sys.argv[1])
     print(json.dumps(results, indent=2))
-
-    if results["error"] or results["failed"]:
-        sys.exit(1)
-    sys.exit(0)
+    sys.exit(1 if results["error"] or results["failed"] else 0)

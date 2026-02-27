@@ -146,27 +146,6 @@ export function listTreatments(): string[] {
   return Object.keys(treatments);
 }
 
-/**
- * Load treatments available for a task.
- *
- * Note: All treatments are now shared. This function returns all treatments
- * regardless of taskPath (kept for backward compatibility).
- */
-export function loadTaskTreatments(
-  taskPath: string,
-): Record<string, TreatmentConfig> {
-  return loadTreatments();
-}
-
-/**
- * Get list of treatment names available for a task.
- *
- * Note: All treatments are now shared. This function returns all treatments
- * regardless of taskPath (kept for backward compatibility).
- */
-export function getTaskTreatmentNames(taskPath: string): string[] {
-  return listTreatments();
-}
 
 /**
  * Build NoiseTask objects from task names.

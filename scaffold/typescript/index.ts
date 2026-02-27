@@ -54,8 +54,6 @@ export {
   loadTreatmentsYaml,
   loadTreatments,
   listTreatments,
-  loadTaskTreatments,
-  getTaskTreatmentNames,
   buildNoiseTasks,
   buildTreatmentSkills,
 } from "./treatments.js";

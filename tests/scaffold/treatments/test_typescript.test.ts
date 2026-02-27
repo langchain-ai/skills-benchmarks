@@ -19,7 +19,6 @@ import {
   listTreatments,
   buildNoiseTasks,
   buildTreatmentSkills,
-  type TreatmentConfig,
   type SkillConfigInput,
 } from "../../../scaffold/typescript/treatments.js";
 

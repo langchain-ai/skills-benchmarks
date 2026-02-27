@@ -1,20 +1,11 @@
 /**
- * TypeScript validation utilities for benchmark tasks.
+ * Validation helpers for test scripts.
  *
- * This package provides composable validation functions organized by domain:
- * - core: Basic utilities (file exists, pattern matching, compose)
- * - tracing: Python/TypeScript LangSmith tracing validation
- * - docker: Docker-based code execution validation
+ * These are helper functions used by test scripts running inside Docker.
+ * They are NOT standalone validators — use makeExecutionValidator to
+ * wire test scripts into the benchmark infrastructure.
  *
  * Mirrors scaffold/python/validation/ package structure.
- *
- * @example
- * import {
- *   validatePythonTracing,
- *   validateTypescriptTracing,
- *   validateCodeExecution,
- *   NOISE_TASK_PROMPTS,
- * } from "./validation/index.js";
  */
 
 // Core utilities and types
@@ -25,26 +16,28 @@ export {
   NOISE_TASK_PROMPTS,
   NOISE_TASK_DELIVERABLES,
   // Functions
-  validateFileExists,
-  validatePattern,
-  validateNoPattern,
+  loadOutputs,
+  checkFileExists,
+  checkPattern,
+  checkNoPattern,
   composeValidators,
   runValidators,
-  validateSkillInvoked,
+  checkSkillInvoked,
+  checkStarterSkillFirst,
   getNoiseTaskPrompts,
-  validateNoiseOutputs,
+  checkNoiseOutputs,
 } from "./core.js";
 
 // Docker execution validators
 export {
-  validateCodeExecution,
-  validatePythonExecution,
-  validateTypescriptExecution,
+  checkCodeExecution,
+  checkPythonExecution,
+  checkTypescriptExecution,
 } from "./docker.js";
 
 // Tracing validators
 export {
-  validatePythonTracing,
-  validateTypescriptTracing,
-  validateLanguageSyntax,
+  checkPythonTracing,
+  checkTypescriptTracing,
+  checkLanguageSyntax,
 } from "./tracing.js";

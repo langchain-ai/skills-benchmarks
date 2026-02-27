@@ -326,7 +326,7 @@ class TestCleanupNamespace:
         ):
             result = cleanup_namespace("nonexistent")
 
-        assert result == {"projects": [], "datasets": []}
+        assert result == {"projects": [], "datasets": [], "evaluators": []}
 
     def test_handles_missing_client(self):
         with patch(

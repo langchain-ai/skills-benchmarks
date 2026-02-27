@@ -245,13 +245,13 @@ describe("external_data_handler", () => {
     it("handles no matching resources", async () => {
       const result = await cleanupNamespace({ run_id: "nonexistent" });
 
-      expect(result).toEqual({ projects: [], datasets: [] });
+      expect(result).toEqual({ projects: [], datasets: [], evaluators: [] });
     });
 
     it("requires run_id", async () => {
       const result = await cleanupNamespace({});
 
-      expect(result).toEqual({ projects: [], datasets: [] });
+      expect(result).toEqual({ projects: [], datasets: [], evaluators: [] });
       expect(mockClient.listProjects).not.toHaveBeenCalled();
     });
   });
@@ -260,7 +260,7 @@ describe("external_data_handler", () => {
     it("runs registered handler", async () => {
       const result = await runHandler("cleanup_namespace", { run_id: "test123" });
 
-      expect(result).toEqual({ projects: [], datasets: [] });
+      expect(result).toEqual({ projects: [], datasets: [], evaluators: [] });
     });
 
     it("throws for unknown handler", async () => {

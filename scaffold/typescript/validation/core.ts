@@ -44,13 +44,26 @@ export const NOISE_TASK_DELIVERABLES: Record<string, string> = {
 };
 
 // =============================================================================
+// HELPERS
+// =============================================================================
+
+/** Load outputs dict serialized by makeExecutionValidator. */
+export function loadOutputs(path: string = "_outputs.json"): Record<string, unknown> {
+  try {
+    return JSON.parse(readFileSync(path, "utf8"));
+  } catch {
+    return {};
+  }
+}
+
+// =============================================================================
 // VALIDATOR FUNCTIONS
 // =============================================================================
 
 /**
  * Check that a file exists.
  */
-export function validateFileExists(
+export function checkFileExists(
   testDir: string,
   filepath: string,
 ): ValidationResult {
@@ -64,7 +77,7 @@ export function validateFileExists(
 /**
  * Check that a file contains a pattern.
  */
-export function validatePattern(
+export function checkPattern(
   filepath: string,
   pattern: string | RegExp,
   description: string,
@@ -88,7 +101,7 @@ export function validatePattern(
 /**
  * Check that a file does NOT contain a pattern.
  */
-export function validateNoPattern(
+export function checkNoPattern(
   filepath: string,
   pattern: string | RegExp,
   description: string,
@@ -152,7 +165,7 @@ export async function runValidators(
 /**
  * Check if a skill was invoked during the task.
  */
-export function validateSkillInvoked(
+export function checkSkillInvoked(
   outputs: Record<string, unknown>,
   skillName: string,
   options: { required?: boolean } = {},
@@ -170,6 +183,44 @@ export function validateSkillInvoked(
 }
 
 /**
+ * Check that a starter skill was invoked first.
+ */
+export function checkStarterSkillFirst(
+  outputs: Record<string, unknown>,
+): ValidationResult {
+  const treatmentName = (outputs?.treatment_name as string) || "";
+  if (treatmentName === "ALL_MAIN_SKILLS") {
+    return { passed: ["Note: starter skill check skipped (ALL_MAIN_SKILLS)"], failed: [] };
+  }
+
+  const events = (outputs?.events as Record<string, unknown>) || {};
+  const skillsInvoked = (events.skills_invoked as string[]) || [];
+
+  if (skillsInvoked.length === 0) {
+    return { passed: ["Note: no skills invoked"], failed: [] };
+  }
+
+  const starterSkills = new Set(["langchain-oss-primer", "framework-selection"]);
+  const first = skillsInvoked[0];
+
+  if (starterSkills.has(first)) {
+    return { passed: [`Starter skill invoked first: ${first}`], failed: [] };
+  }
+
+  const invokedStarters = skillsInvoked.filter((s) => starterSkills.has(s));
+  if (invokedStarters.length > 0) {
+    return {
+      passed: [],
+      failed: [`Starter skill not invoked first: first was '${first}', starters invoked later: ${invokedStarters.join(", ")}`],
+    };
+  }
+  return {
+    passed: [],
+    failed: [`Starter skill not invoked: first skill was '${first}' (expected langchain-oss-primer or framework-selection)`],
+  };
+}
+
+/**
  * Get prompts for noise tasks by name.
  */
 export function getNoiseTaskPrompts(noiseTaskNames: string[]): string[] {
@@ -181,9 +232,9 @@ export function getNoiseTaskPrompts(noiseTaskNames: string[]): string[] {
 /**
  * Validate that noise task deliverables were created.
  */
-export function validateNoiseOutputs(
-  testDir: string,
+export function checkNoiseOutputs(
   noiseTasks: string[],
+  testDir: string = ".",
 ): ValidationResult {
   const passed: string[] = [];
   const failed: string[] = [];

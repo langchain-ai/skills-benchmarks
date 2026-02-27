@@ -13,7 +13,7 @@ import type { ValidationResult } from "./core.js";
 /**
  * Run a file in Docker and check output.
  */
-export async function validateCodeExecution(
+export async function checkCodeExecution(
   testDir: string,
   filename: string,
   options: {
@@ -91,7 +91,7 @@ export async function validateCodeExecution(
 /**
  * Run a Python file in Docker and validate output.
  */
-export async function validatePythonExecution(
+export async function checkPythonExecution(
   testDir: string,
   filename: string,
   options: {
@@ -101,7 +101,7 @@ export async function validatePythonExecution(
     minOutputLines?: number;
   } = {},
 ): Promise<ValidationResult> {
-  return validateCodeExecution(testDir, filename, {
+  return checkCodeExecution(testDir, filename, {
     ...options,
     language: "python",
   });
@@ -110,7 +110,7 @@ export async function validatePythonExecution(
 /**
  * Run a TypeScript file in Docker and validate output.
  */
-export async function validateTypescriptExecution(
+export async function checkTypescriptExecution(
   testDir: string,
   filename: string,
   options: {
@@ -120,7 +120,7 @@ export async function validateTypescriptExecution(
     minOutputLines?: number;
   } = {},
 ): Promise<ValidationResult> {
-  return validateCodeExecution(testDir, filename, {
+  return checkCodeExecution(testDir, filename, {
     ...options,
     language: "typescript",
   });

@@ -373,31 +373,3 @@ def list_treatments() -> list[str]:
 
 
 # Legacy aliases for backward compatibility
-def load_task_treatments(task_path: Path) -> dict[str, TreatmentConfig]:
-    """Load treatments available for a task.
-
-    Note: All treatments are now shared. This function returns all treatments
-    regardless of task_path (kept for backward compatibility).
-
-    Args:
-        task_path: Path to task directory (ignored, kept for API compatibility)
-
-    Returns:
-        Dict mapping treatment names to TreatmentConfig objects
-    """
-    return load_treatments()
-
-
-def get_task_treatment_names(task_path: Path) -> list[str]:
-    """Get list of treatment names available for a task.
-
-    Note: All treatments are now shared. This function returns all treatments
-    regardless of task_path (kept for backward compatibility).
-
-    Args:
-        task_path: Path to task directory (ignored, kept for API compatibility)
-
-    Returns:
-        List of treatment names
-    """
-    return list_treatments()

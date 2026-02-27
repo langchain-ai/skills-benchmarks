@@ -7,16 +7,9 @@
  * import {
  *   Treatment,
  *   NoiseTask,
- *   SkillInvokedValidator,
- *   MetricsCollector,
- *   OutputQualityValidator,
- *   ExperimentLogger,
- *   parseOutput,
- *   extractEvents,
- *   runClaudeInDocker,
+ *   makeExecutionValidator,
  *   loadTask,
  *   listTasks,
- *   loadTaskTreatments,
  * } from '@skills-benchmark/scaffold';
  */
 
@@ -25,9 +18,7 @@ export {
   type NoiseTask,
   type SkillConfig,
   type Treatment,
-  getFilesToRun,
   buildPrompt,
-  validate,
 } from "./schema.js";
 
 // Task loading
@@ -63,50 +54,31 @@ export {
   loadTreatmentsYaml,
   loadTreatments,
   listTreatments,
-  loadTaskTreatments,
-  getTaskTreatmentNames,
   buildNoiseTasks,
   buildTreatmentSkills,
 } from "./treatments.js";
 
-// Validation types and classes (from validation.ts - legacy class-based)
-export {
-  type ValidationResult,
-  type Validator,
-  // Class-based validators
-  SkillInvokedValidator,
-  TypeScriptFileValidator,
-  FileValidator,
-  type FileValidatorOptions,
-  NoiseTaskValidator,
-  MetricsCollector,
-  OutputQualityValidator,
-  type OutputQualityOptions,
-} from "./validation.js";
-
-// Function-based validators (from validation/ package)
+// Validation helpers
 export {
   type ValidatorFn,
-  // Constants
   NOISE_TASK_PROMPTS,
   NOISE_TASK_DELIVERABLES,
-  // Core validators
-  validateFileExists,
-  validatePattern,
-  validateNoPattern,
+  checkFileExists,
+  checkPattern,
+  checkNoPattern,
   composeValidators,
   runValidators,
-  validateSkillInvoked,
+  checkSkillInvoked,
+  checkStarterSkillFirst,
+  loadOutputs,
   getNoiseTaskPrompts,
-  validateNoiseOutputs,
-  // Docker validators
-  validateCodeExecution,
-  validatePythonExecution,
-  validateTypescriptExecution,
-  // Tracing validators
-  validatePythonTracing,
-  validateTypescriptTracing,
-  validateLanguageSyntax,
+  checkNoiseOutputs,
+  checkCodeExecution,
+  checkPythonExecution,
+  checkTypescriptExecution,
+  checkPythonTracing,
+  checkTypescriptTracing,
+  checkLanguageSyntax,
 } from "./validation/index.js";
 
 // Logging types and functions
@@ -144,7 +116,6 @@ export {
   checkDockerAvailable,
   checkClaudeAvailable,
   buildDockerImage,
-  runInDocker,
   runNodeInDocker,
   runEvalInDocker,
   makeExecutionValidator,

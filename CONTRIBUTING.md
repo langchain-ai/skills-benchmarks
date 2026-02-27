@@ -71,8 +71,6 @@ required = ["run_id"]
 dockerfile = "Dockerfile"
 timeout_sec = 900
 
-[validation]
-validators = ["MyValidator"]
 ```
 
 ### 2. Create instruction.md
@@ -83,39 +81,71 @@ Create an agent that does X.
 Use the run_id `{run_id}` for any resources you create.
 ```
 
-### 3. Write validators
+### 3. Write a test script
 
-Validators are functions that return `(passed: list[str], failed: list[str])`:
+Test scripts run inside Docker and output JSON with `passed` and `failed` lists. They receive module file names as positional args.
 
 ```python
-"""Function-based validators for my-task."""
+"""Test script for my-task. Runs in Docker via make_execution_validator."""
+import json
+import sys
+from scaffold.python.validation.core import check_skill_invoked, load_outputs
 
+def run_tests(module_file):
+    passed, failed = [], []
+    outputs = load_outputs()  # loads _outputs.json serialized by the factory
+
+    # Check the module file
+    try:
+        content = open(module_file).read()
+        passed.append("Module: file exists")
+    except FileNotFoundError:
+        failed.append("Module: file not found")
+        return {"passed": passed, "failed": failed, "error": None}
+
+    # Add your checks here
+    if "expected_pattern" in content:
+        passed.append("Module: has expected pattern")
+    else:
+        failed.append("Module: missing expected pattern")
+
+    # Track skill invocation (informational)
+    p, _ = check_skill_invoked(outputs, "my-skill", required=False)
+    passed.extend(p)
+
+    return {"passed": passed, "failed": failed, "error": None}
+
+if __name__ == "__main__":
+    results = run_tests(sys.argv[1])
+    print(json.dumps(results, indent=2))
+    sys.exit(1 if results["failed"] else 0)
+```
+
+### 4. Wire up with the factory
+
+`validators.py` just calls `make_execution_validator`:
+
+```python
 from pathlib import Path
+from scaffold.python.utils import make_execution_validator
 
-from scaffold.python.validation import (
-    validate_file_exists,
-    validate_pattern,
+validate_execution = make_execution_validator(
+    eval_dir=Path(__file__).parent,       # directory containing test script
+    test_script="test_my_task.py",        # test script name
+    module_file="output.py",             # file(s) Claude should create/fix
+    # Optional:
+    # data_dir=Path(__file__).parent.parent / "data",  # ground truth data
+    # timeout=120,
 )
 
-
-def validate_output(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:
-    """Validate the generated output."""
-    passed, failed = [], []
-
-    output_file = test_dir / "output.json"
-    if output_file.exists():
-        passed.append("Output: file created")
-    else:
-        failed.append("Output: file not found")
-
-    return passed, failed
-
-
-# List of all validators - order matters!
-VALIDATORS = [
-    validate_output,
-]
+VALIDATORS = [validate_execution]
 ```
+
+The factory handles:
+- Copying test scripts + scaffold validation helpers into Docker
+- Serializing `outputs` dict to `_outputs.json` for test script access
+- Running the test script and parsing JSON results
+- Supports `str | list[str]` for both `test_script` and `module_file`
 
 ### 4. Run your task
 
@@ -189,53 +219,43 @@ MY_TREATMENT:
       name: additional-skill
 ```
 
-## Built-in Validation Utilities
+## Validation Helpers
 
-Import from `scaffold.python.validation`:
+Test scripts running in Docker can import helpers from `scaffold.python.validation`. These are **not standalone validators** — they're utilities your test scripts call.
 
-### Core Utilities
-
-| Function | Purpose |
-|----------|---------|
-| `validate_file_exists(test_dir, filepath)` | Check file exists |
-| `validate_pattern(test_dir, filepath, pattern, desc)` | Check file contains pattern |
-| `validate_no_pattern(test_dir, filepath, pattern, desc)` | Check file doesn't contain pattern |
-| `validate_skill_invoked(events, skill_name)` | Check if Claude invoked a skill |
-| `validate_noise_outputs(test_dir, noise_tasks)` | Check noise task deliverables |
-| `validate_skill_scripts(test_dir, outputs, events)` | Track script usage (informational) |
-
-### Dataset Utilities
+### Core (`scaffold.python.validation.core`)
 
 | Function | Purpose |
 |----------|---------|
-| `validate_dataset_structure(test_dir, outputs, filename, ...)` | Check dataset JSON structure |
-| `validate_trajectory_accuracy(test_dir, outputs, filename, expected_filename, ...)` | Compare against ground truth |
-| `validate_dataset_upload(test_dir, outputs, filename, upload_prefix)` | Verify LangSmith upload |
+| `load_outputs(path="_outputs.json")` | Load outputs dict serialized by the factory |
+| `check_file_exists(test_dir, filepath)` | Check file exists |
+| `check_pattern(filepath, pattern, desc)` | Check file contains regex pattern |
+| `check_no_pattern(filepath, pattern, desc)` | Check file doesn't contain pattern |
+| `check_skill_invoked(outputs, skill_name)` | Check if Claude invoked a skill |
+| `check_starter_skill_first(outputs)` | Check starter skill was invoked first |
+| `check_noise_outputs(noise_tasks, test_dir=".")` | Check noise task deliverables |
 
-### Docker Execution
-
-| Function | Purpose |
-|----------|---------|
-| `validate_python_execution(test_dir, script, ...)` | Run Python in Docker |
-| `validate_typescript_execution(test_dir, script, ...)` | Run TypeScript in Docker |
-| `validate_code_execution(test_dir, outputs, ...)` | Run both Python and TypeScript |
-
-### Tracing Utilities
+### Dataset (`scaffold.python.validation.dataset`)
 
 | Function | Purpose |
 |----------|---------|
-| `validate_python_tracing(test_dir, filepath, functions)` | Check Python has @traceable |
-| `validate_typescript_tracing(test_dir, filepath, functions)` | Check TypeScript has traceable() |
-| `validate_langsmith_trace(test_dir, outputs)` | Verify traces in LangSmith |
+| `check_dataset_structure(filename, ...)` | Check dataset JSON structure |
+| `check_trajectory_accuracy(filename, expected_filename, ...)` | Compare against ground truth |
+| `check_dataset_upload(filename, upload_prefix, ...)` | Verify LangSmith upload |
 
-### Evaluator Utilities
+### Evaluator (`scaffold.python.validation.evaluator`)
 
 | Function | Purpose |
 |----------|---------|
-| `validate_evaluator_exists(test_dir, language)` | Find evaluator file |
-| `validate_evaluator_syntax(test_dir, language)` | Check evaluator parses |
-| `validate_evaluator_patterns(test_dir, language)` | Check evaluator has right patterns |
-| `validate_evaluator_logic(test_dir, outputs, test_cases_file)` | Run evaluator against test cases |
+| `find_evaluator_function(content, language)` | Find evaluator function name |
+| `check_evaluator_exists(test_dir, outputs)` | Find evaluator files |
+| `check_evaluator_upload(test_dir, outputs)` | Verify upload to LangSmith |
+
+### LLM Evaluation (`scaffold.python.utils`)
+
+| Function | Purpose |
+|----------|---------|
+| `evaluate_with_schema(prompt)` | LLM judge returning `{"pass": bool, "reason": str}` |
 
 ## Running Tests
 

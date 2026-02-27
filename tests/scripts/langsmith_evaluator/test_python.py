@@ -196,6 +196,7 @@ class TestMockedAPIFunctions:
                 )
             ],
             sampling_rate=1.0,
+            target_dataset_ids=["test-dataset-id"],
         )
 
         result = upload_module.create_evaluator(payload)
@@ -220,6 +221,7 @@ class TestMockedAPIFunctions:
                 )
             ],
             sampling_rate=1.0,
+            target_dataset_ids=["test-dataset-id"],
         )
 
         result = upload_module.create_evaluator(payload)

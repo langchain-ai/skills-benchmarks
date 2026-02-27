@@ -84,29 +84,25 @@ export {
   type OutputQualityOptions,
 } from "./validation.js";
 
-// Function-based validators (from validation/ package)
+// Validation helpers (from validation/ package)
 export {
   type ValidatorFn,
-  // Constants
   NOISE_TASK_PROMPTS,
   NOISE_TASK_DELIVERABLES,
-  // Core validators
-  validateFileExists,
-  validatePattern,
-  validateNoPattern,
+  checkFileExists,
+  checkPattern,
+  checkNoPattern,
   composeValidators,
   runValidators,
-  validateSkillInvoked,
+  checkSkillInvoked,
   getNoiseTaskPrompts,
-  validateNoiseOutputs,
-  // Docker validators
-  validateCodeExecution,
-  validatePythonExecution,
-  validateTypescriptExecution,
-  // Tracing validators
-  validatePythonTracing,
-  validateTypescriptTracing,
-  validateLanguageSyntax,
+  checkNoiseOutputs,
+  checkCodeExecution,
+  checkPythonExecution,
+  checkTypescriptExecution,
+  checkPythonTracing,
+  checkTypescriptTracing,
+  checkLanguageSyntax,
 } from "./validation/index.js";
 
 // Logging types and functions
@@ -144,7 +140,6 @@ export {
   checkDockerAvailable,
   checkClaudeAvailable,
   buildDockerImage,
-  runInDocker,
   runNodeInDocker,
   runEvalInDocker,
   makeExecutionValidator,

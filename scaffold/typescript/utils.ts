@@ -93,34 +93,6 @@ export function buildDockerImage(
   }
 }
 
-/** Run arbitrary command in Docker. Returns ShellResult. */
-export function runInDocker(
-  testDir: string,
-  command: string[],
-  options: { timeout?: number; envVars?: Record<string, string> } = {},
-): ShellResult {
-  const { timeout = 120, envVars } = options;
-  const savedEnv: Record<string, string | undefined> = {};
-
-  if (envVars) {
-    for (const [k, v] of Object.entries(envVars)) {
-      savedEnv[k] = process.env[k];
-      process.env[k] = v;
-    }
-  }
-
-  try {
-    return runShell("docker.sh", ["run", resolve(testDir), ...command], {
-      timeout,
-      check: false,
-    });
-  } finally {
-    for (const [k, v] of Object.entries(savedEnv)) {
-      if (v === undefined) delete process.env[k];
-      else process.env[k] = v;
-    }
-  }
-}
 
 /** Run Python script in Docker. Returns [success, output]. */
 export function runPythonInDocker(

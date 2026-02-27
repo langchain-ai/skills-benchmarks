@@ -50,7 +50,7 @@ export const NOISE_TASK_DELIVERABLES: Record<string, string> = {
 /**
  * Check that a file exists.
  */
-export function validateFileExists(
+export function checkFileExists(
   testDir: string,
   filepath: string,
 ): ValidationResult {
@@ -64,7 +64,7 @@ export function validateFileExists(
 /**
  * Check that a file contains a pattern.
  */
-export function validatePattern(
+export function checkPattern(
   filepath: string,
   pattern: string | RegExp,
   description: string,
@@ -88,7 +88,7 @@ export function validatePattern(
 /**
  * Check that a file does NOT contain a pattern.
  */
-export function validateNoPattern(
+export function checkNoPattern(
   filepath: string,
   pattern: string | RegExp,
   description: string,
@@ -152,7 +152,7 @@ export async function runValidators(
 /**
  * Check if a skill was invoked during the task.
  */
-export function validateSkillInvoked(
+export function checkSkillInvoked(
   outputs: Record<string, unknown>,
   skillName: string,
   options: { required?: boolean } = {},
@@ -181,7 +181,7 @@ export function getNoiseTaskPrompts(noiseTaskNames: string[]): string[] {
 /**
  * Validate that noise task deliverables were created.
  */
-export function validateNoiseOutputs(
+export function checkNoiseOutputs(
   testDir: string,
   noiseTasks: string[],
 ): ValidationResult {

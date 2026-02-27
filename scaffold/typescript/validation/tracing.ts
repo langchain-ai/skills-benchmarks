@@ -60,7 +60,7 @@ const TYPESCRIPT_TRACING_PATTERNS = {
 /**
  * Validate Python file has LangSmith tracing patterns.
  */
-export function validatePythonTracing(
+export function checkPythonTracing(
   testDir: string,
   filename: string,
   options: {
@@ -111,7 +111,7 @@ export function validatePythonTracing(
 /**
  * Validate TypeScript file has LangSmith tracing patterns.
  */
-export function validateTypescriptTracing(
+export function checkTypescriptTracing(
   testDir: string,
   filename: string,
   options: {
@@ -162,7 +162,7 @@ export function validateTypescriptTracing(
 /**
  * Validate file has valid language syntax (basic check).
  */
-export function validateLanguageSyntax(
+export function checkLanguageSyntax(
   testDir: string,
   filename: string,
   language: "python" | "typescript",

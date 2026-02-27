@@ -276,6 +276,59 @@ def test_interrupt_checkpointer(ctx: TestContext):
 
 
 # =============================================================================
+# Test 4: AST verification — code was actually changed
+# =============================================================================
+
+
+def test_ast_checks(ctx: TestContext):
+    """Verify key fixes are present in the source via AST inspection.
+
+    These complement the behavioral checks — the behavioral tests verify
+    the config is correct, these verify the code was actually modified.
+    """
+    import ast
+
+    try:
+        tree = ast.parse(ctx.source)
+    except SyntaxError:
+        return  # Already caught by load()
+
+    # Check 1: create_deep_agent called with checkpointer keyword
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Call):
+            func = node.func
+            name = ""
+            if isinstance(func, ast.Name):
+                name = func.id
+            elif isinstance(func, ast.Attribute):
+                name = func.attr
+            if name == "create_deep_agent":
+                kw_names = [kw.arg for kw in node.keywords]
+                if "checkpointer" in kw_names:
+                    ctx.pass_test("ast_has_checkpointer_kwarg")
+                else:
+                    ctx.fail_test(
+                        "ast_has_checkpointer_kwarg",
+                        "create_deep_agent call missing checkpointer= keyword",
+                    )
+                break
+
+    # Check 2: save_user_preferences doesn't reference /memory/cache/
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if node.name == "save_user_preferences":
+                body_source = ast.get_source_segment(ctx.source, node) or ""
+                if "/memory/cache/" in body_source:
+                    ctx.fail_test(
+                        "ast_prefs_path_fixed",
+                        "save_user_preferences still references /memory/cache/",
+                    )
+                else:
+                    ctx.pass_test("ast_prefs_path_fixed")
+                break
+
+
+# =============================================================================
 # Main Test Runner
 # =============================================================================
 
@@ -287,6 +340,7 @@ def run_tests(module_path: str) -> dict:
         test_prefs_persist,
         test_subagent_skills,
         test_interrupt_checkpointer,
+        test_ast_checks,
     ]
 
     if not ctx.load():

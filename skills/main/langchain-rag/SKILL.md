@@ -1,6 +1,6 @@
 ---
 name: LangChain RAG Pipeline
-description: "INVOKE THIS SKILL when building ANY retrieval-augmented generation (RAG) system. Covers document loaders, RecursiveCharacterTextSplitter, embeddings (OpenAI), and vector stores (Chroma, FAISS, Pinecone). Fixes for chunk size/overlap, embedding dimension mismatches, and FAISS deserialization."
+description: "INVOKE THIS SKILL when building ANY retrieval-augmented generation (RAG) system. Covers document loaders, RecursiveCharacterTextSplitter, embeddings (OpenAI), and vector stores (Chroma, FAISS, Pinecone)."
 ---
 
 <overview>

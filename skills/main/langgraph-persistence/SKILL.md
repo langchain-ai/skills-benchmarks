@@ -1,6 +1,6 @@
 ---
 name: LangGraph Persistence & Memory
-description: "INVOKE THIS SKILL when your LangGraph needs to remember state across calls, use memory, or persist conversations. Covers checkpointers (MemorySaver, Postgres), thread_id configuration, and Store for long-term memory. Fixes for missing thread_id, checkpointer placement, and cross-thread memory access."
+description: "INVOKE THIS SKILL when your LangGraph needs to remember state across calls, use memory, or persist conversations. Covers checkpointers (MemorySaver, Postgres), thread_id configuration, and Store for long-term memory."
 ---
 
 <overview>

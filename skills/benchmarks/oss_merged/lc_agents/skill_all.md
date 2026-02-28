@@ -1,6 +1,6 @@
 ---
 name: LangChain Agents & Tools
-description: "INVOKE THIS SKILL when building ANY LangChain/LangGraph agent with tools. Covers create_react_agent, @tool decorator, Pydantic schemas for tools, bind_tools(), and tool message handling. CRITICAL: Fixes for missing tool docstrings/types, tool_call_id mismatches, and not checking for tool_calls in responses."
+description: "INVOKE THIS SKILL when building ANY LangChain/LangGraph agent with tools. Covers create_agent, @tool decorator, Pydantic schemas for tools, bind_tools(), and tool message handling. CRITICAL: Fixes for missing tool docstrings/types, tool_call_id mismatches, and not checking for tool_calls in responses."
 ---
 
 <overview>
@@ -164,7 +164,7 @@ def search(query: str) -> str:
     return f"Results for: {query}"
 
 agent = create_agent(
-    model="gpt-4",
+    model="gpt-4.1",
     tools=[search],
 )
 
@@ -177,7 +177,7 @@ print(result["messages"][-1].content)
 <typescript>
 Create a basic React agent with a search tool and invoke it with a user message.
 ```typescript
-import { createReactAgent } from "@langchain/langgraph/prebuilt";
+import { createAgent } from "langchain";
 import { ChatOpenAI } from "@langchain/openai";
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
@@ -187,8 +187,7 @@ const search = tool(
   { name: "search", description: "Search for information", schema: z.object({ query: z.string() }) }
 );
 
-const model = new ChatOpenAI({ model: "gpt-4" });
-const agent = createReactAgent({ llm: model, tools: [search] });
+const agent = createAgent({ model: "gpt-4.1", tools: [search] });
 
 const result = await agent.invoke({
   messages: [{ role: "user", content: "Search for AI news" }]
@@ -206,7 +205,7 @@ from langchain.agents import create_agent
 from langgraph.checkpoint.memory import MemorySaver
 
 agent = create_agent(
-    model="gpt-4",
+    model="gpt-4.1",
     tools=[search],
     checkpointer=MemorySaver(),
 )
@@ -221,11 +220,11 @@ result = agent.invoke({"messages": [{"role": "user", "content": "What's my name?
 <typescript>
 Create a React agent with MemorySaver checkpointer for conversation persistence across invokes.
 ```typescript
-import { createReactAgent } from "@langchain/langgraph/prebuilt";
+import { createAgent } from "langchain";
 import { MemorySaver } from "@langchain/langgraph";
 
-const agent = createReactAgent({
-  llm: model,
+const agent = createAgent({
+  model: "gpt-4.1",
   tools: [search],
   checkpointer: new MemorySaver(),
 });
@@ -596,10 +595,10 @@ const withBothTools = model.bindTools([tool1, tool2]);
 Add checkpointer and thread_id to enable conversation memory.
 ```python
 # WRONG: No checkpointer - each invoke is isolated
-agent = create_agent(model="gpt-4", tools=[search])
+agent = create_agent(model="gpt-4.1", tools=[search])
 
 # CORRECT
-agent = create_agent(model="gpt-4", tools=[search], checkpointer=MemorySaver())
+agent = create_agent(model="gpt-4.1", tools=[search], checkpointer=MemorySaver())
 config = {"configurable": {"thread_id": "session-1"}}
 agent.invoke({"messages": [...]}, config=config)
 ```
@@ -608,10 +607,10 @@ agent.invoke({"messages": [...]}, config=config)
 Add checkpointer and thread_id to enable conversation memory.
 ```typescript
 // WRONG: No checkpointer - each invoke is isolated
-const agent = createReactAgent({ llm: model, tools: [search] });
+const agent = createAgent({ model: "gpt-4.1", tools: [search] });
 
 // CORRECT
-const agent = createReactAgent({ llm: model, tools: [search], checkpointer: new MemorySaver() });
+const agent = createAgent({ model: "gpt-4.1", tools: [search], checkpointer: new MemorySaver() });
 const config = { configurable: { thread_id: "session-1" } };
 await agent.invoke({ messages: [...] }, config);
 ```

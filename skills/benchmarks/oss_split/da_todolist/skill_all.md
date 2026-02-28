@@ -317,7 +317,7 @@ const deployCode = tool(
 );
 
 const agent = createAgent({
-  model: "gpt-4",
+  model: "gpt-4.1",
   tools: [runTests, deployCode],
   middleware: [
     todoListMiddleware({
@@ -478,7 +478,7 @@ const agent = await createDeepAgent({ middleware: [] });  // TodoList still incl
 import { createAgent } from "langchain";
 
 const agent2 = createAgent({
-  model: "gpt-4",
+  model: "gpt-4.1",
   middleware: []  // No middleware at all
 });
 ```

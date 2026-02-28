@@ -418,7 +418,7 @@ import { createAgent, humanInTheLoopMiddleware } from "langchain";
 import { MemorySaver } from "@langchain/langgraph";
 
 const agent = createAgent({
-  model: "gpt-4",
+  model: "gpt-4.1",
   tools: [deployTool, sendEmailTool],
   middleware: [
     humanInTheLoopMiddleware({

@@ -42,7 +42,7 @@ class ContactInfo(BaseModel):
     email: str = Field(pattern=r"^[^@]+@[^@]+\.[^@]+$")
     phone: str
 
-agent = create_agent(model="gpt-4", response_format=ContactInfo)
+agent = create_agent(model="gpt-4.1", response_format=ContactInfo)
 
 result = agent.invoke({
     "messages": [{"role": "user", "content": "Extract: John Doe, john@example.com, (555) 123-4567"}]
@@ -188,7 +188,7 @@ def send_email(to: str, subject: str, body: str) -> str:
     return f"Email sent to {to}"
 
 agent = create_agent(
-    model="gpt-4",
+    model="gpt-4.1",
     tools=[send_email],
     checkpointer=MemorySaver(),  # Required for HITL
     middleware=[
@@ -204,7 +204,7 @@ agent = create_agent(
 <typescript>
 Set up an agent with HITL that pauses before sending emails for human approval.
 ```typescript
-import { createReactAgent } from "@langchain/langgraph/prebuilt";
+import { createAgent } from "langchain";
 import { MemorySaver } from "@langchain/langgraph";
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
@@ -218,8 +218,8 @@ const sendEmail = tool(
   }
 );
 
-const agent = createReactAgent({
-  llm: model,
+const agent = createAgent({
+  model: "gpt-4.1",
   tools: [sendEmail],
   checkpointer: new MemorySaver(),  // Required for HITL
   interruptBefore: ["send_email"],
@@ -422,11 +422,11 @@ class Data(BaseModel):
 HITL middleware requires a checkpointer to persist state.
 ```python
 # WRONG
-agent = create_agent(model="gpt-4", tools=[send_email], middleware=[HumanInTheLoopMiddleware({...})])
+agent = create_agent(model="gpt-4.1", tools=[send_email], middleware=[HumanInTheLoopMiddleware({...})])
 
 # CORRECT
 agent = create_agent(
-    model="gpt-4", tools=[send_email],
+    model="gpt-4.1", tools=[send_email],
     checkpointer=MemorySaver(),  # Required
     middleware=[HumanInTheLoopMiddleware({...})]
 )
@@ -436,11 +436,11 @@ agent = create_agent(
 HITL requires a checkpointer to persist state.
 ```typescript
 // WRONG
-const agent = createReactAgent({ llm: model, tools: [sendEmail], interruptBefore: ["send_email"] });
+const agent = createAgent({ model: "gpt-4.1", tools: [sendEmail], interruptBefore: ["send_email"] });
 
 // CORRECT
-const agent = createReactAgent({
-  llm: model, tools: [sendEmail],
+const agent = createAgent({
+  model: "gpt-4.1", tools: [sendEmail],
   checkpointer: new MemorySaver(),  // Required
   interruptBefore: ["send_email"]
 });

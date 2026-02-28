@@ -116,40 +116,25 @@ for state in graph.get_state_history(config):
 ```
 </ex-retrieving-state>
 
-<ex-resuming-from-checkpoint>
+<ex-resume-from-checkpoint>
+Time travel: browse checkpoint history and replay or fork from a past state.
 ```python
-from langgraph.checkpoint.memory import InMemorySaver
+config = {"configurable": {"thread_id": "session-1"}}
 
-checkpointer = InMemorySaver()
+result = graph.invoke({"messages": ["start"]}, config)
 
-def step1(state):
-    return {"data": "step1"}
+# Browse checkpoint history
+states = list(graph.get_state_history(config))
 
-def step2(state):
-    return {"data": state["data"] + "_step2"}
+# Replay from a past checkpoint
+past = states[-2]
+result = graph.invoke(None, past.config)  # None = resume from checkpoint
 
-graph = (
-    StateGraph(State)
-    .add_node("step1", step1)
-    .add_node("step2", step2)
-    .add_edge(START, "step1")
-    .add_edge("step1", "step2")
-    .add_edge("step2", END)
-    .compile(
-        checkpointer=checkpointer,
-        interrupt_before=["step2"]  # Pause before step2
-    )
-)
-
-config = {"configurable": {"thread_id": "1"}}
-
-# Run until breakpoint
-result = graph.invoke({"data": "start"}, config)
-
-# Resume execution
-result = graph.invoke(None, config)  # None continues from checkpoint
+# Or fork: update state at a past checkpoint, then resume
+fork_config = graph.update_state(past.config, {"messages": ["edited"]})
+result = graph.invoke(None, fork_config)
 ```
-</ex-resuming-from-checkpoint>
+</ex-resume-from-checkpoint>
 
 <ex-update-state>
 ```python
@@ -246,7 +231,9 @@ checkpointer = InMemorySaver()  # In-memory only!
 
 # CORRECT: CORRECT - Use persistent storage
 from langgraph.checkpoint.postgres import PostgresSaver
-checkpointer = PostgresSaver.from_conn_string("postgresql://...")
+with PostgresSaver.from_conn_string("postgresql://...") as checkpointer:
+    checkpointer.setup()  # only needed on first use to create tables
+    graph = builder.compile(checkpointer=checkpointer)
 ```
 </fix-inmemory-not-for-production>
 
@@ -281,16 +268,6 @@ graph.update_state(config, {"items": Overwrite(["C"])})
 ```
 </fix-update-state-reducers>
 
-<fix-checkpointer-at-compile>
-```python
-# WRONG: WRONG - Checkpointer after compile
-graph = builder.compile()
-graph.checkpointer = checkpointer  # Too late!
-
-# CORRECT: CORRECT - Pass during compile
-graph = builder.compile(checkpointer=checkpointer)
-```
-</fix-checkpointer-at-compile>
 
 <links>
 - [Persistence Guide](https://docs.langchain.com/oss/python/langgraph/persistence)

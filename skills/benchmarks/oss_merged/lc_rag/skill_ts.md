@@ -78,7 +78,7 @@ const response = await model.invoke([
 <ex-loading-pdf>
 Load a PDF file and extract each page as a separate document.
 ```typescript
-import { PDFLoader } from "langchain/document_loaders/fs/pdf";
+import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 
 const loader = new PDFLoader("./document.pdf");
 const docs = await loader.load();
@@ -89,7 +89,7 @@ console.log(`Loaded ${docs.length} pages`);
 <ex-loading-web-pages>
 Fetch and parse content from a web URL into a document using Cheerio.
 ```typescript
-import { CheerioWebBaseLoader } from "langchain/document_loaders/web/cheerio";
+import { CheerioWebBaseLoader } from "@langchain/community/document_loaders/web/cheerio";
 
 const loader = new CheerioWebBaseLoader("https://docs.langchain.com");
 const docs = await loader.load();

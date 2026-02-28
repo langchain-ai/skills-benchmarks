@@ -86,9 +86,10 @@ PostgreSQL persistence for production:
 import { PostgresSaver } from "@langchain/langgraph-checkpoint-postgres";
 
 // Create Postgres checkpointer
-const checkpointer = await PostgresSaver.fromConnString(
+const checkpointer = PostgresSaver.fromConnString(
   "postgresql://user:pass@localhost/db"
 );
+await checkpointer.setup(); // only needed on first use to create tables
 
 const graph = new StateGraph(State)
   .addNode("process", processNode)
@@ -119,37 +120,28 @@ for await (const state of history) {
 ```
 </ex-get-state>
 
-<ex-resume>
-Resume execution from checkpoint:
-
+<ex-resume-from-checkpoint>
+Time travel: browse checkpoint history and replay or fork from a past state.
 ```typescript
-import { MemorySaver, StateGraph, START, END } from "@langchain/langgraph";
+const config = { configurable: { thread_id: "session-1" } };
 
-const checkpointer = new MemorySaver();
+const result = await graph.invoke({ messages: ["start"] }, config);
 
-const step1 = async (state) => ({ data: "step1" });
-const step2 = async (state) => ({ data: state.data + "_step2" });
+// Browse checkpoint history (async iterable, collect to array)
+const states: Awaited<ReturnType<typeof graph.getState>>[] = [];
+for await (const state of graph.getStateHistory(config)) {
+  states.push(state);
+}
 
-const graph = new StateGraph(State)
-  .addNode("step1", step1)
-  .addNode("step2", step2)
-  .addEdge(START, "step1")
-  .addEdge("step1", "step2")
-  .addEdge("step2", END)
-  .compile({
-    checkpointer,
-    interruptBefore: ["step2"],  // Pause before step2
-  });
+// Replay from a past checkpoint
+const past = states[states.length - 2];
+const replayed = await graph.invoke(null, past.config);  // null = resume from checkpoint
 
-const config = { configurable: { thread_id: "1" } };
-
-// Run until breakpoint
-await graph.invoke({ data: "start" }, config);
-
-// Resume execution
-await graph.invoke(null, config);  // null continues from checkpoint
+// Or fork: update state at a past checkpoint, then resume
+const forkConfig = await graph.updateState(past.config, { messages: ["edited"] });
+const forked = await graph.invoke(null, forkConfig);
 ```
-</ex-resume>
+</ex-resume-from-checkpoint>
 
 <ex-update-state>
 Modify state before resuming:
@@ -246,7 +238,8 @@ const checkpointer = new MemorySaver();  // In-memory only!
 
 // CORRECT - Use persistent storage
 import { PostgresSaver } from "@langchain/langgraph-checkpoint-postgres";
-const checkpointer = await PostgresSaver.fromConnString("postgresql://...");
+const checkpointer = PostgresSaver.fromConnString("postgresql://...");
+await checkpointer.setup(); // only needed on first use to create tables
 ```
 </fix-memory-production>
 
@@ -275,19 +268,6 @@ const result = await graph.invoke({ data: "test" }, config);
 console.log(result.values);  // Works!
 ```
 </fix-await>
-
-<fix-compile-checkpointer>
-Pass checkpointer during compile, not after:
-
-```typescript
-// WRONG - Checkpointer after compile
-const graph = builder.compile();
-graph.checkpointer = checkpointer;  // Too late!
-
-// CORRECT - Pass during compile
-const graph = builder.compile({ checkpointer });
-```
-</fix-compile-checkpointer>
 
 <documentation-links>
 - [Persistence Guide](https://docs.langchain.com/oss/javascript/langgraph/persistence)

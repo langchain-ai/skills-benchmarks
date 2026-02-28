@@ -74,6 +74,7 @@ const finalResult = await graph.invoke(
 </ex-dynamic-interrupt>
 
 <ex-static-breakpoints>
+Set compile-time breakpoints for debugging. Not recommended for human-in-the-loop — use `interrupt()` instead.
 ```typescript
 const checkpointer = new MemorySaver();
 

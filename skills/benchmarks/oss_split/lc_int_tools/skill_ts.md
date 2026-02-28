@@ -60,11 +60,10 @@ console.log(results);
 
 // Use with agent
 import { ChatOpenAI } from "@langchain/openai";
-import { createReactAgent } from "@langchain/langgraph/prebuilt";
+import { createAgent } from "langchain";
 
-const model = new ChatOpenAI({ modelName: "gpt-4" });
-const agent = createReactAgent({
-  llm: model,
+const agent = createAgent({
+  model: "gpt-4.1",
   tools: [searchTool],
 });
 
@@ -100,8 +99,8 @@ const result = await calculator.invoke("sqrt(144) + 5 * 3");
 console.log(result); // "27"
 
 // Use in agent for math problems
-const mathAgent = createReactAgent({
-  llm: model,
+const mathAgent = createAgent({
+  model: "gpt-4.1",
   tools: [calculator],
 });
 ```
@@ -142,8 +141,8 @@ const weatherTool = tool(
 );
 
 // Use with agent
-const agent = createReactAgent({
-  llm: model,
+const agent = createAgent({
+  model: "gpt-4.1",
   tools: [weatherTool],
 });
 
@@ -200,8 +199,8 @@ const retrieverTool = createRetrieverTool(
 );
 
 // Use in agent
-const agent = createReactAgent({
-  llm: model,
+const agent = createAgent({
+  model: "gpt-4.1",
   tools: [retrieverTool],
 });
 ```
@@ -214,7 +213,7 @@ import { TavilySearchResults } from "@langchain/community/tools/tavily_search";
 import { Calculator } from "@langchain/community/tools/calculator";
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
-import { createReactAgent } from "@langchain/langgraph/prebuilt";
+import { createAgent } from "langchain";
 
 // Define tools
 const searchTool = new TavilySearchResults({ maxResults: 3 });
@@ -235,8 +234,8 @@ const customTool = tool(
 );
 
 // Create agent with multiple tools
-const agent = createReactAgent({
-  llm: new ChatOpenAI({ modelName: "gpt-4" }),
+const agent = createAgent({
+  model: "gpt-4.1",
   tools: [searchTool, calculator, customTool],
 });
 

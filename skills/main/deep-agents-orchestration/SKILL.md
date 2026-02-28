@@ -1,6 +1,6 @@
 ---
 name: Deep Agents Orchestration
-description: "INVOKE THIS SKILL when using subagents, task planning, or human approval in Deep Agents. Covers SubAgentMiddleware, TodoList for planning, and HITL interrupts. CRITICAL: Fixes for custom subagents NOT inheriting skills (must specify explicitly), interrupt_on requiring checkpointer, and subagent statelessness."
+description: "INVOKE THIS SKILL when using subagents, task planning, or human approval in Deep Agents. Covers SubAgentMiddleware, TodoList for planning, and HITL interrupts. Fixes for custom subagents NOT inheriting skills (must specify explicitly), interrupt_on requiring checkpointer, and subagent statelessness."
 ---
 
 <overview>

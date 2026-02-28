@@ -15,9 +15,9 @@ Interrupts enable human-in-the-loop patterns by pausing graph execution for exte
 
 | Type | When Set | Use Case |
 |------|----------|----------|
-| Dynamic (`interrupt()`) | Inside node code | Conditional pausing based on logic |
-| Static (`interrupt_before` / `interruptBefore`) | At compile time | Debug/test before specific nodes |
-| Static (`interrupt_after` / `interruptAfter`) | At compile time | Review output after specific nodes |
+| **`interrupt()` (recommended)** | Inside node code | Human-in-the-loop, conditional pausing. Resume with `Command(resume=value)` |
+| `interrupt_before` / `interruptBefore` | At compile time | **Debugging only, not for HITL.** Resume with `invoke(None/null, config)` |
+| `interrupt_after` / `interruptAfter` | At compile time | **Debugging only, not for HITL.** Resume with `invoke(None/null, config)` |
 
 </decision-table>
 

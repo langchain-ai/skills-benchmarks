@@ -43,7 +43,7 @@ Answer these questions in order:
 | User needs or wants planning, persistent memory, complex task management, long-running tasks, out-of-the-box file management, on-demand skills, or built-in middleware, subagents, easy expansion capabilities? | **Deep Agents** | ↓ |
 | Needs custom control flow — specified loops, branching, deterministic parallel workers, or manually instrumented human-in-the-loop? | **LangGraph** | ↓ |
 | Single-purpose agent with a fixed set of tools? | **LangChain** (`create_agent`) | ↓ |
-| ReACT-style chain or simple prompt pipeline? | **LangChain** (LCEL / chain) | — |
+| Simple prompt pipeline or retrieval chain with no agent loop? | **LangChain** (direct model / chain) | — |
 
 Higher layers depend on lower ones only when necessary — you can mix them. A LangGraph graph can be a subagent inside Deep Agents; LangChain tools work inside both.
 
@@ -83,7 +83,7 @@ Best for single-purpose agents in a ReACT style with a fixed tool set. No built-
 | Archetype | Description | Key tools |
 |-----------|-------------|-----------|
 | **QA / Chatbot** | Answer questions, summarise, classify. One job, done well. | LLM + optional retrieval |
-| **SQL Agent** | Query a database, return structured results | `SQLDatabase`, `create_sql_agent` |
+| **SQL Agent** | Query a database, return structured results | `SQLDatabase`, `create_agent` |
 | **Search Agent** | Look up information, return findings | `TavilySearchResults`, `DuckDuckGoSearch` |
 | **RAG Agent** | Retrieve from a vector store, ground answers in documents | retriever tool + `create_agent` |
 | **Data Analysis Agent** | Load, transform, and summarise structured data | `PythonREPL`, pandas tools |

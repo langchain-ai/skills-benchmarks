@@ -68,6 +68,7 @@ import { PostgresSaver } from "@langchain/langgraph-checkpoint-postgres";
 const checkpointer = PostgresSaver.fromConnString(
   "postgresql://user:pass@localhost/db"
 );
+await checkpointer.setup(); // only needed on first use to create tables
 
 const graph = builder.compile({ checkpointer });
 ```
@@ -91,23 +92,28 @@ await graph.invoke({ messages: [new HumanMessage("Hi from Bob")] }, bobConfig);
 ```
 </ex-separate-threads>
 
-<ex-resuming-execution>
-Resume graph execution from a checkpoint by passing null as input.
+<ex-resume-from-checkpoint>
+Time travel: browse checkpoint history and replay or fork from a past state.
 ```typescript
 const config = { configurable: { thread_id: "session-1" } };
 
-// Run until breakpoint
-const result = await graph.invoke({ data: "start" }, config);
+const result = await graph.invoke({ messages: ["start"] }, config);
 
-// Check current state
-const state = await graph.getState(config);
-console.log(state.values);  // Current state
-console.log(state.next);    // Next nodes to execute
+// Browse checkpoint history (async iterable, collect to array)
+const states: Awaited<ReturnType<typeof graph.getState>>[] = [];
+for await (const state of graph.getStateHistory(config)) {
+  states.push(state);
+}
 
-// Resume execution with null (not new input!)
-const resumed = await graph.invoke(null, config);  // Continues from checkpoint
+// Replay from a past checkpoint
+const past = states[states.length - 2];
+const replayed = await graph.invoke(null, past.config);  // null = resume from checkpoint
+
+// Or fork: update state at a past checkpoint, then resume
+const forkConfig = await graph.updateState(past.config, { messages: ["edited"] });
+const forked = await graph.invoke(null, forkConfig);
 ```
-</ex-resuming-execution>
+</ex-resume-from-checkpoint>
 
 <ex-update-state>
 Manually update graph state before resuming execution.
@@ -183,17 +189,6 @@ await graph.invoke({ messages: [new HumanMessage("What did I say?")] }, config);
 ```
 </fix-thread-id-required>
 
-<fix-checkpointer-at-compile>
-Pass checkpointer during compile(), not after.
-```typescript
-// WRONG: Checkpointer assigned after compile
-const graph = builder.compile();
-graph.checkpointer = checkpointer;  // Too late!
-
-// CORRECT: Pass checkpointer during compile
-const graph = builder.compile({ checkpointer });
-```
-</fix-checkpointer-at-compile>
 
 <fix-inmemory-not-for-production>
 Use PostgresSaver instead of MemorySaver for production persistence.
@@ -204,6 +199,7 @@ const checkpointer = new MemorySaver();  // In-memory only!
 // CORRECT: Use persistent storage for production
 import { PostgresSaver } from "@langchain/langgraph-checkpoint-postgres";
 const checkpointer = PostgresSaver.fromConnString("postgresql://...");
+await checkpointer.setup(); // only needed on first use to create tables
 ```
 </fix-inmemory-not-for-production>
 

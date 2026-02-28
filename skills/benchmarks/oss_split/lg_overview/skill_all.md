@@ -29,7 +29,7 @@ LangGraph is ideal when you need:
 Consider alternatives when you:
 - Need a quick start with pre-built architectures -> Use **LangChain agents**
 - Want batteries-included features (automatic compression, virtual filesystem) -> Use **Deep Agents**
-- Have simple, stateless LLM workflows -> Use **LangChain LCEL**
+- Have simple, stateless LLM workflows -> Use **LangChain** directly
 - Don't need state persistence or complex orchestration
 </when-to-use>
 

@@ -61,10 +61,9 @@ print(results)
 
 # Use with agent
 from langchain_openai import ChatOpenAI
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_agent
 
-model = ChatOpenAI(model="gpt-4")
-agent = create_react_agent(model, [search_tool])
+agent = create_agent(model="gpt-4.1", tools=[search_tool])
 
 response = agent.invoke({
     "messages": [{"role": "user", "content": "What's new in AI today?"}]
@@ -138,10 +137,9 @@ def get_weather(location: str, unit: Optional[str] = "celsius") -> str:
 
 # Use with agent
 from langchain_openai import ChatOpenAI
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_agent
 
-model = ChatOpenAI(model="gpt-4")
-agent = create_react_agent(model, [get_weather])
+agent = create_agent(model="gpt-4.1", tools=[get_weather])
 
 response = agent.invoke({
     "messages": [{"role": "user", "content": "What's the weather in London?"}]
@@ -217,9 +215,9 @@ retriever_tool = create_retriever_tool(
 )
 
 # Use in agent
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_agent
 
-agent = create_react_agent(model, [retriever_tool])
+agent = create_agent(model="gpt-4.1", tools=[retriever_tool])
 ```
 </ex-vector-store-as-tool>
 
@@ -228,7 +226,7 @@ agent = create_react_agent(model, [retriever_tool])
 from langchain_openai import ChatOpenAI
 from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_core.tools import tool
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_agent
 
 # Define tools
 search_tool = TavilySearchResults(max_results=3)
@@ -259,9 +257,9 @@ def custom_lookup(query: str) -> str:
     return f"Custom result for: {query}"
 
 # Create agent with multiple tools
-agent = create_react_agent(
-    ChatOpenAI(model="gpt-4"),
-    [search_tool, calculator, custom_lookup],
+agent = create_agent(
+    model="gpt-4.1",
+    tools=[search_tool, calculator, custom_lookup],
 )
 
 # Agent will choose appropriate tool(s)
@@ -310,7 +308,7 @@ tools = toolkit.get_tools()
 # Includes: query, schema info, query checker, etc.
 
 # Use in agent
-agent = create_react_agent(model, tools)
+agent = create_agent(model="gpt-4.1", tools=tools)
 ```
 </ex-toolkits>
 

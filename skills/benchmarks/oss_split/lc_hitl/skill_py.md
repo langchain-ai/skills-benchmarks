@@ -72,15 +72,18 @@ print(result2["messages"][-1].content)
 
 <ex-editing-tool-arguments>
 ```python
-# Human edits the arguments
+# Human edits the arguments — edited_action must include name + args
 result2 = agent.invoke(
     Command(resume={
         "decisions": [{
             "type": "edit",
-            "args": {
-                "to": "alice@company.com",  # Fixed email
-                "subject": "Project Meeting - Updated",
-                "body": "...",
+            "edited_action": {
+                "name": "send_email",
+                "args": {
+                    "to": "alice@company.com",  # Fixed email
+                    "subject": "Project Meeting - Updated",
+                    "body": "...",
+                },
             },
         }]
     }),

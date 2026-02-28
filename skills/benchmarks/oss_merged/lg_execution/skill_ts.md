@@ -119,9 +119,9 @@ const graph = new StateGraph(State)
 
 | Type | When Set | Use Case |
 |------|----------|----------|
-| Dynamic (`interrupt()`) | Inside node code | Conditional pausing |
-| Static (`interrupt_before`) | At compile time | Debug before nodes |
-| Static (`interrupt_after`) | At compile time | Review after nodes |
+| **`interrupt()` (recommended)** | Inside node code | Human-in-the-loop, conditional pausing. Resume with `new Command({ resume: value })` |
+| `interruptBefore` | At compile time | **Debugging only, not for HITL.** Resume with `invoke(null, config)` |
+| `interruptAfter` | At compile time | **Debugging only, not for HITL.** Resume with `invoke(null, config)` |
 
 </interrupt-type-selection>
 
@@ -166,7 +166,7 @@ result = await graph.invoke(new Command({ resume: "approve" }), config);
 </ex-dynamic-interrupt>
 
 <ex-static-breakpoints>
-Set compile-time breakpoints to pause before specific nodes.
+Set compile-time breakpoints for debugging. Not recommended for human-in-the-loop — use `interrupt()` instead.
 ```typescript
 const graph = new StateGraph(State)
   .addNode("step1", step1)

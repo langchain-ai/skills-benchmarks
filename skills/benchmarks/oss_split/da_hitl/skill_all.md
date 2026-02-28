@@ -251,8 +251,11 @@ agent.update_state(
                 resume={
                     "decisions": [{
                         "type": "edit",
-                        "args": {
-                            "query": "DELETE FROM users WHERE last_login < '2020-01-01' LIMIT 100"
+                        "edited_action": {
+                            "name": "execute_sql",
+                            "args": {
+                                "query": "DELETE FROM users WHERE last_login < '2020-01-01' LIMIT 100"
+                            }
                         }
                     }]
                 }
@@ -289,8 +292,11 @@ await agent.updateState(config, {
       resume: {
         decisions: [{
           type: "edit",
-          args: {
-            query: "DELETE FROM users WHERE last_login < '2020-01-01' LIMIT 100"
+          editedAction: {
+            name: "execute_sql",
+            args: {
+              query: "DELETE FROM users WHERE last_login < '2020-01-01' LIMIT 100"
+            }
           }
         }]
       }
@@ -418,7 +424,7 @@ import { createAgent, humanInTheLoopMiddleware } from "langchain";
 import { MemorySaver } from "@langchain/langgraph";
 
 const agent = createAgent({
-  model: "gpt-4",
+  model: "gpt-4.1",
   tools: [deployTool, sendEmailTool],
   middleware: [
     humanInTheLoopMiddleware({
@@ -574,7 +580,7 @@ agent.update_state(config, {
     "messages": [Command(resume={
         "decisions": [{
             "type": "edit",
-            "args": {"wrong_param": "value"}  # Tool doesn't have this param
+            "edited_action": {"name": "execute_sql", "args": {"wrong_param": "value"}}  # Tool doesn't have this param
         }]
     })]
 })

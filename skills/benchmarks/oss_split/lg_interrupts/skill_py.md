@@ -15,9 +15,9 @@ Interrupts enable human-in-the-loop patterns by pausing graph execution for exte
 
 | Type | When Set | Use Case |
 |------|----------|----------|
-| Dynamic (`interrupt()`) | Inside node code | Conditional pausing based on logic |
-| Static (`interrupt_before`) | At compile time | Debug/test before specific nodes |
-| Static (`interrupt_after`) | At compile time | Review output after specific nodes |
+| **`interrupt()` (recommended)** | Inside node code | Human-in-the-loop, conditional pausing. Resume with `Command(resume=value)` |
+| `interrupt_before` | At compile time | **Debugging only, not for HITL.** Resume with `invoke(None, config)` |
+| `interrupt_after` | At compile time | **Debugging only, not for HITL.** Resume with `invoke(None, config)` |
 
 </interrupt-type-selection>
 
@@ -70,6 +70,7 @@ result = graph.invoke(
 </ex-dynamic-interrupt>
 
 <ex-static-breakpoints>
+Set compile-time breakpoints for debugging. Not recommended for human-in-the-loop — use `interrupt()` instead.
 ```python
 checkpointer = InMemorySaver()
 

@@ -371,7 +371,7 @@ const saveUserPreference = tool(
 const store = new InMemoryStore();
 
 const agent = createAgent({
-  model: "gpt-4",
+  model: "gpt-4.1",
   tools: [getUserPreference, saveUserPreference],
   store
 });

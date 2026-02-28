@@ -80,6 +80,7 @@ agent = create_deep_agent(
         {
             "name": "code-deployer",
             "description": "Deploy code to production",
+            "system_prompt": "You deploy code after tests pass.",
             "tools": [run_tests, deploy_to_prod],
             "interrupt_on": {"deploy_to_prod": True},  # Require approval
         }
@@ -306,8 +307,11 @@ agent.update_state(
                 resume={
                     "decisions": [{
                         "type": "edit",
-                        "args": {
-                            "query": "DELETE FROM users WHERE last_login < '2020-01-01' LIMIT 100"
+                        "edited_action": {
+                            "name": "execute_sql",
+                            "args": {
+                                "query": "DELETE FROM users WHERE last_login < '2020-01-01' LIMIT 100"
+                            }
                         }
                     }]
                 }

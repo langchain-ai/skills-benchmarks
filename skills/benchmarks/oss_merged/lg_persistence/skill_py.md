@@ -80,12 +80,12 @@ print(len(result2["messages"]))  # 4 (previous + new)
 ```python
 from langgraph.checkpoint.postgres import PostgresSaver
 
-# Use PostgreSQL for production
-checkpointer = PostgresSaver.from_conn_string(
+# Use PostgreSQL for production (from_conn_string is a context manager in v3+)
+with PostgresSaver.from_conn_string(
     "postgresql://user:pass@localhost/db"
-)
-
-graph = builder.compile(checkpointer=checkpointer)
+) as checkpointer:
+    checkpointer.setup()  # only needed on first use to create tables
+    graph = builder.compile(checkpointer=checkpointer)
 
 # Async version
 from langgraph.checkpoint.postgres import AsyncPostgresSaver
@@ -119,24 +119,25 @@ graph.invoke({"messages": ["Hi from Bob"]}, bob_config)
 ```
 </ex-separate-threads>
 
-<ex-resuming-execution>
+<ex-resume-from-checkpoint>
+Time travel: browse checkpoint history and replay or fork from a past state.
 ```python
-# After an interrupt (breakpoint or pause)
-
 config = {"configurable": {"thread_id": "session-1"}}
 
-# Run until breakpoint
-result = graph.invoke({"data": "start"}, config)
+result = graph.invoke({"messages": ["start"]}, config)
 
-# Check current state
-state = graph.get_state(config)
-print(state.values)  # Current state
-print(state.next)    # Next nodes to execute
+# Browse checkpoint history
+states = list(graph.get_state_history(config))
 
-# Resume execution with None (not new input!)
-result = graph.invoke(None, config)  # Continues from checkpoint
+# Replay from a past checkpoint
+past = states[-2]
+result = graph.invoke(None, past.config)  # None = resume from checkpoint
+
+# Or fork: update state at a past checkpoint, then resume
+fork_config = graph.update_state(past.config, {"messages": ["edited"]})
+result = graph.invoke(None, fork_config)
 ```
-</ex-resuming-execution>
+</ex-resume-from-checkpoint>
 
 <ex-update-state>
 ```python
@@ -254,16 +255,6 @@ graph.invoke({"messages": ["What did I say?"]}, config)  # Remembers!
 ```
 </fix-thread-id-required>
 
-<fix-checkpointer-at-compile>
-```python
-# WRONG: Checkpointer assigned after compile
-graph = builder.compile()
-graph.checkpointer = checkpointer  # Too late! Doesn't work
-
-# CORRECT: Pass checkpointer during compile
-graph = builder.compile(checkpointer=checkpointer)
-```
-</fix-checkpointer-at-compile>
 
 <fix-inmemory-not-for-production>
 ```python
@@ -275,8 +266,10 @@ store = InMemoryStore()  # Also in-memory!
 from langgraph.checkpoint.postgres import PostgresSaver
 from langgraph.store.postgres import PostgresStore
 
-checkpointer = PostgresSaver.from_conn_string("postgresql://...")
-store = PostgresStore.from_conn_string("postgresql://...")
+with PostgresSaver.from_conn_string("postgresql://...") as checkpointer:
+    checkpointer.setup()  # only needed on first use to create tables
+    store = PostgresStore.from_conn_string("postgresql://...")
+    graph = builder.compile(checkpointer=checkpointer, store=store)
 ```
 </fix-inmemory-not-for-production>
 

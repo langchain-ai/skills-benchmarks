@@ -65,11 +65,9 @@ results = search_tool.invoke("Latest AI news")
 print(results)
 
 # Use with agent
-from langchain_openai import ChatOpenAI
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_agent
 
-model = ChatOpenAI(model="gpt-4")
-agent = create_react_agent(model, [search_tool])
+agent = create_agent(model="gpt-4.1", tools=[search_tool])
 
 response = agent.invoke({
     "messages": [{"role": "user", "content": "What's new in AI today?"}]
@@ -95,12 +93,10 @@ const results = await searchTool.invoke("Latest AI news");
 console.log(results);
 
 // Use with agent
-import { ChatOpenAI } from "@langchain/openai";
-import { createReactAgent } from "@langchain/langgraph/prebuilt";
+import { createAgent } from "langchain";
 
-const model = new ChatOpenAI({ modelName: "gpt-4" });
-const agent = createReactAgent({
-  llm: model,
+const agent = createAgent({
+  model: "gpt-4.1",
   tools: [searchTool],
 });
 
@@ -167,8 +163,8 @@ const result = await calculator.invoke("sqrt(144) + 5 * 3");
 console.log(result); // "27"
 
 // Use in agent for math problems
-const mathAgent = createReactAgent({
-  llm: model,
+const mathAgent = createAgent({
+  model: "gpt-4.1",
   tools: [calculator],
 });
 ```
@@ -249,11 +245,9 @@ def get_weather(location: str, unit: Optional[str] = "celsius") -> str:
     return f"The weather in {location} is {data['temp']}°{unit[0].upper()}"
 
 # Use with agent
-from langchain_openai import ChatOpenAI
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_agent
 
-model = ChatOpenAI(model="gpt-4")
-agent = create_react_agent(model, [get_weather])
+agent = create_agent(model="gpt-4.1", tools=[get_weather])
 
 response = agent.invoke({
     "messages": [{"role": "user", "content": "What's the weather in London?"}]
@@ -287,8 +281,8 @@ const weatherTool = tool(
 );
 
 // Use with agent
-const agent = createReactAgent({
-  llm: model,
+const agent = createAgent({
+  model: "gpt-4.1",
   tools: [weatherTool],
 });
 
@@ -407,9 +401,9 @@ retriever_tool = create_retriever_tool(
 )
 
 # Use in agent
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_agent
 
-agent = create_react_agent(model, [retriever_tool])
+agent = create_agent(model="gpt-4.1", tools=[retriever_tool])
 ```
 
 </python>
@@ -439,8 +433,8 @@ const retrieverTool = createRetrieverTool(
 );
 
 // Use in agent
-const agent = createReactAgent({
-  llm: model,
+const agent = createAgent({
+  model: "gpt-4.1",
   tools: [retrieverTool],
 });
 ```
@@ -453,10 +447,9 @@ const agent = createReactAgent({
 Combine multiple tools in one agent.
 
 ```python
-from langchain_openai import ChatOpenAI
 from langchain_community.tools.tavily_search import TavilySearchResults
 from langchain_core.tools import tool
-from langgraph.prebuilt import create_react_agent
+from langchain.agents import create_agent
 
 # Define tools
 search_tool = TavilySearchResults(max_results=3)
@@ -487,9 +480,9 @@ def custom_lookup(query: str) -> str:
     return f"Custom result for: {query}"
 
 # Create agent with multiple tools
-agent = create_react_agent(
-    ChatOpenAI(model="gpt-4"),
-    [search_tool, calculator, custom_lookup],
+agent = create_agent(
+    model="gpt-4.1",
+    tools=[search_tool, calculator, custom_lookup],
 )
 
 # Agent will choose appropriate tool(s)
@@ -507,12 +500,11 @@ response = agent.invoke({
 Combine multiple tools in one agent.
 
 ```typescript
-import { ChatOpenAI } from "@langchain/openai";
 import { TavilySearchResults } from "@langchain/community/tools/tavily_search";
 import { Calculator } from "@langchain/community/tools/calculator";
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
-import { createReactAgent } from "@langchain/langgraph/prebuilt";
+import { createAgent } from "langchain";
 
 // Define tools
 const searchTool = new TavilySearchResults({ maxResults: 3 });
@@ -533,8 +525,8 @@ const customTool = tool(
 );
 
 // Create agent with multiple tools
-const agent = createReactAgent({
-  llm: new ChatOpenAI({ modelName: "gpt-4" }),
+const agent = createAgent({
+  model: "gpt-4.1",
   tools: [searchTool, calculator, customTool],
 });
 
@@ -626,7 +618,7 @@ tools = toolkit.get_tools()
 # Includes: query, schema info, query checker, etc.
 
 # Use in agent
-agent = create_react_agent(model, tools)
+agent = create_agent(model="gpt-4.1", tools=tools)
 ```
 </python>
 </ex-sql-toolkit>

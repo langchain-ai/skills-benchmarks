@@ -128,7 +128,7 @@ print(f"Loaded {len(docs)} pages")
 <typescript>
 Load a PDF file and extract each page as a separate document.
 ```typescript
-import { PDFLoader } from "langchain/document_loaders/fs/pdf";
+import { PDFLoader } from "@langchain/community/document_loaders/fs/pdf";
 
 const loader = new PDFLoader("./document.pdf");
 const docs = await loader.load();
@@ -150,7 +150,7 @@ docs = loader.load()
 <typescript>
 Fetch and parse content from a web URL into a document using Cheerio.
 ```typescript
-import { CheerioWebBaseLoader } from "langchain/document_loaders/web/cheerio";
+import { CheerioWebBaseLoader } from "@langchain/community/document_loaders/web/cheerio";
 
 const loader = new CheerioWebBaseLoader("https://docs.langchain.com");
 const docs = await loader.load();
@@ -357,6 +357,35 @@ result = agent.invoke({
 })
 ```
 </python>
+<typescript>
+Create an agent that uses RAG as a tool for answering questions.
+```typescript
+import { createAgent } from "langchain";
+import { tool } from "@langchain/core/tools";
+import { z } from "zod";
+
+const searchDocs = tool(
+  async (input) => {
+    const docs = await retriever.invoke(input.query);
+    return docs.map(d => d.pageContent).join("\n\n");
+  },
+  {
+    name: "search_docs",
+    description: "Search documentation for relevant information.",
+    schema: z.object({ query: z.string() }),
+  }
+);
+
+const agent = createAgent({
+  model: "gpt-4.1",
+  tools: [searchDocs],
+});
+
+const result = await agent.invoke({
+  messages: [{ role: "user", content: "How do I create an agent?" }],
+});
+```
+</typescript>
 </ex-rag-with-agent>
 
 <boundaries>

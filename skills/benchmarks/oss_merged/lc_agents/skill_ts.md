@@ -1,6 +1,6 @@
 ---
 name: LangChain Agents & Tools (TypeScript)
-description: "INVOKE THIS SKILL when building ANY LangChain/LangGraph agent with tools. Covers createReactAgent, tool(), Zod schemas, bindTools(), and tool message handling. CRITICAL: Fixes for missing tool descriptions, tool_call_id mismatches, and not checking for tool_calls."
+description: "INVOKE THIS SKILL when building ANY LangChain/LangGraph agent with tools. Covers createAgent, tool(), Zod schemas, bindTools(), and tool message handling. CRITICAL: Fixes for missing tool descriptions, tool_call_id mismatches, and not checking for tool_calls."
 ---
 
 <overview>
@@ -11,14 +11,14 @@ Agents combine language models with tools to create systems that can reason, act
 - **bindTools()**: Attach tools to a model
 - **Tool Calls**: Model requests in AIMessage.tool_calls
 - **ToolMessage**: Results passed back to model
-- **createReactAgent()**: Production-ready agent built on LangGraph
+- **createAgent()**: Production-ready agent from langchain
 </overview>
 
 <agent-configuration-selection>
 
 | Need | Configuration | Example |
 |------|---------------|---------|
-| Basic agent with tools | `createReactAgent({ llm, tools })` | Search, calculator |
+| Basic agent with tools | `createAgent({ model, tools })` | Search, calculator |
 | Custom system instructions | Add `systemMessage` | Domain-specific behavior |
 | Persistence across sessions | Add `checkpointer` | Multi-turn conversations |
 
@@ -89,7 +89,7 @@ const searchDatabase = tool(
 <ex-basic-agent-with-tools>
 Create a basic React agent with a search tool and invoke it with a user message.
 ```typescript
-import { createReactAgent } from "@langchain/langgraph/prebuilt";
+import { createAgent } from "langchain";
 import { ChatOpenAI } from "@langchain/openai";
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
@@ -99,8 +99,7 @@ const search = tool(
   { name: "search", description: "Search for information", schema: z.object({ query: z.string() }) }
 );
 
-const model = new ChatOpenAI({ model: "gpt-4" });
-const agent = createReactAgent({ llm: model, tools: [search] });
+const agent = createAgent({ model: "gpt-4.1", tools: [search] });
 
 const result = await agent.invoke({
   messages: [{ role: "user", content: "Search for AI news" }]
@@ -112,11 +111,11 @@ console.log(result.messages.at(-1).content);
 <ex-agent-with-persistence>
 Create a React agent with MemorySaver checkpointer for conversation persistence across invokes.
 ```typescript
-import { createReactAgent } from "@langchain/langgraph/prebuilt";
+import { createAgent } from "langchain";
 import { MemorySaver } from "@langchain/langgraph";
 
-const agent = createReactAgent({
-  llm: model,
+const agent = createAgent({
+  model: "gpt-4.1",
   tools: [search],
   checkpointer: new MemorySaver(),
 });
@@ -300,7 +299,7 @@ const withBothTools = model.bindTools([tool1, tool2]);
 Add a checkpointer and thread_id to enable conversation memory across invocations.
 ```typescript
 // WRONG: No checkpointer - each invoke is isolated
-const agent = createReactAgent({ llm: model, tools: [search] });
+const agent = createAgent({ model: "gpt-4.1", tools: [search] });
 await agent.invoke({ messages: [{ role: "user", content: "Hi, I'm Bob" }] });
 await agent.invoke({ messages: [{ role: "user", content: "What's my name?" }] });
 // Agent doesn't remember "Bob"
@@ -308,7 +307,7 @@ await agent.invoke({ messages: [{ role: "user", content: "What's my name?" }] })
 // CORRECT: Add checkpointer and thread_id
 import { MemorySaver } from "@langchain/langgraph";
 
-const agent = createReactAgent({ llm: model, tools: [search], checkpointer: new MemorySaver() });
+const agent = createAgent({ model: "gpt-4.1", tools: [search], checkpointer: new MemorySaver() });
 
 const config = { configurable: { thread_id: "session-1" } };
 await agent.invoke({ messages: [{ role: "user", content: "Hi, I'm Bob" }] }, config);

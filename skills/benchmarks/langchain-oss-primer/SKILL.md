@@ -43,7 +43,7 @@ Answer these questions in order:
 | User needs or wants planning, persistent memory, complex task management, long-running tasks, out-of-the-box file management, on-demand skills, or built-in middleware, subagents, easy expansion capabilities? | **Deep Agents** | ↓ |
 | Needs custom control flow — specified loops, branching, deterministic parallel workers, or manually instrumented human-in-the-loop? | **LangGraph** | ↓ |
 | Single-purpose agent with a fixed set of tools? | **LangChain** (`create_agent`) | ↓ |
-| ReACT-style chain or simple prompt pipeline? | **LangChain** (LCEL / chain) | — |
+| Simple prompt pipeline or retrieval chain with no agent loop? | **LangChain** (direct model / chain) | — |
 
 Higher layers depend on lower ones only when necessary — you can mix them. A LangGraph graph can be a subagent inside Deep Agents; LangChain tools work inside both.
 
@@ -83,7 +83,7 @@ Best for single-purpose agents in a ReACT style with a fixed tool set. No built-
 | Archetype | Description | Key tools |
 |-----------|-------------|-----------|
 | **QA / Chatbot** | Answer questions, summarise, classify. One job, done well. | LLM + optional retrieval |
-| **SQL Agent** | Query a database, return structured results | `SQLDatabase`, `create_sql_agent` |
+| **SQL Agent** | Query a database, return structured results | `SQLDatabase`, `create_agent` |
 | **Search Agent** | Look up information, return findings | `TavilySearchResults`, `DuckDuckGoSearch` |
 | **RAG Agent** | Retrieve from a vector store, ground answers in documents | retriever tool + `create_agent` |
 | **Data Analysis Agent** | Load, transform, and summarise structured data | `PythonREPL`, pandas tools |
@@ -164,7 +164,7 @@ You can combine layers in the same project. The most common pattern: Deep Agents
 |---|--------|-------------------|
 | Runtime | **Python 3.10+** | **Node.js 20+** |
 | LangChain | 1.0+ (LTS) | 1.0+ (LTS) |
-| LangSmith SDK | >= 0.1.99 | >= 0.1.99 |
+| LangSmith SDK | >= 0.3.0 | >= 0.3.0 |
 
 > **Always use LangChain 1.0+.** LangChain 0.3 is maintenance-only until December 2026 — do not start new projects on it.
 
@@ -179,7 +179,7 @@ You can combine layers in the same project. The most common pattern: Deep Agents
 |---------|------|---------|
 | `langchain` | Agents, chains, retrieval | `>=1.0,<2.0` |
 | `langchain-core` | Base types & interfaces | `>=1.0,<2.0` |
-| `langsmith` | Tracing, evaluation, datasets | `>=0.1.99` |
+| `langsmith` | Tracing, evaluation, datasets | `>=0.3.0` |
 </python-core>
 
 <typescript-core>
@@ -189,7 +189,7 @@ You can combine layers in the same project. The most common pattern: Deep Agents
 |---------|------|---------|
 | `@langchain/core` | Base types & interfaces (peer dep — install explicitly) | `^1.0.0` |
 | `langchain` | Agents, chains, retrieval | `^1.0.0` |
-| `langsmith` | Tracing, evaluation, datasets | `^0.1.99` |
+| `langsmith` | Tracing, evaluation, datasets | `^0.3.0` |
 </typescript-core>
 
 ---
@@ -260,7 +260,7 @@ LangChain agent — provider-agnostic starting point.
 # requirements.txt
 langchain>=1.0,<2.0
 langchain-core>=1.0,<2.0
-langsmith>=0.1.99
+langsmith>=0.3.0
 
 # Add your model provider:
 # langchain-openai | langchain-anthropic | langchain-google-genai | ...
@@ -279,7 +279,7 @@ LangGraph project — provider-agnostic starting point.
 langchain>=1.0,<2.0
 langchain-core>=1.0,<2.0
 langgraph>=1.0,<2.0
-langsmith>=0.1.99
+langsmith>=0.3.0
 
 # Add your model provider:
 # langchain-openai | langchain-anthropic | langchain-google-genai | ...
@@ -296,7 +296,7 @@ LangGraph project — provider-agnostic starting point.
     "@langchain/core": "^1.0.0",
     "langchain": "^1.0.0",
     "@langchain/langgraph": "^1.0.0",
-    "langsmith": "^0.1.99"
+    "langsmith": "^0.3.0"
   }
 }
 ```
@@ -311,7 +311,7 @@ Deep Agents project — provider-agnostic starting point.
 deepagents
 langchain>=1.0,<2.0
 langchain-core>=1.0,<2.0
-langsmith>=0.1.99
+langsmith>=0.3.0
 
 # Add your model provider:
 # langchain-openai | langchain-anthropic | langchain-google-genai | ...
@@ -328,7 +328,7 @@ Deep Agents project — provider-agnostic starting point.
     "deepagents": "latest",
     "@langchain/core": "^1.0.0",
     "langchain": "^1.0.0",
-    "langsmith": "^0.1.99"
+    "langsmith": "^0.3.0"
   }
 }
 ```

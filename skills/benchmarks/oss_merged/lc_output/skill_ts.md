@@ -92,7 +92,7 @@ const Classification = z.object({
 
 <ex-basic-hitl-setup>
 ```typescript
-import { createReactAgent } from "@langchain/langgraph/prebuilt";
+import { createAgent } from "langchain";
 import { MemorySaver } from "@langchain/langgraph";
 import { tool } from "@langchain/core/tools";
 import { z } from "zod";
@@ -106,8 +106,8 @@ const sendEmail = tool(
   }
 );
 
-const agent = createReactAgent({
-  llm: model,
+const agent = createAgent({
+  model: "gpt-4.1",
   tools: [sendEmail],
   checkpointer: new MemorySaver(),  // Required for HITL
   interruptBefore: ["send_email"],
@@ -185,8 +185,8 @@ const Data = z.object({
 <fix-missing-checkpointer>
 ```typescript
 // WRONG: No checkpointer for HITL
-const agent = createReactAgent({
-  llm: model,
+const agent = createAgent({
+  model: "gpt-4.1",
   tools: [sendEmail],
   interruptBefore: ["send_email"],  // Will fail!
 });
@@ -194,8 +194,8 @@ const agent = createReactAgent({
 // CORRECT: Always add checkpointer
 import { MemorySaver } from "@langchain/langgraph";
 
-const agent = createReactAgent({
-  llm: model,
+const agent = createAgent({
+  model: "gpt-4.1",
   tools: [sendEmail],
   checkpointer: new MemorySaver(),  // Required
   interruptBefore: ["send_email"],

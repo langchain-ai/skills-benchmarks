@@ -164,7 +164,7 @@ You can combine layers in the same project. The most common pattern: Deep Agents
 |---|--------|-------------------|
 | Runtime | **Python 3.10+** | **Node.js 20+** |
 | LangChain | 1.0+ (LTS) | 1.0+ (LTS) |
-| LangSmith SDK | >= 0.1.99 | >= 0.1.99 |
+| LangSmith SDK | >= 0.3.0 | >= 0.3.0 |
 
 > **Always use LangChain 1.0+.** LangChain 0.3 is maintenance-only until December 2026 — do not start new projects on it.
 
@@ -179,7 +179,7 @@ You can combine layers in the same project. The most common pattern: Deep Agents
 |---------|------|---------|
 | `langchain` | Agents, chains, retrieval | `>=1.0,<2.0` |
 | `langchain-core` | Base types & interfaces | `>=1.0,<2.0` |
-| `langsmith` | Tracing, evaluation, datasets | `>=0.1.99` |
+| `langsmith` | Tracing, evaluation, datasets | `>=0.3.0` |
 </python-core>
 
 <typescript-core>
@@ -189,7 +189,7 @@ You can combine layers in the same project. The most common pattern: Deep Agents
 |---------|------|---------|
 | `@langchain/core` | Base types & interfaces (peer dep — install explicitly) | `^1.0.0` |
 | `langchain` | Agents, chains, retrieval | `^1.0.0` |
-| `langsmith` | Tracing, evaluation, datasets | `^0.1.99` |
+| `langsmith` | Tracing, evaluation, datasets | `^0.3.0` |
 </typescript-core>
 
 ---
@@ -260,7 +260,7 @@ LangChain agent — provider-agnostic starting point.
 # requirements.txt
 langchain>=1.0,<2.0
 langchain-core>=1.0,<2.0
-langsmith>=0.1.99
+langsmith>=0.3.0
 
 # Add your model provider:
 # langchain-openai | langchain-anthropic | langchain-google-genai | ...
@@ -279,7 +279,7 @@ LangGraph project — provider-agnostic starting point.
 langchain>=1.0,<2.0
 langchain-core>=1.0,<2.0
 langgraph>=1.0,<2.0
-langsmith>=0.1.99
+langsmith>=0.3.0
 
 # Add your model provider:
 # langchain-openai | langchain-anthropic | langchain-google-genai | ...
@@ -296,7 +296,7 @@ LangGraph project — provider-agnostic starting point.
     "@langchain/core": "^1.0.0",
     "langchain": "^1.0.0",
     "@langchain/langgraph": "^1.0.0",
-    "langsmith": "^0.1.99"
+    "langsmith": "^0.3.0"
   }
 }
 ```
@@ -311,7 +311,7 @@ Deep Agents project — provider-agnostic starting point.
 deepagents
 langchain>=1.0,<2.0
 langchain-core>=1.0,<2.0
-langsmith>=0.1.99
+langsmith>=0.3.0
 
 # Add your model provider:
 # langchain-openai | langchain-anthropic | langchain-google-genai | ...
@@ -328,7 +328,7 @@ Deep Agents project — provider-agnostic starting point.
     "deepagents": "latest",
     "@langchain/core": "^1.0.0",
     "langchain": "^1.0.0",
-    "langsmith": "^0.1.99"
+    "langsmith": "^0.3.0"
   }
 }
 ```

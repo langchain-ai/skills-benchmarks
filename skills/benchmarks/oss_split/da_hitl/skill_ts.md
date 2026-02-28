@@ -97,8 +97,11 @@ await agent.updateState(config, {
       resume: {
         decisions: [{
           type: "edit",
-          args: {
-            query: "DELETE FROM users WHERE last_login < '2020-01-01' LIMIT 100"
+          editedAction: {
+            name: "execute_sql",
+            args: {
+              query: "DELETE FROM users WHERE last_login < '2020-01-01' LIMIT 100"
+            }
           }
         }]
       }

@@ -172,7 +172,10 @@ result2 = agent.invoke(
     Command(resume={
         "decisions": [{
             "type": "edit",
-            "args": {"to": "alice@company.com", "subject": "Updated", "body": "..."},
+            "edited_action": {
+                "name": "send_email",
+                "args": {"to": "alice@company.com", "subject": "Updated", "body": "..."}
+            },
         }]
     }),
     config=config
@@ -189,7 +192,7 @@ Edit tool arguments before execution.
 const result2 = await agent.invoke(
   new Command({
     resume: {
-      decisions: [{ type: "edit", args: { to: "alice@company.com", subject: "Updated", body: "..." } }],
+      decisions: [{ type: "edit", editedAction: { name: "send_email", args: { to: "alice@company.com", subject: "Updated", body: "..." } } }],
     },
   }),
   config

@@ -125,10 +125,13 @@ const result2 = await agent.invoke(
     resume: {
       decisions: [{
         type: "edit",
-        args: {
-          to: "alice@company.com",  // Fixed email
-          subject: "Project Meeting - Updated",  // Better subject
-          body: "...",  // Edited body
+        editedAction: {
+          name: "send_email",
+          args: {
+            to: "alice@company.com",  // Fixed email
+            subject: "Project Meeting - Updated",  // Better subject
+            body: "...",  // Edited body
+          },
         },
       }],
     },

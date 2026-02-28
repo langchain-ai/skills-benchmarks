@@ -26,7 +26,15 @@
     "ora": "^8.0.0",
     "smol-toml": "^1.6.0",
     "yaml": "^2.8.2",
-    "zod": "^3.24.0"
+    "zod": "^3.24.0",
+    "@langchain/core": "^1.0.0",
+    "@langchain/langgraph": "^1.0.0",
+    "@langchain/openai": "^1.0.0",
+    "@langchain/anthropic": "^1.0.0",
+    "@langchain/community": "^1.0.0",
+    "@langchain/classic": "^1.0.0",
+    "langchain": "^1.0.0",
+    "deepagents": "^1.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.19.11",
@@ -35,6 +43,9 @@
     "typescript": "^5.7.0",
     "typescript-eslint": "^8.0.0",
     "vitest": "^2.1.0"
+  },
+  "overrides": {
+    "openai": "$openai"
   },
   "engines": {
     "node": ">=20.0.0"

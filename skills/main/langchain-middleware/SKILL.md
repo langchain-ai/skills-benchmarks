@@ -130,15 +130,18 @@ const result2 = await agent.invoke(
 <python>
 Edit the tool arguments before approving when the original values need correction.
 ```python
-# Human edits the arguments
+# Human edits the arguments — edited_action must include name + args
 result2 = agent.invoke(
     Command(resume={
         "decisions": [{
             "type": "edit",
-            "args": {
-                "to": "alice@company.com",  # Fixed email
-                "subject": "Project Meeting - Updated",
-                "body": "...",
+            "edited_action": {
+                "name": "send_email",
+                "args": {
+                    "to": "alice@company.com",  # Fixed email
+                    "subject": "Project Meeting - Updated",
+                    "body": "...",
+                },
             },
         }]
     }),
@@ -146,6 +149,30 @@ result2 = agent.invoke(
 )
 ```
 </python>
+<typescript>
+Edit the tool arguments before approving when the original values need correction.
+```typescript
+// Human edits the arguments — editedAction must include name + args
+const result2 = await agent.invoke(
+  new Command({
+    resume: {
+      decisions: [{
+        type: "edit",
+        editedAction: {
+          name: "send_email",
+          args: {
+            to: "alice@company.com",  // Fixed email
+            subject: "Project Meeting - Updated",
+            body: "...",
+          },
+        },
+      }]
+    }
+  }),
+  config
+);
+```
+</typescript>
 </ex-editing-tool-arguments>
 
 <ex-rejecting-with-feedback>

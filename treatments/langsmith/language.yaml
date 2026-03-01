@@ -56,8 +56,11 @@ LS_BASIC_SPLIT_PY_TS:
       variant: ts
       name: langsmith-dataset-ts
       suffix: true
-    - skill: langchain_basic
-      name: langchain-basic
+    - skill: api_docs
+      name: api-docs
+      noise: true
+    - skill: react_components
+      name: react-components
       noise: true
 
 LS_BASIC_UNIFIED_LANG:
@@ -122,8 +125,11 @@ LS_WORKFLOW_SPLIT_PY_TS:
       variant: ts
       name: langsmith-dataset-ts
       suffix: true
-    - skill: langchain_basic
-      name: langchain-basic
+    - skill: api_docs
+      name: api-docs
+      noise: true
+    - skill: react_components
+      name: react-components
       noise: true
 
 LS_WORKFLOW_UNIFIED_LANG:

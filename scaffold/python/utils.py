@@ -126,16 +126,39 @@ def _copy_scaffold_to_docker(test_dir: Path):
 
 
 def _parse_json_output(output: str) -> dict | None:
-    """Extract a JSON dict from command output (handles pretty-printed and single-line)."""
-    # Try full output first (pretty-printed JSON)
+    """Extract a JSON dict from command output (handles pretty-printed and single-line).
+
+    Robust to extra output before/after the JSON (e.g., Docker build logs,
+    warnings, print statements). Finds the last { ... } block in the output.
+    """
+    stripped = output.strip()
+    # Try full output first (clean JSON)
     try:
-        result = json.loads(output.strip())
+        result = json.loads(stripped)
         if isinstance(result, dict):
             return result
     except (json.JSONDecodeError, ValueError):
         pass
-    # Fall back to last JSON line
-    for line in reversed(output.strip().splitlines()):
+    # Find the last top-level JSON object in the output
+    # by scanning backwards for the last '}'  and matching '{'
+    last_brace = stripped.rfind("}")
+    if last_brace >= 0:
+        # Find the matching opening brace
+        depth = 0
+        for i in range(last_brace, -1, -1):
+            if stripped[i] == "}":
+                depth += 1
+            elif stripped[i] == "{":
+                depth -= 1
+            if depth == 0:
+                try:
+                    result = json.loads(stripped[i : last_brace + 1])
+                    if isinstance(result, dict):
+                        return result
+                except (json.JSONDecodeError, ValueError):
+                    break
+    # Fall back to last JSON line (single-line output)
+    for line in reversed(stripped.splitlines()):
         try:
             result = json.loads(line)
             if isinstance(result, dict):
@@ -252,15 +275,6 @@ def check_claude_available() -> bool:
         return False
 
 
-def setup_langsmith_hook(test_dir: Path, project: str = "claude-code-benchmark") -> bool:
-    """Set up LangSmith tracing hook for Claude Code."""
-    try:
-        run_shell("setup.sh", "setup-langsmith-hook", str(test_dir), project)
-        return True
-    except subprocess.CalledProcessError:
-        return False
-
-
 # =============================================================================
 # HELPERS
 # =============================================================================
@@ -281,14 +295,17 @@ def retry_with_backoff(func, max_retries=3, base_delay=1.0, max_delay=10.0, retr
     raise last_exc
 
 
-def read_json_file(path: Path) -> tuple:
+def read_json_file(path: Path) -> tuple[dict | list | None, str | None]:
     """Read JSON file. Returns (data, None) or (None, error)."""
     if not path.exists():
-        return None, f"{path.name} not found"
+        return None, f"file not found: {path.name}"
     try:
-        return json.loads(path.read_text()), None
+        with open(path) as f:
+            return json.load(f), None
     except json.JSONDecodeError as e:
         return None, f"invalid JSON: {e}"
+    except Exception as e:
+        return None, str(e)
 
 
 def get_field(obj, *keys, default=None):

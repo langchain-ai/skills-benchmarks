@@ -3,10 +3,9 @@
 Validates dataset structure, trajectory accuracy, and LangSmith uploads.
 """
 
-import json
 from pathlib import Path
 
-from scaffold.python.utils import get_field, get_nested_field
+from scaffold.python.utils import get_field, get_nested_field, read_json_file
 
 
 def extract_examples(data) -> list:
@@ -16,19 +15,6 @@ def extract_examples(data) -> list:
     if isinstance(data, dict):
         return data.get("examples") or data.get("data") or [data]
     return []
-
-
-def read_json_file(path: Path) -> tuple[dict | list | None, str | None]:
-    """Read JSON file, return (data, error)."""
-    if not path.exists():
-        return None, f"file not found: {path.name}"
-    try:
-        with open(path) as f:
-            return json.load(f), None
-    except json.JSONDecodeError as e:
-        return None, f"invalid JSON: {e}"
-    except Exception as e:
-        return None, str(e)
 
 
 def check_dataset_structure(

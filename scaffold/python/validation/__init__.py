@@ -35,8 +35,6 @@ from scaffold.python.validation.dataset import (
     check_dataset_upload,
     check_trajectory_accuracy,
     extract_examples,
-    get_field,
-    get_nested_field,
 )
 from scaffold.python.validation.docker import (
     check_code_execution,
@@ -87,8 +85,6 @@ __all__ = [
     "safe_api_call",
     # Dataset
     "extract_examples",
-    "get_field",
-    "get_nested_field",
     "check_dataset_structure",
     "check_dataset_upload",
     "check_trajectory_accuracy",

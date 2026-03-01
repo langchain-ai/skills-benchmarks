@@ -68,7 +68,7 @@ check_docker() {
 # HASH-BASED IMAGE CACHING
 # =============================================================================
 
-# Get hash of build context for cache key (Dockerfile + all copied files)
+# Get hash of build inputs for cache key (Dockerfile + requirements.txt)
 get_dockerfile_hash() {
     local dir="$1"
     local dockerfile="$dir/Dockerfile"
@@ -78,10 +78,14 @@ get_dockerfile_hash() {
         return 1
     fi
 
-    # Hash all files in the build context directory so that changes to
-    # requirements.txt (or any other copied file) invalidate the cache.
+    # Hash Dockerfile + requirements.txt (the files that affect the image).
+    # Don't hash the entire directory — test scripts and scaffold files are
+    # added at runtime and would cause a different hash every run.
     local combined
-    combined=$(find "$dir" -type f | sort | xargs cat)
+    combined=$(cat "$dockerfile")
+    if [[ -f "$dir/requirements.txt" ]]; then
+        combined="$combined$(cat "$dir/requirements.txt")"
+    fi
 
     if command -v md5 &> /dev/null; then
         echo "$combined" | md5 -q | cut -c1-8

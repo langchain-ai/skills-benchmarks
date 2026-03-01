@@ -12,11 +12,7 @@ dependencies = [
     "langchain-core>=1.0.0",
     "langgraph>=1.0.0",
     "deepagents>=0.4.0",
-    "click>=8.1.0",
-    "rich>=13.0.0",
     "python-dotenv>=1.0.0",
-    "sqlalchemy>=2.0.0",
-    "pexpect>=4.9.0",
     "openai>=1.0.0",
     "pytest>=8.0.0",
     "pytest-xdist>=3.5.0",
@@ -28,6 +24,8 @@ dependencies = [
 dev = [
     "ruff>=0.8.0",
     "responses>=0.25.0",
+    "click>=8.1.0",
+    "rich>=13.0.0",
 ]
 
 [tool.setuptools]

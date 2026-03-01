@@ -148,6 +148,7 @@ describe("mocked API functions", () => {
           },
         ],
         sampling_rate: 1.0,
+        target_dataset_ids: ["test-dataset-id"],
       };
 
       const result = await createEvaluator(payload);
@@ -177,6 +178,7 @@ describe("mocked API functions", () => {
         display_name: "test_evaluator",
         evaluators: [{ code: "invalid code", language: "javascript" }],
         sampling_rate: 1.0,
+        target_dataset_ids: ["test-dataset-id"],
       };
 
       const result = await createEvaluator(payload);

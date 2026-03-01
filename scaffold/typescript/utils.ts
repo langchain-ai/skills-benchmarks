@@ -157,16 +157,32 @@ export function runScriptInDocker(
   return [false, `Unsupported file type: ${scriptName}`];
 }
 
-/** Copy scaffold/typescript/{utils,validation} into testDir preserving import paths. */
+/** Copy scaffold into testDir so test scripts can import helpers.
+ *
+ * Copies both Python and TypeScript scaffolds — test scripts may be
+ * in either language regardless of which test runner invokes them.
+ */
 function copyScaffoldToDocker(testDir: string): void {
-  const scaffoldDir = resolve(__dirname);
-  const dest = join(testDir, "scaffold", "typescript");
-  mkdirSync(dest, { recursive: true });
-  copyFileSync(join(scaffoldDir, "utils.ts"), join(dest, "utils.ts"));
-  const validationSrc = join(scaffoldDir, "validation");
-  const validationDest = join(dest, "validation");
-  if (existsSync(validationSrc)) {
-    cpSync(validationSrc, validationDest, { recursive: true });
+  const scaffoldRoot = resolve(__dirname, "..");
+
+  // TypeScript scaffold
+  const tsDest = join(testDir, "scaffold", "typescript");
+  mkdirSync(tsDest, { recursive: true });
+  copyFileSync(join(scaffoldRoot, "typescript", "utils.ts"), join(tsDest, "utils.ts"));
+  const tsValidation = join(scaffoldRoot, "typescript", "validation");
+  if (existsSync(tsValidation)) {
+    cpSync(tsValidation, join(tsDest, "validation"), { recursive: true });
+  }
+
+  // Python scaffold (test scripts import from scaffold.python)
+  const pyDest = join(testDir, "scaffold", "python");
+  mkdirSync(pyDest, { recursive: true });
+  writeFileSync(join(testDir, "scaffold", "__init__.py"), "");
+  writeFileSync(join(pyDest, "__init__.py"), "");
+  copyFileSync(join(scaffoldRoot, "python", "utils.py"), join(pyDest, "utils.py"));
+  const pyValidation = join(scaffoldRoot, "python", "validation");
+  if (existsSync(pyValidation)) {
+    cpSync(pyValidation, join(pyDest, "validation"), { recursive: true });
   }
 }
 

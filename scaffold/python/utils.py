@@ -113,21 +113,34 @@ def run_claude_in_docker(
 
 
 def _copy_scaffold_to_docker(test_dir: Path):
-    """Copy scaffold/python/{utils.py,validation/} into test_dir preserving import paths.
+    """Copy both Python and TypeScript scaffolds into test_dir.
 
-    After this, test scripts can use the same imports as host code:
-        from scaffold.python.validation import validate_langsmith_trace
+    Test scripts may be in either language regardless of which test runner
+    invokes them, so both scaffolds are always available.
     """
-
-    dest = test_dir / "scaffold" / "python"
-    dest.mkdir(parents=True, exist_ok=True)
+    scaffold_root = SCAFFOLD_PYTHON_DIR.parent
     (test_dir / "scaffold" / "__init__.py").touch()
-    (dest / "__init__.py").touch()
-    shutil.copy(SCAFFOLD_PYTHON_DIR / "utils.py", dest / "utils.py")
-    validation_src = SCAFFOLD_PYTHON_DIR / "validation"
-    validation_dest = dest / "validation"
-    if validation_src.is_dir():
-        shutil.copytree(validation_src, validation_dest, dirs_exist_ok=True)
+
+    # Python scaffold
+    py_dest = test_dir / "scaffold" / "python"
+    py_dest.mkdir(parents=True, exist_ok=True)
+    (py_dest / "__init__.py").touch()
+    shutil.copy(SCAFFOLD_PYTHON_DIR / "utils.py", py_dest / "utils.py")
+    py_validation = SCAFFOLD_PYTHON_DIR / "validation"
+    if py_validation.is_dir():
+        shutil.copytree(py_validation, py_dest / "validation", dirs_exist_ok=True)
+
+    # TypeScript scaffold (so TS test scripts work from Python runner too)
+    ts_src = scaffold_root / "typescript"
+    if ts_src.is_dir():
+        ts_dest = test_dir / "scaffold" / "typescript"
+        ts_dest.mkdir(parents=True, exist_ok=True)
+        ts_utils = ts_src / "utils.ts"
+        if ts_utils.exists():
+            shutil.copy(ts_utils, ts_dest / "utils.ts")
+        ts_validation = ts_src / "validation"
+        if ts_validation.is_dir():
+            shutil.copytree(ts_validation, ts_dest / "validation", dirs_exist_ok=True)
 
 
 def _parse_json_output(output: str) -> dict | None:

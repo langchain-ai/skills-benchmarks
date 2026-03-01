@@ -286,6 +286,8 @@ TASK=lc-basic npx vitest run tests/tasks/test_tasks.test.ts
 
 Both runners execute the same validation pipeline: `task.toml` → `loadValidators()` → `makeExecutionValidator()` → Docker test scripts. Test scripts can be in Python or TypeScript — both scaffolds are copied into Docker.
 
+> **Parallelism note:** pytest with `-n N` uses separate processes (pytest-xdist), giving true parallel Docker execution. Vitest uses threads in a single process, so Docker calls are concurrent but not truly parallel — for heavy parallel workloads, prefer pytest.
+
 ## Experiment Results
 
 Results are saved to `logs/experiments/<experiment_id>/`:

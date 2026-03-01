@@ -104,7 +104,7 @@ RUN_CLAUDE=true TASK=lc-basic TREATMENT=CONTROL,ALL_MAIN_SKILLS npx vitest run t
 npx vitest run tests/tasks/test_tasks.test.ts
 ```
 
-Both runners execute the same validation pipeline and produce equivalent results.
+Both runners execute the same validation pipeline and produce equivalent results. For heavy parallel workloads, prefer pytest (`-n N` uses separate processes) over vitest (threads in a single process).
 
 ### Best Practices
 

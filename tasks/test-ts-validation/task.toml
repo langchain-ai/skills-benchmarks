@@ -1,0 +1,20 @@
+[metadata]
+name = "test-ts-validation"
+description = "Minimal task for testing TypeScript validation infrastructure"
+difficulty = "easy"
+category = "test"
+tags = ["test", "typescript", "infrastructure"]
+default_treatments = ["CONTROL"]
+
+[template]
+required = []
+
+[environment]
+description = "Node.js workspace with TypeScript support."
+dockerfile = "Dockerfile"
+timeout_sec = 300
+
+[validation]
+test_scripts = "test_hello.ts"
+target_artifacts = ["hello.ts"]
+timeout = 30

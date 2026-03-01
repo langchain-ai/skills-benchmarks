@@ -119,11 +119,13 @@ def _copy_scaffold_to_docker(test_dir: Path):
     invokes them, so both scaffolds are always available.
     """
     scaffold_root = SCAFFOLD_PYTHON_DIR.parent
-    (test_dir / "scaffold" / "__init__.py").touch()
+    scaffold_dir = test_dir / "scaffold"
+    scaffold_dir.mkdir(parents=True, exist_ok=True)
+    (scaffold_dir / "__init__.py").touch()
 
     # Python scaffold
-    py_dest = test_dir / "scaffold" / "python"
-    py_dest.mkdir(parents=True, exist_ok=True)
+    py_dest = scaffold_dir / "python"
+    py_dest.mkdir(exist_ok=True)
     (py_dest / "__init__.py").touch()
     shutil.copy(SCAFFOLD_PYTHON_DIR / "utils.py", py_dest / "utils.py")
     py_validation = SCAFFOLD_PYTHON_DIR / "validation"
@@ -133,7 +135,7 @@ def _copy_scaffold_to_docker(test_dir: Path):
     # TypeScript scaffold (so TS test scripts work from Python runner too)
     ts_src = scaffold_root / "typescript"
     if ts_src.is_dir():
-        ts_dest = test_dir / "scaffold" / "typescript"
+        ts_dest = scaffold_dir / "typescript"
         ts_dest.mkdir(parents=True, exist_ok=True)
         ts_utils = ts_src / "utils.ts"
         if ts_utils.exists():

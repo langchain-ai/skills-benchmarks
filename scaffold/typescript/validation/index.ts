@@ -38,6 +38,9 @@ export {
   checkTypescriptExecution,
 } from "./docker.js";
 
+// Test runner
+export { TestRunner, type CheckFn } from "./runner.js";
+
 // Tracing validators
 export {
   checkPythonTracing,

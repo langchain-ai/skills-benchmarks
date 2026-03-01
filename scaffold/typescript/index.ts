@@ -83,6 +83,8 @@ export {
   checkPythonTracing,
   checkTypescriptTracing,
   checkLanguageSyntax,
+  TestRunner,
+  type CheckFn,
 } from "./validation/index.js";
 
 // Logging types and functions

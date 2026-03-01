@@ -80,6 +80,8 @@ def check_syntax(runner: TestRunner):
             runner.passed(f"Python: {py.name} valid syntax")
         except SyntaxError as e:
             runner.failed(f"Python: syntax error at line {e.lineno}: {e.msg}")
+    else:
+        runner.failed(f"Python syntax: skipped (no evaluator in {py_dir}/)")
 
     js = find_evaluator(js_dir, ["ts", "js"])
     if js:
@@ -94,6 +96,8 @@ def check_syntax(runner: TestRunner):
             runner.passed(f"JavaScript: {js.name} valid syntax")
         else:
             runner.failed(f"JavaScript: {js.name} syntax appears invalid")
+    else:
+        runner.failed(f"JavaScript syntax: skipped (no evaluator in {js_dir}/)")
 
 
 def check_patterns(runner: TestRunner):
@@ -120,6 +124,8 @@ def check_patterns(runner: TestRunner):
             runner.passed("Python: accesses example outputs")
         else:
             runner.failed("Python: missing example outputs access")
+    else:
+        runner.failed("Python patterns: skipped (no evaluator)")
 
     js = find_evaluator(js_dir, ["ts", "js"])
     if js:
@@ -143,6 +149,8 @@ def check_patterns(runner: TestRunner):
             runner.passed("JavaScript: accesses example.outputs")
         else:
             runner.failed("JavaScript: missing example.outputs access")
+    else:
+        runner.failed("JavaScript patterns: skipped (no evaluator)")
 
 
 def _parse_eval_results(output, success, lang, runner: TestRunner):
@@ -174,7 +182,7 @@ def check_python_logic(runner: TestRunner):
     py_dir = runner.artifacts[0]
     py = find_evaluator(py_dir, ["py"])
     if not py:
-        runner.passed("Python logic: skipped (no evaluator)")
+        runner.failed("Python logic: skipped (no evaluator)")
         return
 
     content = py.read_text()
@@ -185,12 +193,12 @@ def check_python_logic(runner: TestRunner):
 
     test_cases = Path("data/trajectory_test_cases.json").resolve()
     if not test_cases.exists():
-        runner.passed("Python logic: no test cases")
+        runner.failed("Python logic: no test cases")
         return
 
     eval_runner = Path("validation/eval_runner.py").resolve()
     if not eval_runner.exists():
-        runner.passed("Python logic: no eval_runner.py")
+        runner.failed("Python logic: no eval_runner.py")
         return
 
     module_name = py.name.replace(".py", "")
@@ -212,7 +220,7 @@ def check_js_logic(runner: TestRunner):
     js_dir = runner.artifacts[1]
     js = find_evaluator(js_dir, ["ts", "js"])
     if not js:
-        runner.passed("JavaScript logic: skipped (no evaluator)")
+        runner.failed("JavaScript logic: skipped (no evaluator)")
         return
 
     content = js.read_text()
@@ -223,12 +231,12 @@ def check_js_logic(runner: TestRunner):
 
     test_cases = Path("data/single_step_test_cases.json").resolve()
     if not test_cases.exists():
-        runner.passed("JavaScript logic: no test cases")
+        runner.failed("JavaScript logic: no test cases")
         return
 
     eval_runner = Path("validation/eval_runner.ts").resolve()
     if not eval_runner.exists():
-        runner.passed("JavaScript logic: no eval_runner.ts")
+        runner.failed("JavaScript logic: no eval_runner.ts")
         return
 
     try:

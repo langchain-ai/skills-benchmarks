@@ -63,7 +63,7 @@ def check_evaluator_syntax(runner: TestRunner):
     test_dir = Path(".")
     path = _find_evaluator(test_dir)
     if not path:
-        runner.passed("Evaluator syntax: skipped (no evaluator)")
+        runner.failed("Evaluator syntax: skipped (no evaluator)")
         return
     try:
         ast.parse(path.read_text())
@@ -77,7 +77,7 @@ def check_evaluator_structure(runner: TestRunner):
     test_dir = Path(".")
     path = _find_evaluator(test_dir)
     if not path:
-        runner.passed("Evaluator structure: skipped (no evaluator)")
+        runner.failed("Evaluator structure: skipped (no evaluator)")
         return
     content = path.read_text()
     func_name, error = find_evaluator_function(content, "python")
@@ -94,7 +94,7 @@ def check_evaluator_logic(runner: TestRunner):
     test_dir = Path(".")
     path = _find_evaluator(test_dir)
     if not path:
-        runner.passed("Evaluator logic: skipped (no evaluator)")
+        runner.failed("Evaluator logic: skipped (no evaluator)")
         return
 
     content = path.read_text()
@@ -105,12 +105,12 @@ def check_evaluator_logic(runner: TestRunner):
 
     eval_runner = test_dir / "validation" / "eval_runner.py"
     if not eval_runner.exists():
-        runner.passed("Evaluator logic: skipped (no eval_runner.py)")
+        runner.failed("Evaluator logic: skipped (no eval_runner.py)")
         return
 
     test_cases = test_dir / "data" / "evaluator_test_cases.json"
     if not test_cases.exists():
-        runner.passed("Evaluator logic: skipped (no test cases)")
+        runner.failed("Evaluator logic: skipped (no test cases)")
         return
 
     module_name = path.name.replace(".py", "")

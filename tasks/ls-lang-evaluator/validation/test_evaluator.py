@@ -53,7 +53,7 @@ def find_eval_function(content, language):
         return None, "no (run, example) function found"
 
 
-def check_exists(runner):
+def check_exists(runner: TestRunner):
     """Check evaluator files exist."""
     py_dir = runner.artifacts[0]
     js_dir = runner.artifacts[1]
@@ -69,7 +69,7 @@ def check_exists(runner):
         runner.failed(f"JavaScript evaluator: not found in {js_dir}/")
 
 
-def check_syntax(runner):
+def check_syntax(runner: TestRunner):
     """Check evaluator syntax."""
     py_dir = runner.artifacts[0]
     js_dir = runner.artifacts[1]
@@ -96,7 +96,7 @@ def check_syntax(runner):
             runner.failed(f"JavaScript: {js.name} syntax appears invalid")
 
 
-def check_patterns(runner):
+def check_patterns(runner: TestRunner):
     """Check evaluator follows LangSmith patterns."""
     py_dir = runner.artifacts[0]
     js_dir = runner.artifacts[1]
@@ -145,7 +145,7 @@ def check_patterns(runner):
             runner.failed("JavaScript: missing example.outputs access")
 
 
-def _parse_eval_results(output, success, lang, runner):
+def _parse_eval_results(output, success, lang, runner: TestRunner):
     """Parse EVALUATOR_RESULTS from output."""
     for line in output.split("\n"):
         if line.startswith("EVALUATOR_RESULTS:"):
@@ -169,7 +169,7 @@ def _parse_eval_results(output, success, lang, runner):
         runner.failed(f"{lang} logic: execution failed - {output[:150]}")
 
 
-def check_python_logic(runner):
+def check_python_logic(runner: TestRunner):
     """Run Python evaluator against test cases."""
     py_dir = runner.artifacts[0]
     py = find_evaluator(py_dir, ["py"])
@@ -207,7 +207,7 @@ def check_python_logic(runner):
         runner.failed(f"Python logic: {str(e)[:50]}")
 
 
-def check_js_logic(runner):
+def check_js_logic(runner: TestRunner):
     """Run JavaScript evaluator against test cases."""
     js_dir = runner.artifacts[1]
     js = find_evaluator(js_dir, ["ts", "js"])
@@ -244,7 +244,7 @@ def check_js_logic(runner):
         runner.failed(f"JavaScript logic: {str(e)[:50]}")
 
 
-def check_upload(runner):
+def check_upload(runner: TestRunner):
     """Validate that evaluators were uploaded to LangSmith."""
     p, f = check_evaluator_upload(Path("."), runner.context)
     for msg in p:
@@ -253,7 +253,7 @@ def check_upload(runner):
         runner.failed(msg)
 
 
-def check_scripts(runner):
+def check_scripts(runner: TestRunner):
     """Track which skill scripts Claude used (informational)."""
     events = runner.context.get("events", {}) if runner.context else {}
     p, f = check_skill_scripts(runner.context, events)

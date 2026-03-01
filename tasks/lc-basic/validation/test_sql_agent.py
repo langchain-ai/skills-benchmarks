@@ -24,7 +24,7 @@ FORBIDDEN_PATTERNS = {
 }
 
 
-def check_code(runner):
+def check_code(runner: TestRunner):
     """SQL agent has correct patterns and valid syntax."""
     filepath = runner.artifacts[0]
     source = runner.read(filepath)
@@ -53,7 +53,7 @@ def check_code(runner):
             runner.failed(f"SQL Agent: {desc}")
 
 
-def check_output(runner):
+def check_output(runner: TestRunner):
     """Agent executes and produces quality output."""
     output = runner.execute(runner.artifacts[0], timeout=120)
     if output is None:
@@ -76,7 +76,7 @@ def check_output(runner):
     runner.passed(f"SQL Agent quality [{quality}]: {result['reason']}")
 
 
-def check_metadata(runner):
+def check_metadata(runner: TestRunner):
     """Track skill invocations and metadata (informational)."""
     events = runner.context.get("events", {})
     runner.passed(f"Turns: {events.get('num_turns', 0) or 0}")

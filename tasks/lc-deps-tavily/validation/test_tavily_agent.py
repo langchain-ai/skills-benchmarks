@@ -24,7 +24,7 @@ WRONG_IMPORTS = {
 }
 
 
-def check_syntax(runner):
+def check_syntax(runner: TestRunner):
     """Agent file exists and has valid syntax."""
     source = runner.read(runner.artifacts[0])
     if not source:
@@ -38,7 +38,7 @@ def check_syntax(runner):
         runner.failed(f"Agent: syntax error line {e.lineno}")
 
 
-def check_imports(runner):
+def check_imports(runner: TestRunner):
     """Uses correct Tavily import path, not deprecated ones."""
     source = runner.read(runner.artifacts[0])
     if not source:
@@ -61,7 +61,7 @@ def check_imports(runner):
             runner.failed(f"Agent: {desc}")
 
 
-def check_output(runner):
+def check_output(runner: TestRunner):
     """Agent executes and produces meaningful output."""
     output = runner.execute(runner.artifacts[0], timeout=120)
     if output is None:
@@ -85,7 +85,7 @@ def check_output(runner):
     runner.passed(f"Agent quality [{quality}]: {result['reason']}")
 
 
-def check_metadata(runner):
+def check_metadata(runner: TestRunner):
     """Track skill invocations and metadata (informational)."""
     events = runner.context.get("events", {})
     runner.passed(f"Turns: {events.get('num_turns', 0) or 0}")

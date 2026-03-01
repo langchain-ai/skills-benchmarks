@@ -12,7 +12,7 @@ These tests verify the code actually works, not just that it contains patterns.
 from scaffold.python.validation.runner import TestRunner
 
 
-def _require_graph(runner):
+def _require_graph(runner: TestRunner):
     """Load and return graph from artifact. Cached by runner.load_module()."""
     module = runner.load_module(runner.artifacts[0])
     if module is None:
@@ -25,7 +25,7 @@ def _require_graph(runner):
 # =============================================================================
 
 
-def check_has_checkpointer(runner):
+def check_has_checkpointer(runner: TestRunner):
     """Graph has a checkpointer configured."""
     graph = _require_graph(runner)
     if graph is None:
@@ -38,7 +38,7 @@ def check_has_checkpointer(runner):
         )
 
 
-def check_state_persists(runner):
+def check_state_persists(runner: TestRunner):
     """State persists across invocations with thread_id."""
     graph = _require_graph(runner)
     if graph is None:
@@ -65,7 +65,7 @@ def check_state_persists(runner):
         runner.failed(f"state_persists_across_calls: {e}")
 
 
-def check_messages_accumulate(runner):
+def check_messages_accumulate(runner: TestRunner):
     """Messages accumulate within single invocation (reducer works)."""
     graph = _require_graph(runner)
     if graph is None:
@@ -87,7 +87,7 @@ def check_messages_accumulate(runner):
         runner.failed(f"messages_accumulate_with_reducer: {e}")
 
 
-def check_no_duplication(runner):
+def check_no_duplication(runner: TestRunner):
     """Nodes return partial updates, not entire state."""
     graph = _require_graph(runner)
     if graph is None:
@@ -115,7 +115,7 @@ def check_no_duplication(runner):
         runner.failed(f"no_message_duplication: {e}")
 
 
-def check_remembers_name(runner):
+def check_remembers_name(runner: TestRunner):
     """Bot remembers user's name across turns."""
     graph = _require_graph(runner)
     if graph is None:
@@ -141,7 +141,7 @@ def check_remembers_name(runner):
         runner.failed(f"remembers_user_name: {e}")
 
 
-def check_thread_isolation(runner):
+def check_thread_isolation(runner: TestRunner):
     """Different thread_ids have separate state."""
     graph = _require_graph(runner)
     if graph is None:

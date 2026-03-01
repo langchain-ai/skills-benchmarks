@@ -21,7 +21,7 @@ REQUIRED_FUNCTIONS = [
 ]
 
 
-def check_python_tracing(runner):
+def check_python_tracing(runner: TestRunner):
     """Check Python LangSmith tracing patterns."""
     filepath = runner.artifacts[0]
     try:
@@ -64,7 +64,7 @@ def _to_camel_case(snake_str):
     return components[0] + "".join(x.title() for x in components[1:])
 
 
-def check_typescript_tracing(runner):
+def check_typescript_tracing(runner: TestRunner):
     """Check TypeScript LangSmith tracing patterns."""
     filepath = runner.artifacts[1]
     try:
@@ -116,7 +116,7 @@ def check_typescript_tracing(runner):
             runner.failed(f"TypeScript: missing traceable() on: {', '.join(untraced)}")
 
 
-def check_language_syntax(runner):
+def check_language_syntax(runner: TestRunner):
     """Check that files use correct language (no mixing)."""
     py_file = runner.artifacts[0]
     ts_file = runner.artifacts[1]
@@ -152,7 +152,7 @@ def check_language_syntax(runner):
         pass
 
 
-def check_execution(runner):
+def check_execution(runner: TestRunner):
     """Check that both files execute without errors."""
     py_file = runner.artifacts[0]
     ts_file = runner.artifacts[1]
@@ -177,7 +177,7 @@ def check_execution(runner):
         runner.failed(f"TypeScript: execution error ({str(e)[:80]})")
 
 
-def check_trace(runner):
+def check_trace(runner: TestRunner):
     """Validate that a trace was created in LangSmith."""
     from pathlib import Path
 
@@ -193,7 +193,7 @@ def check_trace(runner):
         runner.failed(msg)
 
 
-def check_scripts(runner):
+def check_scripts(runner: TestRunner):
     """Track which skill scripts Claude used (informational)."""
     events = runner.context.get("events", {}) if runner.context else {}
     p, f = check_skill_scripts(runner.context, events)

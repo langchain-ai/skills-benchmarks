@@ -14,7 +14,7 @@ import ast
 from scaffold.python.validation.runner import TestRunner
 
 
-def _require_module(runner):
+def _require_module(runner: TestRunner):
     """Load and return the agent module. Cached by runner.load_module()."""
     return runner.load_module(runner.artifacts[0])
 
@@ -24,7 +24,7 @@ def _require_module(runner):
 # =============================================================================
 
 
-def check_has_checkpointer(runner):
+def check_has_checkpointer(runner: TestRunner):
     """Check that agent has a checkpointer for state persistence."""
     module = _require_module(runner)
     if module is None:
@@ -48,7 +48,7 @@ def check_has_checkpointer(runner):
 # =============================================================================
 
 
-def check_has_hitl_middleware(runner):
+def check_has_hitl_middleware(runner: TestRunner):
     """Check that create_agent is called with HITL middleware.
 
     Uses AST to verify the code passes a middleware argument
@@ -88,7 +88,7 @@ def check_has_hitl_middleware(runner):
 # =============================================================================
 
 
-def check_safe_action_completes(runner):
+def check_safe_action_completes(runner: TestRunner):
     """Safe operations (lookup) should complete without interruption."""
     module = _require_module(runner)
     if module is None:
@@ -118,7 +118,7 @@ def check_safe_action_completes(runner):
 # =============================================================================
 
 
-def check_dangerous_action_interrupts(runner):
+def check_dangerous_action_interrupts(runner: TestRunner):
     """Dangerous operations (delete) should pause for human approval."""
     module = _require_module(runner)
     if module is None:
@@ -157,7 +157,7 @@ def check_dangerous_action_interrupts(runner):
 # =============================================================================
 
 
-def check_resume_after_approval(runner):
+def check_resume_after_approval(runner: TestRunner):
     """After interrupt, resume should complete the action."""
     module = _require_module(runner)
     if module is None:
@@ -200,7 +200,7 @@ def check_resume_after_approval(runner):
 # =============================================================================
 
 
-def check_thread_isolation(runner):
+def check_thread_isolation(runner: TestRunner):
     """Different thread_ids should have isolated conversations."""
     module = _require_module(runner)
     if module is None:

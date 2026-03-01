@@ -20,7 +20,7 @@ from scaffold.python.validation.runner import TestRunner
 _cached_result = None
 
 
-def _require_module_and_config(runner):
+def _require_module_and_config(runner: TestRunner):
     """Load module with patched create_deep_agent and return (module, source, captured_config).
 
     Cached globally so the patching + import only happens once.
@@ -88,7 +88,7 @@ def _resolve_backend(path, sorted_routes, default_backend):
     return type(default_backend).__name__, "(default)"
 
 
-def _check_prefs_persist_source(runner, source):
+def _check_prefs_persist_source(runner: TestRunner, source):
     """Source-based fallback for prefs persistence check."""
     TEST_NAME = "prefs_use_persistent_storage"
 
@@ -128,7 +128,7 @@ def _check_prefs_persist_source(runner, source):
     runner.passed(TEST_NAME)
 
 
-def check_prefs_use_persistent_storage(runner):
+def check_prefs_use_persistent_storage(runner: TestRunner):
     """Verify preferences path resolves to persistent (StoreBackend) storage.
 
     Tests the actual backend routing by instantiating the backend_factory
@@ -178,7 +178,7 @@ def check_prefs_use_persistent_storage(runner):
 # =============================================================================
 
 
-def _check_subagent_skills_source(runner, source):
+def _check_subagent_skills_source(runner: TestRunner, source):
     """Source-based subagent skills check."""
     TEST_NAME = "subagent_skills_explicit"
 
@@ -203,7 +203,7 @@ def _check_subagent_skills_source(runner, source):
         )
 
 
-def check_subagent_skills_explicit(runner):
+def check_subagent_skills_explicit(runner: TestRunner):
     """Verify researcher subagent has explicit skills configuration.
 
     Custom subagents don't inherit the main agent's skills -- they need
@@ -242,7 +242,7 @@ def check_subagent_skills_explicit(runner):
 # =============================================================================
 
 
-def check_interrupt_has_checkpointer(runner):
+def check_interrupt_has_checkpointer(runner: TestRunner):
     """Verify interrupt_on has a checkpointer configured.
 
     Without a checkpointer, interrupt_on silently does nothing -- the agent
@@ -278,7 +278,7 @@ def check_interrupt_has_checkpointer(runner):
 # =============================================================================
 
 
-def check_ast_has_checkpointer_kwarg(runner):
+def check_ast_has_checkpointer_kwarg(runner: TestRunner):
     """Verify key fixes are present in the source via AST inspection.
 
     These complement the behavioral checks -- the behavioral tests verify

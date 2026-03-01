@@ -28,7 +28,7 @@ def _find_evaluator(test_dir):
     return evals[0] if evals else None
 
 
-def check_structure(runner):
+def check_structure(runner: TestRunner):
     """Dataset has correct structure with trajectory fields."""
     dataset_file = runner.artifacts[0]
     p, f = check_dataset_structure(
@@ -44,7 +44,7 @@ def check_structure(runner):
         runner.failed(msg)
 
 
-def check_evaluator_exists(runner):
+def check_evaluator_exists(runner: TestRunner):
     """Check that evaluator file exists."""
     test_dir = Path(".")
     path = test_dir / "trajectory_evaluator.py"
@@ -58,7 +58,7 @@ def check_evaluator_exists(runner):
             runner.failed("Evaluator: no evaluator file found")
 
 
-def check_evaluator_syntax(runner):
+def check_evaluator_syntax(runner: TestRunner):
     """Check evaluator has valid syntax."""
     test_dir = Path(".")
     path = _find_evaluator(test_dir)
@@ -72,7 +72,7 @@ def check_evaluator_syntax(runner):
         runner.failed(f"Evaluator: {path.name} syntax error: {e.msg}")
 
 
-def check_evaluator_structure(runner):
+def check_evaluator_structure(runner: TestRunner):
     """Check evaluator has correct function structure."""
     test_dir = Path(".")
     path = _find_evaluator(test_dir)
@@ -89,7 +89,7 @@ def check_evaluator_structure(runner):
         runner.passed("Evaluator: has return statement")
 
 
-def check_evaluator_logic(runner):
+def check_evaluator_logic(runner: TestRunner):
     """Run evaluator against test cases using eval_runner.py."""
     test_dir = Path(".")
     path = _find_evaluator(test_dir)
@@ -141,7 +141,7 @@ def check_evaluator_logic(runner):
         runner.failed(f"Evaluator logic: {str(e)[:50]}")
 
 
-def check_accuracy(runner):
+def check_accuracy(runner: TestRunner):
     """Trajectories match ground truth."""
     dataset_file = runner.artifacts[0]
     test_dir = Path(".")
@@ -158,7 +158,7 @@ def check_accuracy(runner):
         runner.failed(msg)
 
 
-def check_upload(runner):
+def check_upload(runner: TestRunner):
     """Check dataset upload to LangSmith."""
     test_dir = Path(".")
     if (test_dir / "trajectory_dataset.json").exists():
@@ -177,7 +177,7 @@ def check_upload(runner):
         runner.failed(msg)
 
 
-def check_scripts(runner):
+def check_scripts(runner: TestRunner):
     """Track which skill scripts Claude used (informational)."""
     p, f = check_skill_scripts(runner.context, runner.context.get("events", {}))
     for msg in p:

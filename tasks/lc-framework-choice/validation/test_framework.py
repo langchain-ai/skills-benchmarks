@@ -17,7 +17,7 @@ from scaffold.python.validation.core import (
 from scaffold.python.validation.runner import TestRunner
 
 
-def check_file(filepath, label, checks, runner):
+def check_file(filepath, label, checks, runner: TestRunner):
     """Generic file checker: syntax + pattern checks."""
     try:
         content = open(filepath).read()
@@ -103,7 +103,7 @@ def _deep_agent_not_langgraph(content, label):
     return p, f
 
 
-def check_qa_agent(runner):
+def check_qa_agent(runner: TestRunner):
     """QA Agent uses create_agent (not react_agent or StateGraph)."""
     check_file(
         runner.artifacts[0],
@@ -113,7 +113,7 @@ def check_qa_agent(runner):
     )
 
 
-def check_approval_pipeline(runner):
+def check_approval_pipeline(runner: TestRunner):
     """Approval Pipeline uses LangGraph StateGraph."""
     check_file(
         runner.artifacts[1],
@@ -123,7 +123,7 @@ def check_approval_pipeline(runner):
     )
 
 
-def check_middleware_agent(runner):
+def check_middleware_agent(runner: TestRunner):
     """Middleware Agent uses create_agent or create_deep_agent (not LangGraph)."""
     check_file(
         runner.artifacts[2],
@@ -133,7 +133,7 @@ def check_middleware_agent(runner):
     )
 
 
-def check_research_assistant(runner):
+def check_research_assistant(runner: TestRunner):
     """Research Assistant uses create_deep_agent."""
     check_file(
         runner.artifacts[3],
@@ -143,7 +143,7 @@ def check_research_assistant(runner):
     )
 
 
-def check_personal_assistant(runner):
+def check_personal_assistant(runner: TestRunner):
     """Personal Assistant uses create_deep_agent (not LangGraph)."""
     check_file(
         runner.artifacts[4],
@@ -153,7 +153,7 @@ def check_personal_assistant(runner):
     )
 
 
-def check_outputs_metadata(runner):
+def check_outputs_metadata(runner: TestRunner):
     """Read metrics and skill tracking from context."""
     events = runner.context.get("events", {})
     runner.passed(f"Turns: {events.get('num_turns', 0) or 0}")

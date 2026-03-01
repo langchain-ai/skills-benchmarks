@@ -27,7 +27,7 @@ FORBIDDEN_PATTERNS = {
 }
 
 
-def _check_agent_code(runner, filepath, label):
+def _check_agent_code(runner: TestRunner, filepath, label):
     """Check code patterns and syntax for one agent file."""
     source = runner.read(filepath)
     if not source:
@@ -53,7 +53,7 @@ def _check_agent_code(runner, filepath, label):
             runner.failed(f"{label}: {desc}")
 
 
-def _check_agent_output(runner, filepath, label, eval_prompt):
+def _check_agent_output(runner: TestRunner, filepath, label, eval_prompt):
     """Run agent and evaluate output quality."""
     output = runner.execute(filepath, timeout=120)
     if output is None:
@@ -69,12 +69,12 @@ def _check_agent_output(runner, filepath, label, eval_prompt):
     runner.passed(f"{label} quality [{quality}]: {result['reason']}")
 
 
-def check_sql_agent_code(runner):
+def check_sql_agent_code(runner: TestRunner):
     """SQL agent has correct patterns and syntax."""
     _check_agent_code(runner, runner.artifacts[0], "SQL Agent")
 
 
-def check_sql_agent_output(runner):
+def check_sql_agent_output(runner: TestRunner):
     """SQL agent executes and produces quality output."""
     _check_agent_output(
         runner,
@@ -88,12 +88,12 @@ def check_sql_agent_output(runner):
     )
 
 
-def check_search_agent_code(runner):
+def check_search_agent_code(runner: TestRunner):
     """Search agent has correct patterns and syntax."""
     _check_agent_code(runner, runner.artifacts[1], "Search Agent")
 
 
-def check_search_agent_output(runner):
+def check_search_agent_output(runner: TestRunner):
     """Search agent executes and produces quality output."""
     _check_agent_output(
         runner,
@@ -107,7 +107,7 @@ def check_search_agent_output(runner):
     )
 
 
-def check_metadata(runner):
+def check_metadata(runner: TestRunner):
     """Track skill invocations, metadata, and noise deliverables."""
     events = runner.context.get("events", {})
     runner.passed(f"Turns: {events.get('num_turns', 0) or 0}")

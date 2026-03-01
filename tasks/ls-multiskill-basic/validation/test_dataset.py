@@ -13,7 +13,7 @@ from scaffold.python.validation.runner import TestRunner
 from scaffold.python.validation.scripts import check_skill_scripts
 
 
-def check_structure(runner):
+def check_structure(runner: TestRunner):
     """Dataset has correct structure with trajectory fields."""
     dataset_file = runner.artifacts[0]
     p, f = check_dataset_structure(
@@ -28,7 +28,7 @@ def check_structure(runner):
         runner.failed(msg)
 
 
-def check_accuracy(runner):
+def check_accuracy(runner: TestRunner):
     """Trajectories match ground truth."""
     dataset_file = runner.artifacts[0]
     p, f = check_trajectory_accuracy(
@@ -42,7 +42,7 @@ def check_accuracy(runner):
         runner.failed(msg)
 
 
-def check_upload(runner):
+def check_upload(runner: TestRunner):
     """Dataset uploaded to LangSmith."""
     dataset_file = runner.artifacts[0]
     p, f = check_dataset_upload(
@@ -56,7 +56,7 @@ def check_upload(runner):
         runner.failed(msg)
 
 
-def check_scripts(runner):
+def check_scripts(runner: TestRunner):
     """Track which skill scripts Claude used (informational)."""
     events = runner.context.get("events", {})
     p, f = check_skill_scripts(runner.context, events)

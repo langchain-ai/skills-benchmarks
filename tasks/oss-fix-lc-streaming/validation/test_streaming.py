@@ -20,7 +20,7 @@ import re
 from scaffold.python.validation.runner import TestRunner
 
 
-def _require_source_and_tree(runner):
+def _require_source_and_tree(runner: TestRunner):
     """Load source and parse AST. Returns (source, tree) or (None, None)."""
     source = runner.read(runner.artifacts[0])
     if not source:
@@ -41,7 +41,7 @@ def _require_source_and_tree(runner):
 # =============================================================================
 
 
-def check_tool_has_docstring(runner):
+def check_tool_has_docstring(runner: TestRunner):
     """Check that @tool decorated functions have docstrings.
 
     LangChain uses the docstring as the tool description for the model.
@@ -84,7 +84,7 @@ def check_tool_has_docstring(runner):
 # =============================================================================
 
 
-def check_tool_has_types(runner):
+def check_tool_has_types(runner: TestRunner):
     """Check that @tool decorated functions have type hints on parameters.
 
     LangChain generates the tool schema from type annotations.
@@ -127,7 +127,7 @@ def check_tool_has_types(runner):
 # =============================================================================
 
 
-def check_tuple_unpacking(runner):
+def check_tuple_unpacking(runner: TestRunner):
     """Check that messages mode streaming unpacks the (token, metadata) tuple.
 
     In messages mode, LangChain returns a tuple, not just the token.
@@ -181,7 +181,7 @@ def _extract_async_functions(source: str) -> str:
     return "\n\n".join(async_sources)
 
 
-def check_async_uses_astream(runner):
+def check_async_uses_astream(runner: TestRunner):
     """Check that async functions use .astream() not .stream().
 
     Using sync .stream() in an async function blocks the event loop.
@@ -218,7 +218,7 @@ def check_async_uses_astream(runner):
 # =============================================================================
 
 
-def check_mode_checking(runner):
+def check_mode_checking(runner: TestRunner):
     """Check that multi-mode streaming has mode-specific handling.
 
     When using stream_mode=[...] with multiple modes, each chunk includes

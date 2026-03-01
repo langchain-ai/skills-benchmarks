@@ -13,7 +13,7 @@ These tests invoke the actual pipeline and check real behavior.
 from scaffold.python.validation.runner import TestRunner
 
 
-def _require_module(runner):
+def _require_module(runner: TestRunner):
     """Load and return the pipeline module. Cached by runner.load_module()."""
     return runner.load_module(runner.artifacts[0])
 
@@ -23,7 +23,7 @@ def _require_module(runner):
 # =============================================================================
 
 
-def check_fan_out_works(runner):
+def check_fan_out_works(runner: TestRunner):
     """Multiple tasks should be processed in parallel without crashing.
 
     Without a reducer, parallel workers writing to the same field
@@ -65,7 +65,7 @@ def check_fan_out_works(runner):
 # =============================================================================
 
 
-def check_results_match_tasks(runner):
+def check_results_match_tasks(runner: TestRunner):
     """Each input task should produce a corresponding result."""
     module = _require_module(runner)
     if module is None:
@@ -101,7 +101,7 @@ def check_results_match_tasks(runner):
 # =============================================================================
 
 
-def check_review_interrupts(runner):
+def check_review_interrupts(runner: TestRunner):
     """Pipeline should pause for human review before finalizing."""
     module = _require_module(runner)
     if module is None:
@@ -136,7 +136,7 @@ def check_review_interrupts(runner):
 # =============================================================================
 
 
-def check_resume_after_review(runner):
+def check_resume_after_review(runner: TestRunner):
     """Resuming after review should complete the pipeline."""
     module = _require_module(runner)
     if module is None:
@@ -181,7 +181,7 @@ def check_resume_after_review(runner):
 # =============================================================================
 
 
-def check_summary_correct(runner):
+def check_summary_correct(runner: TestRunner):
     """Final summary should reflect the number of processed tasks."""
     module = _require_module(runner)
     if module is None:

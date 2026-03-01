@@ -26,10 +26,12 @@ Example:
         TestRunner.run([check_has_function, check_runs])
 """
 
+import importlib.util
 import json
 import subprocess
 import sys
 from pathlib import Path
+from types import ModuleType
 
 from scaffold.python.validation.core import (
     RUN_CONTEXT_FILE,
@@ -59,6 +61,7 @@ class TestRunner:
         self._failed: list[str] = []
         self._error: str | None = None
         self._check_called = False
+        self._module_cache: dict[str, ModuleType | None] = {}  # instance-level cache
 
     def passed(self, message: str) -> None:
         """Record a passing check."""
@@ -79,6 +82,40 @@ class TestRunner:
             except Exception:
                 return ""
         return ""
+
+    def load_module(self, path: str) -> ModuleType | None:
+        """Import a Python file as a module. Returns the module or None.
+
+        Cached per path — calling with the same path returns the same module
+        (avoids re-executing side effects). On first failure, caches None and
+        records a failed check. Subsequent calls return None silently.
+        """
+        target = Path(path).resolve()
+        cache_key = str(target)
+        if cache_key in self._module_cache:
+            cached = self._module_cache[cache_key]
+            if cached is None:
+                # Already failed — record silently so each check shows the failure
+                self.failed(f"import failed: {path} (cached)")
+            return cached
+        if not target.is_file():
+            self.failed(f"cannot load {path}: file not found")
+            self._module_cache[cache_key] = None
+            return None
+        try:
+            module_name = f"_bench_{target.stem}_{id(target)}"
+            spec = importlib.util.spec_from_file_location(module_name, str(target))
+            if spec is None or spec.loader is None:
+                self.failed(f"cannot load {path}: invalid module spec")
+                self._module_cache[cache_key] = None
+                return None
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            self._module_cache[cache_key] = module
+            return module
+        except Exception as e:
+            self.failed(f"import error ({path}): {e}")
+            return None
 
     def execute(self, path: str, args: list[str] | None = None, timeout: int = 30) -> str | None:
         """Run a file in a subprocess (inside the Docker container).

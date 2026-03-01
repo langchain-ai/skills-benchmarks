@@ -62,7 +62,7 @@ class ValidationConfig:
     """
 
     # Test script(s) to run in Docker (e.g., "test_agent.py")
-    test_script: str | list[str] = ""
+    test_scripts: str | list[str] = ""
 
     # File(s) or dir(s) Claude should produce — existence is checked before
     # running test scripts. Names are available via runner.artifacts.
@@ -154,7 +154,7 @@ class Task:
         """Load validators for this task.
 
         Two modes:
-        1. Config-driven (new): task.toml has [validation] with test_script +
+        1. Config-driven (new): task.toml has [validation] with test_scripts +
            target_artifacts. The framework auto-builds a validator.
         2. Legacy: validators.py exports VALIDATORS list. Used during migration.
 
@@ -180,13 +180,13 @@ class Task:
 
         # Config-driven path: build validator from task.toml [validation]
         vc = self.config.validation
-        if vc.test_script:
+        if vc.test_scripts:
             from scaffold.python.utils import make_execution_validator
 
             return [
                 make_execution_validator(
                     validation_dir=self.validation_dir,
-                    test_script=vc.test_script,
+                    test_scripts=vc.test_scripts,
                     target_artifacts=vc.target_artifacts,
                     timeout=vc.timeout,
                     data_dir=self.data_dir if self.data_dir.exists() else None,
@@ -237,7 +237,7 @@ def load_task(name: str, tasks_dir: Path | None = None) -> Task:
     )
 
     validation_config = ValidationConfig(
-        test_script=validation.get("test_script", ""),
+        test_scripts=validation.get("test_scripts", ""),
         target_artifacts=validation.get("target_artifacts", []),
         timeout=validation.get("timeout", 120),
         validators=validation.get("validators", []),

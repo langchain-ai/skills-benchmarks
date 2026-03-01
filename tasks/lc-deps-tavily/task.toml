@@ -15,4 +15,6 @@ dockerfile = "environment/Dockerfile"
 timeout_sec = 900
 
 [validation]
-validators = ["validators"]
+test_scripts = "test_tavily_agent_v2.py"
+target_artifacts = ["agent.py"]
+timeout = 120

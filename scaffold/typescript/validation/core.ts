@@ -47,8 +47,8 @@ export const NOISE_TASK_DELIVERABLES: Record<string, string> = {
 // HELPERS
 // =============================================================================
 
-/** Load outputs dict serialized by makeExecutionValidator. */
-export function loadOutputs(path: string = "_outputs.json"): Record<string, unknown> {
+/** Load run context (run_id, events, etc.) written by the host for test scripts. */
+export function loadTestContext(path: string = process.env.BENCH_RUN_CONTEXT || "_test_context.json"): Record<string, unknown> {
   try {
     return JSON.parse(readFileSync(path, "utf8"));
   } catch {

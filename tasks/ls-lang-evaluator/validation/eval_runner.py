@@ -13,6 +13,8 @@ import json
 import sys
 from pathlib import Path
 
+from scaffold.python.validation.core import write_test_results
+
 
 def normalize_score(score):
     """Normalize score to 0-1 range."""
@@ -230,8 +232,7 @@ def main():
     results = [run_test_case(eval_func, tc) for tc in test_cases]
 
     # Output results (parsed by validator)
-    with open("_test_results.json", "w") as f:
-        json.dump(results, f)
+    write_test_results(results)
     print("EVALUATOR_RESULTS:" + json.dumps(results))
 
 

@@ -14,7 +14,12 @@ import ast
 import json
 import sys
 
-from scaffold.python.validation.core import check_skill_invoked, check_starter_skill_first
+from scaffold.python.validation.core import (
+    check_skill_invoked,
+    check_starter_skill_first,
+    load_test_context,
+    write_test_results,
+)
 
 
 def check_file(filepath, label, checks):
@@ -104,10 +109,10 @@ def _deep_agent_not_langgraph(content, label):
 
 
 def check_outputs_metadata():
-    """Read metrics and skill tracking from _outputs.json."""
+    """Read metrics and skill tracking from _test_context.json."""
     passed = []
     try:
-        outputs = json.loads(open("_outputs.json").read())
+        outputs = load_test_context()
     except (FileNotFoundError, json.JSONDecodeError):
         return passed, []
 
@@ -170,6 +175,5 @@ def run_tests(*files):
 if __name__ == "__main__":
     results = run_tests(*sys.argv[1:])
     print(json.dumps(results, indent=2))
-    with open("_test_results.json", "w") as f:
-        json.dump(results, f)
+    write_test_results(results)
     sys.exit(1 if results["failed"] else 0)

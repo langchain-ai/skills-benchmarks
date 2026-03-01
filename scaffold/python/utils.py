@@ -14,6 +14,11 @@ from pathlib import Path
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 
+# Reserved filenames for host ↔ Docker data transport.
+# Same env vars as validation/core.py — env vars are the single source of truth.
+RUN_CONTEXT_FILE = os.environ.get("BENCH_RUN_CONTEXT", "_test_context.json")
+TEST_RESULTS_FILE = os.environ.get("BENCH_TEST_RESULTS", "_test_results.json")
+
 load_dotenv(Path(__file__).parent.parent.parent / ".env")
 
 SHELL_DIR = Path(__file__).parent.parent / "shell"
@@ -170,25 +175,23 @@ def _parse_json_output(output: str) -> dict | None:
 
 def run_eval_in_docker(
     test_dir: Path,
-    eval_dir: Path,
+    validation_dir: Path,
     test_script: str,
-    module_names: str | list[str],
+    artifact_names: str | list[str],
     timeout: int = 120,
     data_dir: Path | None = None,
 ) -> dict:
     """Copy files into test_dir, run test script in Docker, return parsed JSON results.
 
     Copies into test_dir:
-    - All files from eval_dir (test scripts, helpers)
+    - All files from validation_dir (test scripts, helpers)
     - All files from data_dir if provided (ground truth, test cases)
     - scaffold/python/validation/ package (so test scripts can import helpers)
 
-    The test script receives module_names as positional args and should write
+    The test script receives artifact_names as positional args and should write
     results to _test_results.json (preferred) or print JSON to stdout (fallback).
     """
-    RESULTS_FILE = "_test_results.json"
-
-    for f in eval_dir.iterdir():
+    for f in validation_dir.iterdir():
         if f.is_file():
             shutil.copy(f, test_dir / f.name)
     if data_dir and data_dir.is_dir():
@@ -197,9 +200,9 @@ def run_eval_in_docker(
                 shutil.copy(f, test_dir / f.name)
     _copy_scaffold_to_docker(test_dir)
     # Remove stale results file from a previous script run
-    results_path = test_dir / RESULTS_FILE
+    results_path = test_dir / TEST_RESULTS_FILE
     results_path.unlink(missing_ok=True)
-    args = [module_names] if isinstance(module_names, str) else module_names
+    args = [artifact_names] if isinstance(artifact_names, str) else artifact_names
     success, output = run_python_in_docker(test_dir, test_script, timeout=timeout, args=args)
     # Primary: read results from file (immune to stdout pollution)
     if results_path.exists():
@@ -215,9 +218,9 @@ def run_eval_in_docker(
 
 
 def make_execution_validator(
-    eval_dir: Path,
+    validation_dir: Path,
     test_script: str | list[str],
-    module_file: str | list[str],
+    target_artifacts: str | list[str],
     timeout: int = 120,
     data_dir: Path | None = None,
 ):
@@ -227,38 +230,38 @@ def make_execution_validator(
     outputs {"passed": [...], "failed": [...]} JSON, then wire it up:
 
         validate_execution = make_execution_validator(
-            eval_dir=Path(__file__).parent,
+            validation_dir=Path(__file__).parent,
             test_script="test_memory.py",
-            module_file="agent_system.py",
+            target_artifacts="agent_system.py",
         )
 
     Args:
-        eval_dir: Directory containing test scripts (typically Path(__file__).parent).
+        validation_dir: Directory containing test scripts (typically Path(__file__).parent).
         test_script: Name(s) of test script(s) to run. Results are aggregated.
-        module_file: Name(s) of module file(s) Claude should fix. All are checked
-            for existence and passed as args to each test script.
+        target_artifacts: File(s) or directory(s) Claude should produce. All are
+            checked for existence and passed as args to each test script.
         timeout: Docker execution timeout in seconds.
         data_dir: Optional directory with ground truth / test case data to copy.
     """
     test_scripts = [test_script] if isinstance(test_script, str) else test_script
-    module_files = [module_file] if isinstance(module_file, str) else module_file
+    artifacts = [target_artifacts] if isinstance(target_artifacts, str) else target_artifacts
 
     def validate_execution(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:
         passed, failed = [], []
-        for mf in module_files:
-            if not (test_dir / mf).exists():
-                failed.append(f"Module file not found: {test_dir / mf}")
+        for artifact in artifacts:
+            if not (test_dir / artifact).exists():
+                failed.append(f"Artifact not found: {artifact}")
         if failed:
             return passed, failed
-        # Serialize outputs so test scripts can access run_id, events, etc.
+        # Serialize run context so test scripts can access run_id, events, etc.
         if outputs:
-            (test_dir / "_outputs.json").write_text(json.dumps(outputs, default=str))
+            (test_dir / RUN_CONTEXT_FILE).write_text(json.dumps(outputs, default=str))
         for script in test_scripts:
             results = run_eval_in_docker(
                 test_dir,
-                eval_dir,
+                validation_dir,
                 script,
-                module_files,
+                artifacts,
                 timeout=timeout,
                 data_dir=data_dir,
             )

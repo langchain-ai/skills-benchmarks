@@ -16,6 +16,8 @@ import sys
 from dataclasses import dataclass, field
 from typing import Any
 
+from scaffold.python.validation.core import write_test_results
+
 
 @dataclass
 class TestContext:
@@ -303,6 +305,5 @@ if __name__ == "__main__":
 
     results = run_tests(sys.argv[1])
     print(json.dumps(results, indent=2))
-    with open("_test_results.json", "w") as f:
-        json.dump(results, f)
+    write_test_results(results)
     sys.exit(1 if results["error"] or results["failed"] else 0)

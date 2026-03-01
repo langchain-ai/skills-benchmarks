@@ -9,9 +9,9 @@ from pathlib import Path
 from scaffold.python.utils import make_execution_validator
 
 validate_execution = make_execution_validator(
-    eval_dir=Path(__file__).parent,
+    validation_dir=Path(__file__).parent,
     test_script="test_memory.py",
-    module_file="agent_system.py",
+    target_artifacts="agent_system.py",
 )
 
 # List of all validators

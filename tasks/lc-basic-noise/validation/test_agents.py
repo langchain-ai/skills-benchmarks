@@ -11,7 +11,12 @@ import subprocess
 import sys
 
 from scaffold.python.utils import evaluate_with_schema
-from scaffold.python.validation.core import check_noise_outputs, check_skill_invoked
+from scaffold.python.validation.core import (
+    check_noise_outputs,
+    check_skill_invoked,
+    load_test_context,
+    write_test_results,
+)
 
 MODERN_PATTERNS = {
     "from langchain.agents import create_agent": "imports create_agent from langchain.agents",
@@ -76,7 +81,7 @@ def check_agent_output(filepath, label, eval_prompt):
 def check_outputs_metadata():
     passed, failed = [], []
     try:
-        outputs = json.loads(open("_outputs.json").read())
+        outputs = load_test_context()
     except (FileNotFoundError, json.JSONDecodeError):
         return passed, failed
 
@@ -135,6 +140,5 @@ if __name__ == "__main__":
         sys.exit(1)
     results = run_tests(sys.argv[1], sys.argv[2])
     print(json.dumps(results, indent=2))
-    with open("_test_results.json", "w") as f:
-        json.dump(results, f)
+    write_test_results(results)
     sys.exit(1 if results["failed"] else 0)

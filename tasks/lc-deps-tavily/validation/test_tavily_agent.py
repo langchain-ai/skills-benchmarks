@@ -11,7 +11,12 @@ import subprocess
 import sys
 
 from scaffold.python.utils import evaluate_with_schema
-from scaffold.python.validation.core import check_skill_invoked, check_starter_skill_first
+from scaffold.python.validation.core import (
+    check_skill_invoked,
+    check_starter_skill_first,
+    load_test_context,
+    write_test_results,
+)
 
 CORRECT_IMPORTS = [
     "from langchain_tavily import TavilySearch",
@@ -88,7 +93,7 @@ def check_output(filepath):
 def check_outputs_metadata():
     passed, failed = [], []
     try:
-        outputs = json.loads(open("_outputs.json").read())
+        outputs = load_test_context()
     except (FileNotFoundError, json.JSONDecodeError):
         return passed, failed
 
@@ -120,6 +125,5 @@ if __name__ == "__main__":
         sys.exit(1)
     results = run_tests(sys.argv[1])
     print(json.dumps(results, indent=2))
-    with open("_test_results.json", "w") as f:
-        json.dump(results, f)
+    write_test_results(results)
     sys.exit(1 if results["failed"] else 0)

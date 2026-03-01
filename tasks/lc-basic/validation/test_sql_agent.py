@@ -1,7 +1,7 @@
 """Test script for lc-basic validation.
 
 Checks SQL agent code patterns, syntax, execution, and output quality.
-Reads _outputs.json for metrics and skill tracking.
+Reads _test_context.json for metrics and skill tracking.
 Runs inside Docker via make_execution_validator.
 
 Usage: python test_sql_agent.py <agent_file>
@@ -13,7 +13,11 @@ import subprocess
 import sys
 
 from scaffold.python.utils import evaluate_with_schema
-from scaffold.python.validation.core import check_skill_invoked
+from scaffold.python.validation.core import (
+    check_skill_invoked,
+    load_test_context,
+    write_test_results,
+)
 
 MODERN_PATTERNS = {
     "from langchain.agents import create_agent": "imports create_agent from langchain.agents",
@@ -89,10 +93,10 @@ def check_output(filepath):
 
 
 def check_outputs_metadata():
-    """Read metrics and skill tracking from _outputs.json."""
+    """Read metrics and skill tracking from _test_context.json."""
     passed = []
     try:
-        outputs = json.loads(open("_outputs.json").read())
+        outputs = load_test_context()
     except (FileNotFoundError, json.JSONDecodeError):
         return passed, []
 
@@ -125,6 +129,5 @@ if __name__ == "__main__":
         sys.exit(1)
     results = run_tests(sys.argv[1])
     print(json.dumps(results, indent=2))
-    with open("_test_results.json", "w") as f:
-        json.dump(results, f)
+    write_test_results(results)
     sys.exit(1 if results["failed"] else 0)

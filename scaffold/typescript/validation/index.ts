@@ -16,7 +16,7 @@ export {
   NOISE_TASK_PROMPTS,
   NOISE_TASK_DELIVERABLES,
   // Functions
-  loadOutputs,
+  loadTestContext,
   checkFileExists,
   checkPattern,
   checkNoPattern,

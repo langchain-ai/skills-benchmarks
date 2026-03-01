@@ -26,9 +26,9 @@ REQUIRED_FUNCTIONS = [
 
 # Runs in Docker: tracing patterns, language syntax, code execution
 validate_execution = make_execution_validator(
-    eval_dir=Path(__file__).parent,
+    validation_dir=Path(__file__).parent,
     test_script="test_tracing.py",
-    module_file=["backend/sql_agent.py", "frontend/support_bot.ts"],
+    target_artifacts=["backend/sql_agent.py", "frontend/support_bot.ts"],
 )
 
 

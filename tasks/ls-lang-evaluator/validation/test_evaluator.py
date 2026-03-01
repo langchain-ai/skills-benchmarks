@@ -13,6 +13,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from scaffold.python.validation.core import write_test_results
+
 
 def find_evaluator(directory, extensions):
     """Find evaluator file in directory."""
@@ -250,6 +252,5 @@ if __name__ == "__main__":
         sys.exit(1)
     results = run_tests(sys.argv[1], sys.argv[2])
     print(json.dumps(results, indent=2))
-    with open("_test_results.json", "w") as f:
-        json.dump(results, f)
+    write_test_results(results)
     sys.exit(1 if results["failed"] else 0)

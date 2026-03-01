@@ -24,5 +24,6 @@ description = "Python workspace with agent_system.py - a Deep Agents (claude-age
 timeout_sec = 600
 
 [validation]
-# Pattern-based validation checking for fixes from da_memory + da_subagents
-validators = ["MemoryPatternValidator", "SubagentPatternValidator"]
+test_scripts = "test_memory_v2.py"
+target_artifacts = ["agent_system.py"]
+timeout = 120

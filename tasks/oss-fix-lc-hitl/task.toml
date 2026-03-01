@@ -17,5 +17,6 @@ description = "Python workspace with broken_agent.py - a LangChain document mana
 timeout_sec = 600
 
 [validation]
-# Execution-based validation - actually runs the code and checks behavior
-validators = ["HITLValidator", "ApprovalValidator", "PersistenceValidator"]
+test_scripts = "test_hitl_v2.py"
+target_artifacts = ["broken_agent.py"]
+timeout = 120

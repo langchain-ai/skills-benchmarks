@@ -191,9 +191,14 @@ def run_eval_in_docker(
     New test scripts (TestRunner) read artifacts from _test_context.json.
     Legacy test scripts receive artifacts as CLI args for backward compat.
     """
+    # Copy validation scripts and data into subdirectories matching the task's
+    # local structure. This keeps Claude's workspace clean and makes paths
+    # consistent between local development and Docker execution.
+    val_dir = test_dir / "validation"
+    val_dir.mkdir(exist_ok=True)
     for f in validation_dir.iterdir():
         if f.is_file():
-            shutil.copy(f, test_dir / f.name)
+            shutil.copy(f, val_dir / f.name)
     if data_dir and data_dir.is_dir():
         for f in data_dir.iterdir():
             if f.is_file():
@@ -202,7 +207,9 @@ def run_eval_in_docker(
     # Remove stale results file from a previous script run
     results_path = test_dir / TEST_RESULTS_FILE
     results_path.unlink(missing_ok=True)
-    success, output = run_python_in_docker(test_dir, test_script, timeout=timeout, args=args)
+    success, output = run_python_in_docker(
+        test_dir, f"validation/{test_script}", timeout=timeout, args=args
+    )
     # Primary: read results from file (immune to stdout pollution)
     if results_path.exists():
         try:

@@ -1,6 +1,6 @@
 ---
 name: LangGraph Execution Control
-description: "INVOKE THIS SKILL for LangGraph workflows, parallel execution, interrupts, or streaming. Covers Send API for fan-out, interrupt() for human-in-the-loop, Command for resuming, and stream modes (values/updates/messages). Fixes for interrupt without checkpointer, missing reducers for Send, and stream mode tuple unpacking."
+description: "INVOKE THIS SKILL for LangGraph workflows, parallel execution, interrupts, or streaming. Covers Send API for fan-out, interrupt() for human-in-the-loop, Command for resuming, and stream modes (values/updates/messages)."
 ---
 
 <overview>

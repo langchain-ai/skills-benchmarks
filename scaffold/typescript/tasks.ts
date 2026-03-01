@@ -19,6 +19,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseToml } from "smol-toml";
+import { makeExecutionValidator } from "./utils.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -190,7 +191,6 @@ export function loadTask(name: string, tasksDir?: string): Task {
     loadValidators: () => {
       const vc = config.validation;
       if (!vc.testScripts) return [];
-      const { makeExecutionValidator } = require("./utils.js");
       return [
         makeExecutionValidator(validationDir, vc.testScripts, vc.targetArtifacts, {
           timeout: vc.timeout,

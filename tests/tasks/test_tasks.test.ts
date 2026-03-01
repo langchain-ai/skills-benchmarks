@@ -333,18 +333,35 @@ ls.describe(
             `  Skills invoked: ${events.skills_invoked?.join(", ") || "none"}`,
           );
 
-          // Basic validation only - task-specific validators are Python and run via pytest
-          // Python test runner loads validators from task.load_validators() for full checks
-          const passed: string[] = [];
-          const failed: string[] = [];
+          // Run task validators (same as Python's test_tasks.py)
+          const validators = task.loadValidators();
+          const outputs: Record<string, unknown> = {
+            run_id: runId,
+            langsmith_env: process.env.LANGSMITH_PROJECT || null,
+            treatment_name: treatmentName,
+            events,
+            noise_tasks: treatmentCfg.noise_tasks || [],
+          };
 
-          if (events.skills_invoked && events.skills_invoked.length > 0) {
-            passed.push("skills_invoked");
-          }
-          if (result.returncode === 0) {
-            passed.push("claude_completed");
+          let passed: string[] = [];
+          let failed: string[] = [];
+
+          if (validators.length > 0) {
+            for (const validator of validators) {
+              const result = validator(testDir, outputs);
+              passed.push(...result.passed);
+              failed.push(...result.failed);
+            }
           } else {
-            failed.push("claude_failed");
+            // No validators configured — fall back to basic checks
+            if (events.skills_invoked && events.skills_invoked.length > 0) {
+              passed.push("skills_invoked");
+            }
+            if (result.returncode === 0) {
+              passed.push("claude_completed");
+            } else {
+              failed.push("claude_failed");
+            }
           }
 
           // Log outputs to LangSmith experiment

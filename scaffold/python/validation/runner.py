@@ -87,8 +87,9 @@ class TestRunner:
         """Import a Python file as a module. Returns the module or None.
 
         Cached per path — calling with the same path returns the same module
-        (avoids re-executing side effects). On first failure, caches None and
-        records a failed check. Subsequent calls return None silently.
+        (avoids re-executing side effects). On first failure, records a failed
+        check and caches None. Subsequent calls return None and record a
+        cached failure (so the calling check satisfies the passed/failed requirement).
         """
         target = Path(path).resolve()
         cache_key = str(target)

@@ -113,21 +113,36 @@ def run_claude_in_docker(
 
 
 def _copy_scaffold_to_docker(test_dir: Path):
-    """Copy scaffold/python/{utils.py,validation/} into test_dir preserving import paths.
+    """Copy both Python and TypeScript scaffolds into test_dir.
 
-    After this, test scripts can use the same imports as host code:
-        from scaffold.python.validation import validate_langsmith_trace
+    Test scripts may be in either language regardless of which test runner
+    invokes them, so both scaffolds are always available.
     """
+    scaffold_root = SCAFFOLD_PYTHON_DIR.parent
+    scaffold_dir = test_dir / "scaffold"
+    scaffold_dir.mkdir(parents=True, exist_ok=True)
+    (scaffold_dir / "__init__.py").touch()
 
-    dest = test_dir / "scaffold" / "python"
-    dest.mkdir(parents=True, exist_ok=True)
-    (test_dir / "scaffold" / "__init__.py").touch()
-    (dest / "__init__.py").touch()
-    shutil.copy(SCAFFOLD_PYTHON_DIR / "utils.py", dest / "utils.py")
-    validation_src = SCAFFOLD_PYTHON_DIR / "validation"
-    validation_dest = dest / "validation"
-    if validation_src.is_dir():
-        shutil.copytree(validation_src, validation_dest, dirs_exist_ok=True)
+    # Python scaffold
+    py_dest = scaffold_dir / "python"
+    py_dest.mkdir(exist_ok=True)
+    (py_dest / "__init__.py").touch()
+    shutil.copy(SCAFFOLD_PYTHON_DIR / "utils.py", py_dest / "utils.py")
+    py_validation = SCAFFOLD_PYTHON_DIR / "validation"
+    if py_validation.is_dir():
+        shutil.copytree(py_validation, py_dest / "validation", dirs_exist_ok=True)
+
+    # TypeScript scaffold (so TS test scripts work from Python runner too)
+    ts_src = scaffold_root / "typescript"
+    if ts_src.is_dir():
+        ts_dest = scaffold_dir / "typescript"
+        ts_dest.mkdir(parents=True, exist_ok=True)
+        ts_utils = ts_src / "utils.ts"
+        if ts_utils.exists():
+            shutil.copy(ts_utils, ts_dest / "utils.ts")
+        ts_validation = ts_src / "validation"
+        if ts_validation.is_dir():
+            shutil.copytree(ts_validation, ts_dest / "validation", dirs_exist_ok=True)
 
 
 def _parse_json_output(output: str) -> dict | None:
@@ -206,7 +221,11 @@ def run_eval_in_docker(
     # Remove stale results file from a previous script run
     results_path = test_dir / TEST_RESULTS_FILE
     results_path.unlink(missing_ok=True)
-    success, output = run_python_in_docker(test_dir, f"validation/{test_script}", timeout=timeout)
+    script_path = f"validation/{test_script}"
+    if test_script.endswith((".ts", ".js")):
+        success, output = run_node_in_docker(test_dir, script_path, timeout=timeout)
+    else:
+        success, output = run_python_in_docker(test_dir, script_path, timeout=timeout)
     # Primary: read results from file (immune to stdout pollution)
     if results_path.exists():
         try:

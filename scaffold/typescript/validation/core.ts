@@ -5,7 +5,7 @@
  * Mirrors scaffold/python/validation/core.py.
  */
 
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 // =============================================================================
@@ -44,16 +44,36 @@ export const NOISE_TASK_DELIVERABLES: Record<string, string> = {
 };
 
 // =============================================================================
+// CONSTANTS
+// =============================================================================
+
+/** Reserved filenames for host ↔ Docker data transport. */
+export const RUN_CONTEXT_FILE =
+  process.env.BENCH_RUN_CONTEXT || "_test_context.json";
+export const TEST_RESULTS_FILE =
+  process.env.BENCH_TEST_RESULTS || "_test_results.json";
+
+// =============================================================================
 // HELPERS
 // =============================================================================
 
 /** Load run context (run_id, events, etc.) written by the host for test scripts. */
-export function loadTestContext(path: string = process.env.BENCH_RUN_CONTEXT || "_test_context.json"): Record<string, unknown> {
+export function loadTestContext(
+  path: string = RUN_CONTEXT_FILE,
+): Record<string, unknown> {
   try {
     return JSON.parse(readFileSync(path, "utf8"));
   } catch {
     return {};
   }
+}
+
+/** Write test results JSON for the host to read. */
+export function writeTestResults(
+  results: Record<string, unknown>,
+  path: string = TEST_RESULTS_FILE,
+): void {
+  writeFileSync(path, JSON.stringify(results, null, 2));
 }
 
 // =============================================================================

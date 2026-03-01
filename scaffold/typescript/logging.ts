@@ -179,6 +179,7 @@ export interface EventsSummary {
   tool_calls?: number;
   files_created?: string[];
   skills_invoked?: string[];
+  scripts_used?: string[];
 }
 
 export interface TreatmentResult {
@@ -206,6 +207,7 @@ export function createTreatmentResult(
       duration_seconds: events.duration_seconds,
       num_turns: events.num_turns,
       tool_calls: events.tool_calls.length,
+      skills_invoked: events.skills_invoked,
     },
     run_id: runId,
   };
@@ -486,6 +488,38 @@ export class ExperimentLogger {
     );
     lines.push("");
 
+    // Aggregate by base treatment name (strip -N-M suffix from --count reps)
+    const baseTreatments: Record<string, TreatmentResult[]> = {};
+    const repPattern = /^(.+)-\d+-\d+$/;
+    for (const [name, runs] of Object.entries(this.results)) {
+      const match = name.match(repPattern);
+      const baseName = match ? match[1] : name;
+      if (!baseTreatments[baseName]) baseTreatments[baseName] = [];
+      baseTreatments[baseName].push(...runs);
+    }
+
+    if (Object.keys(baseTreatments).length < Object.keys(this.results).length) {
+      lines.push("## Aggregated by Treatment\n");
+      lines.push("| Treatment | Reps Passed | Checks | Avg Turns | Avg Duration | Skills | Scripts |");
+      lines.push("|-----------|-------------|--------|-----------|--------------|--------|---------|");
+
+      for (const [baseName, allRuns] of Object.entries(baseTreatments)) {
+        const repsPassed = allRuns.filter((r) => r.checks_failed.length === 0).length;
+        const totalReps = allRuns.length;
+        const aggPassed = allRuns.reduce((s, r) => s + r.checks_passed.length, 0);
+        const aggTotal = allRuns.reduce((s, r) => s + r.checks_passed.length + r.checks_failed.length, 0);
+        const aggPct = aggTotal > 0 ? ((aggPassed / aggTotal) * 100).toFixed(0) : "0";
+        const turns = allRuns.map((r) => r.events_summary.num_turns).filter((t): t is number => t != null);
+        const avgTurns = turns.length > 0 ? (turns.reduce((a, b) => a + b, 0) / turns.length).toFixed(0) : "?";
+        const durs = allRuns.map((r) => r.events_summary.duration_seconds).filter((d): d is number => d != null);
+        const avgDur = durs.length > 0 ? `${(durs.reduce((a, b) => a + b, 0) / durs.length).toFixed(0)}s` : "?";
+        const skills = allRuns[0]?.events_summary.skills_invoked?.join(", ") || "none";
+        const scripts = allRuns[0]?.events_summary.scripts_used?.join(", ") || "none";
+        lines.push(`| ${baseName} | ${repsPassed}/${totalReps} | ${aggPassed}/${aggTotal} (${aggPct}%) | ${avgTurns} | ${avgDur} | ${skills} | ${scripts} |`);
+      }
+      lines.push("");
+    }
+
     // Detailed per-treatment breakdown
     lines.push("## Treatment Details\n");
     for (const [name, runs] of Object.entries(this.results)) {
@@ -529,6 +563,12 @@ export class ExperimentLogger {
         }
         if (metrics.length > 0) {
           lines.push(`- Metrics: ${metrics.join(", ")}`);
+        }
+        if (r.events_summary.skills_invoked?.length) {
+          lines.push(`- Skills invoked: ${r.events_summary.skills_invoked.join(", ")}`);
+        }
+        if (r.events_summary.scripts_used?.length) {
+          lines.push(`- Scripts used: ${r.events_summary.scripts_used.join(", ")}`);
         }
 
         // Show all passed checks

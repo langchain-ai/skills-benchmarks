@@ -35,6 +35,7 @@ import { getCurrentRunTree } from "langsmith/traceable";
 import {
   runClaudeInDocker,
   runNodeInDocker,
+  runPythonInDocker,
   runShell,
 } from "../scaffold/typescript/utils.js";
 import {
@@ -174,19 +175,15 @@ interface ExperimentCoordination {
 }
 
 function getOrCreateExperimentId(name: string): string {
-  // Check if experiment file exists
-  if (existsSync(EXPERIMENT_FILE)) {
-    try {
-      const data: ExperimentCoordination = JSON.parse(
-        readFileSync(EXPERIMENT_FILE, "utf8"),
-      );
-      return data.experimentId;
-    } catch {
-      // File corrupted, create new
-    }
+  // Always generate a fresh ID. The coordination file exists only so
+  // parallel vitest workers (if ever used) can find the same experiment.
+  // We delete any stale file first to prevent leaking across runs.
+  try {
+    unlinkSync(EXPERIMENT_FILE);
+  } catch {
+    // Ignore — file may not exist
   }
 
-  // Create new experiment ID
   const timestamp = new Date()
     .toISOString()
     .replace(/[-:]/g, "")
@@ -433,55 +430,72 @@ function saveArtifacts(
   mkdirSync(claudeDir, { recursive: true });
   mkdirSync(executionDir, { recursive: true });
 
-  // Files to exclude (environment files)
-  const envFiles = new Set([
-    "sql_agent.py",
-    "chinook.db",
-    "requirements.txt",
-    "Dockerfile",
+  // Infrastructure dirs (copied before/after Claude runs, not Claude's work)
+  const excludeDirs = new Set([
+    ".claude", "node_modules", "__pycache__",
+    "scaffold", "validation", "data",
+  ]);
+  // Environment and bench-internal files
+  const excludeFiles = new Set([
+    "Dockerfile", "requirements.txt", "chinook.db",
+    "package.json", "package-lock.json", "tsconfig.json",
+    process.env.BENCH_RUN_CONTEXT || "_test_context.json",
+    process.env.BENCH_TEST_RESULTS || "_test_results.json",
   ]);
 
-  // Copy files Claude generated
-  try {
-    for (const item of readdirSync(testDir)) {
-      const itemPath = join(testDir, item);
-      const stat = statSync(itemPath);
-      if (stat.isFile() && !envFiles.has(item) && !item.startsWith(".")) {
-        try {
-          copyFileSync(itemPath, join(claudeDir, item));
-        } catch {
-          // Skip files that can't be copied
+  // Recursively copy Claude's files, excluding infrastructure
+  const claudeFiles: string[] = [];
+  function walkDir(dir: string, relPrefix = ""): void {
+    try {
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const relPath = relPrefix ? `${relPrefix}/${entry.name}` : entry.name;
+        if (entry.isDirectory()) {
+          if (!excludeDirs.has(entry.name)) {
+            walkDir(join(dir, entry.name), relPath);
+          }
+        } else if (entry.isFile()) {
+          if (entry.name.startsWith(".")) continue;
+          if (excludeFiles.has(entry.name)) continue;
+          try {
+            const dest = join(claudeDir, relPath);
+            mkdirSync(dirname(dest), { recursive: true });
+            copyFileSync(join(dir, entry.name), dest);
+            claudeFiles.push(join(dir, entry.name));
+          } catch {
+            // Skip files that can't be copied
+          }
         }
       }
+    } catch {
+      // Skip unreadable directories
     }
-  } catch {
-    // Skip if directory doesn't exist or can't be read
   }
+  walkDir(testDir);
 
-  // Run TypeScript/JavaScript files and save execution output
-  try {
-    const scriptFiles = readdirSync(testDir).filter(
-      (f: string) =>
-        (f.endsWith(".ts") || f.endsWith(".js")) && !envFiles.has(f),
-    );
+  // Run Claude-created scripts at root level and save execution output
+  for (const filePath of claudeFiles) {
+    const fileName = filePath.split("/").pop()!;
+    const isRoot = dirname(filePath) === testDir;
+    if (!isRoot) continue;
 
-    for (const scriptFile of scriptFiles) {
+    const ext = fileName.split(".").pop();
+    if (ext === "py") {
       try {
-        const [success, output] = runNodeInDocker(testDir, scriptFile, {
-          timeout: 300,
-        });
-        const status = success ? "success" : "error";
-        const baseName = scriptFile.replace(/\.(ts|js)$/, "");
-        const outputFile = join(executionDir, `${baseName}_${status}.txt`);
-        writeFileSync(outputFile, cleanOutput(output));
+        const [success, output] = runPythonInDocker(testDir, fileName, { timeout: 300 });
+        const baseName = fileName.replace(/\.py$/, "");
+        writeFileSync(join(executionDir, `${baseName}_${success ? "success" : "error"}.txt`), cleanOutput(output));
       } catch (e) {
-        const baseName = scriptFile.replace(/\.(ts|js)$/, "");
-        const errorFile = join(executionDir, `${baseName}_error.txt`);
-        writeFileSync(errorFile, String(e));
+        writeFileSync(join(executionDir, `${fileName.replace(/\.py$/, "")}_error.txt`), String(e));
+      }
+    } else if (ext === "ts" || ext === "js") {
+      try {
+        const [success, output] = runNodeInDocker(testDir, fileName, { timeout: 300 });
+        const baseName = fileName.replace(/\.(ts|js)$/, "");
+        writeFileSync(join(executionDir, `${baseName}_${success ? "success" : "error"}.txt`), cleanOutput(output));
+      } catch (e) {
+        writeFileSync(join(executionDir, `${fileName.replace(/\.(ts|js)$/, "")}_error.txt`), String(e));
       }
     }
-  } catch {
-    // Skip if no script files
   }
 }
 

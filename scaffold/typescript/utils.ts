@@ -3,7 +3,7 @@
  */
 
 import { spawnSync, type SpawnSyncOptions } from "node:child_process";
-import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
+import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, readdirSync, statSync, unlinkSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { config as loadEnv } from "dotenv";
@@ -157,20 +157,42 @@ export function runScriptInDocker(
   return [false, `Unsupported file type: ${scriptName}`];
 }
 
-/** Copy scaffold/typescript/{utils,validation} into testDir preserving import paths. */
+/** Copy scaffold into testDir so test scripts can import helpers.
+ *
+ * Copies both Python and TypeScript scaffolds — test scripts may be
+ * in either language regardless of which test runner invokes them.
+ */
 function copyScaffoldToDocker(testDir: string): void {
-  const scaffoldDir = resolve(__dirname);
-  const dest = join(testDir, "scaffold", "typescript");
-  mkdirSync(dest, { recursive: true });
-  copyFileSync(join(scaffoldDir, "utils.ts"), join(dest, "utils.ts"));
-  const validationSrc = join(scaffoldDir, "validation");
-  const validationDest = join(dest, "validation");
-  if (existsSync(validationSrc)) {
-    cpSync(validationSrc, validationDest, { recursive: true });
+  const scaffoldRoot = resolve(__dirname, "..");
+
+  // TypeScript scaffold
+  const tsDest = join(testDir, "scaffold", "typescript");
+  mkdirSync(tsDest, { recursive: true });
+  copyFileSync(join(scaffoldRoot, "typescript", "utils.ts"), join(tsDest, "utils.ts"));
+  const tsValidation = join(scaffoldRoot, "typescript", "validation");
+  if (existsSync(tsValidation)) {
+    cpSync(tsValidation, join(tsDest, "validation"), { recursive: true });
+  }
+
+  // Python scaffold (test scripts import from scaffold.python)
+  const pyDest = join(testDir, "scaffold", "python");
+  mkdirSync(pyDest, { recursive: true });
+  writeFileSync(join(testDir, "scaffold", "__init__.py"), "");
+  writeFileSync(join(pyDest, "__init__.py"), "");
+  copyFileSync(join(scaffoldRoot, "python", "utils.py"), join(pyDest, "utils.py"));
+  const pyValidation = join(scaffoldRoot, "python", "validation");
+  if (existsSync(pyValidation)) {
+    cpSync(pyValidation, join(pyDest, "validation"), { recursive: true });
   }
 }
 
-/** Copy eval dir + data dir + scaffold into testDir, run test script in Docker, return parsed JSON. */
+/** Copy validation/data/scaffold into testDir subdirs, run test script in Docker, return parsed JSON.
+ *
+ * Copies into testDir (mirroring the local task directory structure):
+ * - validation/ — test scripts and helpers
+ * - data/ — ground truth, test cases, reference files
+ * - scaffold/typescript/ — so test scripts can import helpers
+ */
 export function runEvalInDocker(
   testDir: string,
   validationDir: string,
@@ -179,20 +201,52 @@ export function runEvalInDocker(
 ): Record<string, unknown> {
   const { timeout = 120, dataDir } = options;
   const resolvedTestDir = resolve(testDir);
-  for (const dir of [validationDir, dataDir]) {
-    if (!dir || !existsSync(dir)) continue;
-    for (const entry of readdirSync(dir)) {
-      const src = join(dir, entry);
+
+  // Copy validation scripts to validation/ subdir
+  const valDest = join(resolvedTestDir, "validation");
+  mkdirSync(valDest, { recursive: true });
+  if (existsSync(validationDir)) {
+    for (const entry of readdirSync(validationDir)) {
+      const src = join(validationDir, entry);
       if (statSync(src).isFile()) {
-        copyFileSync(src, join(resolvedTestDir, entry));
+        copyFileSync(src, join(valDest, entry));
       }
     }
   }
+
+  // Copy data files to data/ subdir
+  if (dataDir && existsSync(dataDir)) {
+    const dataDest = join(resolvedTestDir, "data");
+    mkdirSync(dataDest, { recursive: true });
+    for (const entry of readdirSync(dataDir)) {
+      const src = join(dataDir, entry);
+      if (statSync(src).isFile()) {
+        copyFileSync(src, join(dataDest, entry));
+      }
+    }
+  }
+
   copyScaffoldToDocker(resolvedTestDir);
-  const [success, output] = runPythonInDocker(testDir, testScript, {
-    timeout,
-  });
-  // Try full output first (handles pretty-printed JSON), then line-by-line
+
+  // Remove stale results file
+  const resultsFile = process.env.BENCH_TEST_RESULTS || "_test_results.json";
+  const resultsPath = join(resolvedTestDir, resultsFile);
+  if (existsSync(resultsPath)) {
+    unlinkSync(resultsPath);
+  }
+
+  const [success, output] = runScriptInDocker(testDir, `validation/${testScript}`, { timeout });
+
+  // Primary: read results from file (immune to stdout pollution)
+  if (existsSync(resultsPath)) {
+    try {
+      return JSON.parse(readFileSync(resultsPath, "utf8")) as Record<string, unknown>;
+    } catch {
+      // fall through to stdout parsing
+    }
+  }
+
+  // Fallback: parse stdout JSON
   try {
     const full = JSON.parse(output.trim());
     if (full && typeof full === "object" && !Array.isArray(full)) {
@@ -220,27 +274,28 @@ export function runEvalInDocker(
 /** Create a standard execution validator that runs test script(s) in Docker. */
 export function makeExecutionValidator(
   validationDir: string,
-  testScript: string | string[],
+  testScripts: string | string[],
   targetArtifacts: string | string[],
   options: { timeout?: number; dataDir?: string } = {},
 ): (testDir: string, outputs: Record<string, unknown>) => { passed: string[]; failed: string[] } {
   const { timeout = 120, dataDir } = options;
-  const testScripts = Array.isArray(testScript) ? testScript : [testScript];
+  const scripts = Array.isArray(testScripts) ? testScripts : [testScripts];
   const artifacts = Array.isArray(targetArtifacts) ? targetArtifacts : [targetArtifacts];
+  const runContextFile = process.env.BENCH_RUN_CONTEXT || "_test_context.json";
+
   return (testDir: string, outputs: Record<string, unknown>) => {
     const passed: string[] = [];
     const failed: string[] = [];
     for (const artifact of artifacts) {
       if (!existsSync(join(resolve(testDir), artifact))) {
-        failed.push(`Artifact not found: ${join(resolve(testDir), artifact)}`);
+        failed.push(`Artifact not found: ${artifact}`);
       }
     }
     if (failed.length > 0) return { passed, failed };
     // Serialize run context + target artifacts for test scripts
     const context = outputs ? { ...outputs, target_artifacts: artifacts } : { target_artifacts: artifacts };
-    const runContextFile = process.env.BENCH_RUN_CONTEXT || "_test_context.json";
     writeFileSync(join(resolve(testDir), runContextFile), JSON.stringify(context));
-    for (const script of testScripts) {
+    for (const script of scripts) {
       const results = runEvalInDocker(testDir, validationDir, script, {
         timeout,
         dataDir,

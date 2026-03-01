@@ -19,6 +19,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseToml } from "smol-toml";
+import { makeExecutionValidator } from "./utils.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -40,6 +41,12 @@ export interface SetupConfig {
   templateVars: Record<string, string>; // Format strings that can use {run_id}
 }
 
+export interface ValidationConfig {
+  testScripts: string | string[];
+  targetArtifacts: string | string[];
+  timeout: number;
+}
+
 export interface TaskConfig {
   name: string;
   description: string;
@@ -49,7 +56,7 @@ export interface TaskConfig {
   default_treatments?: string[];
   template_required?: string[];
   environment_description?: string;
-  validators?: string[];
+  validation: ValidationConfig;
   setup: SetupConfig;
 }
 
@@ -58,10 +65,14 @@ export interface Task {
   path: string;
   config: TaskConfig;
   environmentDir: string | null;
+  validationDir: string;
   dataDir: string | null;
   defaultTreatments: string[];
   setup: SetupConfig;
   renderPrompt: (vars?: Record<string, string>) => string;
+  loadValidators: () => Array<
+    (testDir: string, outputs: Record<string, unknown>) => { passed: string[]; failed: string[] }
+  >;
 }
 
 // =============================================================================
@@ -110,15 +121,19 @@ function tomlToTaskConfig(toml: Record<string, unknown>): TaskConfig {
   const templateVars = (setupData.template_vars || {}) as Record<string, string>;
 
   return {
-    name: metadata.name as string || "",
-    description: metadata.description as string || "",
+    name: (metadata.name as string) || "",
+    description: (metadata.description as string) || "",
     difficulty: metadata.difficulty as string,
     category: metadata.category as string,
     tags: metadata.tags as string[],
     default_treatments: metadata.default_treatments as string[],
     template_required: template.required as string[],
     environment_description: environment.description as string,
-    validators: validation.validators as string[],
+    validation: {
+      testScripts: (validation.test_scripts as string | string[]) || "",
+      targetArtifacts: (validation.target_artifacts as string | string[]) || [],
+      timeout: (validation.timeout as number) || 120,
+    },
     setup: {
       dataHandlers,
       templateVars,
@@ -152,8 +167,9 @@ export function loadTask(name: string, tasksDir?: string): Task {
     instruction = readFileSync(instructionPath, "utf8");
   }
 
-  // Check for environment and data directories
+  // Check for environment, validation, and data directories
   const environmentDir = join(taskPath, "environment");
+  const validationDir = join(taskPath, "validation");
   const dataDir = join(taskPath, "data");
 
   return {
@@ -161,15 +177,31 @@ export function loadTask(name: string, tasksDir?: string): Task {
     path: taskPath,
     config,
     environmentDir: existsSync(environmentDir) ? environmentDir : null,
+    validationDir,
     dataDir: existsSync(dataDir) ? dataDir : null,
     defaultTreatments: config.default_treatments || [],
     setup: config.setup,
     renderPrompt: (vars = {}) => {
+      const required = config.template_required || [];
+      const missing = required.filter((k) => !(k in vars));
+      if (missing.length > 0) {
+        throw new Error(`Missing required template variables: ${missing.join(", ")}`);
+      }
       let prompt = instruction;
       for (const [key, value] of Object.entries(vars)) {
         prompt = prompt.replace(new RegExp(`\\{${key}\\}`, "g"), value);
       }
       return prompt;
+    },
+    loadValidators: () => {
+      const vc = config.validation;
+      if (!vc.testScripts) return [];
+      return [
+        makeExecutionValidator(validationDir, vc.testScripts, vc.targetArtifacts, {
+          timeout: vc.timeout,
+          dataDir: existsSync(dataDir) ? dataDir : undefined,
+        }),
+      ];
     },
   };
 }

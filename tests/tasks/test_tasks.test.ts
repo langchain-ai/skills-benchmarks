@@ -280,12 +280,16 @@ ls.describe(
 
           // === FULL EXECUTION MODE ===
 
+          // Combined name matches Python's format (task-treatment)
+          const fullName = `${taskName}-${treatmentName}`;
+
           // Setup test context
           const { testDir, logger } = setupTest("task_test");
 
           // Run data handlers (upload traces, datasets, etc.)
+          let traceIdMap: Record<string, string> = {};
           if (task.dataDir && existsSync(task.dataDir)) {
-            await runTaskHandlers(
+            traceIdMap = await runTaskHandlers(
               task.setup.dataHandlers,
               task.dataDir,
               process.env.LANGSMITH_PROJECT || null,
@@ -315,7 +319,7 @@ ls.describe(
             result = runClaude(testDir, prompt, {
               timeout: 600,
               logger,
-              treatmentName,
+              treatmentName: fullName,
             });
           } finally {
             cleanupExperimentTraceEnv(ccEnvKeys);
@@ -333,18 +337,36 @@ ls.describe(
             `  Skills invoked: ${events.skills_invoked?.join(", ") || "none"}`,
           );
 
-          // Basic validation only - task-specific validators are Python and run via pytest
-          // Python test runner loads validators from task.load_validators() for full checks
-          const passed: string[] = [];
-          const failed: string[] = [];
+          // Run task validators (same as Python's test_tasks.py)
+          const validators = task.loadValidators();
+          const outputs: Record<string, unknown> = {
+            run_id: runId,
+            langsmith_env: process.env.LANGSMITH_PROJECT || null,
+            treatment_name: treatmentName,
+            events,
+            noise_tasks: treatmentCfg.noise_tasks || [],
+            trace_id_map: traceIdMap,
+          };
 
-          if (events.skills_invoked && events.skills_invoked.length > 0) {
-            passed.push("skills_invoked");
-          }
-          if (result.returncode === 0) {
-            passed.push("claude_completed");
+          let passed: string[] = [];
+          let failed: string[] = [];
+
+          if (validators.length > 0) {
+            for (const validator of validators) {
+              const result = validator(testDir, outputs);
+              passed.push(...result.passed);
+              failed.push(...result.failed);
+            }
           } else {
-            failed.push("claude_failed");
+            // No validators configured — fall back to basic checks
+            if (events.skills_invoked && events.skills_invoked.length > 0) {
+              passed.push("skills_invoked");
+            }
+            if (result.returncode === 0) {
+              passed.push("claude_completed");
+            } else {
+              failed.push("claude_failed");
+            }
           }
 
           // Log outputs to LangSmith experiment
@@ -375,7 +397,7 @@ ls.describe(
           // Record results (local experiment logs)
           recordResult(
             logger,
-            treatmentName,
+            fullName,
             events,
             passed,
             failed,

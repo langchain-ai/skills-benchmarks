@@ -5,7 +5,13 @@ Validates dataset structure, trajectory accuracy, and LangSmith uploads.
 
 from pathlib import Path
 
-from scaffold.python.utils import get_field, get_nested_field, read_json_file
+from scaffold.python.utils import (
+    get_field,
+    get_langsmith_client,
+    get_nested_field,
+    read_json_file,
+    safe_api_call,
+)
 
 
 def extract_examples(data) -> list:
@@ -113,8 +119,6 @@ def check_dataset_upload(
     """Verify dataset was uploaded to LangSmith and matches local file."""
     test_dir = test_dir or Path(".")
     outputs = outputs or {}
-    from scaffold.python.utils import get_langsmith_client, safe_api_call
-
     passed, failed = [], []
 
     # Read local file to get example count

@@ -13,10 +13,13 @@ export {
   type ValidationResult,
   type ValidatorFn,
   // Constants
+  RUN_CONTEXT_FILE,
+  TEST_RESULTS_FILE,
   NOISE_TASK_PROMPTS,
   NOISE_TASK_DELIVERABLES,
   // Functions
   loadTestContext,
+  writeTestResults,
   checkFileExists,
   checkPattern,
   checkNoPattern,
@@ -34,6 +37,9 @@ export {
   checkPythonExecution,
   checkTypescriptExecution,
 } from "./docker.js";
+
+// Test runner
+export { TestRunner, type CheckFn } from "./runner.js";
 
 // Tracing validators
 export {

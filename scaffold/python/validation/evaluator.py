@@ -13,7 +13,11 @@ import json
 import re
 from pathlib import Path
 
-from scaffold.python.utils import get_langsmith_client
+from scaffold.python.utils import (
+    get_langsmith_client,
+    run_node_in_docker,
+    run_python_in_docker,
+)
 
 
 def find_evaluator_file(
@@ -290,8 +294,6 @@ def check_evaluator_logic(
     Returns:
         (passed, failed) lists
     """
-    from scaffold.python.utils import run_node_in_docker, run_python_in_docker
-
     passed, failed = [], []
     data_dir = data_dir or (test_dir / "data")
     validation_dir = test_dir / "validation"

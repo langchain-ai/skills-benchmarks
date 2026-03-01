@@ -750,20 +750,25 @@ def _save_artifacts(base_dir: Path, treatment_name: str, rep: int, test_dir: Pat
     claude_dir.mkdir(parents=True, exist_ok=True)
     execution_dir.mkdir(parents=True, exist_ok=True)
 
-    # Files/dirs to exclude
+    from scaffold.python.utils import RUN_CONTEXT_FILE, TEST_RESULTS_FILE
+
+    # Infrastructure files to exclude from artifacts
     exclude_files = {
         "chinook.db",
         "requirements.txt",
         "Dockerfile",
         "package.json",
         "tsconfig.json",
+        RUN_CONTEXT_FILE,
+        TEST_RESULTS_FILE,
     }
-    exclude_dirs = {".claude", "node_modules", "__pycache__"}
+    # Dirs to always skip (infrastructure, not Claude's work)
+    exclude_dirs = {".claude", "node_modules", "__pycache__", "scaffold", "validation"}
 
-    # Recursively copy all files Claude generated/modified
+    # Recursively copy all files (excluding infrastructure dirs and dotfiles)
     for item in test_dir.rglob("*"):
         if item.is_file():
-            if item.name in exclude_files or item.name.startswith("."):
+            if item.name.startswith("."):
                 continue
             if any(excl in item.parts for excl in exclude_dirs):
                 continue

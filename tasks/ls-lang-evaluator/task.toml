@@ -24,7 +24,9 @@ dockerfile = "Dockerfile"
 timeout_sec = 900
 
 [validation]
-validators = ["LanguageValidator", "SyntaxValidator", "DatasetValidator", "UploadValidator"]
+test_scripts = "test_evaluator_v2.py"
+target_artifacts = ["backend", "frontend"]
+timeout = 120
 
 [setup]
 # Template variables generated at runtime

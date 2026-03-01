@@ -15,4 +15,12 @@ dockerfile = "environment/Dockerfile"
 timeout_sec = 900
 
 [validation]
-validators = ["validators"]
+test_scripts = "test_framework_v2.py"
+target_artifacts = [
+    "qa_agent.py",
+    "approval_pipeline.py",
+    "middleware_agent.py",
+    "research_assistant.py",
+    "personal_assistant.py",
+]
+timeout = 120

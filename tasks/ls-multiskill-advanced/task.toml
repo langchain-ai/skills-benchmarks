@@ -15,7 +15,9 @@ dockerfile = "Dockerfile"
 timeout_sec = 900
 
 [validation]
-validators = ["DatasetStructureValidator", "EvaluatorValidator", "SkillScriptValidator", "TrajectoryAccuracyValidator"]
+test_scripts = "test_advanced_v2.py"
+target_artifacts = ["trajectory_dataset.json"]
+timeout = 120
 
 [setup]
 # Data handlers - upload traces when trace files exist

@@ -56,7 +56,7 @@ def build_docker_image(test_dir: Path, force: bool = False, verbose: bool = Fals
 def _docker_run_script(
     mode: str, test_dir: Path, script_name: str, timeout: int = 120, args: list = None
 ) -> tuple[bool, str]:
-    """Run a script in Docker. Returns (success, combined_output).
+    """Run a script in Docker. Returns (success, stdout).
 
     Args:
         mode: docker.sh subcommand ("run-python" or "run-node")
@@ -66,7 +66,7 @@ def _docker_run_script(
     try:
         cmd = [mode, str(test_dir), script_name] + (args or [])
         result = run_shell("docker.sh", *cmd, timeout=timeout, check=False)
-        return result.returncode == 0, result.stdout + result.stderr
+        return result.returncode == 0, result.stdout
     except subprocess.TimeoutExpired:
         return False, f"Timeout ({timeout}s)"
     except Exception as e:
@@ -183,9 +183,10 @@ def run_eval_in_docker(
     - All files from data_dir if provided (ground truth, test cases)
     - scaffold/python/validation/ package (so test scripts can import helpers)
 
-    The test script receives module_names as positional args and must print
-    a JSON dict with "passed" and "failed" lists to stdout.
+    The test script receives module_names as positional args and should write
+    results to _test_results.json (preferred) or print JSON to stdout (fallback).
     """
+    RESULTS_FILE = "_test_results.json"
 
     for f in eval_dir.iterdir():
         if f.is_file():
@@ -195,8 +196,18 @@ def run_eval_in_docker(
             if f.is_file():
                 shutil.copy(f, test_dir / f.name)
     _copy_scaffold_to_docker(test_dir)
+    # Remove stale results file from a previous script run
+    results_path = test_dir / RESULTS_FILE
+    results_path.unlink(missing_ok=True)
     args = [module_names] if isinstance(module_names, str) else module_names
     success, output = run_python_in_docker(test_dir, test_script, timeout=timeout, args=args)
+    # Primary: read results from file (immune to stdout pollution)
+    if results_path.exists():
+        try:
+            return json.loads(results_path.read_text())
+        except (json.JSONDecodeError, ValueError):
+            pass
+    # Fallback: parse stdout
     result = _parse_json_output(output)
     if result is not None:
         return result

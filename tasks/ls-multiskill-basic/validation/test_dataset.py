@@ -75,4 +75,6 @@ if __name__ == "__main__":
     dataset_file = sys.argv[1] if len(sys.argv) > 1 else "trajectory_dataset.json"
     results = run_tests(dataset_file)
     print(json.dumps(results, indent=2))
+    with open("_test_results.json", "w") as f:
+        json.dump(results, f)
     sys.exit(1 if results["failed"] else 0)

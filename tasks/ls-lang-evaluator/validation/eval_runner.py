@@ -230,6 +230,8 @@ def main():
     results = [run_test_case(eval_func, tc) for tc in test_cases]
 
     # Output results (parsed by validator)
+    with open("_test_results.json", "w") as f:
+        json.dump(results, f)
     print("EVALUATOR_RESULTS:" + json.dumps(results))
 
 

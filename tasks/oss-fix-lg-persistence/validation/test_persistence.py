@@ -323,6 +323,8 @@ if __name__ == "__main__":
     results = run_tests(agent_path)
 
     print(json.dumps(results, indent=2))
+    with open("_test_results.json", "w") as f:
+        json.dump(results, f)
 
     if results["error"] or results["failed"]:
         sys.exit(1)

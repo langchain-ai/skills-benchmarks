@@ -181,6 +181,7 @@ docker_run() {
     docker run --rm \
         -v "$dir:/workspace" \
         -w /workspace \
+        -e PYTHONPATH=/workspace \
         "${ENV_ARGS[@]}" \
         "$image_name" \
         "${cmd[@]}"

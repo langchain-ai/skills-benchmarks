@@ -1,22 +1,16 @@
 """Test script for lc-basic-noise validation.
 
 Checks SQL agent and search agent code/output, plus noise deliverables.
-
-Usage: python test_agents.py <sql_agent_file> <search_agent_file>
 """
 
 import ast
-import json
-import subprocess
-import sys
 
 from scaffold.python.utils import evaluate_with_schema
 from scaffold.python.validation.core import (
     check_noise_outputs,
     check_skill_invoked,
-    load_test_context,
-    write_test_results,
 )
+from scaffold.python.validation.runner import TestRunner
 
 MODERN_PATTERNS = {
     "from langchain.agents import create_agent": "imports create_agent from langchain.agents",
@@ -33,112 +27,114 @@ FORBIDDEN_PATTERNS = {
 }
 
 
-def check_agent_code(filepath, label):
-    passed, failed = [], []
-    try:
-        content = open(filepath).read()
-    except FileNotFoundError:
-        return [], [f"{label}: {filepath} not created"]
+def _check_agent_code(runner: TestRunner, filepath, label):
+    """Check code patterns and syntax for one agent file."""
+    source = runner.read(filepath)
+    if not source:
+        runner.failed(f"{label}: {filepath} not created")
+        return
 
-    passed.append(f"{label}: {filepath} created")
+    runner.passed(f"{label}: {filepath} created")
     try:
-        ast.parse(content)
-        passed.append(f"{label}: valid syntax")
+        ast.parse(source)
+        runner.passed(f"{label}: valid syntax")
     except SyntaxError as e:
-        failed.append(f"{label}: syntax error line {e.lineno}")
-        return passed, failed
+        runner.failed(f"{label}: syntax error line {e.lineno}")
+        return
 
-    found = [d for p, d in MODERN_PATTERNS.items() if p in content]
-    missing = [d for p, d in MODERN_PATTERNS.items() if p not in content]
+    found = [d for p, d in MODERN_PATTERNS.items() if p in source]
+    missing = [d for p, d in MODERN_PATTERNS.items() if p not in source]
     if found:
-        passed.append(f"{label}: {', '.join(found[:3])}")
-    if missing:
-        failed.extend(f"{label}: missing {d}" for d in missing)
+        runner.passed(f"{label}: {', '.join(found[:3])}")
+    for d in missing:
+        runner.failed(f"{label}: missing {d}")
     for pattern, desc in FORBIDDEN_PATTERNS.items():
-        if pattern in content:
-            failed.append(f"{label}: {desc}")
-    return passed, failed
+        if pattern in source:
+            runner.failed(f"{label}: {desc}")
 
 
-def check_agent_output(filepath, label, eval_prompt):
-    passed, failed = [], []
-    try:
-        r = subprocess.run([sys.executable, filepath], capture_output=True, text=True, timeout=120)
-    except Exception as e:
-        return [], [f"{label}: execution error - {str(e)[:80]}"]
+def _check_agent_output(runner: TestRunner, filepath, label, eval_prompt):
+    """Run agent and evaluate output quality."""
+    output = runner.execute(filepath, timeout=120)
+    if output is None:
+        return
 
-    if r.returncode != 0:
-        return [], [f"{label}: runtime error - {(r.stderr or r.stdout)[:100]}"]
+    if "Traceback" in output and "Error" in output:
+        runner.failed(f"{label}: runtime error - {output[:100]}")
+        return
 
-    output = r.stdout
-    passed.append(f"{label}: produced output ({len(output)} chars)")
+    runner.passed(f"{label}: produced output ({len(output)} chars)")
     result = evaluate_with_schema(eval_prompt.format(output=output[:3000]))
     quality = "GOOD" if result["pass"] else "LOW"
-    passed.append(f"{label} quality [{quality}]: {result['reason']}")
-    return passed, failed
+    runner.passed(f"{label} quality [{quality}]: {result['reason']}")
 
 
-def check_outputs_metadata():
-    passed, failed = [], []
-    try:
-        outputs = load_test_context()
-    except (FileNotFoundError, json.JSONDecodeError):
-        return passed, failed
+def check_sql_agent_code(runner: TestRunner):
+    """SQL agent has correct patterns and syntax."""
+    _check_agent_code(runner, runner.artifacts[0], "SQL Agent")
 
-    events = outputs.get("events", {})
-    passed.append(f"Turns: {events.get('num_turns', 0) or 0}")
-    passed.append(f"Duration: {events.get('duration_seconds', 0) or 0:.0f}s")
-    passed.append(f"Tool calls: {len(events.get('tool_calls', []))}")
 
-    p, _ = check_skill_invoked(outputs, "langchain-agents", required=False)
-    passed.extend(p)
+def check_sql_agent_output(runner: TestRunner):
+    """SQL agent executes and produces quality output."""
+    _check_agent_output(
+        runner,
+        runner.artifacts[0],
+        "SQL Agent",
+        "Evaluate this program output.\n"
+        "Task: SQL analytics agent querying chinook.db for top 5 best-selling genres by tracks sold\n"
+        "Expected: Should show genre names with track counts or sales numbers\n"
+        "Output:\n```\n{output}\n```\n"
+        "Does this demonstrate the expected behavior?",
+    )
 
-    # Check noise deliverables
-    noise_tasks = outputs.get("noise_tasks", [])
+
+def check_search_agent_code(runner: TestRunner):
+    """Search agent has correct patterns and syntax."""
+    _check_agent_code(runner, runner.artifacts[1], "Search Agent")
+
+
+def check_search_agent_output(runner: TestRunner):
+    """Search agent executes and produces quality output."""
+    _check_agent_output(
+        runner,
+        runner.artifacts[1],
+        "Search Agent",
+        "Evaluate this program output.\n"
+        "Task: Web search agent with mock search tool answering 'What is the capital of France?'\n"
+        "Expected: Should return 'Paris' as the answer with proper agent reasoning\n"
+        "Output:\n```\n{output}\n```\n"
+        "Does this demonstrate the expected behavior?",
+    )
+
+
+def check_metadata(runner: TestRunner):
+    """Track skill invocations, metadata, and noise deliverables."""
+    events = runner.context.get("events", {})
+    runner.passed(f"Turns: {events.get('num_turns', 0) or 0}")
+    runner.passed(f"Duration: {events.get('duration_seconds', 0) or 0:.0f}s")
+    runner.passed(f"Tool calls: {len(events.get('tool_calls', []))}")
+
+    p, _ = check_skill_invoked(runner.context, "langchain-agents", required=False)
+    for msg in p:
+        runner.passed(msg)
+
+    noise_tasks = runner.context.get("noise_tasks", [])
     if not noise_tasks:
         noise_tasks = ["docker_patterns", "react_components", "api_docs"]
     np, nf = check_noise_outputs(noise_tasks)
-    passed.extend(np)
-    failed.extend(nf)
-
-    return passed, failed
-
-
-def run_tests(sql_file, search_file):
-    passed, failed = [], []
-    for p, f in [
-        check_agent_code(sql_file, "SQL Agent"),
-        check_agent_output(
-            sql_file,
-            "SQL Agent",
-            "Evaluate this program output.\n"
-            "Task: SQL analytics agent querying chinook.db for top 5 best-selling genres by tracks sold\n"
-            "Expected: Should show genre names with track counts or sales numbers\n"
-            "Output:\n```\n{output}\n```\n"
-            "Does this demonstrate the expected behavior?",
-        ),
-        check_agent_code(search_file, "Search Agent"),
-        check_agent_output(
-            search_file,
-            "Search Agent",
-            "Evaluate this program output.\n"
-            "Task: Web search agent with mock search tool answering 'What is the capital of France?'\n"
-            "Expected: Should return 'Paris' as the answer with proper agent reasoning\n"
-            "Output:\n```\n{output}\n```\n"
-            "Does this demonstrate the expected behavior?",
-        ),
-        check_outputs_metadata(),
-    ]:
-        passed.extend(p)
-        failed.extend(f)
-    return {"passed": passed, "failed": failed, "error": None}
+    for msg in np:
+        runner.passed(msg)
+    for msg in nf:
+        runner.failed(msg)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print("Usage: python test_agents.py <sql_agent> <search_agent>")
-        sys.exit(1)
-    results = run_tests(sys.argv[1], sys.argv[2])
-    print(json.dumps(results, indent=2))
-    write_test_results(results)
-    sys.exit(1 if results["failed"] else 0)
+    TestRunner.run(
+        [
+            check_sql_agent_code,
+            check_sql_agent_output,
+            check_search_agent_code,
+            check_search_agent_output,
+            check_metadata,
+        ]
+    )

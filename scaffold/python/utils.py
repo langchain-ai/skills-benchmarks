@@ -179,17 +179,15 @@ def run_eval_in_docker(
     test_script: str,
     timeout: int = 120,
     data_dir: Path | None = None,
-    args: list[str] | None = None,
 ) -> dict:
     """Copy files into test_dir, run test script in Docker, return parsed JSON results.
 
     Copies into test_dir:
-    - All files from validation_dir (test scripts, helpers)
-    - All files from data_dir if provided (ground truth, test cases)
+    - validation/ — test scripts and helpers
+    - data files at root (if data_dir provided)
     - scaffold/python/validation/ package (so test scripts can import helpers)
 
-    New test scripts (TestRunner) read artifacts from _test_context.json.
-    Legacy test scripts receive artifacts as CLI args for backward compat.
+    Test scripts read artifacts and run context from _test_context.json.
     """
     # Copy validation scripts and data into subdirectories matching the task's
     # local structure. This keeps Claude's workspace clean and makes paths
@@ -207,9 +205,7 @@ def run_eval_in_docker(
     # Remove stale results file from a previous script run
     results_path = test_dir / TEST_RESULTS_FILE
     results_path.unlink(missing_ok=True)
-    success, output = run_python_in_docker(
-        test_dir, f"validation/{test_script}", timeout=timeout, args=args
-    )
+    success, output = run_python_in_docker(test_dir, f"validation/{test_script}", timeout=timeout)
     # Primary: read results from file (immune to stdout pollution)
     if results_path.exists():
         try:
@@ -225,7 +221,7 @@ def run_eval_in_docker(
 
 def make_execution_validator(
     validation_dir: Path,
-    test_script: str | list[str],
+    test_scripts: str | list[str],
     target_artifacts: str | list[str],
     timeout: int = 120,
     data_dir: Path | None = None,
@@ -237,19 +233,19 @@ def make_execution_validator(
 
         validate_execution = make_execution_validator(
             validation_dir=Path(__file__).parent,
-            test_script="test_memory.py",
+            test_scripts="test_memory.py",
             target_artifacts="agent_system.py",
         )
 
     Args:
         validation_dir: Directory containing test scripts (typically Path(__file__).parent).
-        test_script: Name(s) of test script(s) to run. Results are aggregated.
+        test_scripts: Name(s) of test script(s) to run. Results are aggregated.
         target_artifacts: File(s) or directory(s) Claude should produce. All are
             checked for existence and passed as args to each test script.
         timeout: Docker execution timeout in seconds.
         data_dir: Optional directory with ground truth / test case data to copy.
     """
-    test_scripts = [test_script] if isinstance(test_script, str) else test_script
+    test_scripts = [test_scripts] if isinstance(test_scripts, str) else test_scripts
     artifacts = [target_artifacts] if isinstance(target_artifacts, str) else target_artifacts
 
     def validate_execution(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:
@@ -274,7 +270,6 @@ def make_execution_validator(
                 script,
                 timeout=timeout,
                 data_dir=data_dir,
-                args=artifacts,  # passed as CLI args for legacy test scripts
             )
             passed.extend(results.get("passed", []))
             failed.extend(results.get("failed", []))

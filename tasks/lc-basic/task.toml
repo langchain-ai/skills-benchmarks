@@ -23,6 +23,6 @@ dockerfile = "environment/Dockerfile"
 timeout_sec = 900
 
 [validation]
-test_scripts = "test_sql_agent_v2.py"
+test_scripts = "test_sql_agent.py"
 target_artifacts = ["sql_agent_1.py"]
 timeout = 120

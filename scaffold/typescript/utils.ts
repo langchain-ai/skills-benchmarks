@@ -175,7 +175,6 @@ export function runEvalInDocker(
   testDir: string,
   validationDir: string,
   testScript: string,
-  artifactNames: string | string[],
   options: { timeout?: number; dataDir?: string } = {},
 ): Record<string, unknown> {
   const { timeout = 120, dataDir } = options;
@@ -190,10 +189,8 @@ export function runEvalInDocker(
     }
   }
   copyScaffoldToDocker(resolvedTestDir);
-  const args = Array.isArray(artifactNames) ? artifactNames : [artifactNames];
   const [success, output] = runPythonInDocker(testDir, testScript, {
     timeout,
-    args,
   });
   // Try full output first (handles pretty-printed JSON), then line-by-line
   try {
@@ -239,13 +236,12 @@ export function makeExecutionValidator(
       }
     }
     if (failed.length > 0) return { passed, failed };
-    // Serialize outputs so test scripts can access run_id, events, etc.
-    if (outputs) {
-      const runContextFile = process.env.BENCH_RUN_CONTEXT || "_test_context.json";
-      writeFileSync(join(resolve(testDir), runContextFile), JSON.stringify(outputs));
-    }
+    // Serialize run context + target artifacts for test scripts
+    const context = outputs ? { ...outputs, target_artifacts: artifacts } : { target_artifacts: artifacts };
+    const runContextFile = process.env.BENCH_RUN_CONTEXT || "_test_context.json";
+    writeFileSync(join(resolve(testDir), runContextFile), JSON.stringify(context));
     for (const script of testScripts) {
-      const results = runEvalInDocker(testDir, validationDir, script, artifacts, {
+      const results = runEvalInDocker(testDir, validationDir, script, {
         timeout,
         dataDir,
       });

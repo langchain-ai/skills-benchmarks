@@ -83,43 +83,52 @@ Use the run_id `{run_id}` for any resources you create.
 
 ### 3. Write a test script
 
-Test scripts run inside Docker and output JSON with `passed` and `failed` lists. They receive artifact names as positional args.
+Test scripts run inside Docker. Use `TestRunner` to handle all boilerplate — you just write check functions that call `runner.passed()` or `runner.failed()`.
 
 ```python
 """Test script for my-task. Runs in Docker via make_execution_validator."""
-import json
-import sys
-from scaffold.python.validation.core import check_skill_invoked, load_test_context
+from scaffold.python.validation.runner import TestRunner
 
-def run_tests(artifact_name):
-    passed, failed = [], []
-    outputs = load_test_context()  # loads _test_context.json serialized by the factory
 
-    # Check the artifact
-    try:
-        content = open(artifact_name).read()
-        passed.append("Artifact: file exists")
-    except FileNotFoundError:
-        failed.append("Artifact: file not found")
-        return {"passed": passed, "failed": failed, "error": None}
-
-    # Add your checks here
-    if "expected_pattern" in content:
-        passed.append("Artifact: has expected pattern")
+def check_file_exists(runner):
+    """Artifact file exists and is readable."""
+    source = runner.read(runner.artifacts[0])
+    if source:
+        runner.passed("file exists")
     else:
-        failed.append("Artifact: missing expected pattern")
+        runner.failed("file not found or empty")
 
-    # Track skill invocation (informational)
-    p, _ = check_skill_invoked(outputs, "my-skill", required=False)
-    passed.extend(p)
 
-    return {"passed": passed, "failed": failed, "error": None}
+def check_has_pattern(runner):
+    """Contains expected pattern."""
+    source = runner.read(runner.artifacts[0])
+    if "expected_pattern" in source:
+        runner.passed("has expected pattern")
+    else:
+        runner.failed("missing expected pattern")
+
+
+def check_runs(runner):
+    """Code executes without errors."""
+    output = runner.execute()
+    if output is not None:
+        runner.passed(f"produced output ({len(output)} chars)")
+    else:
+        runner.failed("execution failed")
+
 
 if __name__ == "__main__":
-    results = run_tests(sys.argv[1])
-    print(json.dumps(results, indent=2))
-    sys.exit(1 if results["failed"] else 0)
+    TestRunner.run([check_file_exists, check_has_pattern, check_runs])
 ```
+
+**TestRunner provides:**
+- `runner.artifacts` — list of artifact paths as passed from validators.py
+- `runner.context` — run context (run_id, events, etc.)
+- `runner.read(path)` — read any file's contents
+- `runner.execute(path)` — run a file as subprocess, return stdout
+- `runner.passed(msg)` / `runner.failed(msg)` — record results
+
+Each check function **must** call `runner.passed()` or `runner.failed()` — not calling either is an error.
 
 ### 4. Wire up with the factory
 
@@ -130,12 +139,9 @@ from pathlib import Path
 from scaffold.python.utils import make_execution_validator
 
 validate_execution = make_execution_validator(
-    validation_dir=Path(__file__).parent,  # directory containing test script
-    test_script="test_my_task.py",        # test script name
-    target_artifacts="output.py",         # file(s) Claude should create/fix
-    # Optional:
-    # data_dir=Path(__file__).parent.parent / "data",  # ground truth data
-    # timeout=120,
+    validation_dir=Path(__file__).parent,
+    test_script="test_my_task.py",
+    target_artifacts="output.py",
 )
 
 VALIDATORS = [validate_execution]

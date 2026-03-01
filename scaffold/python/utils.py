@@ -177,9 +177,9 @@ def run_eval_in_docker(
     test_dir: Path,
     validation_dir: Path,
     test_script: str,
-    artifact_names: str | list[str],
     timeout: int = 120,
     data_dir: Path | None = None,
+    args: list[str] | None = None,
 ) -> dict:
     """Copy files into test_dir, run test script in Docker, return parsed JSON results.
 
@@ -188,8 +188,8 @@ def run_eval_in_docker(
     - All files from data_dir if provided (ground truth, test cases)
     - scaffold/python/validation/ package (so test scripts can import helpers)
 
-    The test script receives artifact_names as positional args and should write
-    results to _test_results.json (preferred) or print JSON to stdout (fallback).
+    New test scripts (TestRunner) read artifacts from _test_context.json.
+    Legacy test scripts receive artifacts as CLI args for backward compat.
     """
     for f in validation_dir.iterdir():
         if f.is_file():
@@ -202,7 +202,6 @@ def run_eval_in_docker(
     # Remove stale results file from a previous script run
     results_path = test_dir / TEST_RESULTS_FILE
     results_path.unlink(missing_ok=True)
-    args = [artifact_names] if isinstance(artifact_names, str) else artifact_names
     success, output = run_python_in_docker(test_dir, test_script, timeout=timeout, args=args)
     # Primary: read results from file (immune to stdout pollution)
     if results_path.exists():
@@ -249,21 +248,26 @@ def make_execution_validator(
     def validate_execution(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:
         passed, failed = [], []
         for artifact in artifacts:
-            if not (test_dir / artifact).exists():
+            # Support glob patterns (e.g., "backend/evaluator.*")
+            if any(c in artifact for c in "*?["):
+                if not list(test_dir.glob(artifact)):
+                    failed.append(f"Artifact not found: {artifact}")
+            elif not (test_dir / artifact).exists():
                 failed.append(f"Artifact not found: {artifact}")
         if failed:
             return passed, failed
-        # Serialize run context so test scripts can access run_id, events, etc.
-        if outputs:
-            (test_dir / RUN_CONTEXT_FILE).write_text(json.dumps(outputs, default=str))
+        # Serialize run context + target artifacts for test scripts
+        context = dict(outputs) if outputs else {}
+        context["target_artifacts"] = artifacts
+        (test_dir / RUN_CONTEXT_FILE).write_text(json.dumps(context, default=str))
         for script in test_scripts:
             results = run_eval_in_docker(
                 test_dir,
                 validation_dir,
                 script,
-                artifacts,
                 timeout=timeout,
                 data_dir=data_dir,
+                args=artifacts,  # passed as CLI args for legacy test scripts
             )
             passed.extend(results.get("passed", []))
             failed.extend(results.get("failed", []))

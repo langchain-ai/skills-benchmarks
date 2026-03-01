@@ -24,5 +24,6 @@ description = "Python workspace with chat_app.py - a LangChain chat application 
 timeout_sec = 600
 
 [validation]
-# Pattern-based validation checking for fixes from lc_streaming + lc_tools
-validators = ["StreamingPatternValidator", "ToolPatternValidator"]
+test_scripts = "test_streaming_v2.py"
+target_artifacts = ["chat_app.py"]
+timeout = 120

@@ -17,5 +17,6 @@ description = "Python workspace with broken_pipeline.py - a LangGraph data proce
 timeout_sec = 600
 
 [validation]
-# Execution-based validation - actually runs the code and checks behavior
-validators = ["ExecutionValidator", "SendValidator", "InterruptValidator"]
+test_scripts = "test_execution_v2.py"
+target_artifacts = ["broken_pipeline.py"]
+timeout = 120

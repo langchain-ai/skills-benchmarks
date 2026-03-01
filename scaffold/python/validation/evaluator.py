@@ -293,8 +293,8 @@ def check_evaluator_logic(
     from scaffold.python.utils import run_node_in_docker, run_python_in_docker
 
     passed, failed = [], []
-    data_dir = data_dir or (test_dir.parent / "data")
-    validation_dir = test_dir.parent / "validation"
+    data_dir = data_dir or (test_dir / "data")
+    validation_dir = test_dir / "validation"
 
     # Test Python evaluator
     py_path = find_evaluator_file(test_dir, python_dir, ["py"])

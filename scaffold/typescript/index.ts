@@ -70,7 +70,7 @@ export {
   runValidators,
   checkSkillInvoked,
   checkStarterSkillFirst,
-  loadOutputs,
+  loadTestContext,
   getNoiseTaskPrompts,
   checkNoiseOutputs,
   checkCodeExecution,

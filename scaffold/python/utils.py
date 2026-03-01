@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 
 # Reserved filenames for host ↔ Docker data transport.
-# Same env vars as validation/core.py — env vars are the single source of truth.
+# Duplicated from validation/core.py (can't import due to circular dependency via __init__.py).
 RUN_CONTEXT_FILE = os.environ.get("BENCH_RUN_CONTEXT", "_test_context.json")
 TEST_RESULTS_FILE = os.environ.get("BENCH_TEST_RESULTS", "_test_results.json")
 

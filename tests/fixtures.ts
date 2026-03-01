@@ -50,6 +50,10 @@ import {
   type Events,
 } from "../scaffold/typescript/logging.js";
 import type { SkillConfig } from "../scaffold/typescript/schema.js";
+import {
+  RUN_CONTEXT_FILE,
+  TEST_RESULTS_FILE,
+} from "../scaffold/typescript/validation/core.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 export const PROJECT_ROOT = resolve(__dirname, "..");
@@ -439,8 +443,8 @@ function saveArtifacts(
   const excludeFiles = new Set([
     "Dockerfile", "requirements.txt", "chinook.db",
     "package.json", "package-lock.json", "tsconfig.json",
-    process.env.BENCH_RUN_CONTEXT || "_test_context.json",
-    process.env.BENCH_TEST_RESULTS || "_test_results.json",
+    RUN_CONTEXT_FILE,
+    TEST_RESULTS_FILE,
   ]);
 
   // Recursively copy Claude's files, excluding infrastructure

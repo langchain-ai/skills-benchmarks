@@ -7,6 +7,7 @@ import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, readdirSync,
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { config as loadEnv } from "dotenv";
+import { RUN_CONTEXT_FILE, TEST_RESULTS_FILE } from "./validation/core.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SHELL_DIR = resolve(__dirname, "..", "shell");
@@ -229,8 +230,7 @@ export function runEvalInDocker(
   copyScaffoldToDocker(resolvedTestDir);
 
   // Remove stale results file
-  const resultsFile = process.env.BENCH_TEST_RESULTS || "_test_results.json";
-  const resultsPath = join(resolvedTestDir, resultsFile);
+  const resultsPath = join(resolvedTestDir, TEST_RESULTS_FILE);
   if (existsSync(resultsPath)) {
     unlinkSync(resultsPath);
   }
@@ -281,7 +281,7 @@ export function makeExecutionValidator(
   const { timeout = 120, dataDir } = options;
   const scripts = Array.isArray(testScripts) ? testScripts : [testScripts];
   const artifacts = Array.isArray(targetArtifacts) ? targetArtifacts : [targetArtifacts];
-  const runContextFile = process.env.BENCH_RUN_CONTEXT || "_test_context.json";
+  // Use constant from core.ts (single source of truth)
 
   return (testDir: string, outputs: Record<string, unknown>) => {
     const passed: string[] = [];
@@ -294,7 +294,7 @@ export function makeExecutionValidator(
     if (failed.length > 0) return { passed, failed };
     // Serialize run context + target artifacts for test scripts
     const context = outputs ? { ...outputs, target_artifacts: artifacts } : { target_artifacts: artifacts };
-    writeFileSync(join(resolve(testDir), runContextFile), JSON.stringify(context));
+    writeFileSync(join(resolve(testDir), RUN_CONTEXT_FILE), JSON.stringify(context));
     for (const script of scripts) {
       const results = runEvalInDocker(testDir, validationDir, script, {
         timeout,

@@ -44,7 +44,7 @@ class TestRunner:
     """Runner that handles boilerplate for validation test scripts.
 
     Properties:
-        runner.artifacts  — target artifact paths (from validators.py via _test_context.json)
+        runner.artifacts  — target artifact paths (from task.toml via _test_context.json)
         runner.context    — full run context dict (run_id, events, langsmith_env, etc.)
 
     Methods:

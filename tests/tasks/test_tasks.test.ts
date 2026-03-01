@@ -280,6 +280,9 @@ ls.describe(
 
           // === FULL EXECUTION MODE ===
 
+          // Combined name matches Python's format (task-treatment)
+          const fullName = `${taskName}-${treatmentName}`;
+
           // Setup test context
           const { testDir, logger } = setupTest("task_test");
 
@@ -315,7 +318,7 @@ ls.describe(
             result = runClaude(testDir, prompt, {
               timeout: 600,
               logger,
-              treatmentName,
+              treatmentName: fullName,
             });
           } finally {
             cleanupExperimentTraceEnv(ccEnvKeys);
@@ -392,7 +395,7 @@ ls.describe(
           // Record results (local experiment logs)
           recordResult(
             logger,
-            treatmentName,
+            fullName,
             events,
             passed,
             failed,

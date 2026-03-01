@@ -17,15 +17,7 @@ from typing import Any
 
 import requests
 
-
-def _get_langsmith_client():
-    """Get LangSmith client."""
-    try:
-        from langsmith import Client
-
-        return Client(), None
-    except Exception as e:
-        return None, str(e)
+from scaffold.python.utils import get_langsmith_client as _get_langsmith_client
 
 
 def _parse_ts(s: str) -> datetime | None:

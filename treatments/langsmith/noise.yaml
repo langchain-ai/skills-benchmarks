@@ -29,12 +29,15 @@ LS_BASIC_NOISE:
     - skill: langsmith_dataset
       variant: all
       name: langsmith-dataset
-    - skill: langchain_basic
-      name: langchain-basic
+    - skill: api_docs
+      name: api-docs
+      noise: true
+    - skill: react_components
+      name: react-components
       noise: true
 
 LS_WORKFLOW_NOISE:
-  description: "Unified skills + distractor noise skill (workflow claude_md)"
+  description: "Unified skills + distractor noise skills (workflow claude_md)"
   claude_md: *workflow_claude_md
   skills:
     - skill: langsmith_evaluator
@@ -46,6 +49,9 @@ LS_WORKFLOW_NOISE:
     - skill: langsmith_dataset
       variant: all
       name: langsmith-dataset
-    - skill: langchain_basic
-      name: langchain-basic
+    - skill: api_docs
+      name: api-docs
+      noise: true
+    - skill: react_components
+      name: react-components
       noise: true

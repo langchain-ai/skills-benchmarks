@@ -548,16 +548,6 @@ def run_claude(test_dir, experiment_logger, request):
 
 
 @pytest.fixture
-def run_python_file(test_dir):
-    """Factory fixture to run Python files in Docker."""
-
-    def _run(filename: str, timeout: int = 300):
-        return run_python_in_docker(test_dir, filename, timeout=timeout)
-
-    return _run
-
-
-@pytest.fixture
 def record_result(test_dir, experiment_logger, request):
     """Factory fixture to record validation results and save artifacts."""
 

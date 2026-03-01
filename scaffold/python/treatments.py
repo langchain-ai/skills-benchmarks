@@ -370,6 +370,3 @@ def list_treatments() -> list[str]:
     """
     configs = load_treatments()
     return list(configs.keys())
-
-
-# Legacy aliases for backward compatibility

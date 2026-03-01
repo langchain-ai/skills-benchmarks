@@ -17,16 +17,24 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
-    "chalk": "^5.3.0",
-    "cli-table3": "^0.6.5",
-    "commander": "^12.0.0",
     "dotenv": "^16.6.1",
     "langsmith": "^0.3.87",
     "openai": "^6.22.0",
-    "ora": "^8.0.0",
     "smol-toml": "^1.6.0",
     "yaml": "^2.8.2",
-    "zod": "^3.24.0",
+    "zod": "^3.24.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.19.11",
+    "eslint": "^9.0.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.0.0",
+    "vitest": "^2.1.0",
+    "chalk": "^5.3.0",
+    "cli-table3": "^0.6.5",
+    "commander": "^12.0.0",
+    "ora": "^8.0.0",
     "@langchain/core": "^1.0.0",
     "@langchain/langgraph": "^1.0.0",
     "@langchain/openai": "^1.0.0",
@@ -35,14 +43,6 @@
     "@langchain/classic": "^1.0.0",
     "langchain": "^1.0.0",
     "deepagents": "^1.0.0"
-  },
-  "devDependencies": {
-    "@types/node": "^22.19.11",
-    "eslint": "^9.0.0",
-    "tsx": "^4.7.0",
-    "typescript": "^5.7.0",
-    "typescript-eslint": "^8.0.0",
-    "vitest": "^2.1.0"
   },
   "overrides": {
     "openai": "$openai"

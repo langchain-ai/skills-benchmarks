@@ -15,4 +15,6 @@ dockerfile = "Dockerfile"
 timeout_sec = 900
 
 [validation]
-validators = ["noise_validators"]
+test_scripts = "test_agents_v2.py"
+target_artifacts = ["sql_agent_1.py", "search_agent.py"]
+timeout = 120

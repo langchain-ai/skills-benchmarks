@@ -16,9 +16,9 @@ from scaffold.python.validation import (
 
 # Runs in Docker: existence, syntax, patterns, logic for both languages
 validate_execution = make_execution_validator(
-    eval_dir=Path(__file__).parent,
+    validation_dir=Path(__file__).parent,
     test_script="test_evaluator.py",
-    module_file=["backend", "frontend"],
+    target_artifacts=["backend", "frontend"],
     data_dir=Path(__file__).parent.parent / "data",
 )
 

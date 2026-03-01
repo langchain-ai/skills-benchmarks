@@ -11,6 +11,8 @@ import re
 import subprocess
 import sys
 
+from scaffold.python.validation.core import write_test_results
+
 REQUIRED_FUNCTIONS = [
     "classify_intent",
     "extract_entities",
@@ -200,4 +202,5 @@ if __name__ == "__main__":
         sys.exit(1)
     results = run_tests(sys.argv[1], sys.argv[2])
     print(json.dumps(results, indent=2))
+    write_test_results(results)
     sys.exit(1 if results["failed"] else 0)

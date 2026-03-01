@@ -4,6 +4,7 @@ Basic utilities for file and pattern validation that can be composed together.
 """
 
 import json
+import os
 import re
 from collections.abc import Callable
 from pathlib import Path
@@ -11,9 +12,16 @@ from pathlib import Path
 # Type alias for validator functions
 ValidatorFn = Callable[[Path, dict], tuple[list[str], list[str]]]
 
+# Reserved filenames for host ↔ Docker data transport.
+# Configurable via environment variables; defaults match the convention.
+# BENCH_RUN_CONTEXT: host writes run metadata (run_id, events, etc.) for test scripts to read
+# BENCH_TEST_RESULTS: test scripts write validation results (passed/failed) for host to read
+RUN_CONTEXT_FILE = os.environ.get("BENCH_RUN_CONTEXT", "_test_context.json")
+TEST_RESULTS_FILE = os.environ.get("BENCH_TEST_RESULTS", "_test_results.json")
 
-def load_outputs(path: str = "_outputs.json") -> dict:
-    """Load the outputs dict serialized by make_execution_validator.
+
+def load_test_context(path: str = RUN_CONTEXT_FILE) -> dict:
+    """Load test context (run_id, events, langsmith_env, etc.) written by the host.
 
     Returns empty dict if file not found (e.g. running outside factory).
     """
@@ -21,6 +29,12 @@ def load_outputs(path: str = "_outputs.json") -> dict:
         return json.loads(Path(path).read_text())
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
+
+
+def write_test_results(results: dict, path: str = TEST_RESULTS_FILE) -> None:
+    """Write validation results (passed/failed lists) for the host to read."""
+    with open(path, "w") as f:
+        json.dump(results, f)
 
 
 def check_file_exists(test_dir: Path, filepath: str) -> tuple[list[str], list[str]]:

@@ -15,6 +15,8 @@ import sys
 from dataclasses import dataclass, field
 from typing import Any
 
+from scaffold.python.validation.core import write_test_results
+
 
 @dataclass
 class TestContext:
@@ -323,6 +325,7 @@ if __name__ == "__main__":
     results = run_tests(agent_path)
 
     print(json.dumps(results, indent=2))
+    write_test_results(results)
 
     if results["error"] or results["failed"]:
         sys.exit(1)

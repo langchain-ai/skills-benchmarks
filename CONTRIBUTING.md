@@ -83,31 +83,31 @@ Use the run_id `{run_id}` for any resources you create.
 
 ### 3. Write a test script
 
-Test scripts run inside Docker and output JSON with `passed` and `failed` lists. They receive module file names as positional args.
+Test scripts run inside Docker and output JSON with `passed` and `failed` lists. They receive artifact names as positional args.
 
 ```python
 """Test script for my-task. Runs in Docker via make_execution_validator."""
 import json
 import sys
-from scaffold.python.validation.core import check_skill_invoked, load_outputs
+from scaffold.python.validation.core import check_skill_invoked, load_test_context
 
-def run_tests(module_file):
+def run_tests(artifact_name):
     passed, failed = [], []
-    outputs = load_outputs()  # loads _outputs.json serialized by the factory
+    outputs = load_test_context()  # loads _test_context.json serialized by the factory
 
-    # Check the module file
+    # Check the artifact
     try:
-        content = open(module_file).read()
-        passed.append("Module: file exists")
+        content = open(artifact_name).read()
+        passed.append("Artifact: file exists")
     except FileNotFoundError:
-        failed.append("Module: file not found")
+        failed.append("Artifact: file not found")
         return {"passed": passed, "failed": failed, "error": None}
 
     # Add your checks here
     if "expected_pattern" in content:
-        passed.append("Module: has expected pattern")
+        passed.append("Artifact: has expected pattern")
     else:
-        failed.append("Module: missing expected pattern")
+        failed.append("Artifact: missing expected pattern")
 
     # Track skill invocation (informational)
     p, _ = check_skill_invoked(outputs, "my-skill", required=False)
@@ -130,9 +130,9 @@ from pathlib import Path
 from scaffold.python.utils import make_execution_validator
 
 validate_execution = make_execution_validator(
-    eval_dir=Path(__file__).parent,       # directory containing test script
+    validation_dir=Path(__file__).parent,  # directory containing test script
     test_script="test_my_task.py",        # test script name
-    module_file="output.py",             # file(s) Claude should create/fix
+    target_artifacts="output.py",         # file(s) Claude should create/fix
     # Optional:
     # data_dir=Path(__file__).parent.parent / "data",  # ground truth data
     # timeout=120,
@@ -143,9 +143,9 @@ VALIDATORS = [validate_execution]
 
 The factory handles:
 - Copying test scripts + scaffold validation helpers into Docker
-- Serializing `outputs` dict to `_outputs.json` for test script access
+- Serializing `outputs` dict to `_test_context.json` for test script access
 - Running the test script and parsing JSON results
-- Supports `str | list[str]` for both `test_script` and `module_file`
+- Supports `str | list[str]` for both `test_script` and `target_artifacts`
 
 ### 4. Run your task
 
@@ -227,7 +227,7 @@ Test scripts running in Docker can import helpers from `scaffold.python.validati
 
 | Function | Purpose |
 |----------|---------|
-| `load_outputs(path="_outputs.json")` | Load outputs dict serialized by the factory |
+| `load_test_context(path="_test_context.json")` | Load outputs dict serialized by the factory |
 | `check_file_exists(test_dir, filepath)` | Check file exists |
 | `check_pattern(filepath, pattern, desc)` | Check file contains regex pattern |
 | `check_no_pattern(filepath, pattern, desc)` | Check file doesn't contain pattern |

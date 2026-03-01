@@ -13,6 +13,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from scaffold.python.validation.core import load_test_context, write_test_results
 from scaffold.python.validation.dataset import (
     check_dataset_structure,
     check_dataset_upload,
@@ -137,7 +138,7 @@ def run_tests(dataset_file):
     test_dir = Path(".")
 
     try:
-        outputs = json.loads(open("_outputs.json").read())
+        outputs = load_test_context()
     except (FileNotFoundError, json.JSONDecodeError):
         outputs = {}
 
@@ -173,4 +174,5 @@ if __name__ == "__main__":
     dataset_file = sys.argv[1] if len(sys.argv) > 1 else "trajectory_dataset.json"
     results = run_tests(dataset_file)
     print(json.dumps(results, indent=2))
+    write_test_results(results)
     sys.exit(1 if results["failed"] else 0)

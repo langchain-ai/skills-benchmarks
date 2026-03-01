@@ -173,14 +173,14 @@ function copyScaffoldToDocker(testDir: string): void {
 /** Copy eval dir + data dir + scaffold into testDir, run test script in Docker, return parsed JSON. */
 export function runEvalInDocker(
   testDir: string,
-  evalDir: string,
+  validationDir: string,
   testScript: string,
-  moduleNames: string | string[],
+  artifactNames: string | string[],
   options: { timeout?: number; dataDir?: string } = {},
 ): Record<string, unknown> {
   const { timeout = 120, dataDir } = options;
   const resolvedTestDir = resolve(testDir);
-  for (const dir of [evalDir, dataDir]) {
+  for (const dir of [validationDir, dataDir]) {
     if (!dir || !existsSync(dir)) continue;
     for (const entry of readdirSync(dir)) {
       const src = join(dir, entry);
@@ -190,7 +190,7 @@ export function runEvalInDocker(
     }
   }
   copyScaffoldToDocker(resolvedTestDir);
-  const args = Array.isArray(moduleNames) ? moduleNames : [moduleNames];
+  const args = Array.isArray(artifactNames) ? artifactNames : [artifactNames];
   const [success, output] = runPythonInDocker(testDir, testScript, {
     timeout,
     args,
@@ -222,29 +222,30 @@ export function runEvalInDocker(
 
 /** Create a standard execution validator that runs test script(s) in Docker. */
 export function makeExecutionValidator(
-  evalDir: string,
+  validationDir: string,
   testScript: string | string[],
-  moduleFile: string | string[],
+  targetArtifacts: string | string[],
   options: { timeout?: number; dataDir?: string } = {},
 ): (testDir: string, outputs: Record<string, unknown>) => { passed: string[]; failed: string[] } {
   const { timeout = 120, dataDir } = options;
   const testScripts = Array.isArray(testScript) ? testScript : [testScript];
-  const moduleFiles = Array.isArray(moduleFile) ? moduleFile : [moduleFile];
+  const artifacts = Array.isArray(targetArtifacts) ? targetArtifacts : [targetArtifacts];
   return (testDir: string, outputs: Record<string, unknown>) => {
     const passed: string[] = [];
     const failed: string[] = [];
-    for (const mf of moduleFiles) {
-      if (!existsSync(join(resolve(testDir), mf))) {
-        failed.push(`Module file not found: ${join(resolve(testDir), mf)}`);
+    for (const artifact of artifacts) {
+      if (!existsSync(join(resolve(testDir), artifact))) {
+        failed.push(`Artifact not found: ${join(resolve(testDir), artifact)}`);
       }
     }
     if (failed.length > 0) return { passed, failed };
     // Serialize outputs so test scripts can access run_id, events, etc.
     if (outputs) {
-      writeFileSync(join(resolve(testDir), "_outputs.json"), JSON.stringify(outputs));
+      const runContextFile = process.env.BENCH_RUN_CONTEXT || "_test_context.json";
+      writeFileSync(join(resolve(testDir), runContextFile), JSON.stringify(outputs));
     }
     for (const script of testScripts) {
-      const results = runEvalInDocker(testDir, evalDir, script, moduleFiles, {
+      const results = runEvalInDocker(testDir, validationDir, script, artifacts, {
         timeout,
         dataDir,
       });

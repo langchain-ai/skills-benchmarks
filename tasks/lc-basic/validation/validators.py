@@ -8,9 +8,9 @@ from pathlib import Path
 from scaffold.python.utils import make_execution_validator
 
 validate_execution = make_execution_validator(
-    eval_dir=Path(__file__).parent,
+    validation_dir=Path(__file__).parent,
     test_script="test_sql_agent.py",
-    module_file="sql_agent_1.py",
+    target_artifacts="sql_agent_1.py",
 )
 
 VALIDATORS = [validate_execution]

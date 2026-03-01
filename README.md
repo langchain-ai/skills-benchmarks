@@ -9,19 +9,16 @@ Measures how skill documentation design affects Claude Code's adherence to recom
 ```bash
 # Setup
 uv sync                      # Python
-pnpm install && pnpm build   # TypeScript
+npm install                   # TypeScript
 
-# Run a specific task with specific treatments
-uv run pytest tests/tasks/test_tasks.py --task=ls-multiskill-advanced --treatment=LS_CLAUDE_ADVANCED_NONE,LS_CLAUDE_ADVANCED_FULL -v
-
-# Run with wildcard pattern (all treatments starting with prefix)
-uv run pytest tests/tasks/test_tasks.py --task=ls-lang-tracing --treatment=LS_BASIC_* -v
+# Run a specific task with a treatment
+uv run pytest tests/tasks/test_tasks.py --task=lc-basic --treatment=ALL_MAIN_SKILLS -v
 
 # Run task with its default treatments
 uv run pytest tests/tasks/test_tasks.py --task=ls-multiskill-basic -v
 
 # Run with repetitions and parallel workers
-uv run pytest tests/tasks/test_tasks.py --task=lc-basic --treatment=LCC_CLAUDE_* --count=2 -n 4 -v
+uv run pytest tests/tasks/test_tasks.py --task=lc-basic --treatment=CONTROL,ALL_MAIN_SKILLS --count=3 -n 4 -v
 ```
 
 ## Requirements
@@ -38,10 +35,10 @@ uv run pytest tests/tasks/test_tasks.py --task=lc-basic --treatment=LCC_CLAUDE_*
 tasks/                    # Self-contained benchmark tasks
   ls-lang-tracing/        # Each task has its own directory
     instruction.md        # Task prompt with {variable} placeholders
-    task.toml             # Metadata + default_treatments
-    environment/          # Docker context
-    validation/           # Validators
-    data/                 # Ground truth (optional)
+    task.toml             # Metadata + validation config
+    environment/          # Docker context (Dockerfile, source code)
+    validation/           # Test scripts (run inside Docker)
+    data/                 # Ground truth, test cases (optional)
 
 treatments/               # Centralized treatment definitions
   common/                 # Shared treatments (CONTROL, ALL_MAIN_SKILLS)
@@ -51,41 +48,47 @@ treatments/               # Centralized treatment definitions
   oss_merged/             # OSS merged skill treatments (OSSM_*)
 
 skills/
-  main/                   # Production skills (all tests should pass)
-  benchmarks/             # Benchmark skills (variations for testing)
+  main/                   # Production skills
+  benchmarks/             # Benchmark skill variations
   noise/                  # Distractor skills for interference tests
 
 scaffold/
-  python/                 # Python scaffold (pytest)
-    tasks.py              # Task loader
-    treatments.py         # Treatment builder
-  typescript/             # TypeScript scaffold (vitest)
+  python/                 # Python scaffold
+    validation/runner.py  # TestRunner for writing check functions
+    validation/core.py    # Validation helpers (patterns, skills, noise)
+    utils.py              # Docker orchestration
+    tasks.py              # Task loader (reads task.toml)
+  typescript/             # TypeScript scaffold (mirrors Python)
+    validation/runner.ts  # TestRunner (same API as Python)
+    validation/core.ts    # Validation helpers
+    utils.ts              # Docker orchestration
     tasks.ts              # Task loader
-    treatments.ts         # Treatment builder
 
 tests/
-  tasks/                  # Main test runner
-    test_tasks.py         # Python tests (pytest)
-    test_tasks.test.ts    # TypeScript tests (vitest)
+  tasks/
+    test_tasks.py         # Main test runner (pytest)
+    test_tasks.test.ts    # Main test runner (vitest)
   scripts/                # Script unit tests (Python/TypeScript parity)
 ```
 
 ## Tasks
 
-Tasks are decoupled from treatments - any treatment can be used with any task. Each task defines `default_treatments` in its `task.toml` for standard testing.
+Tasks are decoupled from treatments — any treatment can be used with any task. Each task defines `default_treatments` in its `task.toml`.
 
 | Task | Category | Description |
 |------|----------|-------------|
+| `lc-basic` | langchain | SQL analytics agent |
+| `lc-basic-noise` | langchain | Skill retention with noise distractors |
+| `lc-deps-tavily` | langchain | Fix broken LangChain dependencies |
+| `lc-framework-choice` | langchain | Framework selection for different use cases |
 | `ls-lang-tracing` | langsmith | Add LangSmith tracing to Python/TypeScript agents |
 | `ls-lang-evaluator` | langsmith | Create LangSmith evaluators from datasets |
 | `ls-multiskill-basic` | langsmith | Create trajectory dataset from traces |
 | `ls-multiskill-advanced` | langsmith | Create dataset + evaluator pipeline |
-| `lc-basic` | langchain | SQL analytics agent (tests skill/guidance variations) |
-| `lc-basic-noise` | langchain | Skill retention with noise distractors |
-| `lc-deps-tavily` | langchain | Fix broken LangChain dependencies |
-| `lc-framework-choice` | langchain | Framework selection task |
 | `oss-fix-lg-persistence` | langgraph | Fix LangGraph persistence bugs |
+| `oss-fix-lg-execution` | langgraph | Fix LangGraph parallel execution bugs |
 | `oss-fix-lc-streaming` | langchain | Fix LangChain streaming bugs |
+| `oss-fix-lc-hitl` | langchain | Fix LangChain human-in-the-loop bugs |
 | `oss-fix-da-memory` | deepagents | Fix Deep Agents memory bugs |
 
 ## Treatments
@@ -103,41 +106,47 @@ Treatments define skill configurations. They're organized by category:
 
 ## Running Tests
 
+### Python (pytest) — recommended for benchmark runs
+
 ```bash
 # Run specific task + treatment(s)
-uv run pytest tests/tasks/test_tasks.py --task=ls-lang-tracing --treatment=LS_BASIC_PY -v
+uv run pytest tests/tasks/test_tasks.py --task=lc-basic --treatment=ALL_MAIN_SKILLS -v
 
 # Multiple treatments (comma-separated)
-uv run pytest tests/tasks/test_tasks.py --task=lc-basic --treatment=LCC_CLAUDE_NONE,LCC_CLAUDE_FULL -v
+uv run pytest tests/tasks/test_tasks.py --task=lc-basic --treatment=CONTROL,ALL_MAIN_SKILLS -v
 
 # Wildcard patterns
-uv run pytest tests/tasks/test_tasks.py --task=lc-basic --treatment=LCC_GUIDANCE_* -v
+uv run pytest tests/tasks/test_tasks.py --task=lc-basic --treatment=LCC_* -v
 
 # Run task with default treatments
 uv run pytest tests/tasks/test_tasks.py --task=ls-multiskill-basic -v
 
-# With repetitions
-uv run pytest tests/tasks/test_tasks.py --task=lc-basic --treatment=CONTROL --count=3 -v
-
-# Parallel workers
-uv run pytest tests/tasks/test_tasks.py --task=lc-basic --treatment=LCC_* --count=2 -n 4 -v
+# With repetitions and parallel workers
+uv run pytest tests/tasks/test_tasks.py --task=lc-basic --treatment=CONTROL --count=3 -n 4 -v
 
 # List all available combinations
 uv run pytest tests/tasks/test_tasks.py --collect-only
 ```
 
-### TypeScript (Vitest)
+### TypeScript (vitest)
+
+The vitest runner executes the same validation pipeline and is useful for setup verification and TypeScript development. **Use pytest for benchmark runs** — vitest threads cannot parallelize Docker execution, so multiple treatments run sequentially.
 
 ```bash
-# Run specific task + treatment
-TASK=ls-lang-tracing TREATMENT=LS_BASIC_PY pnpm vitest tests/tasks/test_tasks.test.ts
+# Run specific task + treatment (RUN_CLAUDE=true required for full execution)
+RUN_CLAUDE=true TASK=lc-basic TREATMENT=ALL_MAIN_SKILLS npx vitest run tests/tasks/test_tasks.test.ts
 
-# With wildcard
-TASK=lc-basic TREATMENT=LCC_CLAUDE_* pnpm vitest tests/tasks/test_tasks.test.ts
-
-# With parallelism
-pnpm vitest tests/tasks/test_tasks.test.ts --pool=threads --poolOptions.threads.maxThreads=4
+# Setup verification only (no Claude execution)
+npx vitest run tests/tasks/test_tasks.test.ts
 ```
+
+## How It Works
+
+1. **Setup**: Creates isolated temp directory with skills, CLAUDE.md, and environment files
+2. **Run**: Executes Claude Code CLI in Docker (`--dangerously-skip-permissions` for headless operation)
+3. **Validate**: Runs test scripts in Docker against Claude's artifacts (config-driven via `task.toml`)
+4. **Report**: Logs results to local experiment directory and LangSmith
+5. **Cleanup**: Removes temp directory and test resources (LangSmith datasets/projects)
 
 ## Results
 
@@ -156,7 +165,7 @@ logs/experiments/experiment_20260217_143052/
   events/                 # Parsed events per run
   raw/                    # Raw Claude CLI output
   reports/                # Validation reports
-  artifacts/              # Generated files
+  artifacts/              # Files Claude created (not infrastructure)
 ```
 
 Example summary output:
@@ -164,16 +173,9 @@ Example summary output:
 ```
 Treatment                    Checks          Turns    Dur      Skills
 ----------------------------------------------------------------------------
-LS_BASIC_PY                  17/17 (100%)    51       228s     langsmith-trace
-LS_CLAUDE_ADVANCED_FULL      5/8 (62%)       12       95s      langsmith-dataset
+ALL_MAIN_SKILLS              9/9 (100%)      11       45s      langchain-fundamentals
+CONTROL                      8/11 (73%)      14       78s      none
 ```
-
-## How It Works
-
-1. **Setup**: Creates isolated temp directory with skills, CLAUDE.md, and environment
-2. **Run**: Executes Claude Code CLI with task prompt
-3. **Validate**: Runs function-based validators on generated artifacts
-4. **Cleanup**: Removes temp directory and test resources (LangSmith datasets/projects)
 
 ## LangSmith Tasks
 
@@ -181,7 +183,7 @@ Tasks prefixed with `ls-` query and create LangSmith resources. Important consid
 
 > **Note: Parallel execution**
 >
-> Parallel execution via pytest-xdist (`-n 4`) is tested and safe - each worker gets isolated LangSmith projects. Running multiple separate pytest processes simultaneously is untested and may have issues.
+> Parallel execution via pytest-xdist (`-n 4`) is tested and safe — each worker gets isolated LangSmith projects. Running multiple separate pytest processes simultaneously is untested and may have issues.
 
 > **Warning: Orphaned resources on interrupt**
 >
@@ -193,8 +195,4 @@ Tasks prefixed with `ls-` query and create LangSmith resources. Important consid
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for:
-- Adding new skills
-- Adding new tasks
-- Adding new treatments
-- Writing validators
+See [CONTRIBUTING.md](CONTRIBUTING.md) for adding new tasks, skills, treatments, and test scripts.

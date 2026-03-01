@@ -182,6 +182,11 @@ export function loadTask(name: string, tasksDir?: string): Task {
     defaultTreatments: config.default_treatments || [],
     setup: config.setup,
     renderPrompt: (vars = {}) => {
+      const required = config.template_required || [];
+      const missing = required.filter((k) => !(k in vars));
+      if (missing.length > 0) {
+        throw new Error(`Missing required template variables: ${missing.join(", ")}`);
+      }
       let prompt = instruction;
       for (const [key, value] of Object.entries(vars)) {
         prompt = prompt.replace(new RegExp(`\\{${key}\\}`, "g"), value);

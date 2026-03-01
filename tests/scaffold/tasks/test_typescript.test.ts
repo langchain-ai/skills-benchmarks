@@ -198,12 +198,9 @@ describe("template rendering", () => {
     expect(prompt).toContain("abc123");
   });
 
-  it("renders prompt with unreplaced variables when missing", () => {
+  it("throws when required template variables are missing", () => {
     const task = loadTask("test-setup", getTasksDir());
-    // When variables are missing, they remain as {var_name} in the output
-    const prompt = task.renderPrompt();
-    expect(prompt).toContain("{dataset_name}");
-    expect(prompt).toContain("{run_id}");
+    expect(() => task.renderPrompt()).toThrow("Missing required template variables");
   });
 });
 

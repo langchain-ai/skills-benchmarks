@@ -26,6 +26,7 @@ export {
   TASKS_DIR,
   type DataHandler,
   type SetupConfig,
+  type ValidationConfig,
   type TaskConfig,
   type Task,
   listTasks,
@@ -61,6 +62,8 @@ export {
 // Validation helpers
 export {
   type ValidatorFn,
+  RUN_CONTEXT_FILE,
+  TEST_RESULTS_FILE,
   NOISE_TASK_PROMPTS,
   NOISE_TASK_DELIVERABLES,
   checkFileExists,
@@ -71,6 +74,7 @@ export {
   checkSkillInvoked,
   checkStarterSkillFirst,
   loadTestContext,
+  writeTestResults,
   getNoiseTaskPrompts,
   checkNoiseOutputs,
   checkCodeExecution,

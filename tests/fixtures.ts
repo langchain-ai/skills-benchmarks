@@ -175,19 +175,23 @@ interface ExperimentCoordination {
 }
 
 function getOrCreateExperimentId(name: string): string {
-  // Check if experiment file exists
+  // Coordinate via shared file so parallel workers log to the same experiment.
+  // Clean up stale files older than 30 minutes to avoid reusing across runs.
   if (existsSync(EXPERIMENT_FILE)) {
     try {
       const data: ExperimentCoordination = JSON.parse(
         readFileSync(EXPERIMENT_FILE, "utf8"),
       );
-      return data.experimentId;
+      const age = Date.now() - new Date(data.createdAt).getTime();
+      if (age < 30 * 60 * 1000) {
+        return data.experimentId;
+      }
+      // Stale file — fall through to create new
     } catch {
-      // File corrupted, create new
+      // Corrupted — fall through to create new
     }
   }
 
-  // Create new experiment ID
   const timestamp = new Date()
     .toISOString()
     .replace(/[-:]/g, "")

@@ -44,7 +44,7 @@ def check_docker_available() -> bool:
 
 
 def build_docker_image(test_dir: Path, force: bool = False, verbose: bool = False) -> str | None:
-    """Build Docker image for test_dir (cached by Dockerfile hash). Returns image name or None."""
+    """Build Docker image for test_dir (cached by build context hash). Returns image name or None."""
     try:
         args = ["build", str(test_dir)] + (["--force"] if force else [])
         result = run_shell("docker.sh", *args, timeout=300, check=False)

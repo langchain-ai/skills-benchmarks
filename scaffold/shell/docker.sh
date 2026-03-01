@@ -68,7 +68,7 @@ check_docker() {
 # HASH-BASED IMAGE CACHING
 # =============================================================================
 
-# Get hash of Dockerfile for cache key
+# Get hash of build context for cache key (Dockerfile + all copied files)
 get_dockerfile_hash() {
     local dir="$1"
     local dockerfile="$dir/Dockerfile"
@@ -78,15 +78,19 @@ get_dockerfile_hash() {
         return 1
     fi
 
-    # Use md5 on macOS, md5sum on Linux
+    # Hash all files in the build context directory so that changes to
+    # requirements.txt (or any other copied file) invalidate the cache.
+    local combined
+    combined=$(find "$dir" -type f | sort | xargs cat)
+
     if command -v md5 &> /dev/null; then
-        md5 -q "$dockerfile" | cut -c1-8
+        echo "$combined" | md5 -q | cut -c1-8
     else
-        md5sum "$dockerfile" | cut -c1-8
+        echo "$combined" | md5sum | cut -c1-8
     fi
 }
 
-# Get image name for a directory (based on Dockerfile hash + Claude Code version)
+# Get image name for a directory (based on build context hash + Claude Code version)
 get_image_name() {
     local dir="$1"
     local hash

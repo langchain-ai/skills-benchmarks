@@ -759,14 +759,23 @@ def _save_artifacts(base_dir: Path, treatment_name: str, rep: int, test_dir: Pat
 
     # Dirs that are infrastructure (copied before/after Claude runs, not Claude's work)
     exclude_dirs = {
-        ".claude", "node_modules", "__pycache__",
-        "scaffold", "validation", "data",
+        ".claude",
+        "node_modules",
+        "__pycache__",
+        "scaffold",
+        "validation",
+        "data",
     }
     # Environment and bench-internal files (not Claude's work)
     exclude_files = {
-        "Dockerfile", "requirements.txt", "chinook.db",
-        "package.json", "package-lock.json", "tsconfig.json",
-        RUN_CONTEXT_FILE, TEST_RESULTS_FILE,
+        "Dockerfile",
+        "requirements.txt",
+        "chinook.db",
+        "package.json",
+        "package-lock.json",
+        "tsconfig.json",
+        RUN_CONTEXT_FILE,
+        TEST_RESULTS_FILE,
     }
 
     # Copy everything except infrastructure dirs, dotfiles, and bench internals

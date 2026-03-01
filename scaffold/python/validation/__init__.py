@@ -5,6 +5,7 @@ They are NOT standalone validators — use make_execution_validator to
 wire test scripts into the benchmark infrastructure.
 
 Modules:
+- runner: TestRunner for writing check functions (recommended for new test scripts)
 - core: File checks, pattern matching, skill tracking, noise outputs
 - tracing: LangSmith tracing pattern checks + API verification
 - docker: Code execution checks

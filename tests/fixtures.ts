@@ -175,21 +175,13 @@ interface ExperimentCoordination {
 }
 
 function getOrCreateExperimentId(name: string): string {
-  // Coordinate via shared file so parallel workers log to the same experiment.
-  // Clean up stale files older than 30 minutes to avoid reusing across runs.
-  if (existsSync(EXPERIMENT_FILE)) {
-    try {
-      const data: ExperimentCoordination = JSON.parse(
-        readFileSync(EXPERIMENT_FILE, "utf8"),
-      );
-      const age = Date.now() - new Date(data.createdAt).getTime();
-      if (age < 30 * 60 * 1000) {
-        return data.experimentId;
-      }
-      // Stale file — fall through to create new
-    } catch {
-      // Corrupted — fall through to create new
-    }
+  // Always generate a fresh ID. The coordination file exists only so
+  // parallel vitest workers (if ever used) can find the same experiment.
+  // We delete any stale file first to prevent leaking across runs.
+  try {
+    unlinkSync(EXPERIMENT_FILE);
+  } catch {
+    // Ignore — file may not exist
   }
 
   const timestamp = new Date()

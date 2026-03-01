@@ -103,18 +103,18 @@ def check_evaluator_logic(runner: TestRunner):
         runner.failed(f"Evaluator logic: {error}")
         return
 
-    eval_runner = test_dir / "eval_runner.py"
+    eval_runner = test_dir / "validation" / "eval_runner.py"
     if not eval_runner.exists():
         runner.passed("Evaluator logic: skipped (no eval_runner.py)")
         return
 
-    test_cases = test_dir / "evaluator_test_cases.json"
+    test_cases = test_dir / "data" / "evaluator_test_cases.json"
     if not test_cases.exists():
         runner.passed("Evaluator logic: skipped (no test cases)")
         return
 
     module_name = path.name.replace(".py", "")
-    args = [sys.executable, str(eval_runner), module_name, func_name, "evaluator_test_cases.json"]
+    args = [sys.executable, str(eval_runner), module_name, func_name, str(test_cases)]
     if (test_dir / "trajectory_dataset.json").exists():
         args.append("trajectory_dataset.json")
 
@@ -150,7 +150,7 @@ def check_accuracy(runner: TestRunner):
         outputs=runner.context,
         filename=dataset_file,
         expected_filename="expected_dataset.json",
-        data_dir=test_dir,
+        data_dir=test_dir / "data",
     )
     for msg in p:
         runner.passed(msg)

@@ -182,25 +182,26 @@ def run_eval_in_docker(
 ) -> dict:
     """Copy files into test_dir, run test script in Docker, return parsed JSON results.
 
-    Copies into test_dir:
+    Copies into test_dir (mirroring the local task directory structure):
     - validation/ — test scripts and helpers
-    - data files at root (if data_dir provided)
+    - data/ — ground truth, test cases, reference files
     - scaffold/python/validation/ package (so test scripts can import helpers)
 
     Test scripts read artifacts and run context from _test_context.json.
     """
-    # Copy validation scripts and data into subdirectories matching the task's
-    # local structure. This keeps Claude's workspace clean and makes paths
-    # consistent between local development and Docker execution.
+    # Copy into subdirectories matching the task's local structure so paths
+    # are consistent between local development and Docker execution.
     val_dir = test_dir / "validation"
     val_dir.mkdir(exist_ok=True)
     for f in validation_dir.iterdir():
         if f.is_file():
             shutil.copy(f, val_dir / f.name)
     if data_dir and data_dir.is_dir():
+        dest_data = test_dir / "data"
+        dest_data.mkdir(exist_ok=True)
         for f in data_dir.iterdir():
             if f.is_file():
-                shutil.copy(f, test_dir / f.name)
+                shutil.copy(f, dest_data / f.name)
     _copy_scaffold_to_docker(test_dir)
     # Remove stale results file from a previous script run
     results_path = test_dir / TEST_RESULTS_FILE

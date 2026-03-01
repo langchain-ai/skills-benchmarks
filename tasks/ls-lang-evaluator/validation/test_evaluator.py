@@ -183,12 +183,12 @@ def check_python_logic(runner: TestRunner):
         runner.failed(f"Python logic: {error}")
         return
 
-    test_cases = Path("trajectory_test_cases.json").resolve()
+    test_cases = Path("data/trajectory_test_cases.json").resolve()
     if not test_cases.exists():
         runner.passed("Python logic: no test cases")
         return
 
-    eval_runner = Path("eval_runner.py").resolve()
+    eval_runner = Path("validation/eval_runner.py").resolve()
     if not eval_runner.exists():
         runner.passed("Python logic: no eval_runner.py")
         return
@@ -221,12 +221,12 @@ def check_js_logic(runner: TestRunner):
         runner.failed(f"JavaScript logic: {error}")
         return
 
-    test_cases = Path("single_step_test_cases.json").resolve()
+    test_cases = Path("data/single_step_test_cases.json").resolve()
     if not test_cases.exists():
         runner.passed("JavaScript logic: no test cases")
         return
 
-    eval_runner = Path("eval_runner.ts").resolve()
+    eval_runner = Path("validation/eval_runner.ts").resolve()
     if not eval_runner.exists():
         runner.passed("JavaScript logic: no eval_runner.ts")
         return

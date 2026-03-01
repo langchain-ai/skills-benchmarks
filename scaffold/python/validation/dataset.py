@@ -197,7 +197,7 @@ def check_trajectory_accuracy(
     test_dir = test_dir or Path(".")
     outputs = outputs or {}
     passed, failed = [], []
-    data_dir = data_dir or (test_dir.parent / "data")
+    data_dir = data_dir or (test_dir / "data")
 
     # Load actual dataset
     actual_data, error = read_json_file(test_dir / filename)

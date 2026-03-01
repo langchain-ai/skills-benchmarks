@@ -567,7 +567,7 @@ def record_result(test_dir, experiment_logger, request):
         # Save events
         save_events(base_dir, treatment_name, rep, events)
 
-        # Save artifacts (files Claude generated)
+        # Save artifacts (files Claude generated, excluding infrastructure)
         _save_artifacts(base_dir, treatment_name, rep, test_dir)
 
         # Extract scripts used
@@ -743,7 +743,12 @@ def _extract_scripts_used(events: dict) -> list[str]:
 
 
 def _save_artifacts(base_dir: Path, treatment_name: str, rep: int, test_dir: Path):
-    """Save Claude's generated files as artifacts."""
+    """Save Claude's generated files as artifacts.
+
+    Excludes infrastructure directories (scaffold, validation, .claude, etc.)
+    and environment files (Dockerfile, requirements.txt, etc.) that were
+    copied into test_dir before Claude ran. Everything else is Claude's work.
+    """
     artifacts_dir = base_dir / "artifacts" / f"{treatment_name.lower()}_rep{rep}"
     claude_dir = artifacts_dir / "claude"
     execution_dir = artifacts_dir / "execution"
@@ -752,54 +757,58 @@ def _save_artifacts(base_dir: Path, treatment_name: str, rep: int, test_dir: Pat
 
     from scaffold.python.utils import RUN_CONTEXT_FILE, TEST_RESULTS_FILE
 
-    # Infrastructure files to exclude from artifacts
-    exclude_files = {
-        "chinook.db",
-        "requirements.txt",
-        "Dockerfile",
-        "package.json",
-        "tsconfig.json",
-        RUN_CONTEXT_FILE,
-        TEST_RESULTS_FILE,
+    # Dirs that are infrastructure (copied before/after Claude runs, not Claude's work)
+    exclude_dirs = {
+        ".claude", "node_modules", "__pycache__",
+        "scaffold", "validation", "data",
     }
-    # Dirs to always skip (infrastructure, not Claude's work)
-    exclude_dirs = {".claude", "node_modules", "__pycache__", "scaffold", "validation"}
+    # Environment and bench-internal files (not Claude's work)
+    exclude_files = {
+        "Dockerfile", "requirements.txt", "chinook.db",
+        "package.json", "package-lock.json", "tsconfig.json",
+        RUN_CONTEXT_FILE, TEST_RESULTS_FILE,
+    }
 
-    # Recursively copy all files (excluding infrastructure dirs and dotfiles)
+    # Copy everything except infrastructure dirs, dotfiles, and bench internals
+    claude_files = []
     for item in test_dir.rglob("*"):
-        if item.is_file():
-            if item.name.startswith("."):
-                continue
-            if any(excl in item.parts for excl in exclude_dirs):
-                continue
+        if not item.is_file():
+            continue
+        if item.name.startswith("."):
+            continue
+        if item.name in exclude_files:
+            continue
+        if any(excl in item.parts for excl in exclude_dirs):
+            continue
+        try:
+            rel_path = item.relative_to(test_dir)
+            dest = claude_dir / rel_path
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy(item, dest)
+            claude_files.append(item)
+        except Exception:
+            pass
+
+    # Run Claude-created Python files at root level and save execution output
+    for py_file in claude_files:
+        if py_file.suffix == ".py" and py_file.parent == test_dir:
             try:
-                rel_path = item.relative_to(test_dir)
-                dest = claude_dir / rel_path
-                dest.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy(item, dest)
-            except Exception:
-                pass
+                success, output = run_python_in_docker(test_dir, py_file.name, timeout=300)
+                status = "success" if success else "error"
+                output_file = execution_dir / f"{py_file.stem}_{status}.txt"
+                output_file.write_text(strip_ansi(output))
+            except Exception as e:
+                error_file = execution_dir / f"{py_file.stem}_error.txt"
+                error_file.write_text(str(e))
 
-    # Run Python files at root level and save execution output
-    py_files = [f for f in test_dir.glob("*.py") if f.name not in exclude_files]
-    for py_file in py_files:
-        try:
-            success, output = run_python_in_docker(test_dir, py_file.name, timeout=300)
-            status = "success" if success else "error"
-            output_file = execution_dir / f"{py_file.stem}_{status}.txt"
-            output_file.write_text(strip_ansi(output))
-        except Exception as e:
-            error_file = execution_dir / f"{py_file.stem}_error.txt"
-            error_file.write_text(str(e))
-
-    # Run TypeScript files at root level and save execution output
-    ts_files = [f for f in test_dir.glob("*.ts") if f.name not in exclude_files]
-    for ts_file in ts_files:
-        try:
-            success, output = run_node_in_docker(test_dir, ts_file.name, timeout=300)
-            status = "success" if success else "error"
-            output_file = execution_dir / f"{ts_file.stem}_{status}.txt"
-            output_file.write_text(strip_ansi(output))
-        except Exception as e:
-            error_file = execution_dir / f"{ts_file.stem}_error.txt"
-            error_file.write_text(str(e))
+    # Run Claude-created TypeScript files at root level and save execution output
+    for ts_file in claude_files:
+        if ts_file.suffix == ".ts" and ts_file.parent == test_dir:
+            try:
+                success, output = run_node_in_docker(test_dir, ts_file.name, timeout=300)
+                status = "success" if success else "error"
+                output_file = execution_dir / f"{ts_file.stem}_{status}.txt"
+                output_file.write_text(strip_ansi(output))
+            except Exception as e:
+                error_file = execution_dir / f"{ts_file.stem}_error.txt"
+                error_file.write_text(str(e))

@@ -221,7 +221,11 @@ def run_eval_in_docker(
     # Remove stale results file from a previous script run
     results_path = test_dir / TEST_RESULTS_FILE
     results_path.unlink(missing_ok=True)
-    success, output = run_python_in_docker(test_dir, f"validation/{test_script}", timeout=timeout)
+    script_path = f"validation/{test_script}"
+    if test_script.endswith((".ts", ".js")):
+        success, output = run_node_in_docker(test_dir, script_path, timeout=timeout)
+    else:
+        success, output = run_python_in_docker(test_dir, script_path, timeout=timeout)
     # Primary: read results from file (immune to stdout pollution)
     if results_path.exists():
         try:

@@ -287,8 +287,9 @@ ls.describe(
           const { testDir, logger } = setupTest("task_test");
 
           // Run data handlers (upload traces, datasets, etc.)
+          let traceIdMap: Record<string, string> = {};
           if (task.dataDir && existsSync(task.dataDir)) {
-            await runTaskHandlers(
+            traceIdMap = await runTaskHandlers(
               task.setup.dataHandlers,
               task.dataDir,
               process.env.LANGSMITH_PROJECT || null,
@@ -344,6 +345,7 @@ ls.describe(
             treatment_name: treatmentName,
             events,
             noise_tasks: treatmentCfg.noise_tasks || [],
+            trace_id_map: traceIdMap,
           };
 
           let passed: string[] = [];

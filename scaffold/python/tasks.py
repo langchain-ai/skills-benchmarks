@@ -2,7 +2,7 @@
 
 Each task is a directory containing:
 - instruction.md: Task prompt with {variable} placeholders
-- task.toml: Task metadata (name, description, difficulty, template vars, validators)
+- task.toml: Task metadata, validation config (test_scripts, target_artifacts)
 - environment/: Docker context (Dockerfile, source code)
 - validation/: Validator implementations
 - data/: Test data and ground truth (optional)
@@ -15,8 +15,6 @@ Usage:
     validators = task.load_validators()
 """
 
-import importlib.util
-import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -70,9 +68,6 @@ class ValidationConfig:
 
     # Docker execution timeout in seconds
     timeout: int = 120
-
-    # Legacy: validators module names (for backward compat during migration)
-    validators: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -151,34 +146,11 @@ class Task:
         return self.instruction_template.format(**kwargs)
 
     def load_validators(self) -> list:
-        """Load validators for this task.
+        """Build validator from task.toml [validation] config.
 
-        Two modes:
-        1. Config-driven (new): task.toml has [validation] with test_scripts +
-           target_artifacts. The framework auto-builds a validator.
-        2. Legacy: validators.py exports VALIDATORS list. Used during migration.
-
-        The config-driven path is preferred. Legacy is used when validators.py
-        exists (backward compat).
+        The config specifies test_scripts and target_artifacts. The framework
+        auto-builds an execution validator that runs the scripts in Docker.
         """
-        # Legacy path: validators.py exists → use it
-        if self.validation_dir.exists():
-            validator_files = sorted(self.validation_dir.glob("*validators*.py"))
-            if validator_files:
-                all_validators = []
-                for validators_path in validator_files:
-                    module_name = f"tasks.{self.name}.validation.{validators_path.stem}"
-                    spec = importlib.util.spec_from_file_location(module_name, validators_path)
-                    if spec is None or spec.loader is None:
-                        raise ImportError(f"Cannot load validators from {validators_path}")
-                    module = importlib.util.module_from_spec(spec)
-                    sys.modules[module_name] = module
-                    spec.loader.exec_module(module)
-                    if hasattr(module, "VALIDATORS"):
-                        all_validators.extend(module.VALIDATORS)
-                return all_validators
-
-        # Config-driven path: build validator from task.toml [validation]
         vc = self.config.validation
         if vc.test_scripts:
             from scaffold.python.utils import make_execution_validator
@@ -240,7 +212,6 @@ def load_task(name: str, tasks_dir: Path | None = None) -> Task:
         test_scripts=validation.get("test_scripts", ""),
         target_artifacts=validation.get("target_artifacts", []),
         timeout=validation.get("timeout", 120),
-        validators=validation.get("validators", []),
     )
 
     config = TaskConfig(

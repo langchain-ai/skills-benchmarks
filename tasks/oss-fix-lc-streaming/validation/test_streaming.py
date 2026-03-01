@@ -15,66 +15,45 @@ These are NOT basic Python bugs - they require understanding LangChain APIs.
 """
 
 import ast
-import json
 import re
-import sys
-from dataclasses import dataclass, field
-from typing import Any
 
-from scaffold.python.validation.core import write_test_results
+from scaffold.python.validation.runner import TestRunner
 
 
-@dataclass
-class TestContext:
-    """Shared context for test execution."""
+def _require_source_and_tree(runner):
+    """Load source and parse AST. Returns (source, tree) or (None, None)."""
+    source = runner.read(runner.artifacts[0])
+    if not source:
+        runner.failed(f"Failed to read file: {runner.artifacts[0]}")
+        return None, None
 
-    module_path: str
-    source: str = ""
-    tree: Any | None = None
-    results: dict = field(default_factory=lambda: {"passed": [], "failed": [], "error": None})
+    try:
+        tree = ast.parse(source)
+    except SyntaxError as e:
+        runner.failed(f"Syntax error in file: {e}")
+        return None, None
 
-    def load(self) -> bool:
-        """Load source and parse AST. Returns True if successful."""
-        try:
-            with open(self.module_path) as f:
-                self.source = f.read()
-        except Exception as e:
-            self.results["error"] = f"Failed to read file: {e}"
-            return False
-
-        try:
-            self.tree = ast.parse(self.source)
-        except SyntaxError as e:
-            self.results["error"] = f"Syntax error in file: {e}"
-            return False
-
-        return True
-
-    def pass_test(self, name: str):
-        """Mark a test as passed."""
-        self.results["passed"].append(name)
-
-    def fail_test(self, name: str, reason: str):
-        """Mark a test as failed with reason."""
-        self.results["failed"].append(f"{name}: {reason}")
+    return source, tree
 
 
 # =============================================================================
-# Test 1: Tool Docstrings (lc_tools)
+# Check 1: Tool Docstrings (lc_tools)
 # =============================================================================
 
 
-def test_tool_docstrings(ctx: TestContext):
+def check_tool_has_docstring(runner):
     """Check that @tool decorated functions have docstrings.
 
     LangChain uses the docstring as the tool description for the model.
     Without a docstring, the model has no idea what the tool does.
     """
-    TEST_NAME = "tool_has_docstring"
+    source, tree = _require_source_and_tree(runner)
+    if source is None:
+        return
 
     try:
         tools_without_docstrings = []
-        for node in ast.walk(ctx.tree):
+        for node in ast.walk(tree):
             if isinstance(node, ast.FunctionDef):
                 for decorator in node.decorator_list:
                     decorator_name = None
@@ -89,33 +68,35 @@ def test_tool_docstrings(ctx: TestContext):
                             tools_without_docstrings.append(node.name)
 
         if not tools_without_docstrings:
-            ctx.pass_test(TEST_NAME)
+            runner.passed("tool_has_docstring")
         else:
-            ctx.fail_test(
-                TEST_NAME,
+            runner.failed(
+                f"tool_has_docstring: "
                 f"tools {tools_without_docstrings} missing docstrings - "
-                "LangChain uses docstring as tool description for the model",
+                "LangChain uses docstring as tool description for the model"
             )
     except Exception as e:
-        ctx.fail_test(TEST_NAME, str(e))
+        runner.failed(f"tool_has_docstring: {e}")
 
 
 # =============================================================================
-# Test 2: Tool Type Hints (lc_tools)
+# Check 2: Tool Type Hints (lc_tools)
 # =============================================================================
 
 
-def test_tool_type_hints(ctx: TestContext):
+def check_tool_has_types(runner):
     """Check that @tool decorated functions have type hints on parameters.
 
     LangChain generates the tool schema from type annotations.
     Without types, the schema is incomplete and the model may misuse the tool.
     """
-    TEST_NAME = "tool_has_types"
+    source, tree = _require_source_and_tree(runner)
+    if source is None:
+        return
 
     try:
         tools_without_types = []
-        for node in ast.walk(ctx.tree):
+        for node in ast.walk(tree):
             if isinstance(node, ast.FunctionDef):
                 for decorator in node.decorator_list:
                     decorator_name = None
@@ -130,29 +111,31 @@ def test_tool_type_hints(ctx: TestContext):
                                 tools_without_types.append(f"{node.name}.{arg.arg}")
 
         if not tools_without_types:
-            ctx.pass_test(TEST_NAME)
+            runner.passed("tool_has_types")
         else:
-            ctx.fail_test(
-                TEST_NAME,
+            runner.failed(
+                f"tool_has_types: "
                 f"parameters {tools_without_types} missing type hints - "
-                "LangChain generates tool schema from type annotations",
+                "LangChain generates tool schema from type annotations"
             )
     except Exception as e:
-        ctx.fail_test(TEST_NAME, str(e))
+        runner.failed(f"tool_has_types: {e}")
 
 
 # =============================================================================
-# Test 3: Tuple Unpacking (lc_streaming)
+# Check 3: Tuple Unpacking (lc_streaming)
 # =============================================================================
 
 
-def test_tuple_unpacking(ctx: TestContext):
+def check_tuple_unpacking(runner):
     """Check that messages mode streaming unpacks the (token, metadata) tuple.
 
     In messages mode, LangChain returns a tuple, not just the token.
     Code must unpack: `token, metadata = chunk` or use `chunk[0]`.
     """
-    TEST_NAME = "tuple_unpacking"
+    source, tree = _require_source_and_tree(runner)
+    if source is None:
+        return
 
     try:
         tuple_unpack_patterns = [
@@ -165,52 +148,22 @@ def test_tuple_unpacking(ctx: TestContext):
             r"\w+\s*,\s*_\w*\s*=\s*chunk",
         ]
 
-        has_tuple_unpack = any(re.search(pattern, ctx.source) for pattern in tuple_unpack_patterns)
+        has_tuple_unpack = any(re.search(pattern, source) for pattern in tuple_unpack_patterns)
 
         if has_tuple_unpack:
-            ctx.pass_test(TEST_NAME)
+            runner.passed("tuple_unpacking")
         else:
-            ctx.fail_test(
-                TEST_NAME,
-                "messages mode returns (token, metadata) tuple - unpack before accessing content",
+            runner.failed(
+                "tuple_unpacking: "
+                "messages mode returns (token, metadata) tuple - unpack before accessing content"
             )
     except Exception as e:
-        ctx.fail_test(TEST_NAME, str(e))
+        runner.failed(f"tuple_unpacking: {e}")
 
 
 # =============================================================================
-# Test 4: Async Uses astream (lc_streaming)
+# Check 4: Async Uses astream (lc_streaming)
 # =============================================================================
-
-
-def test_async_uses_astream(ctx: TestContext):
-    """Check that async functions use .astream() not .stream().
-
-    Using sync .stream() in an async function blocks the event loop.
-    Always use .astream() in async contexts.
-    """
-    TEST_NAME = "async_uses_astream"
-
-    try:
-        async_func_source = _extract_async_functions(ctx.source)
-
-        if async_func_source:
-            uses_astream = re.search(r"\.astream\(", async_func_source)
-            uses_sync_stream = re.search(r"(?<!a)\.stream\(", async_func_source)
-
-            if uses_astream and not uses_sync_stream:
-                ctx.pass_test(TEST_NAME)
-            elif uses_astream:
-                ctx.pass_test(TEST_NAME)
-            else:
-                ctx.fail_test(
-                    TEST_NAME,
-                    "async functions should use astream() - sync streams block the event loop",
-                )
-        else:
-            ctx.pass_test(TEST_NAME)
-    except Exception as e:
-        ctx.fail_test(TEST_NAME, str(e))
 
 
 def _extract_async_functions(source: str) -> str:
@@ -228,22 +181,56 @@ def _extract_async_functions(source: str) -> str:
     return "\n\n".join(async_sources)
 
 
+def check_async_uses_astream(runner):
+    """Check that async functions use .astream() not .stream().
+
+    Using sync .stream() in an async function blocks the event loop.
+    Always use .astream() in async contexts.
+    """
+    source, tree = _require_source_and_tree(runner)
+    if source is None:
+        return
+
+    try:
+        async_func_source = _extract_async_functions(source)
+
+        if async_func_source:
+            uses_astream = re.search(r"\.astream\(", async_func_source)
+            uses_sync_stream = re.search(r"(?<!a)\.stream\(", async_func_source)
+
+            if uses_astream and not uses_sync_stream:
+                runner.passed("async_uses_astream")
+            elif uses_astream:
+                runner.passed("async_uses_astream")
+            else:
+                runner.failed(
+                    "async_uses_astream: "
+                    "async functions should use astream() - sync streams block the event loop"
+                )
+        else:
+            runner.passed("async_uses_astream")
+    except Exception as e:
+        runner.failed(f"async_uses_astream: {e}")
+
+
 # =============================================================================
-# Test 5: Mode Checking (lc_streaming)
+# Check 5: Mode Checking (lc_streaming)
 # =============================================================================
 
 
-def test_mode_checking(ctx: TestContext):
+def check_mode_checking(runner):
     """Check that multi-mode streaming has mode-specific handling.
 
     When using stream_mode=[...] with multiple modes, each chunk includes
     a mode indicator. Code must check the mode before processing.
     """
-    TEST_NAME = "mode_checking"
+    source, tree = _require_source_and_tree(runner)
+    if source is None:
+        return
 
     try:
         multimode_pattern = r"stream_mode\s*=\s*\[.*,.*\]"
-        has_multimode = re.search(multimode_pattern, ctx.source)
+        has_multimode = re.search(multimode_pattern, source)
 
         if has_multimode:
             mode_check_patterns = [
@@ -252,66 +239,25 @@ def test_mode_checking(ctx: TestContext):
                 r'elif\s+mode\s*==\s*["\']',
                 r"match\s+mode",
             ]
-            has_mode_check = any(re.search(pattern, ctx.source) for pattern in mode_check_patterns)
+            has_mode_check = any(re.search(pattern, source) for pattern in mode_check_patterns)
 
             if has_mode_check:
-                ctx.pass_test(TEST_NAME)
+                runner.passed("mode_checking")
             else:
-                ctx.fail_test(TEST_NAME, "multi-mode streaming needs mode-specific handling")
+                runner.failed("mode_checking: multi-mode streaming needs mode-specific handling")
         else:
-            ctx.pass_test(TEST_NAME)
+            runner.passed("mode_checking")
     except Exception as e:
-        ctx.fail_test(TEST_NAME, str(e))
-
-
-# =============================================================================
-# Main Test Runner
-# =============================================================================
-
-
-def run_tests(module_path: str) -> dict:
-    """Run all tests against the module.
-
-    Returns dict with test results: {passed: [], failed: [], error: str|None}
-    """
-    ctx = TestContext(module_path=module_path)
-
-    # Run each test
-    tests = [
-        test_tool_docstrings,
-        test_tool_type_hints,
-        test_tuple_unpacking,
-        test_async_uses_astream,
-        test_mode_checking,
-    ]
-
-    if not ctx.load():
-        for test_fn in tests:
-            test_name = test_fn.__name__.replace("test_", "")
-            ctx.fail_test(test_name, f"import failed: {ctx.results['error']}")
-        return ctx.results
-
-    for test_fn in tests:
-        try:
-            test_fn(ctx)
-        except Exception as e:
-            test_name = test_fn.__name__.replace("test_", "")
-            ctx.fail_test(test_name, str(e))
-
-    return ctx.results
+        runner.failed(f"mode_checking: {e}")
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python test_streaming.py <path_to_chat_app.py>")
-        sys.exit(1)
-
-    module_path = sys.argv[1]
-    results = run_tests(module_path)
-
-    print(json.dumps(results, indent=2))
-    write_test_results(results)
-
-    if results["error"] or results["failed"]:
-        sys.exit(1)
-    sys.exit(0)
+    TestRunner.run(
+        [
+            check_tool_has_docstring,
+            check_tool_has_types,
+            check_tuple_unpacking,
+            check_async_uses_astream,
+            check_mode_checking,
+        ]
+    )

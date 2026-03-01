@@ -9,324 +9,178 @@ The broken code has multiple issues:
 These tests verify the code actually works, not just that it contains patterns.
 """
 
-import importlib.util
-import json
-import sys
-from dataclasses import dataclass, field
-from typing import Any
-
-from scaffold.python.validation.core import write_test_results
+from scaffold.python.validation.runner import TestRunner
 
 
-@dataclass
-class TestContext:
-    """Shared context for test execution."""
-
-    module_path: str
-    module: Any | None = None
-    graph: Any | None = None
-    results: dict = field(default_factory=lambda: {"passed": [], "failed": [], "error": None})
-
-    def load(self) -> bool:
-        """Load module and graph. Returns True if successful."""
-        try:
-            spec = importlib.util.spec_from_file_location("agent", self.module_path)
-            self.module = importlib.util.module_from_spec(spec)
-            spec.loader.exec_module(self.module)
-            self.graph = self.module.graph
-        except Exception as e:
-            self.results["error"] = f"Failed to import agent: {e}"
-            return False
-        return True
-
-    def pass_test(self, name: str):
-        """Mark a test as passed."""
-        self.results["passed"].append(name)
-
-    def fail_test(self, name: str, reason: str):
-        """Mark a test as failed with reason."""
-        self.results["failed"].append(f"{name}: {reason}")
+def _require_graph(runner):
+    """Load and return graph from artifact. Cached by runner.load_module()."""
+    module = runner.load_module(runner.artifacts[0])
+    if module is None:
+        return None
+    return module.graph
 
 
 # =============================================================================
-# Test 1: Checkpointer Configured
+# Checks — each must call runner.passed() or runner.failed()
 # =============================================================================
 
 
-def test_has_checkpointer(ctx: TestContext):
-    """Check that graph has a checkpointer configured.
-
-    Without a checkpointer, state is lost between invocations.
-    """
-    TEST_NAME = "has_checkpointer"
-
-    try:
-        if hasattr(ctx.graph, "checkpointer") and ctx.graph.checkpointer is not None:
-            ctx.pass_test(TEST_NAME)
-        else:
-            ctx.fail_test(
-                TEST_NAME,
-                "graph.checkpointer is None - need to add checkpointer to compile()",
-            )
-    except Exception as e:
-        ctx.fail_test(TEST_NAME, str(e))
+def check_has_checkpointer(runner):
+    """Graph has a checkpointer configured."""
+    graph = _require_graph(runner)
+    if graph is None:
+        return
+    if hasattr(graph, "checkpointer") and graph.checkpointer is not None:
+        runner.passed("has_checkpointer")
+    else:
+        runner.failed(
+            "has_checkpointer: graph.checkpointer is None - need to add checkpointer to compile()"
+        )
 
 
-# =============================================================================
-# Test 2: State Persists Across Invocations
-# =============================================================================
-
-
-def test_state_persists(ctx: TestContext):
-    """Check that state persists across invocations with thread_id.
-
-    With checkpointer + thread_id, messages should accumulate across calls.
-    """
-    TEST_NAME = "state_persists_across_calls"
-
+def check_state_persists(runner):
+    """State persists across invocations with thread_id."""
+    graph = _require_graph(runner)
+    if graph is None:
+        return
     try:
         config = {"configurable": {"thread_id": "test-persistence"}}
-
-        # First invoke
-        result1 = ctx.graph.invoke(
+        result1 = graph.invoke(
             {"messages": ["Hello"], "context": {}, "current_step": "start"}, config
         )
         msgs_after_1 = len(result1.get("messages", []))
-
-        # Second invoke - should accumulate
-        result2 = ctx.graph.invoke(
+        result2 = graph.invoke(
             {"messages": ["How are you?"], "context": {}, "current_step": "start"}, config
         )
         msgs_after_2 = len(result2.get("messages", []))
-
         if msgs_after_2 > msgs_after_1:
-            ctx.pass_test(TEST_NAME)
+            runner.passed("state_persists_across_calls")
         else:
-            ctx.fail_test(
-                TEST_NAME,
-                f"messages didn't accumulate (call 1: {msgs_after_1}, call 2: {msgs_after_2}) - "
-                "need checkpointer + thread_id",
+            runner.failed(
+                f"state_persists_across_calls: messages didn't accumulate "
+                f"(call 1: {msgs_after_1}, call 2: {msgs_after_2}) - "
+                "need checkpointer + thread_id"
             )
-    except ValueError as e:
-        ctx.fail_test(TEST_NAME, str(e))
     except Exception as e:
-        ctx.fail_test(TEST_NAME, str(e))
+        runner.failed(f"state_persists_across_calls: {e}")
 
 
-# =============================================================================
-# Test 3: Messages Accumulate (Reducer Test)
-# =============================================================================
-
-
-def test_messages_accumulate(ctx: TestContext):
-    """Check that messages accumulate within single invocation.
-
-    With proper reducer (Annotated[list, operator.add]), messages should
-    accumulate: input message + response.
-    """
-    TEST_NAME = "messages_accumulate_with_reducer"
-
+def check_messages_accumulate(runner):
+    """Messages accumulate within single invocation (reducer works)."""
+    graph = _require_graph(runner)
+    if graph is None:
+        return
     try:
         config = {"configurable": {"thread_id": "test-reducer"}}
-
-        # Invoke with a message - should go through extract -> respond
-        # and accumulate the response to the messages list
-        result = ctx.graph.invoke(
+        result = graph.invoke(
             {"messages": ["Test message"], "context": {}, "current_step": "start"}, config
         )
-
         messages = result.get("messages", [])
-        # With proper reducer, should have: input message + response
         if len(messages) >= 2:
-            ctx.pass_test(TEST_NAME)
+            runner.passed("messages_accumulate_with_reducer")
         else:
-            ctx.fail_test(
-                TEST_NAME,
-                f"expected >=2 messages, got {len(messages)} - "
-                "need Annotated[list, operator.add] reducer",
+            runner.failed(
+                f"messages_accumulate_with_reducer: expected >=2 messages, got {len(messages)} - "
+                "need Annotated[list, operator.add] reducer"
             )
     except Exception as e:
-        ctx.fail_test(TEST_NAME, str(e))
+        runner.failed(f"messages_accumulate_with_reducer: {e}")
 
 
-# =============================================================================
-# Test 4: No Message Duplication
-# =============================================================================
-
-
-def test_no_duplication(ctx: TestContext):
-    """Check that nodes return partial updates, not entire state.
-
-    If a node returns the entire state with a reducer, input gets duplicated.
-    Nodes should return only the fields they want to update.
-    """
-    TEST_NAME = "no_message_duplication"
-
+def check_no_duplication(runner):
+    """Nodes return partial updates, not entire state."""
+    graph = _require_graph(runner)
+    if graph is None:
+        return
     try:
         config = {"configurable": {"thread_id": "test-no-duplication"}}
-
-        # Single invoke with one message
-        result = ctx.graph.invoke(
+        result = graph.invoke(
             {"messages": ["Hello there"], "context": {}, "current_step": "start"}, config
         )
-
         messages = result.get("messages", [])
-        # Should have exactly 2: input + response
-        # If a node returns entire state with reducer, input gets duplicated -> 3+ messages
         input_count = sum(1 for m in messages if m == "Hello there")
-
         if input_count == 1 and len(messages) == 2:
-            ctx.pass_test(TEST_NAME)
+            runner.passed("no_message_duplication")
         elif input_count > 1:
-            ctx.fail_test(
-                TEST_NAME,
-                f"input message duplicated {input_count} times - "
-                "node is returning entire state instead of partial update dict",
+            runner.failed(
+                f"no_message_duplication: input message duplicated {input_count} times - "
+                "node is returning entire state instead of partial update dict"
             )
         else:
-            ctx.fail_test(
-                TEST_NAME,
-                f"unexpected message count {len(messages)}, messages: {messages}",
+            runner.failed(
+                f"no_message_duplication: unexpected message count {len(messages)}, "
+                f"messages: {messages}"
             )
     except Exception as e:
-        ctx.fail_test(TEST_NAME, str(e))
+        runner.failed(f"no_message_duplication: {e}")
 
 
-# =============================================================================
-# Test 5: Bot Remembers Name Across Turns
-# =============================================================================
-
-
-def test_remembers_name(ctx: TestContext):
-    """Check that bot remembers user's name across turns.
-
-    This is a functional test - with proper persistence, the bot should
-    remember information from earlier in the conversation.
-    """
-    TEST_NAME = "remembers_user_name"
-
+def check_remembers_name(runner):
+    """Bot remembers user's name across turns."""
+    graph = _require_graph(runner)
+    if graph is None:
+        return
     try:
         config = {"configurable": {"thread_id": "test-name-memory"}}
-
-        # Introduce ourselves
-        ctx.graph.invoke(
+        graph.invoke(
             {"messages": ["Hi! My name is Alex"], "context": {}, "current_step": "start"}, config
         )
-
-        # Ask for name
-        result = ctx.graph.invoke(
+        result = graph.invoke(
             {"messages": ["What is my name?"], "context": {}, "current_step": "start"}, config
         )
-
         messages = result.get("messages", [])
         last_response = messages[-1].lower() if messages else ""
-
         if "alex" in last_response:
-            ctx.pass_test(TEST_NAME)
+            runner.passed("remembers_user_name")
         else:
-            ctx.fail_test(
-                TEST_NAME,
-                f"expected 'alex' in response, got: '{messages[-1] if messages else 'no messages'}'",
+            runner.failed(
+                f"remembers_user_name: expected 'alex' in response, got: "
+                f"'{messages[-1] if messages else 'no messages'}'"
             )
     except Exception as e:
-        ctx.fail_test(TEST_NAME, str(e))
+        runner.failed(f"remembers_user_name: {e}")
 
 
-# =============================================================================
-# Test 6: Thread Isolation
-# =============================================================================
-
-
-def test_thread_isolation(ctx: TestContext):
-    """Check that different thread_ids have separate state.
-
-    Different users (threads) should have isolated conversations.
-    """
-    TEST_NAME = "thread_isolation"
-
+def check_thread_isolation(runner):
+    """Different thread_ids have separate state."""
+    graph = _require_graph(runner)
+    if graph is None:
+        return
     try:
         config_a = {"configurable": {"thread_id": "user-alice"}}
         config_b = {"configurable": {"thread_id": "user-bob"}}
-
-        # Alice's conversation
-        ctx.graph.invoke(
+        graph.invoke(
             {"messages": ["My name is Alice"], "context": {}, "current_step": "start"}, config_a
         )
-        ctx.graph.invoke(
+        graph.invoke(
             {"messages": ["More from Alice"], "context": {}, "current_step": "start"}, config_a
         )
-        result_a = ctx.graph.invoke(
+        result_a = graph.invoke(
             {"messages": ["Alice again"], "context": {}, "current_step": "start"}, config_a
         )
-
-        # Bob's conversation (separate)
-        result_b = ctx.graph.invoke(
+        result_b = graph.invoke(
             {"messages": ["My name is Bob"], "context": {}, "current_step": "start"}, config_b
         )
-
         alice_msgs = len(result_a.get("messages", []))
         bob_msgs = len(result_b.get("messages", []))
-
         if bob_msgs < alice_msgs:
-            ctx.pass_test(TEST_NAME)
+            runner.passed("thread_isolation")
         else:
-            ctx.fail_test(
-                TEST_NAME,
-                f"threads not isolated (Alice: {alice_msgs}, Bob: {bob_msgs})",
+            runner.failed(
+                f"thread_isolation: threads not isolated (Alice: {alice_msgs}, Bob: {bob_msgs})"
             )
     except Exception as e:
-        ctx.fail_test(TEST_NAME, str(e))
-
-
-# =============================================================================
-# Main Test Runner
-# =============================================================================
-
-
-def run_tests(module_path: str) -> dict:
-    """Run all tests against the module.
-
-    Returns dict with test results: {passed: [], failed: [], error: str|None}
-    """
-    ctx = TestContext(module_path=module_path)
-
-    # Run each test
-    tests = [
-        test_has_checkpointer,
-        test_state_persists,
-        test_messages_accumulate,
-        test_no_duplication,
-        test_remembers_name,
-        test_thread_isolation,
-    ]
-
-    if not ctx.load():
-        for test_fn in tests:
-            test_name = test_fn.__name__.replace("test_", "")
-            ctx.fail_test(test_name, f"import failed: {ctx.results['error']}")
-        return ctx.results
-
-    for test_fn in tests:
-        try:
-            test_fn(ctx)
-        except Exception as e:
-            test_name = test_fn.__name__.replace("test_", "")
-            ctx.fail_test(test_name, str(e))
-
-    return ctx.results
+        runner.failed(f"thread_isolation: {e}")
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Usage: python test_persistence.py <path_to_agent.py>")
-        sys.exit(1)
-
-    agent_path = sys.argv[1]
-    results = run_tests(agent_path)
-
-    print(json.dumps(results, indent=2))
-    write_test_results(results)
-
-    if results["error"] or results["failed"]:
-        sys.exit(1)
-    sys.exit(0)
+    TestRunner.run(
+        [
+            check_has_checkpointer,
+            check_state_persists,
+            check_messages_accumulate,
+            check_no_duplication,
+            check_remembers_name,
+            check_thread_isolation,
+        ]
+    )

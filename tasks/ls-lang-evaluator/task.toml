@@ -24,7 +24,7 @@ dockerfile = "Dockerfile"
 timeout_sec = 900
 
 [validation]
-test_scripts = "test_evaluator_v2.py"
+test_scripts = "test_evaluator.py"
 target_artifacts = ["backend", "frontend"]
 timeout = 120
 

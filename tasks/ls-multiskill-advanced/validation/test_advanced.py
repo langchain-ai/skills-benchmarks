@@ -2,9 +2,6 @@
 
 Checks trajectory dataset structure/accuracy, evaluator existence/syntax/
 structure/logic, LangSmith upload, and script usage.
-Runs inside Docker via make_execution_validator.
-
-Usage: python test_advanced.py <dataset_file>
 """
 
 import ast
@@ -13,28 +10,14 @@ import subprocess
 import sys
 from pathlib import Path
 
-from scaffold.python.validation.core import load_test_context, write_test_results
 from scaffold.python.validation.dataset import (
     check_dataset_structure,
     check_dataset_upload,
     check_trajectory_accuracy,
 )
 from scaffold.python.validation.evaluator import find_evaluator_function
+from scaffold.python.validation.runner import TestRunner
 from scaffold.python.validation.scripts import check_skill_scripts
-
-
-def check_evaluator_exists(test_dir):
-    passed, failed = [], []
-    path = test_dir / "trajectory_evaluator.py"
-    if path.exists():
-        passed.append("Evaluator: trajectory_evaluator.py exists")
-    else:
-        evals = list(test_dir.glob("*evaluator*.py"))
-        if evals:
-            passed.append(f"Evaluator: {evals[0].name} exists")
-        else:
-            failed.append("Evaluator: no evaluator file found")
-    return passed, failed
 
 
 def _find_evaluator(test_dir):
@@ -45,56 +28,93 @@ def _find_evaluator(test_dir):
     return evals[0] if evals else None
 
 
-def check_evaluator_syntax(test_dir):
-    passed, failed = [], []
+def check_structure(runner):
+    """Dataset has correct structure with trajectory fields."""
+    dataset_file = runner.artifacts[0]
+    p, f = check_dataset_structure(
+        test_dir=Path("."),
+        outputs=runner.context,
+        filename=dataset_file,
+        min_examples=1,
+        dataset_type="trajectory",
+    )
+    for msg in p:
+        runner.passed(msg)
+    for msg in f:
+        runner.failed(msg)
+
+
+def check_evaluator_exists(runner):
+    """Check that evaluator file exists."""
+    test_dir = Path(".")
+    path = test_dir / "trajectory_evaluator.py"
+    if path.exists():
+        runner.passed("Evaluator: trajectory_evaluator.py exists")
+    else:
+        evals = list(test_dir.glob("*evaluator*.py"))
+        if evals:
+            runner.passed(f"Evaluator: {evals[0].name} exists")
+        else:
+            runner.failed("Evaluator: no evaluator file found")
+
+
+def check_evaluator_syntax(runner):
+    """Check evaluator has valid syntax."""
+    test_dir = Path(".")
     path = _find_evaluator(test_dir)
     if not path:
-        return [], []
+        runner.passed("Evaluator syntax: skipped (no evaluator)")
+        return
     try:
         ast.parse(path.read_text())
-        passed.append(f"Evaluator: {path.name} has valid syntax")
+        runner.passed(f"Evaluator: {path.name} has valid syntax")
     except SyntaxError as e:
-        failed.append(f"Evaluator: {path.name} syntax error: {e.msg}")
-    return passed, failed
+        runner.failed(f"Evaluator: {path.name} syntax error: {e.msg}")
 
 
-def check_evaluator_structure(test_dir):
-    passed, failed = [], []
+def check_evaluator_structure(runner):
+    """Check evaluator has correct function structure."""
+    test_dir = Path(".")
     path = _find_evaluator(test_dir)
     if not path:
-        return [], []
+        runner.passed("Evaluator structure: skipped (no evaluator)")
+        return
     content = path.read_text()
     func_name, error = find_evaluator_function(content, "python")
     if func_name:
-        passed.append(f"Evaluator: has {func_name}(run, example) function")
+        runner.passed(f"Evaluator: has {func_name}(run, example) function")
     elif error:
-        failed.append(f"Evaluator: {error}")
+        runner.failed(f"Evaluator: {error}")
     if "return" in content:
-        passed.append("Evaluator: has return statement")
-    return passed, failed
+        runner.passed("Evaluator: has return statement")
 
 
-def check_evaluator_logic(test_dir):
+def check_evaluator_logic(runner):
     """Run evaluator against test cases using eval_runner.py."""
+    test_dir = Path(".")
     path = _find_evaluator(test_dir)
     if not path:
-        return [], []
+        runner.passed("Evaluator logic: skipped (no evaluator)")
+        return
 
     content = path.read_text()
     func_name, error = find_evaluator_function(content, "python")
     if error:
-        return [], [f"Evaluator logic: {error}"]
+        runner.failed(f"Evaluator logic: {error}")
+        return
 
-    runner = test_dir / "eval_runner.py"
-    if not runner.exists():
-        return ["Evaluator logic: skipped (no eval_runner.py)"], []
+    eval_runner = test_dir / "eval_runner.py"
+    if not eval_runner.exists():
+        runner.passed("Evaluator logic: skipped (no eval_runner.py)")
+        return
 
     test_cases = test_dir / "evaluator_test_cases.json"
     if not test_cases.exists():
-        return ["Evaluator logic: skipped (no test cases)"], []
+        runner.passed("Evaluator logic: skipped (no test cases)")
+        return
 
     module_name = path.name.replace(".py", "")
-    args = [sys.executable, str(runner), module_name, func_name, "evaluator_test_cases.json"]
+    args = [sys.executable, str(eval_runner), module_name, func_name, "evaluator_test_cases.json"]
     if (test_dir / "trajectory_dataset.json").exists():
         args.append("trajectory_dataset.json")
 
@@ -106,73 +126,76 @@ def check_evaluator_logic(test_dir):
             try:
                 result = json.loads(output)
                 if isinstance(result, dict):
-                    return result.get("passed", []), result.get("failed", [])
+                    for msg in result.get("passed", []):
+                        runner.passed(msg)
+                    for msg in result.get("failed", []):
+                        runner.failed(msg)
+                    return
             except json.JSONDecodeError:
                 pass
         if r.returncode == 0:
-            return [], ["Evaluator logic: no structured output from eval_runner"]
-        return [], [f"Evaluator logic: execution failed - {(r.stderr or output)[:100]}"]
+            runner.failed("Evaluator logic: no structured output from eval_runner")
+        else:
+            runner.failed(f"Evaluator logic: execution failed - {(r.stderr or output)[:100]}")
     except Exception as e:
-        return [], [f"Evaluator logic: {str(e)[:50]}"]
+        runner.failed(f"Evaluator logic: {str(e)[:50]}")
 
 
-def check_upload(test_dir, outputs):
-    passed, failed = [], []
+def check_accuracy(runner):
+    """Trajectories match ground truth."""
+    dataset_file = runner.artifacts[0]
+    test_dir = Path(".")
+    p, f = check_trajectory_accuracy(
+        test_dir=test_dir,
+        outputs=runner.context,
+        filename=dataset_file,
+        expected_filename="expected_dataset.json",
+        data_dir=test_dir,
+    )
+    for msg in p:
+        runner.passed(msg)
+    for msg in f:
+        runner.failed(msg)
+
+
+def check_upload(runner):
+    """Check dataset upload to LangSmith."""
+    test_dir = Path(".")
     if (test_dir / "trajectory_dataset.json").exists():
-        passed.append("Upload: local dataset file exists")
+        runner.passed("Upload: local dataset file exists")
     if _find_evaluator(test_dir):
-        passed.append("Upload: local evaluator file exists")
+        runner.passed("Upload: local evaluator file exists")
     p, f = check_dataset_upload(
-        test_dir,
-        outputs,
+        test_dir=test_dir,
+        outputs=runner.context,
         filename="trajectory_dataset.json",
         upload_prefix="bench-",
     )
-    passed.extend(p)
-    failed.extend(f)
-    return passed, failed
+    for msg in p:
+        runner.passed(msg)
+    for msg in f:
+        runner.failed(msg)
 
 
-def run_tests(dataset_file):
-    passed, failed = [], []
-    test_dir = Path(".")
-
-    try:
-        outputs = load_test_context()
-    except (FileNotFoundError, json.JSONDecodeError):
-        outputs = {}
-
-    for p, f in [
-        check_dataset_structure(
-            test_dir,
-            outputs,
-            filename=dataset_file,
-            min_examples=1,
-            dataset_type="trajectory",
-        ),
-        check_evaluator_exists(test_dir),
-        check_evaluator_syntax(test_dir),
-        check_evaluator_structure(test_dir),
-        check_evaluator_logic(test_dir),
-        check_trajectory_accuracy(
-            test_dir,
-            outputs,
-            filename=dataset_file,
-            expected_filename="expected_dataset.json",
-            data_dir=test_dir,
-        ),
-        check_upload(test_dir, outputs),
-        check_skill_scripts(outputs, outputs.get("events", {})),
-    ]:
-        passed.extend(p)
-        failed.extend(f)
-
-    return {"passed": passed, "failed": failed, "error": None}
+def check_scripts(runner):
+    """Track which skill scripts Claude used (informational)."""
+    p, f = check_skill_scripts(runner.context, runner.context.get("events", {}))
+    for msg in p:
+        runner.passed(msg)
+    for msg in f:
+        runner.failed(msg)
 
 
 if __name__ == "__main__":
-    dataset_file = sys.argv[1] if len(sys.argv) > 1 else "trajectory_dataset.json"
-    results = run_tests(dataset_file)
-    print(json.dumps(results, indent=2))
-    write_test_results(results)
-    sys.exit(1 if results["failed"] else 0)
+    TestRunner.run(
+        [
+            check_structure,
+            check_evaluator_exists,
+            check_evaluator_syntax,
+            check_evaluator_structure,
+            check_evaluator_logic,
+            check_accuracy,
+            check_upload,
+            check_scripts,
+        ]
+    )

@@ -23,6 +23,6 @@ dockerfile = "Dockerfile"
 timeout_sec = 900
 
 [validation]
-test_scripts = "test_tracing_v2.py"
+test_scripts = "test_tracing.py"
 target_artifacts = ["backend/sql_agent.py", "frontend/support_bot.ts"]
 timeout = 120

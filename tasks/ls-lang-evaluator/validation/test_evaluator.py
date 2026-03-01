@@ -1,9 +1,8 @@
 """Test script for ls-lang-evaluator validation.
 
 Checks evaluator existence, syntax, patterns, and logic for both
-Python and TypeScript evaluators. Runs inside Docker via make_execution_validator.
-
-Usage: python test_evaluator.py <py_evaluator_dir> <js_evaluator_dir>
+Python and TypeScript evaluators. Also validates LangSmith upload
+and skill script usage.
 """
 
 import ast
@@ -13,7 +12,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-from scaffold.python.validation.core import write_test_results
+from scaffold.python.validation.evaluator import check_evaluator_upload
+from scaffold.python.validation.runner import TestRunner
+from scaffold.python.validation.scripts import check_skill_scripts
 
 
 def find_evaluator(directory, extensions):
@@ -52,32 +53,33 @@ def find_eval_function(content, language):
         return None, "no (run, example) function found"
 
 
-def check_exists(py_dir, js_dir):
+def check_exists(runner):
     """Check evaluator files exist."""
-    passed, failed = [], []
+    py_dir = runner.artifacts[0]
+    js_dir = runner.artifacts[1]
     py = find_evaluator(py_dir, ["py"])
     js = find_evaluator(js_dir, ["ts", "js"])
     if py:
-        passed.append(f"Python evaluator: {py.name} exists")
+        runner.passed(f"Python evaluator: {py.name} exists")
     else:
-        failed.append(f"Python evaluator: not found in {py_dir}/")
+        runner.failed(f"Python evaluator: not found in {py_dir}/")
     if js:
-        passed.append(f"JavaScript evaluator: {js.name} exists")
+        runner.passed(f"JavaScript evaluator: {js.name} exists")
     else:
-        failed.append(f"JavaScript evaluator: not found in {js_dir}/")
-    return passed, failed
+        runner.failed(f"JavaScript evaluator: not found in {js_dir}/")
 
 
-def check_syntax(py_dir, js_dir):
+def check_syntax(runner):
     """Check evaluator syntax."""
-    passed, failed = [], []
+    py_dir = runner.artifacts[0]
+    js_dir = runner.artifacts[1]
     py = find_evaluator(py_dir, ["py"])
     if py:
         try:
             ast.parse(py.read_text())
-            passed.append(f"Python: {py.name} valid syntax")
+            runner.passed(f"Python: {py.name} valid syntax")
         except SyntaxError as e:
-            failed.append(f"Python: syntax error at line {e.lineno}: {e.msg}")
+            runner.failed(f"Python: syntax error at line {e.lineno}: {e.msg}")
 
     js = find_evaluator(js_dir, ["ts", "js"])
     if js:
@@ -89,35 +91,35 @@ def check_syntax(py_dir, js_dir):
         )
         has_func = "function" in content or "=>" in content
         if balanced and has_func and "return" in content:
-            passed.append(f"JavaScript: {js.name} valid syntax")
+            runner.passed(f"JavaScript: {js.name} valid syntax")
         else:
-            failed.append(f"JavaScript: {js.name} syntax appears invalid")
-    return passed, failed
+            runner.failed(f"JavaScript: {js.name} syntax appears invalid")
 
 
-def check_patterns(py_dir, js_dir):
+def check_patterns(runner):
     """Check evaluator follows LangSmith patterns."""
-    passed, failed = [], []
+    py_dir = runner.artifacts[0]
+    js_dir = runner.artifacts[1]
 
     py = find_evaluator(py_dir, ["py"])
     if py:
         content = py.read_text()
         if re.search(r"def\s+\w+\s*\(\s*run\s*(:\s*\w+)?\s*,\s*example", content):
-            passed.append("Python: has (run, example) signature")
+            runner.passed("Python: has (run, example) signature")
         else:
-            failed.append("Python: missing (run, example) function signature")
+            runner.failed("Python: missing (run, example) function signature")
         if re.search(r"return\s*\{[^}]*['\"]?\w+['\"]?\s*:", content):
-            passed.append("Python: returns dict with score")
+            runner.passed("Python: returns dict with score")
         else:
-            failed.append("Python: missing return dict with score")
+            runner.failed("Python: missing return dict with score")
         if re.search(r"run\[.outputs.\]|run\.outputs|run\.get\(.outputs", content):
-            passed.append("Python: accesses run outputs")
+            runner.passed("Python: accesses run outputs")
         else:
-            failed.append("Python: missing run outputs access")
+            runner.failed("Python: missing run outputs access")
         if re.search(r"example\[.outputs.\]|example\.outputs|example\.get\(.outputs", content):
-            passed.append("Python: accesses example outputs")
+            runner.passed("Python: accesses example outputs")
         else:
-            failed.append("Python: missing example outputs access")
+            runner.failed("Python: missing example outputs access")
 
     js = find_evaluator(js_dir, ["ts", "js"])
     if js:
@@ -126,91 +128,24 @@ def check_patterns(py_dir, js_dir):
             r"function\s+\w+\s*\(\s*run\s*(:\s*\w+)?\s*,\s*example", content
         ) or re.search(r"=\s*\(\s*run\s*(:\s*\w+)?\s*,\s*example\s*(:\s*\w+)?\s*\)\s*=>", content)
         if has_sig:
-            passed.append("JavaScript: has (run, example) signature")
+            runner.passed("JavaScript: has (run, example) signature")
         else:
-            failed.append("JavaScript: missing (run, example) function signature")
+            runner.failed("JavaScript: missing (run, example) function signature")
         if re.search(r"return\s*\{[^}]*(?:\w+\s*:|score)", content):
-            passed.append("JavaScript: returns object with score")
+            runner.passed("JavaScript: returns object with score")
         else:
-            failed.append("JavaScript: missing return object with score")
+            runner.failed("JavaScript: missing return object with score")
         if re.search(r'run[.?]+outputs|run\[["\']outputs', content):
-            passed.append("JavaScript: accesses run.outputs")
+            runner.passed("JavaScript: accesses run.outputs")
         else:
-            failed.append("JavaScript: missing run.outputs access")
+            runner.failed("JavaScript: missing run.outputs access")
         if re.search(r'example[.?]+outputs|example\[["\']outputs', content):
-            passed.append("JavaScript: accesses example.outputs")
+            runner.passed("JavaScript: accesses example.outputs")
         else:
-            failed.append("JavaScript: missing example.outputs access")
-
-    return passed, failed
+            runner.failed("JavaScript: missing example.outputs access")
 
 
-def check_python_logic(py_dir, test_cases_file):
-    """Run Python evaluator against test cases."""
-    py = find_evaluator(py_dir, ["py"])
-    if not py:
-        return [], []
-
-    content = py.read_text()
-    func_name, error = find_eval_function(content, "python")
-    if error:
-        return [], [f"Python logic: {error}"]
-
-    test_cases = Path(test_cases_file).resolve()
-    if not test_cases.exists():
-        return ["Python logic: no test cases"], []
-
-    runner = Path("eval_runner.py").resolve()
-    if not runner.exists():
-        return ["Python logic: no eval_runner.py"], []
-
-    module_name = py.name.replace(".py", "")
-    try:
-        r = subprocess.run(
-            [sys.executable, str(runner), module_name, func_name, str(test_cases)],
-            capture_output=True,
-            text=True,
-            timeout=60,
-            cwd=str(py.parent),
-        )
-        return _parse_eval_results(r.stdout + r.stderr, r.returncode == 0, "Python")
-    except Exception as e:
-        return [], [f"Python logic: {str(e)[:50]}"]
-
-
-def check_js_logic(js_dir, test_cases_file):
-    """Run JavaScript evaluator against test cases."""
-    js = find_evaluator(js_dir, ["ts", "js"])
-    if not js:
-        return [], []
-
-    content = js.read_text()
-    func_name, error = find_eval_function(content, "javascript")
-    if error:
-        return [], [f"JavaScript logic: {error}"]
-
-    test_cases = Path(test_cases_file).resolve()
-    if not test_cases.exists():
-        return ["JavaScript logic: no test cases"], []
-
-    runner = Path("eval_runner.ts").resolve()
-    if not runner.exists():
-        return ["JavaScript logic: no eval_runner.ts"], []
-
-    try:
-        r = subprocess.run(
-            ["npx", "tsx", str(runner), js.name, func_name, str(test_cases)],
-            capture_output=True,
-            text=True,
-            timeout=60,
-            cwd=str(js.parent),
-        )
-        return _parse_eval_results(r.stdout + r.stderr, r.returncode == 0, "JavaScript")
-    except Exception as e:
-        return [], [f"JavaScript logic: {str(e)[:50]}"]
-
-
-def _parse_eval_results(output, success, lang):
+def _parse_eval_results(output, success, lang, runner):
     """Parse EVALUATOR_RESULTS from output."""
     for line in output.split("\n"):
         if line.startswith("EVALUATOR_RESULTS:"):
@@ -220,37 +155,123 @@ def _parse_eval_results(output, success, lang):
                 total = len(results)
                 msg = f"{lang} logic: {passed_count}/{total} tests"
                 if passed_count == total:
-                    return [msg + " passed"], []
+                    runner.passed(msg + " passed")
                 elif passed_count > total // 2:
-                    return [msg + " (partial)"], []
+                    runner.passed(msg + " (partial)")
                 else:
-                    return [], [msg + " passed"]
+                    runner.failed(msg + " passed")
+                return
             except json.JSONDecodeError:
                 pass
     if success:
-        return [f"{lang} logic: executed"], []
-    return [], [f"{lang} logic: execution failed - {output[:150]}"]
+        runner.passed(f"{lang} logic: executed")
+    else:
+        runner.failed(f"{lang} logic: execution failed - {output[:150]}")
 
 
-def run_tests(py_dir, js_dir):
-    passed, failed = [], []
-    for p, f in [
-        check_exists(py_dir, js_dir),
-        check_syntax(py_dir, js_dir),
-        check_patterns(py_dir, js_dir),
-        check_python_logic(py_dir, "trajectory_test_cases.json"),
-        check_js_logic(js_dir, "single_step_test_cases.json"),
-    ]:
-        passed.extend(p)
-        failed.extend(f)
-    return {"passed": passed, "failed": failed, "error": None}
+def check_python_logic(runner):
+    """Run Python evaluator against test cases."""
+    py_dir = runner.artifacts[0]
+    py = find_evaluator(py_dir, ["py"])
+    if not py:
+        runner.passed("Python logic: skipped (no evaluator)")
+        return
+
+    content = py.read_text()
+    func_name, error = find_eval_function(content, "python")
+    if error:
+        runner.failed(f"Python logic: {error}")
+        return
+
+    test_cases = Path("trajectory_test_cases.json").resolve()
+    if not test_cases.exists():
+        runner.passed("Python logic: no test cases")
+        return
+
+    eval_runner = Path("eval_runner.py").resolve()
+    if not eval_runner.exists():
+        runner.passed("Python logic: no eval_runner.py")
+        return
+
+    module_name = py.name.replace(".py", "")
+    try:
+        r = subprocess.run(
+            [sys.executable, str(eval_runner), module_name, func_name, str(test_cases)],
+            capture_output=True,
+            text=True,
+            timeout=60,
+            cwd=str(py.parent),
+        )
+        _parse_eval_results(r.stdout + r.stderr, r.returncode == 0, "Python", runner)
+    except Exception as e:
+        runner.failed(f"Python logic: {str(e)[:50]}")
+
+
+def check_js_logic(runner):
+    """Run JavaScript evaluator against test cases."""
+    js_dir = runner.artifacts[1]
+    js = find_evaluator(js_dir, ["ts", "js"])
+    if not js:
+        runner.passed("JavaScript logic: skipped (no evaluator)")
+        return
+
+    content = js.read_text()
+    func_name, error = find_eval_function(content, "javascript")
+    if error:
+        runner.failed(f"JavaScript logic: {error}")
+        return
+
+    test_cases = Path("single_step_test_cases.json").resolve()
+    if not test_cases.exists():
+        runner.passed("JavaScript logic: no test cases")
+        return
+
+    eval_runner = Path("eval_runner.ts").resolve()
+    if not eval_runner.exists():
+        runner.passed("JavaScript logic: no eval_runner.ts")
+        return
+
+    try:
+        r = subprocess.run(
+            ["npx", "tsx", str(eval_runner), js.name, func_name, str(test_cases)],
+            capture_output=True,
+            text=True,
+            timeout=60,
+            cwd=str(js.parent),
+        )
+        _parse_eval_results(r.stdout + r.stderr, r.returncode == 0, "JavaScript", runner)
+    except Exception as e:
+        runner.failed(f"JavaScript logic: {str(e)[:50]}")
+
+
+def check_upload(runner):
+    """Validate that evaluators were uploaded to LangSmith."""
+    p, f = check_evaluator_upload(Path("."), runner.context)
+    for msg in p:
+        runner.passed(msg)
+    for msg in f:
+        runner.failed(msg)
+
+
+def check_scripts(runner):
+    """Track which skill scripts Claude used (informational)."""
+    events = runner.context.get("events", {}) if runner.context else {}
+    p, f = check_skill_scripts(runner.context, events)
+    for msg in p:
+        runner.passed(msg)
+    for msg in f:
+        runner.failed(msg)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print("Usage: python test_evaluator.py <python_dir> <typescript_dir>")
-        sys.exit(1)
-    results = run_tests(sys.argv[1], sys.argv[2])
-    print(json.dumps(results, indent=2))
-    write_test_results(results)
-    sys.exit(1 if results["failed"] else 0)
+    TestRunner.run(
+        [
+            check_exists,
+            check_syntax,
+            check_patterns,
+            check_python_logic,
+            check_js_logic,
+            check_upload,
+            check_scripts,
+        ]
+    )

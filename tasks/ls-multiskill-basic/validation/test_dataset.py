@@ -2,79 +2,69 @@
 
 Checks trajectory dataset structure, accuracy against ground truth, and
 LangSmith upload. Runs inside Docker via make_execution_validator.
-
-Usage: python test_dataset.py <dataset_file>
 """
 
-import json
-import sys
-
-from scaffold.python.validation.core import load_test_context, write_test_results
 from scaffold.python.validation.dataset import (
     check_dataset_structure,
     check_dataset_upload,
     check_trajectory_accuracy,
 )
+from scaffold.python.validation.runner import TestRunner
 from scaffold.python.validation.scripts import check_skill_scripts
 
 
-def run_tests(dataset_file):
-    passed, failed = [], []
-
-    try:
-        outputs = load_test_context()
-    except (FileNotFoundError, json.JSONDecodeError):
-        outputs = {}
-
-    # Use current directory as test_dir (Docker mounts test_dir as cwd)
-    from pathlib import Path
-
-    test_dir = Path(".")
-
-    # Structure check
+def check_structure(runner):
+    """Dataset has correct structure with trajectory fields."""
+    dataset_file = runner.artifacts[0]
     p, f = check_dataset_structure(
-        test_dir,
-        outputs,
+        outputs=runner.context,
         filename=dataset_file,
         min_examples=1,
         dataset_type="trajectory",
     )
-    passed.extend(p)
-    failed.extend(f)
+    for msg in p:
+        runner.passed(msg)
+    for msg in f:
+        runner.failed(msg)
 
-    # Accuracy check against ground truth (data dir files copied by factory)
+
+def check_accuracy(runner):
+    """Trajectories match ground truth."""
+    dataset_file = runner.artifacts[0]
     p, f = check_trajectory_accuracy(
-        test_dir,
-        outputs,
+        outputs=runner.context,
         filename=dataset_file,
         expected_filename="expected_dataset.json",
-        data_dir=test_dir,
     )
-    passed.extend(p)
-    failed.extend(f)
+    for msg in p:
+        runner.passed(msg)
+    for msg in f:
+        runner.failed(msg)
 
-    # Upload check
+
+def check_upload(runner):
+    """Dataset uploaded to LangSmith."""
+    dataset_file = runner.artifacts[0]
     p, f = check_dataset_upload(
-        test_dir,
-        outputs,
+        outputs=runner.context,
         filename=dataset_file,
         upload_prefix="bench-",
     )
-    passed.extend(p)
-    failed.extend(f)
+    for msg in p:
+        runner.passed(msg)
+    for msg in f:
+        runner.failed(msg)
 
-    # Script tracking
-    events = outputs.get("events", {})
-    p, f = check_skill_scripts(outputs, events)
-    passed.extend(p)
-    failed.extend(f)
 
-    return {"passed": passed, "failed": failed, "error": None}
+def check_scripts(runner):
+    """Track which skill scripts Claude used (informational)."""
+    events = runner.context.get("events", {})
+    p, f = check_skill_scripts(runner.context, events)
+    for msg in p:
+        runner.passed(msg)
+    for msg in f:
+        runner.failed(msg)
 
 
 if __name__ == "__main__":
-    dataset_file = sys.argv[1] if len(sys.argv) > 1 else "trajectory_dataset.json"
-    results = run_tests(dataset_file)
-    print(json.dumps(results, indent=2))
-    write_test_results(results)
-    sys.exit(1 if results["failed"] else 0)
+    TestRunner.run([check_structure, check_accuracy, check_upload, check_scripts])

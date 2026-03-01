@@ -15,7 +15,7 @@ dockerfile = "Dockerfile"
 timeout_sec = 900
 
 [validation]
-test_scripts = "test_dataset_v2.py"
+test_scripts = "test_dataset.py"
 target_artifacts = ["trajectory_dataset.json"]
 timeout = 120
 

@@ -24,6 +24,6 @@ description = "Python workspace with agent_system.py - a Deep Agents (claude-age
 timeout_sec = 600
 
 [validation]
-test_scripts = "test_memory_v2.py"
+test_scripts = "test_memory.py"
 target_artifacts = ["agent_system.py"]
 timeout = 120

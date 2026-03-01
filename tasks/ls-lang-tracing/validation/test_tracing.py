@@ -1,17 +1,17 @@
 """Test script for ls-lang-tracing validation.
 
 Checks tracing patterns, language syntax, and code execution for both
-Python and TypeScript files. Runs inside Docker via make_execution_validator.
-
-Usage: python test_tracing.py <python_file> <typescript_file>
+Python and TypeScript files. Also validates LangSmith traces and skill
+script usage.
 """
 
-import json
 import re
 import subprocess
 import sys
 
-from scaffold.python.validation.core import write_test_results
+from scaffold.python.validation.runner import TestRunner
+from scaffold.python.validation.scripts import check_skill_scripts
+from scaffold.python.validation.tracing import check_langsmith_trace
 
 REQUIRED_FUNCTIONS = [
     "classify_intent",
@@ -21,43 +21,42 @@ REQUIRED_FUNCTIONS = [
 ]
 
 
-def check_python_tracing(filepath, required_functions):
+def check_python_tracing(runner):
     """Check Python LangSmith tracing patterns."""
-    passed, failed = [], []
+    filepath = runner.artifacts[0]
     try:
         content = open(filepath).read()
     except FileNotFoundError:
-        return [], [f"Python: {filepath} not found"]
+        runner.failed(f"Python: {filepath} not found")
+        return
 
     if re.search(r"from\s+langsmith\s+import\s+.*traceable", content, re.IGNORECASE):
-        passed.append("Python: imports traceable")
+        runner.passed("Python: imports traceable")
     else:
-        failed.append("Python: missing 'from langsmith import traceable'")
+        runner.failed("Python: missing 'from langsmith import traceable'")
 
     if re.search(r"from\s+langsmith\.wrappers\s+import\s+wrap_openai", content, re.IGNORECASE):
-        passed.append("Python: imports wrap_openai")
+        runner.passed("Python: imports wrap_openai")
     else:
-        failed.append("Python: missing 'from langsmith.wrappers import wrap_openai'")
+        runner.failed("Python: missing 'from langsmith.wrappers import wrap_openai'")
 
     if re.search(r"wrap_openai\s*\(\s*OpenAI\s*\(\s*\)\s*\)", content):
-        passed.append("Python: wraps OpenAI client")
+        runner.passed("Python: wraps OpenAI client")
     else:
-        failed.append("Python: missing 'wrap_openai(OpenAI())'")
+        runner.failed("Python: missing 'wrap_openai(OpenAI())'")
 
-    if required_functions:
+    if REQUIRED_FUNCTIONS:
         traced, untraced = [], []
-        for func in required_functions:
+        for func in REQUIRED_FUNCTIONS:
             pattern = rf"@traceable[^@]*def\s+{func}\s*\("
             if re.search(pattern, content, re.DOTALL):
                 traced.append(func)
             elif re.search(rf"def\s+{func}\s*\(", content):
                 untraced.append(func)
         if traced:
-            passed.append(f"Python: traced {len(traced)} functions ({', '.join(traced)})")
+            runner.passed(f"Python: traced {len(traced)} functions ({', '.join(traced)})")
         if untraced:
-            failed.append(f"Python: missing @traceable on: {', '.join(untraced)}")
-
-    return passed, failed
+            runner.failed(f"Python: missing @traceable on: {', '.join(untraced)}")
 
 
 def _to_camel_case(snake_str):
@@ -65,36 +64,37 @@ def _to_camel_case(snake_str):
     return components[0] + "".join(x.title() for x in components[1:])
 
 
-def check_typescript_tracing(filepath, required_functions):
+def check_typescript_tracing(runner):
     """Check TypeScript LangSmith tracing patterns."""
-    passed, failed = [], []
+    filepath = runner.artifacts[1]
     try:
         content = open(filepath).read()
     except FileNotFoundError:
-        return [], [f"TypeScript: {filepath} not found"]
+        runner.failed(f"TypeScript: {filepath} not found")
+        return
 
     if re.search(
         r'import\s+\{[^}]*traceable[^}]*\}\s+from\s+["\']langsmith/traceable["\']', content
     ):
-        passed.append("TypeScript: imports traceable")
+        runner.passed("TypeScript: imports traceable")
     else:
-        failed.append("TypeScript: missing 'import { traceable } from \"langsmith/traceable\"'")
+        runner.failed("TypeScript: missing 'import { traceable } from \"langsmith/traceable\"'")
 
     if re.search(
         r'import\s+\{[^}]*wrapOpenAI[^}]*\}\s+from\s+["\']langsmith/wrappers["\']', content
     ):
-        passed.append("TypeScript: imports wrapOpenAI")
+        runner.passed("TypeScript: imports wrapOpenAI")
     else:
-        failed.append("TypeScript: missing 'import { wrapOpenAI } from \"langsmith/wrappers\"'")
+        runner.failed("TypeScript: missing 'import { wrapOpenAI } from \"langsmith/wrappers\"'")
 
     if re.search(r"wrapOpenAI\s*\(\s*new\s+OpenAI\s*\(\s*\)\s*\)", content):
-        passed.append("TypeScript: wraps OpenAI client")
+        runner.passed("TypeScript: wraps OpenAI client")
     else:
-        failed.append("TypeScript: missing 'wrapOpenAI(new OpenAI())'")
+        runner.failed("TypeScript: missing 'wrapOpenAI(new OpenAI())'")
 
-    if required_functions:
+    if REQUIRED_FUNCTIONS:
         traced, untraced = [], []
-        for func in required_functions:
+        for func in REQUIRED_FUNCTIONS:
             camel = _to_camel_case(func)
             patterns = [
                 rf"const\s+{camel}\s*=\s*traceable\s*\(",
@@ -111,16 +111,15 @@ def check_typescript_tracing(filepath, required_functions):
                 if any(re.search(p, content) for p in func_patterns):
                     untraced.append(func)
         if traced:
-            passed.append(f"TypeScript: traced {len(traced)} functions ({', '.join(traced)})")
+            runner.passed(f"TypeScript: traced {len(traced)} functions ({', '.join(traced)})")
         if untraced:
-            failed.append(f"TypeScript: missing traceable() on: {', '.join(untraced)}")
-
-    return passed, failed
+            runner.failed(f"TypeScript: missing traceable() on: {', '.join(untraced)}")
 
 
-def check_language_syntax(py_file, ts_file):
+def check_language_syntax(runner):
     """Check that files use correct language (no mixing)."""
-    passed, failed = [], []
+    py_file = runner.artifacts[0]
+    ts_file = runner.artifacts[1]
 
     ts_only = [
         (re.compile(r":\s*(string|number|boolean|Promise<)"), "TypeScript type annotation"),
@@ -136,9 +135,9 @@ def check_language_syntax(py_file, ts_file):
         py_content = open(py_file).read()
         ts_found = [d for p, d in ts_only if p.search(py_content)]
         if ts_found:
-            failed.append(f"Python: contains TypeScript syntax ({len(ts_found)} patterns)")
+            runner.failed(f"Python: contains TypeScript syntax ({len(ts_found)} patterns)")
         else:
-            passed.append("Python: correct syntax")
+            runner.passed("Python: correct syntax")
     except FileNotFoundError:
         pass
 
@@ -146,61 +145,72 @@ def check_language_syntax(py_file, ts_file):
         ts_content = open(ts_file).read()
         py_found = [d for p, d in py_only if p.search(ts_content)]
         if py_found:
-            failed.append(f"TypeScript: contains Python syntax ({len(py_found)} patterns)")
+            runner.failed(f"TypeScript: contains Python syntax ({len(py_found)} patterns)")
         else:
-            passed.append("TypeScript: correct syntax")
+            runner.passed("TypeScript: correct syntax")
     except FileNotFoundError:
         pass
 
-    return passed, failed
 
-
-def check_execution(py_file, ts_file):
+def check_execution(runner):
     """Check that both files execute without errors."""
-    passed, failed = [], []
+    py_file = runner.artifacts[0]
+    ts_file = runner.artifacts[1]
 
     try:
         r = subprocess.run([sys.executable, py_file], capture_output=True, text=True, timeout=60)
         if r.returncode == 0:
-            passed.append(f"Python: {py_file} executes successfully")
+            runner.passed(f"Python: {py_file} executes successfully")
         else:
-            failed.append(f"Python: execution failed ({(r.stderr or r.stdout)[:100]})")
+            runner.failed(f"Python: execution failed ({(r.stderr or r.stdout)[:100]})")
     except Exception as e:
-        failed.append(f"Python: execution error ({str(e)[:80]})")
+        runner.failed(f"Python: execution error ({str(e)[:80]})")
 
     # TypeScript execution via npx tsx
     try:
         r = subprocess.run(["npx", "tsx", ts_file], capture_output=True, text=True, timeout=60)
         if r.returncode == 0:
-            passed.append(f"TypeScript: {ts_file} executes successfully")
+            runner.passed(f"TypeScript: {ts_file} executes successfully")
         else:
-            failed.append(f"TypeScript: execution failed ({(r.stderr or r.stdout)[:100]})")
+            runner.failed(f"TypeScript: execution failed ({(r.stderr or r.stdout)[:100]})")
     except Exception as e:
-        failed.append(f"TypeScript: execution error ({str(e)[:80]})")
-
-    return passed, failed
+        runner.failed(f"TypeScript: execution error ({str(e)[:80]})")
 
 
-def run_tests(py_file, ts_file):
-    passed, failed = [], []
+def check_trace(runner):
+    """Validate that a trace was created in LangSmith."""
+    from pathlib import Path
 
-    for p, f in [
-        check_python_tracing(py_file, REQUIRED_FUNCTIONS),
-        check_typescript_tracing(ts_file, REQUIRED_FUNCTIONS),
-        check_language_syntax(py_file, ts_file),
-        check_execution(py_file, ts_file),
-    ]:
-        passed.extend(p)
-        failed.extend(f)
+    p, f = check_langsmith_trace(
+        Path("."),
+        runner.context,
+        trace_id_file="trace_id.txt",
+        expected_functions=REQUIRED_FUNCTIONS,
+    )
+    for msg in p:
+        runner.passed(msg)
+    for msg in f:
+        runner.failed(msg)
 
-    return {"passed": passed, "failed": failed, "error": None}
+
+def check_scripts(runner):
+    """Track which skill scripts Claude used (informational)."""
+    events = runner.context.get("events", {}) if runner.context else {}
+    p, f = check_skill_scripts(runner.context, events)
+    for msg in p:
+        runner.passed(msg)
+    for msg in f:
+        runner.failed(msg)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
-        print("Usage: python test_tracing.py <python_file> <typescript_file>")
-        sys.exit(1)
-    results = run_tests(sys.argv[1], sys.argv[2])
-    print(json.dumps(results, indent=2))
-    write_test_results(results)
-    sys.exit(1 if results["failed"] else 0)
+    TestRunner.run(
+        [
+            check_python_tracing,
+            check_typescript_tracing,
+            check_language_syntax,
+            check_execution,
+            check_trace,
+            check_scripts,
+        ]
+    )

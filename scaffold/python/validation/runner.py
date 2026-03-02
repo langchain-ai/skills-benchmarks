@@ -28,8 +28,10 @@ Example:
 
 import importlib.util
 import json
+import os
 import subprocess
 import sys
+from contextlib import contextmanager
 from pathlib import Path
 from types import ModuleType
 
@@ -149,6 +151,33 @@ class TestRunner:
         }
 
     @staticmethod
+    @contextmanager
+    def _eval_trace_context():
+        """Create a LangSmith trace context if eval trace env vars are set.
+
+        Uses distributed tracing headers to nest LLM calls
+        (e.g. evaluate_with_schema) under the host-side eval span.
+        """
+        trace_header = os.environ.get("BENCH_EVAL_LANGSMITH_TRACE")
+        baggage = os.environ.get("BENCH_EVAL_BAGGAGE")
+
+        if not trace_header:
+            yield
+            return
+
+        try:
+            import langsmith
+
+            headers: dict[str, str] = {"langsmith-trace": trace_header}
+            if baggage:
+                headers["baggage"] = baggage
+            with langsmith.tracing_context(parent=headers):
+                yield
+        except Exception:
+            # Tracing failed — run checks without tracing
+            yield
+
+    @staticmethod
     def run(checks: list) -> None:
         """Run check functions and handle all output.
 
@@ -166,15 +195,18 @@ class TestRunner:
             print(f"Error: {TEST_CONTEXT_FILE} not found or empty", file=sys.stderr)
             sys.exit(1)
 
-        for check_fn in checks:
-            check_name = check_fn.__name__.replace("check_", "").replace("_", " ")
-            runner._check_called = False
-            try:
-                check_fn(runner)
-                if not runner._check_called:
-                    runner._failed.append(f"{check_name}: check did not call passed() or failed()")
-            except Exception as e:
-                runner._failed.append(f"{check_name}: {e}")
+        with TestRunner._eval_trace_context():
+            for check_fn in checks:
+                check_name = check_fn.__name__.replace("check_", "").replace("_", " ")
+                runner._check_called = False
+                try:
+                    check_fn(runner)
+                    if not runner._check_called:
+                        runner._failed.append(
+                            f"{check_name}: check did not call passed() or failed()"
+                        )
+                except Exception as e:
+                    runner._failed.append(f"{check_name}: {e}")
 
         results = runner._results()
         print(json.dumps(results, indent=2))

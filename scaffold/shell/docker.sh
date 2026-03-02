@@ -46,6 +46,9 @@ ENV_KEYS=(
     CC_LS_TRACE_ID
     CC_LS_PARENT_RUN_ID
     CC_LS_DOTTED_ORDER
+    # Eval trace context (nest LLM calls in test scripts under eval span)
+    BENCH_EVAL_LANGSMITH_TRACE
+    BENCH_EVAL_BAGGAGE
 )
 
 # =============================================================================

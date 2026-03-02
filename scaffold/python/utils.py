@@ -239,6 +239,37 @@ def run_eval_in_docker(
     return {"error": f"No JSON output. success={success}, output={output[:300]}"}
 
 
+_EVAL_TRACE_KEYS = ["BENCH_EVAL_LANGSMITH_TRACE", "BENCH_EVAL_BAGGAGE"]
+
+
+def _set_eval_trace_env() -> list[str]:
+    """Set env vars so Docker eval scripts can nest traces under the current span.
+
+    Uses LangSmith distributed tracing headers (langsmith-trace + baggage).
+    Returns list of env var keys that were set (for cleanup).
+    """
+    from langsmith.run_helpers import get_current_run_tree
+
+    run_tree = get_current_run_tree()
+    if not run_tree:
+        return []
+
+    headers = run_tree.to_headers()
+    set_keys = []
+    if headers.get("langsmith-trace"):
+        os.environ["BENCH_EVAL_LANGSMITH_TRACE"] = headers["langsmith-trace"]
+        set_keys.append("BENCH_EVAL_LANGSMITH_TRACE")
+    if headers.get("baggage"):
+        # Strip project name (sn=...) from baggage — Docker uses its own
+        # LANGSMITH_PROJECT env var. Keeping sn= would override the project
+        # and interfere with experiment row tracking.
+        baggage = ",".join(p for p in headers["baggage"].split(",") if not p.startswith("sn="))
+        if baggage:
+            os.environ["BENCH_EVAL_BAGGAGE"] = baggage
+            set_keys.append("BENCH_EVAL_BAGGAGE")
+    return set_keys
+
+
 def make_execution_validator(
     validation_dir: Path,
     test_scripts: str | list[str],
@@ -269,32 +300,44 @@ def make_execution_validator(
     artifacts = [target_artifacts] if isinstance(target_artifacts, str) else target_artifacts
 
     def validate_execution(test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:
+        from langsmith.run_helpers import trace as ls_trace
+
         passed, failed = [], []
-        for artifact in artifacts:
-            # Support glob patterns (e.g., "backend/evaluator.*")
-            if any(c in artifact for c in "*?["):
-                if not list(test_dir.glob(artifact)):
+        with ls_trace(name="check_artifacts"):
+            for artifact in artifacts:
+                # Support glob patterns (e.g., "backend/evaluator.*")
+                if any(c in artifact for c in "*?["):
+                    if not list(test_dir.glob(artifact)):
+                        failed.append(f"Artifact not found: {artifact}")
+                elif not (test_dir / artifact).exists():
                     failed.append(f"Artifact not found: {artifact}")
-            elif not (test_dir / artifact).exists():
-                failed.append(f"Artifact not found: {artifact}")
         if failed:
             return passed, failed
         # Serialize run context + target artifacts for test scripts
         context = dict(outputs) if outputs else {}
         context["target_artifacts"] = artifacts
         (test_dir / TEST_CONTEXT_FILE).write_text(json.dumps(context, default=str))
+        eval_trace_keys = []
         for script in test_scripts:
-            results = run_eval_in_docker(
-                test_dir,
-                validation_dir,
-                script,
-                timeout=timeout,
-                data_dir=data_dir,
-            )
-            passed.extend(results.get("passed", []))
-            failed.extend(results.get("failed", []))
-            if results.get("error") and not results.get("passed") and not results.get("failed"):
-                failed.append(f"Test execution error ({script}): {results['error']}")
+            with ls_trace(name=f"eval_{script}"):
+                # Pass trace context to Docker so LLM calls (e.g. evaluate_with_schema)
+                # nest under this eval span
+                eval_trace_keys = _set_eval_trace_env()
+                try:
+                    results = run_eval_in_docker(
+                        test_dir,
+                        validation_dir,
+                        script,
+                        timeout=timeout,
+                        data_dir=data_dir,
+                    )
+                finally:
+                    for key in eval_trace_keys:
+                        os.environ.pop(key, None)
+                passed.extend(results.get("passed", []))
+                failed.extend(results.get("failed", []))
+                if results.get("error") and not results.get("passed") and not results.get("failed"):
+                    failed.append(f"Test execution error ({script}): {results['error']}")
         return passed, failed
 
     return validate_execution

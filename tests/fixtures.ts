@@ -86,7 +86,7 @@ export function setupLangSmithProject(): LangSmithProjectInfo {
   const runId = uuidv4();
   const shortId = runId.slice(0, 8);
   const projectName = `bench-project-${runId}`;
-  const testSuite = process.env.LANGSMITH_TEST_SUITE || "skills-benchmark";
+  const testSuite = process.env.LANGSMITH_EXPERIMENT || "skills-benchmark";
   const experimentName = `${testSuite}:${shortId}`;
 
   savedLangSmithProject = process.env.LANGSMITH_PROJECT;

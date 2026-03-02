@@ -192,7 +192,7 @@ def run_validators(validators: list, test_dir: Path, outputs: dict) -> tuple[lis
 
 
 @pytest.mark.langsmith(
-    test_suite_name=os.environ.get("LANGSMITH_TEST_SUITE", "skills-benchmark"),
+    test_suite_name=os.environ.get("LANGSMITH_EXPERIMENT", "skills-benchmark"),
 )
 @pytest.mark.timeout(PYTEST_TIMEOUT)
 def test_task_treatment(task_name, treatment_name, fixtures):

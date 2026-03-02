@@ -350,7 +350,8 @@ def langsmith_env(worker_id, request):
     os.environ["LANGSMITH_PROJECT"] = project_name
     # Decouple experiment name from temp project so experiments use a stable prefix
     # (e.g. "skills-benchmark" instead of "bench-project-{uuid}")
-    os.environ["LANGSMITH_EXPERIMENT"] = os.environ.get("LANGSMITH_TEST_SUITE", "skills-benchmark")
+    if "LANGSMITH_EXPERIMENT" not in os.environ:
+        os.environ["LANGSMITH_EXPERIMENT"] = "skills-benchmark"
     print(f"\nLANGSMITH PROJECT: {project_name}\n")
 
     yield project_name

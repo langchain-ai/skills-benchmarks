@@ -282,6 +282,10 @@ npx vitest list tests/tasks/test_tasks.test.ts
 
 Both runners execute the same validation pipeline: `task.toml` → `loadValidators()` → `makeExecutionValidator()` → Docker test scripts. Test scripts can be in Python or TypeScript — both scaffolds are copied into Docker.
 
+#### Known vitest LangSmith gaps
+
+Vitest has SDK-level tracing limitations vs pytest: no evaluator child traces (`traceable` doesn't propagate through `wrapEvaluator`), outputs overwritten on failure (mitigated with `expect.soft`), and no nested LLM eval traces from Docker.
+
 ## Experiment Results
 
 Results are saved to `logs/experiments/<experiment_id>/`:

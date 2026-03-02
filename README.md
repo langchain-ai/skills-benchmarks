@@ -133,11 +133,11 @@ uv run pytest tests/tasks/test_tasks.py --collect-only
 The vitest runner executes the same validation pipeline and is useful for setup verification and TypeScript development. **Use pytest for benchmark runs** — vitest threads cannot parallelize Docker execution, so multiple treatments run sequentially.
 
 ```bash
-# Run specific task + treatment (RUN_CLAUDE=true required for full execution)
-RUN_CLAUDE=true TASK=lc-basic TREATMENT=ALL_MAIN_SKILLS npx vitest run tests/tasks/test_tasks.test.ts
+# Run specific task + treatment
+TASK=lc-basic TREATMENT=ALL_MAIN_SKILLS npx vitest run tests/tasks/test_tasks.test.ts
 
-# Setup verification only (no Claude execution)
-npx vitest run tests/tasks/test_tasks.test.ts
+# List test cases without running (like pytest --collect-only)
+npx vitest list tests/tasks/test_tasks.test.ts
 ```
 
 ## How It Works

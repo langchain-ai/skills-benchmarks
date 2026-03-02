@@ -7,20 +7,17 @@
  * - Any treatment can be used with any task
  *
  * Usage:
- *   # Run all default task/treatment combinations (setup verification only)
- *   pnpm vitest tests/tasks/test_tasks.test.ts
- *
- *   # Run specific task with specific treatment (full execution)
- *   RUN_CLAUDE=true TASK=oss-fix-lg-persistence TREATMENT=OSSS_MIXED_20 pnpm vitest tests/tasks/test_tasks.test.ts
+ *   # Run specific task with specific treatment
+ *   TASK=oss-fix-lg-persistence TREATMENT=OSSS_MIXED_20 pnpm vitest tests/tasks/test_tasks.test.ts
  *
  *   # Run specific task with multiple treatments (comma-separated)
- *   RUN_CLAUDE=true TASK=ls-evaluator TREATMENT=LS_BASIC_PY,LS_WORKFLOW_PY pnpm vitest tests/tasks/test_tasks.test.ts
+ *   TASK=ls-evaluator TREATMENT=LS_BASIC_PY,LS_WORKFLOW_PY pnpm vitest tests/tasks/test_tasks.test.ts
  *
  *   # Run with wildcard pattern (matches all treatments starting with prefix)
- *   RUN_CLAUDE=true TASK=ls-evaluator TREATMENT=LS_BASIC_* pnpm vitest tests/tasks/test_tasks.test.ts
+ *   TASK=ls-evaluator TREATMENT=LS_BASIC_* pnpm vitest tests/tasks/test_tasks.test.ts
  *
- *   # Run with parallelism
- *   RUN_CLAUDE=true pnpm vitest tests/tasks/test_tasks.test.ts --pool=threads --poolOptions.threads.maxThreads=4
+ *   # List test cases without running (like pytest --collect-only)
+ *   pnpm vitest list tests/tasks/test_tasks.test.ts
  *
  *   # Filter with pattern matching
  *   pnpm vitest tests/tasks/test_tasks.test.ts -t "ls-evaluator"
@@ -65,7 +62,6 @@ const CLAUDE_TIMEOUT = 600_000; // 10 minutes
 // Environment variable filters
 const TASK_FILTER = process.env.TASK || null;
 const TREATMENT_FILTER = process.env.TREATMENT || null;
-const RUN_CLAUDE = process.env.RUN_CLAUDE?.toLowerCase() === "true";
 
 // Track run_ids for cleanup
 const testRunIds: string[] = [];
@@ -167,9 +163,9 @@ function generateTestCases(): TestCase[] {
 
 const testSuiteName = process.env.LANGSMITH_TEST_SUITE || "skills-benchmark";
 
-// Create isolated LangSmith project BEFORE ls.describe so the experiment
-// is created in our bench-project-{uuid} instead of a random project name.
-const langsmithInfo = RUN_CLAUDE ? setupLangSmithProject() : undefined;
+// Create isolated LangSmith project at module level (ls.describe needs projectName
+// before beforeAll runs). Env vars must also be set before ls.describe evaluates.
+const langsmithInfo = setupLangSmithProject();
 
 ls.describe(
   testSuiteName,
@@ -178,24 +174,18 @@ ls.describe(
 
     beforeAll(() => {
       allTreatments = loadTreatments();
-      if (RUN_CLAUDE) {
-        const env = verifyTestEnvironment();
-        if (!env.docker || !env.claude || !env.apiKeys) {
-          throw new Error("Environment not ready for Claude execution");
-        }
-        // Register project runId for cleanup (deletes bench-project-{runId})
-        if (langsmithInfo) {
-          testRunIds.push(langsmithInfo.runId);
-        }
+      const env = verifyTestEnvironment();
+      if (!env.docker || !env.claude || !env.apiKeys) {
+        throw new Error(
+          `Environment not ready: docker=${env.docker}, claude=${env.claude}, apiKeys=${env.apiKeys}`,
+        );
       }
+      testRunIds.push(langsmithInfo.runId);
+      console.log(`\nLANGSMITH PROJECT: ${langsmithInfo.projectName}`);
+      console.log(`LANGSMITH EXPERIMENT: ${langsmithInfo.experimentName}\n`);
     });
 
     afterAll(async () => {
-      // Skip cleanup if we didn't run Claude (verification mode only)
-      if (!RUN_CLAUDE) {
-        return;
-      }
-
       // Cleanup LangSmith resources
       for (const runId of testRunIds) {
         try {
@@ -240,9 +230,7 @@ ls.describe(
 
           // Generate run_id for namespace isolation
           const runId = uuidv4();
-          if (RUN_CLAUDE) {
-            testRunIds.push(runId);
-          }
+          testRunIds.push(runId);
 
           // Build template variables from task config
           const templateVars: Record<string, string> = { run_id: runId };
@@ -267,18 +255,6 @@ ls.describe(
           expect(treatmentCfg.name).toBe(treatmentName);
           expect(prompt).toBeTruthy();
           expect(runId).toBeTruthy();
-
-          if (!RUN_CLAUDE) {
-            // Setup verification only - log what would be tested
-            console.log(`[${taskName}] + [${treatmentName}]`);
-            console.log(
-              `  Skills: ${Object.keys(skills).join(", ") || "none"}`,
-            );
-            console.log(`  Run ID: ${runId}`);
-            return;
-          }
-
-          // === FULL EXECUTION MODE ===
 
           // Combined name matches Python's format (task-treatment)
           const fullName = `${taskName}-${treatmentName}`;
@@ -416,5 +392,5 @@ ls.describe(
   },
   // Pass projectName so the experiment is created in our bench-project-{uuid}
   // with a stable name like "skills-benchmark:a9e089bc" (like pytest does).
-  langsmithInfo ? { projectName: langsmithInfo.experimentName } : {},
+  { projectName: langsmithInfo.experimentName },
 );

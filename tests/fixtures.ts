@@ -95,8 +95,6 @@ export function setupLangSmithProject(): LangSmithProjectInfo {
   process.env.LANGSMITH_PROJECT = projectName;
   process.env.LANGSMITH_EXPERIMENT = testSuite;
 
-  console.log(`\nLANGSMITH PROJECT: ${projectName}`);
-  console.log(`LANGSMITH EXPERIMENT: ${experimentName}\n`);
   return { projectName, experimentName, runId };
 }
 

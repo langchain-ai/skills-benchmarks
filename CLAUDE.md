@@ -94,14 +94,14 @@ uv run pytest tests/tasks/test_tasks.py --task=lc-basic --treatment=CONTROL --co
 ### TypeScript (vitest)
 
 ```bash
-# Run specific task + treatment (RUN_CLAUDE=true required for full execution)
-RUN_CLAUDE=true TASK=lc-basic TREATMENT=ALL_MAIN_SKILLS npx vitest run tests/tasks/test_tasks.test.ts
+# Run specific task + treatment
+TASK=lc-basic TREATMENT=ALL_MAIN_SKILLS npx vitest run tests/tasks/test_tasks.test.ts
 
 # With parallelism
-RUN_CLAUDE=true TASK=lc-basic TREATMENT=CONTROL,ALL_MAIN_SKILLS npx vitest run tests/tasks/test_tasks.test.ts --pool=threads --poolOptions.threads.maxThreads=2
+TASK=lc-basic TREATMENT=CONTROL,ALL_MAIN_SKILLS npx vitest run tests/tasks/test_tasks.test.ts --pool=threads --poolOptions.threads.maxThreads=2
 
-# Setup verification only (no Claude execution)
-npx vitest run tests/tasks/test_tasks.test.ts
+# List test cases without running (like pytest --collect-only)
+npx vitest list tests/tasks/test_tasks.test.ts
 ```
 
 Both runners execute the same validation pipeline and produce equivalent results. **Use pytest for benchmark runs** — vitest threads cannot parallelize Docker execution, so multiple treatments run sequentially regardless of thread count. Vitest is useful for setup verification and TypeScript development.

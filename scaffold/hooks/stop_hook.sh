@@ -570,33 +570,6 @@ create_trace() {
         # Use the turn's trace_id for all children
         local trace_id="$turn_trace_id"
 
-        local assistant_data
-        assistant_data=$(jq -n \
-            --arg id "$assistant_id" \
-            --arg trace_id "$trace_id" \
-            --arg parent "$turn_id" \
-            --arg name "Claude" \
-            --arg project "$PROJECT" \
-            --arg time "$llm_start" \
-            --argjson inputs "$llm_inputs" \
-            --arg dotted_order "$assistant_dotted_order" \
-            --arg model "$model_name" \
-            '{
-                id: $id,
-                trace_id: $trace_id,
-                parent_run_id: $parent,
-                name: $name,
-                run_type: "llm",
-                inputs: $inputs,
-                start_time: $time,
-                dotted_order: $dotted_order,
-                session_name: $project,
-                extra: {metadata: {ls_provider: "anthropic", ls_model_name: $model}},
-                tags: [$model]
-            }')
-
-        posts_batch=$(echo "$posts_batch" | jq --argjson data "$assistant_data" '. += [$data]')
-
         # Build outputs for this LLM call
         local llm_outputs
         llm_outputs=$(jq -n --argjson content "$assistant_content" '[{role: "assistant", content: $content}]')
@@ -668,14 +641,16 @@ create_trace() {
                 fi
 
                 # Tools are siblings of the assistant run (both children of turn run)
+                # Include outputs + end_time directly in POST (avoids race with separate PATCH)
                 local tool_data
-                tool_data=$(jq -n \
+                tool_data=$(echo "$result" | jq -Rs \
                     --arg id "$tool_id" \
                     --arg trace_id "$trace_id" \
                     --arg parent "$turn_id" \
                     --arg name "$tool_name" \
                     --arg project "$PROJECT" \
-                    --arg time "$tool_start" \
+                    --arg start_time "$tool_start" \
+                    --arg end_time "$tool_end" \
                     --argjson input "$tool_input" \
                     --arg dotted_order "$tool_dotted_order" \
                     '{
@@ -685,31 +660,15 @@ create_trace() {
                         name: $name,
                         run_type: "tool",
                         inputs: {input: $input},
-                        start_time: $time,
+                        outputs: {output: .},
+                        start_time: $start_time,
+                        end_time: $end_time,
                         dotted_order: $dotted_order,
                         session_name: $project,
                         tags: ["tool"]
                     }')
 
                 posts_batch=$(echo "$posts_batch" | jq --argjson data "$tool_data" '. += [$data]')
-
-                local tool_update
-                tool_update=$(echo "$result" | jq -Rs \
-                    --arg time "$tool_end" \
-                    --arg id "$tool_id" \
-                    --arg trace_id "$trace_id" \
-                    --arg parent "$turn_id" \
-                    --arg dotted_order "$tool_dotted_order" \
-                    '{
-                        id: $id,
-                        trace_id: $trace_id,
-                        parent_run_id: $parent,
-                        dotted_order: $dotted_order,
-                        outputs: {output: .},
-                        end_time: $time
-                    }')
-
-                patches_batch=$(echo "$patches_batch" | jq --argjson data "$tool_update" '. += [$data]')
 
                 # Next tool starts after this one ends
                 tool_start="$tool_end"
@@ -723,26 +682,38 @@ create_trace() {
             assistant_end=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
         fi
 
-        # Now complete the assistant run
-        local assistant_update
-        assistant_update=$(jq -n \
-            --arg time "$assistant_end" \
+        # Create LLM run with outputs included (avoids race with separate PATCH)
+        local assistant_data
+        assistant_data=$(jq -n \
             --arg id "$assistant_id" \
             --arg trace_id "$trace_id" \
             --arg parent "$turn_id" \
-            --arg dotted_order "$assistant_dotted_order" \
+            --arg name "Claude" \
+            --arg project "$PROJECT" \
+            --arg start_time "$llm_start" \
+            --arg end_time "$assistant_end" \
+            --argjson inputs "$llm_inputs" \
             --argjson outputs "$llm_outputs" \
             --argjson usage_metadata "$usage_metadata" \
+            --arg dotted_order "$assistant_dotted_order" \
+            --arg model "$model_name" \
             '{
                 id: $id,
                 trace_id: $trace_id,
                 parent_run_id: $parent,
-                dotted_order: $dotted_order,
+                name: $name,
+                run_type: "llm",
+                inputs: $inputs,
                 outputs: ({messages: $outputs} + (if $usage_metadata != null then {usage_metadata: $usage_metadata} else {} end)),
-                end_time: $time
+                start_time: $start_time,
+                end_time: $end_time,
+                dotted_order: $dotted_order,
+                session_name: $project,
+                extra: {metadata: {ls_provider: "anthropic", ls_model_name: $model}},
+                tags: [$model]
             }')
 
-        patches_batch=$(echo "$patches_batch" | jq --argjson data "$assistant_update" '. += [$data]')
+        posts_batch=$(echo "$posts_batch" | jq --argjson data "$assistant_data" '. += [$data]')
 
         # Save end time for next LLM start
         last_llm_end="$assistant_end"

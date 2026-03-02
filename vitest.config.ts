@@ -15,6 +15,9 @@ export default defineConfig({
     // Global timeout (10 minutes per test)
     testTimeout: 600000,
 
+    // Hook timeout (30 seconds for setup/teardown — LangSmith cleanup can be slow)
+    hookTimeout: 30000,
+
     // Parallel execution configuration
     pool: "threads",
     poolOptions: {

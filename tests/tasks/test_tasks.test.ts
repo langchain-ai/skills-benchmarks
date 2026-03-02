@@ -161,7 +161,7 @@ function generateTestCases(): TestCase[] {
 // TEST SUITE
 // =============================================================================
 
-const testSuiteName = process.env.LANGSMITH_TEST_SUITE || "skills-benchmark";
+const testSuiteName = process.env.LANGSMITH_EXPERIMENT || "skills-benchmark";
 
 // Create isolated LangSmith project at module level (ls.describe needs projectName
 // before beforeAll runs). Env vars must also be set before ls.describe evaluates.
@@ -345,13 +345,6 @@ ls.describe(
             }
           }
 
-          // Log outputs to LangSmith experiment
-          ls.logOutputs({
-            skills_invoked: events.skills_invoked || [],
-            passed_checks: passed,
-            failed_checks: failed,
-          });
-
           // Log feedback scores to LangSmith experiment
           const totalChecks = passed.length + failed.length;
           const duration = events.duration_seconds || 0;
@@ -381,10 +374,15 @@ ls.describe(
             runId,
           );
 
-          // Assert no failures
-          if (failed.length > 0) {
-            throw new Error(`Validation failed: ${failed.join(", ")}`);
-          }
+          // Log outputs + soft assert (expect.soft doesn't throw, so
+          // logOutputs is preserved even on failure)
+          ls.logOutputs({
+            skills_invoked: events.skills_invoked || [],
+            passed_checks: passed,
+            failed_checks: failed,
+          });
+
+          expect.soft(failed, `Validation failed: ${failed.join(", ")}`).toHaveLength(0);
         },
         CLAUDE_TIMEOUT,
       );

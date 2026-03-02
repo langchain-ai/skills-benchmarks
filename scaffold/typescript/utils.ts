@@ -271,6 +271,41 @@ export function runEvalInDocker(
   };
 }
 
+/**
+ * Set env vars so Docker eval scripts can nest traces under the current span.
+ * Mirrors Python _set_eval_trace_env(). Returns keys that were set (for cleanup).
+ */
+function _setEvalTraceEnv(): string[] {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { getCurrentRunTree } = require("langsmith/run_trees");
+    const runTree = getCurrentRunTree();
+    if (!runTree) return [];
+
+    const headers = runTree.toHeaders();
+    const setKeys: string[] = [];
+    if (headers["langsmith-trace"]) {
+      process.env.BENCH_EVAL_LANGSMITH_TRACE = headers["langsmith-trace"];
+      setKeys.push("BENCH_EVAL_LANGSMITH_TRACE");
+    }
+    if (headers["baggage"]) {
+      // Strip project name (sn=...) from baggage — Docker uses its own
+      // LANGSMITH_PROJECT. Keeping sn= would interfere with experiment rows.
+      const baggage = headers["baggage"]
+        .split(",")
+        .filter((p: string) => !p.startsWith("sn="))
+        .join(",");
+      if (baggage) {
+        process.env.BENCH_EVAL_BAGGAGE = baggage;
+        setKeys.push("BENCH_EVAL_BAGGAGE");
+      }
+    }
+    return setKeys;
+  } catch {
+    return [];
+  }
+}
+
 /** Create a standard execution validator that runs test script(s) in Docker. */
 export function makeExecutionValidator(
   validationDir: string,
@@ -281,7 +316,6 @@ export function makeExecutionValidator(
   const { timeout = 120, dataDir } = options;
   const scripts = Array.isArray(testScripts) ? testScripts : [testScripts];
   const artifacts = Array.isArray(targetArtifacts) ? targetArtifacts : [targetArtifacts];
-  // Use constant from core.ts (single source of truth)
 
   return (testDir: string, outputs: Record<string, unknown>) => {
     const passed: string[] = [];
@@ -296,14 +330,22 @@ export function makeExecutionValidator(
     const context = outputs ? { ...outputs, target_artifacts: artifacts } : { target_artifacts: artifacts };
     writeFileSync(join(resolve(testDir), TEST_CONTEXT_FILE), JSON.stringify(context));
     for (const script of scripts) {
-      const results = runEvalInDocker(testDir, validationDir, script, {
-        timeout,
-        dataDir,
-      });
-      passed.push(...((results.passed as string[]) || []));
-      failed.push(...((results.failed as string[]) || []));
-      if (results.error && !results.passed && !results.failed) {
-        failed.push(`Test execution error (${script}): ${results.error}`);
+      // Pass trace context to Docker so LLM calls nest under this eval span
+      const evalTraceKeys = _setEvalTraceEnv();
+      try {
+        const results = runEvalInDocker(testDir, validationDir, script, {
+          timeout,
+          dataDir,
+        });
+        passed.push(...((results.passed as string[]) || []));
+        failed.push(...((results.failed as string[]) || []));
+        if (results.error && !results.passed && !results.failed) {
+          failed.push(`Test execution error (${script}): ${results.error}`);
+        }
+      } finally {
+        for (const key of evalTraceKeys) {
+          delete process.env[key];
+        }
       }
     }
     return { passed, failed };

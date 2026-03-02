@@ -2,7 +2,6 @@
 .venv
 logs/
 
-uv.lock
 
 .langgraph_api
 .claude

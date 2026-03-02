@@ -43,7 +43,7 @@ done
 # Config (continued)
 API_KEY="${CC_LANGSMITH_API_KEY:-$LANGSMITH_API_KEY}"
 PROJECT="${CC_LANGSMITH_PROJECT:-claude-code}"
-API_BASE="https://api.smith.langchain.com"
+API_BASE="${LANGSMITH_ENDPOINT:-https://api.smith.langchain.com}"
 STATE_FILE="${STATE_FILE:-$HOME/.claude/state/langsmith_state.json}"
 
 # Experiment trace context (nest CC traces under experiment run)

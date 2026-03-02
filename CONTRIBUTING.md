@@ -144,7 +144,7 @@ uv run pytest tests/tasks/test_tasks.py --task=my-task --treatment=CONTROL -v
 uv run pytest tests/tasks/test_tasks.py --task=my-task -v
 
 # Via TypeScript (vitest)
-RUN_CLAUDE=true TASK=my-task TREATMENT=CONTROL npx vitest run tests/tasks/test_tasks.test.ts
+TASK=my-task TREATMENT=CONTROL npx vitest run tests/tasks/test_tasks.test.ts
 ```
 
 ## Adding a New Treatment
@@ -273,11 +273,11 @@ uv run pytest tests/tasks/test_tasks.py --collect-only
 The vitest runner executes the same validation pipeline as pytest and is useful for TypeScript contributors who prefer the vitest workflow. However, **use pytest for benchmark runs** — vitest threads cannot parallelize Docker execution (they block on `spawnSync`), so multiple treatments run sequentially regardless of thread count.
 
 ```bash
-# Run specific task + treatment (RUN_CLAUDE=true required for full execution)
-RUN_CLAUDE=true TASK=ls-lang-tracing TREATMENT=ALL_MAIN_SKILLS npx vitest run tests/tasks/test_tasks.test.ts
+# Run specific task + treatment
+TASK=ls-lang-tracing TREATMENT=ALL_MAIN_SKILLS npx vitest run tests/tasks/test_tasks.test.ts
 
-# Setup verification only (no Claude execution) — useful for checking task/treatment config
-npx vitest run tests/tasks/test_tasks.test.ts
+# List test cases without running (like pytest --collect-only)
+npx vitest list tests/tasks/test_tasks.test.ts
 ```
 
 Both runners execute the same validation pipeline: `task.toml` → `loadValidators()` → `makeExecutionValidator()` → Docker test scripts. Test scripts can be in Python or TypeScript — both scaffolds are copied into Docker.

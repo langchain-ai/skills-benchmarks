@@ -14,13 +14,13 @@ ValidatorFn = Callable[[Path, dict], tuple[list[str], list[str]]]
 
 # Reserved filenames for host ↔ Docker data transport.
 # Configurable via environment variables; defaults match the convention.
-# BENCH_RUN_CONTEXT: host writes run metadata (run_id, events, etc.) for test scripts to read
+# BENCH_TEST_CONTEXT: host writes run metadata (run_id, events, etc.) for test scripts to read
 # BENCH_TEST_RESULTS: test scripts write validation results (passed/failed) for host to read
-RUN_CONTEXT_FILE = os.environ.get("BENCH_RUN_CONTEXT", "_test_context.json")
+TEST_CONTEXT_FILE = os.environ.get("BENCH_TEST_CONTEXT", "_test_context.json")
 TEST_RESULTS_FILE = os.environ.get("BENCH_TEST_RESULTS", "_test_results.json")
 
 
-def load_test_context(path: str = RUN_CONTEXT_FILE) -> dict:
+def load_test_context(path: str = TEST_CONTEXT_FILE) -> dict:
     """Load test context (run_id, events, langsmith_env, etc.) written by the host.
 
     Returns empty dict if file not found (e.g. running outside factory).

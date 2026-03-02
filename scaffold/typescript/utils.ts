@@ -7,7 +7,7 @@ import { copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, readdirSync,
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { config as loadEnv } from "dotenv";
-import { RUN_CONTEXT_FILE, TEST_RESULTS_FILE } from "./validation/core.js";
+import { TEST_CONTEXT_FILE, TEST_RESULTS_FILE } from "./validation/core.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const SHELL_DIR = resolve(__dirname, "..", "shell");
@@ -294,7 +294,7 @@ export function makeExecutionValidator(
     if (failed.length > 0) return { passed, failed };
     // Serialize run context + target artifacts for test scripts
     const context = outputs ? { ...outputs, target_artifacts: artifacts } : { target_artifacts: artifacts };
-    writeFileSync(join(resolve(testDir), RUN_CONTEXT_FILE), JSON.stringify(context));
+    writeFileSync(join(resolve(testDir), TEST_CONTEXT_FILE), JSON.stringify(context));
     for (const script of scripts) {
       const results = runEvalInDocker(testDir, validationDir, script, {
         timeout,
@@ -470,7 +470,7 @@ export async function evaluateWithSchema(
   options: { model?: string } = {},
 ): Promise<EvalResult> {
   const model =
-    options.model || process.env.EVAL_MODEL || "claude-sonnet-4-20250514";
+    options.model || process.env.BENCH_EVAL_MODEL || "openai:gpt-4o-mini";
 
   try {
     const Anthropic = (await import("@anthropic-ai/sdk")).default;

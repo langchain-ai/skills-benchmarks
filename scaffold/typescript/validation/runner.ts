@@ -32,7 +32,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { execSync } from "node:child_process";
 import {
-  RUN_CONTEXT_FILE,
+  TEST_CONTEXT_FILE,
   loadTestContext,
   writeTestResults,
 } from "./core.js";
@@ -172,7 +172,7 @@ export class TestRunner {
     const runner = new TestRunner();
 
     if (!runner.context || Object.keys(runner.context).length === 0) {
-      console.error(`Error: ${RUN_CONTEXT_FILE} not found or empty`);
+      console.error(`Error: ${TEST_CONTEXT_FILE} not found or empty`);
       process.exit(1);
     }
 

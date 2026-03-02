@@ -57,7 +57,7 @@ describe("langsmith-evaluator (upload_evaluators.ts)", () => {
 describe("mocked API functions", () => {
   beforeEach(() => {
     vi.stubEnv("LANGSMITH_API_KEY", "test-api-key-12345");
-    vi.stubEnv("LANGSMITH_API_URL", "https://api.smith.langchain.com");
+    vi.stubEnv("LANGSMITH_ENDPOINT", "https://api.smith.langchain.com");
   });
 
   afterEach(() => {
@@ -243,7 +243,7 @@ describe("mocked API functions", () => {
 describe("mocked API with fixtures", () => {
   beforeEach(() => {
     vi.stubEnv("LANGSMITH_API_KEY", "test-api-key-12345");
-    vi.stubEnv("LANGSMITH_API_URL", "https://api.smith.langchain.com");
+    vi.stubEnv("LANGSMITH_ENDPOINT", "https://api.smith.langchain.com");
   });
 
   afterEach(() => {
@@ -306,7 +306,7 @@ describe("mocked API with fixtures", () => {
 describe("findEvaluator - name AND target matching", () => {
   beforeEach(() => {
     vi.stubEnv("LANGSMITH_API_KEY", "test-api-key-12345");
-    vi.stubEnv("LANGSMITH_API_URL", "https://api.smith.langchain.com");
+    vi.stubEnv("LANGSMITH_ENDPOINT", "https://api.smith.langchain.com");
   });
 
   afterEach(() => {
@@ -405,7 +405,7 @@ describe("findEvaluator - name AND target matching", () => {
 describe("replacement logic", () => {
   beforeEach(() => {
     vi.stubEnv("LANGSMITH_API_KEY", "test-api-key-12345");
-    vi.stubEnv("LANGSMITH_API_URL", "https://api.smith.langchain.com");
+    vi.stubEnv("LANGSMITH_ENDPOINT", "https://api.smith.langchain.com");
   });
 
   afterEach(() => {

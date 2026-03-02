@@ -62,7 +62,7 @@ export {
 // Validation helpers
 export {
   type ValidatorFn,
-  RUN_CONTEXT_FILE,
+  TEST_CONTEXT_FILE,
   TEST_RESULTS_FILE,
   NOISE_TASK_PROMPTS,
   NOISE_TASK_DELIVERABLES,

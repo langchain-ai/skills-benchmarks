@@ -65,7 +65,7 @@ def mock_env():
         os.environ,
         {
             "LANGSMITH_API_KEY": "test-api-key-12345",
-            "LANGSMITH_API_URL": "https://api.smith.langchain.com",
+            "LANGSMITH_ENDPOINT": "https://api.smith.langchain.com",
         },
     ):
         yield

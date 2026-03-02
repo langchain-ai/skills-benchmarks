@@ -48,8 +48,8 @@ export const NOISE_TASK_DELIVERABLES: Record<string, string> = {
 // =============================================================================
 
 /** Reserved filenames for host ↔ Docker data transport. */
-export const RUN_CONTEXT_FILE =
-  process.env.BENCH_RUN_CONTEXT || "_test_context.json";
+export const TEST_CONTEXT_FILE =
+  process.env.BENCH_TEST_CONTEXT || "_test_context.json";
 export const TEST_RESULTS_FILE =
   process.env.BENCH_TEST_RESULTS || "_test_results.json";
 
@@ -59,7 +59,7 @@ export const TEST_RESULTS_FILE =
 
 /** Load run context (run_id, events, etc.) written by the host for test scripts. */
 export function loadTestContext(
-  path: string = RUN_CONTEXT_FILE,
+  path: string = TEST_CONTEXT_FILE,
 ): Record<string, unknown> {
   try {
     return JSON.parse(readFileSync(path, "utf8"));

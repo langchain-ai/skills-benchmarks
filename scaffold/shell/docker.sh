@@ -18,7 +18,7 @@ source "$SCRIPT_DIR/common.sh"
 IMAGE_PREFIX="skillbench"
 
 # Claude Code version (configurable via env var, defaults to "latest")
-CLAUDE_CODE_VERSION="${CLAUDE_CODE_VERSION:-latest}"
+CLAUDE_CODE_VERSION="${BENCH_CC_VERSION:-latest}"
 
 # Cross-platform timeout command (macOS uses gtimeout from coreutils)
 TIMEOUT_CMD=""
@@ -354,8 +354,8 @@ Environment variables passed to containers:
   TAVILY_API_KEY
 
 Build configuration:
-  CLAUDE_CODE_VERSION  Version of Claude Code to install (default: latest)
-                       Example: CLAUDE_CODE_VERSION=2.1.29 ./docker.sh build <dir>
+  BENCH_CC_VERSION  Version of Claude Code to install (default: latest)
+                    Example: BENCH_CC_VERSION=2.1.29 ./docker.sh build <dir>
 EOF
         ;;
     esac

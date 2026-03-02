@@ -257,7 +257,7 @@ async function deleteEvaluatorsForDatasets(datasetIds: Set<string>): Promise<str
   if (datasetIds.size === 0) return [];
 
   const apiKey = process.env.LANGSMITH_API_KEY;
-  const apiUrl = process.env.LANGSMITH_API_URL || "https://api.smith.langchain.com";
+  const apiUrl = process.env.LANGSMITH_ENDPOINT || "https://api.smith.langchain.com";
 
   if (!apiKey) return [];
 

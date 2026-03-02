@@ -34,7 +34,7 @@ from pathlib import Path
 from types import ModuleType
 
 from scaffold.python.validation.core import (
-    RUN_CONTEXT_FILE,
+    TEST_CONTEXT_FILE,
     load_test_context,
     write_test_results,
 )
@@ -163,7 +163,7 @@ class TestRunner:
         runner = TestRunner()
 
         if not runner.context:
-            print(f"Error: {RUN_CONTEXT_FILE} not found or empty", file=sys.stderr)
+            print(f"Error: {TEST_CONTEXT_FILE} not found or empty", file=sys.stderr)
             sys.exit(1)
 
         for check_fn in checks:

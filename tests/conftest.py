@@ -522,8 +522,8 @@ def setup_test_context(test_dir):
 @pytest.fixture
 def run_claude(test_dir, experiment_logger, request):
     """Factory fixture to run Claude in Docker and capture artifacts."""
-    # Use Claude Code's default model unless overridden with CC_MODEL env var
-    default_model = os.environ.get("CC_MODEL") or os.environ.get("CLAUDE_CODE_MODEL")
+    # Use Claude Code's default model unless overridden with BENCH_CC_MODEL env var
+    default_model = os.environ.get("BENCH_CC_MODEL")
 
     def _run(prompt: str, timeout: int = 600, model: str = None):
         result = run_claude_in_docker(
@@ -755,7 +755,7 @@ def _save_artifacts(base_dir: Path, treatment_name: str, rep: int, test_dir: Pat
     claude_dir.mkdir(parents=True, exist_ok=True)
     execution_dir.mkdir(parents=True, exist_ok=True)
 
-    from scaffold.python.utils import RUN_CONTEXT_FILE, TEST_RESULTS_FILE
+    from scaffold.python.utils import TEST_CONTEXT_FILE, TEST_RESULTS_FILE
 
     # Dirs that are infrastructure (copied before/after Claude runs, not Claude's work)
     exclude_dirs = {
@@ -774,7 +774,7 @@ def _save_artifacts(base_dir: Path, treatment_name: str, rep: int, test_dir: Pat
         "package.json",
         "package-lock.json",
         "tsconfig.json",
-        RUN_CONTEXT_FILE,
+        TEST_CONTEXT_FILE,
         TEST_RESULTS_FILE,
     }
 

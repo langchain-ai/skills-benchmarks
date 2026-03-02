@@ -214,7 +214,7 @@ def _delete_evaluators_for_datasets(dataset_ids: set[str]) -> list[str]:
         return []
 
     api_key = os.environ.get("LANGSMITH_API_KEY")
-    api_url = os.environ.get("LANGSMITH_API_URL", "https://api.smith.langchain.com")
+    api_url = os.environ.get("LANGSMITH_ENDPOINT", "https://api.smith.langchain.com")
 
     if not api_key:
         return []

@@ -16,7 +16,7 @@ from pydantic import BaseModel, Field
 
 # Reserved filenames for host ↔ Docker data transport.
 # Duplicated from validation/core.py (can't import due to circular dependency via __init__.py).
-RUN_CONTEXT_FILE = os.environ.get("BENCH_RUN_CONTEXT", "_test_context.json")
+TEST_CONTEXT_FILE = os.environ.get("BENCH_TEST_CONTEXT", "_test_context.json")
 TEST_RESULTS_FILE = os.environ.get("BENCH_TEST_RESULTS", "_test_results.json")
 
 load_dotenv(Path(__file__).parent.parent.parent / ".env")
@@ -282,7 +282,7 @@ def make_execution_validator(
         # Serialize run context + target artifacts for test scripts
         context = dict(outputs) if outputs else {}
         context["target_artifacts"] = artifacts
-        (test_dir / RUN_CONTEXT_FILE).write_text(json.dumps(context, default=str))
+        (test_dir / TEST_CONTEXT_FILE).write_text(json.dumps(context, default=str))
         for script in test_scripts:
             results = run_eval_in_docker(
                 test_dir,
@@ -424,7 +424,7 @@ def get_eval_model(model: str = None, temperature: float = 0):
     from langchain.chat_models import init_chat_model
 
     return init_chat_model(
-        model or os.getenv("EVAL_MODEL", "openai:gpt-4o-mini"), temperature=temperature
+        model or os.getenv("BENCH_EVAL_MODEL", "openai:gpt-4o-mini"), temperature=temperature
     )
 
 

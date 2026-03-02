@@ -51,7 +51,7 @@ import {
 } from "../scaffold/typescript/logging.js";
 import type { SkillConfig } from "../scaffold/typescript/schema.js";
 import {
-  RUN_CONTEXT_FILE,
+  TEST_CONTEXT_FILE,
   TEST_RESULTS_FILE,
 } from "../scaffold/typescript/validation/core.js";
 
@@ -345,7 +345,8 @@ export function runClaude(
     treatmentName?: string;
   } = {},
 ): RunClaudeResult {
-  const { timeout = 600, model, logger, treatmentName } = options;
+  const { timeout = 600, logger, treatmentName } = options;
+  const model = options.model || process.env.BENCH_CC_MODEL || undefined;
 
   const result = runClaudeInDocker(testDir, prompt, { timeout, model });
 
@@ -441,7 +442,7 @@ function saveArtifacts(
   const excludeFiles = new Set([
     "Dockerfile", "requirements.txt", "chinook.db",
     "package.json", "package-lock.json", "tsconfig.json",
-    RUN_CONTEXT_FILE,
+    TEST_CONTEXT_FILE,
     TEST_RESULTS_FILE,
   ]);
 

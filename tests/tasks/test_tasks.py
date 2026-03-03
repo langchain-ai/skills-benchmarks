@@ -33,7 +33,7 @@ import uuid
 from pathlib import Path
 
 import pytest
-from conftest import register_run_id_for_cleanup
+from conftest import get_fixtures, register_run_id_for_cleanup
 from langsmith import testing as ls_testing
 from langsmith.run_helpers import get_current_run_tree
 from langsmith.run_helpers import trace as ls_trace
@@ -195,8 +195,9 @@ def run_validators(validators: list, test_dir: Path, outputs: dict) -> tuple[lis
     test_suite_name=os.environ.get("LANGSMITH_EXPERIMENT", "skills-benchmark"),
 )
 @pytest.mark.timeout(PYTEST_TIMEOUT)
-def test_task_treatment(task_name, treatment_name, fixtures):
+def test_task_treatment(task_name, treatment_name):
     """Run a task with a treatment and validate results."""
+    fixtures = get_fixtures()
     # Load task
     task = load_task(task_name)
 
@@ -247,18 +248,17 @@ def test_task_treatment(task_name, treatment_name, fixtures):
     prompt = task.render_prompt(**template_vars)
     prompt = treatment.build_prompt(prompt)
 
-    # Log inputs to LangSmith
-    ls_testing.log_inputs(
-        {
-            "task_name": task_name,
-            "task_description": task.config.description,
-            "environment_description": task.config.environment_description,
-            "treatment_name": treatment_name,
-            "treatment_description": treatment_cfg.description,
-            "prompt": prompt,
-            "skills_loaded": list(treatment.skills.keys()) if treatment.skills else [],
-        }
-    )
+    # Log inputs to LangSmith experiment
+    logged_inputs = {
+        "task_name": task_name,
+        "task_description": task.config.description,
+        "environment_description": task.config.environment_description,
+        "treatment_name": treatment_name,
+        "treatment_description": treatment_cfg.description,
+        "prompt": prompt,
+        "skills_loaded": list(treatment.skills.keys()) if treatment.skills else [],
+    }
+    ls_testing.log_inputs(logged_inputs)
 
     # Pass experiment trace context to Docker so stop_hook nests CC traces
     # under the experiment run (visible when clicking the experiment row)

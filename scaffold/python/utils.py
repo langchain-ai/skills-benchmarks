@@ -260,13 +260,8 @@ def _set_eval_trace_env() -> list[str]:
         os.environ["BENCH_EVAL_LANGSMITH_TRACE"] = headers["langsmith-trace"]
         set_keys.append("BENCH_EVAL_LANGSMITH_TRACE")
     if headers.get("baggage"):
-        # Strip project name (sn=...) from baggage — Docker uses its own
-        # LANGSMITH_PROJECT env var. Keeping sn= would override the project
-        # and interfere with experiment row tracking.
-        baggage = ",".join(p for p in headers["baggage"].split(",") if not p.startswith("sn="))
-        if baggage:
-            os.environ["BENCH_EVAL_BAGGAGE"] = baggage
-            set_keys.append("BENCH_EVAL_BAGGAGE")
+        os.environ["BENCH_EVAL_BAGGAGE"] = headers["baggage"]
+        set_keys.append("BENCH_EVAL_BAGGAGE")
     return set_keys
 
 

@@ -155,6 +155,13 @@ class ExperimentPlugin:
         if self.is_xdist_master:
             time.sleep(1)  # Brief wait for file system sync
 
+        # Fix dataset_version race with xdist: each worker's atexit handler
+        # writes its own dataset_version to the experiment metadata, but only
+        # sees examples from its own tests. The last worker to exit wins,
+        # potentially setting a version that excludes other workers' examples.
+        # Fix by updating to the latest example timestamp after all workers finish.
+        self._fix_experiment_dataset_version()
+
         # Reload results from report files (aggregates all workers)
         self._reload_results_from_reports()
 
@@ -171,6 +178,38 @@ class ExperimentPlugin:
             self.run_counter[treatment_name] = 0
         self.run_counter[treatment_name] += 1
         return self.run_counter[treatment_name]
+
+    def _fix_experiment_dataset_version(self):
+        """Fix xdist dataset_version race condition.
+
+        Workers each write their own dataset_version at exit — the last writer
+        wins, potentially excluding examples from other workers. Fix by updating
+        to the latest example timestamp after all workers complete.
+        """
+        try:
+            from langsmith import Client
+
+            client = Client()
+            dataset_name = os.environ.get("LANGSMITH_EXPERIMENT", "skills-benchmark")
+
+            # Find most recent experiment for this dataset
+            projects = list(client.list_projects(reference_dataset_name=dataset_name, limit=1))
+            if not projects or not projects[0].reference_dataset_id:
+                return
+
+            project = projects[0]
+            examples = list(client.list_examples(dataset_id=project.reference_dataset_id))
+            if not examples:
+                return
+
+            latest_version = max(ex.modified_at for ex in examples if ex.modified_at)
+            existing = project.extra.get("metadata", {}) if project.extra else {}
+            client.update_project(
+                project.id,
+                metadata={**existing, "dataset_version": latest_version},
+            )
+        except Exception:
+            pass
 
     def _reload_results_from_reports(self):
         """Reload results from saved report files (aggregates all workers)."""
@@ -616,7 +655,22 @@ def record_result(test_dir, experiment_logger, request):
     return _record
 
 
-@pytest.fixture(scope="function")
+_current_fixtures: SimpleNamespace | None = None
+
+
+def get_fixtures() -> SimpleNamespace:
+    """Get the current test's fixtures bundle.
+
+    Used instead of a test parameter to avoid polluting LangSmith experiment
+    example inputs with non-deterministic fixture data (memory addresses in
+    stringified closures cause a new dataset example per test run).
+    """
+    if _current_fixtures is None:
+        raise RuntimeError("get_fixtures() called outside of test context")
+    return _current_fixtures
+
+
+@pytest.fixture(scope="function", autouse=True)
 def fixtures(
     verify_environment,
     langsmith_env,
@@ -625,21 +679,17 @@ def fixtures(
     run_claude,
     record_result,
 ):
-    """Bundle test fixtures to reduce LangSmith input noise.
-
-    Usage:
-        def test_task_treatment(task_name, treatment_name, fixtures):
-            fixtures.setup_test_context(skills=..., environment_dir=...)
-            result = fixtures.run_claude(prompt)
-            fixtures.record_result(events, passed, failed)
-    """
-    return SimpleNamespace(
+    """Bundle test fixtures and make them accessible via get_fixtures()."""
+    global _current_fixtures
+    _current_fixtures = SimpleNamespace(
         langsmith_env=langsmith_env,
         test_dir=test_dir,
         setup_test_context=setup_test_context,
         run_claude=run_claude,
         record_result=record_result,
     )
+    yield _current_fixtures
+    _current_fixtures = None
 
 
 # =============================================================================

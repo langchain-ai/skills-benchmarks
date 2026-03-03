@@ -289,16 +289,8 @@ function _setEvalTraceEnv(): string[] {
       setKeys.push("BENCH_EVAL_LANGSMITH_TRACE");
     }
     if (headers["baggage"]) {
-      // Strip project name (sn=...) from baggage — Docker uses its own
-      // LANGSMITH_PROJECT. Keeping sn= would interfere with experiment rows.
-      const baggage = headers["baggage"]
-        .split(",")
-        .filter((p: string) => !p.startsWith("sn="))
-        .join(",");
-      if (baggage) {
-        process.env.BENCH_EVAL_BAGGAGE = baggage;
-        setKeys.push("BENCH_EVAL_BAGGAGE");
-      }
+      process.env.BENCH_EVAL_BAGGAGE = headers["baggage"];
+      setKeys.push("BENCH_EVAL_BAGGAGE");
     }
     return setKeys;
   } catch {

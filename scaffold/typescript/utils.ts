@@ -432,13 +432,11 @@ export async function retryWithBackoff<T>(
       e.message.toLowerCase().includes("rate limit"),
   } = options;
 
-  let lastError: Error | undefined;
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       return await fn();
     } catch (error) {
-      lastError = error as Error;
-      if (!retryOn(lastError) || attempt === maxRetries) throw lastError;
+      if (!retryOn(error as Error) || attempt === maxRetries) throw error;
       const delay = Math.min(
         baseDelay * 2 ** attempt + Math.random() * 1000,
         maxDelay,
@@ -446,7 +444,7 @@ export async function retryWithBackoff<T>(
       await new Promise((r) => setTimeout(r, delay));
     }
   }
-  throw lastError;
+  throw new Error("unreachable");
 }
 
 /** Read JSON file. Returns [data, error]. */

@@ -93,7 +93,7 @@ export class TestRunner {
       if (cached === null) {
         this.failed(`import failed: ${path} (cached)`);
       }
-      return cached ?? null;
+      return cached;
     }
     if (!existsSync(path)) {
       this.failed(`cannot load ${path}: file not found`);

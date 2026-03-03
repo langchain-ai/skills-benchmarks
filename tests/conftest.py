@@ -395,14 +395,11 @@ def langsmith_env(worker_id, request):
 
     yield project_name
 
-    if old_project:
-        os.environ["LANGSMITH_PROJECT"] = old_project
-    elif "LANGSMITH_PROJECT" in os.environ:
-        del os.environ["LANGSMITH_PROJECT"]
-    if old_experiment:
-        os.environ["LANGSMITH_EXPERIMENT"] = old_experiment
-    elif "LANGSMITH_EXPERIMENT" in os.environ:
-        del os.environ["LANGSMITH_EXPERIMENT"]
+    for key, old in [("LANGSMITH_PROJECT", old_project), ("LANGSMITH_EXPERIMENT", old_experiment)]:
+        if old:
+            os.environ[key] = old
+        else:
+            os.environ.pop(key, None)
 
 
 @pytest.fixture(scope="session", autouse=True)

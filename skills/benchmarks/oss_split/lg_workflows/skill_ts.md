@@ -1,5 +1,5 @@
 ---
-name: LangGraph Workflows (TypeScript)
+name: langgraph-workflows-js
 description: "[LangGraph] Understanding workflows vs agents, predetermined vs dynamic patterns, and orchestrator-worker patterns using the Send API"
 ---
 

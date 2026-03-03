@@ -1,5 +1,5 @@
 ---
-name: LangGraph Interrupts (TypeScript)
+name: langgraph-interrupts-js
 description: "[LangGraph] Human-in-the-loop with dynamic interrupts and breakpoints: pausing execution for human review and resuming with Command"
 ---
 

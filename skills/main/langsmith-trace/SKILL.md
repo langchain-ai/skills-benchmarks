@@ -1,5 +1,5 @@
 ---
-name: Langsmith Traces
+name: langsmith-trace
 description: "INVOKE THIS SKILL when working with LangSmith tracing OR querying traces. Covers adding tracing to applications and querying/exporting trace data. Uses the langsmith CLI tool."
 ---
 

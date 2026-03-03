@@ -1,5 +1,5 @@
 ---
-name: LangChain Tool Calling (TypeScript)
+name: langchain-tool-calling-js
 description: "[LangChain] How chat models call tools - includes bind_tools, tool choice strategies, parallel tool calling, and tool message handling"
 ---
 

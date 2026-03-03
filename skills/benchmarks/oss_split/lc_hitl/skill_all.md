@@ -1,5 +1,5 @@
 ---
-name: LangChain Human-in-the-Loop
+name: langchain-human-in-the-loop
 description: "[LangChain] Add human oversight to LangChain agents using HITL middleware - includes interrupts, approval workflows, edit/reject decisions, and checkpoints"
 ---
 

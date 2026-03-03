@@ -1,5 +1,5 @@
 ---
-name: LangSmith Dataset
+name: langsmith-dataset
 description: "INVOKE THIS SKILL when creating evaluation datasets, uploading datasets to LangSmith, or managing existing datasets. Covers dataset types (final_response, single_step, trajectory, RAG), CLI management commands, SDK-based creation, and example management. Uses the langsmith CLI tool."
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: LangChain Text Splitters Integration (Python)
+name: langchain-text-splitters-integration-py
 description: "[LangChain] Guide to using text splitter integrations in LangChain including recursive, character, and semantic splitters"
 ---
 

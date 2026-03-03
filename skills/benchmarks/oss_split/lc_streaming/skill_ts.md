@@ -1,5 +1,5 @@
 ---
-name: LangChain Streaming (TypeScript)
+name: langchain-streaming-js
 description: "[LangChain] Stream outputs from LangChain agents and models - includes stream modes, token streaming, progress updates, and real-time feedback"
 ---
 

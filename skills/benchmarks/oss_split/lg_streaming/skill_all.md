@@ -1,5 +1,5 @@
 ---
-name: LangGraph Streaming
+name: langgraph-streaming
 description: "[LangGraph] Streaming real-time updates from LangGraph: stream modes (values, updates, messages, custom, debug) for responsive UX"
 ---
 

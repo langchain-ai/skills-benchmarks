@@ -1,5 +1,5 @@
 ---
-name: LangChain Agents (Python)
+name: langchain-agents-py
 description: "[LangChain] Create and use LangChain agents with create_agent - includes agent loops, ReAct pattern, tool execution, and state management"
 ---
 

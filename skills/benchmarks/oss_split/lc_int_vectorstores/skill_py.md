@@ -1,5 +1,5 @@
 ---
-name: LangChain Vector Stores Integration (Python)
+name: langchain-vector-stores-integration-py
 description: "[LangChain] Guide to using vector store integrations in LangChain including Chroma, Pinecone, FAISS, and memory vector stores"
 ---
 

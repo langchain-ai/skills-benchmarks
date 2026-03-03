@@ -1,5 +1,5 @@
 ---
-name: LangGraph Persistence
+name: langgraph-persistence
 description: "[LangGraph] Implementing persistence and checkpointing in LangGraph: saving state, resuming execution, thread IDs, and checkpointer libraries"
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: LangGraph Fundamentals (Python)
+name: langgraph-fundamentals-py
 description: "INVOKE THIS SKILL when writing ANY LangGraph code. Covers StateGraph creation, node functions, edges, state schemas with reducers (Annotated), and the Command API. CRITICAL: Contains fixes for returning partial state updates (not full state), missing reducers, and mutable defaults."
 ---
 

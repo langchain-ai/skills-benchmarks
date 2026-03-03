@@ -1,5 +1,5 @@
 ---
-name: LangChain Chat Models Integration
+name: langchain-chat-models-integration
 description: "[LangChain] Guide to using chat model integrations in LangChain including OpenAI, Anthropic, Google, Azure, and Bedrock"
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: Deep Agents Memory
+name: deep-agents-memory
 description: "[Deep Agents] Implementing long-term memory in Deep Agents with cross-session storage using StoreBackend, CompositeBackend, and InMemoryStore for persistent data."
 ---
 

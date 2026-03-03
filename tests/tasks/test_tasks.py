@@ -36,7 +36,6 @@ import pytest
 from conftest import get_fixtures, register_run_id_for_cleanup
 from langsmith import testing as ls_testing
 from langsmith.run_helpers import get_current_run_tree
-from langsmith.run_helpers import trace as ls_trace
 
 from scaffold import NoiseTask, Treatment
 from scaffold.python import extract_events, parse_output
@@ -173,16 +172,9 @@ def run_validators(validators: list, test_dir: Path, outputs: dict) -> tuple[lis
     """Run function-based validators and return combined results."""
     all_passed, all_failed = [], []
     for validator in validators:
-        with ls_trace(
-            name=validator.__name__,
-            inputs={
-                "treatment_name": outputs.get("treatment_name"),
-                "run_id": outputs.get("run_id"),
-            },
-        ):
-            passed, failed = validator(test_dir, outputs)
-            all_passed.extend(passed)
-            all_failed.extend(failed)
+        passed, failed = validator(test_dir, outputs)
+        all_passed.extend(passed)
+        all_failed.extend(failed)
     return all_passed, all_failed
 
 
@@ -198,22 +190,15 @@ def run_validators(validators: list, test_dir: Path, outputs: dict) -> tuple[lis
 def test_task_treatment(task_name, treatment_name):
     """Run a task with a treatment and validate results."""
     fixtures = get_fixtures()
-    # Load task
     task = load_task(task_name)
-
-    # Load all shared treatments
     treatments = load_treatments()
     if treatment_name not in treatments:
         pytest.skip(f"Treatment {treatment_name} not found")
     treatment_cfg = treatments[treatment_name]
-
-    # Load validators from task
     validators = task.load_validators()
 
-    # Build treatment
     skills = build_treatment_skills(treatment_cfg.skills) if treatment_cfg.skills else {}
     noise_tasks = build_noise_tasks(treatment_cfg.noise_tasks) if treatment_cfg.noise_tasks else []
-
     treatment = Treatment(
         description=treatment_cfg.description,
         skills=skills,
@@ -221,18 +206,15 @@ def test_task_treatment(task_name, treatment_name):
         noise_tasks=noise_tasks,
     )
 
-    # Setup test context with task's environment
     fixtures.setup_test_context(
         skills=treatment.skills,
         claude_md=treatment.claude_md,
         environment_dir=task.environment_dir,
     )
 
-    # Generate run_id for namespace isolation and cleanup
     run_id = str(uuid.uuid4())
     register_run_id_for_cleanup(run_id)
 
-    # Execute data handlers from task config
     trace_id_map = run_task_handlers(
         task.config.setup.data_handlers,
         task.data_dir,
@@ -240,7 +222,6 @@ def test_task_treatment(task_name, treatment_name):
         run_id,
     )
 
-    # Build template variables from config
     template_vars = {"run_id": run_id}
     for var_name, var_template in task.config.setup.template_vars.items():
         template_vars[var_name] = var_template.format(run_id=run_id)
@@ -248,7 +229,6 @@ def test_task_treatment(task_name, treatment_name):
     prompt = task.render_prompt(**template_vars)
     prompt = treatment.build_prompt(prompt)
 
-    # Log inputs to LangSmith experiment
     logged_inputs = {
         "task_name": task_name,
         "task_description": task.config.description,
@@ -260,21 +240,15 @@ def test_task_treatment(task_name, treatment_name):
     }
     ls_testing.log_inputs(logged_inputs)
 
-    # Pass experiment trace context to Docker so stop_hook nests CC traces
-    # under the experiment run (visible when clicking the experiment row)
+    # Pass experiment trace context to Docker so CC traces nest under experiment
     cc_env_keys = set_experiment_trace_env()
-
-    # Run Claude
     try:
         result = fixtures.run_claude(prompt, timeout=CLAUDE_TIMEOUT)
     finally:
         for key in cc_env_keys:
             os.environ.pop(key, None)
 
-    # Parse output
     events = extract_events(parse_output(result.stdout))
-
-    # Run validators
     outputs = {
         "run_id": run_id,
         "langsmith_env": fixtures.langsmith_env,
@@ -283,8 +257,15 @@ def test_task_treatment(task_name, treatment_name):
         "noise_tasks": treatment_cfg.noise_tasks,
         "trace_id_map": trace_id_map,
     }
-    # Wrap all validators — creates parent evaluator trace in "evaluators" project
-    with ls_testing.trace_feedback(name="Validation"):
+    # Wrap validation in evaluator trace ("evaluators" project)
+    with ls_testing.trace_feedback(name="validation") as eval_run:
+        if eval_run:
+            eval_run.add_inputs(
+                {
+                    "treatment_name": treatment_name,
+                    "run_id": run_id,
+                }
+            )
         passed, failed = run_validators(validators, fixtures.test_dir, outputs)
 
         # checks_pass_rate inside context → linked to evaluator trace
@@ -295,7 +276,6 @@ def test_task_treatment(task_name, treatment_name):
                 score=len(passed) / total_checks,
             )
 
-    # Update outputs with final results
     ls_testing.log_outputs(
         {
             "skills_invoked": events.get("skills_invoked", []),
@@ -304,20 +284,14 @@ def test_task_treatment(task_name, treatment_name):
         }
     )
 
-    # Duration/turns stay outside (Claude metrics, not validator results)
     duration = events.get("duration_seconds", 0)
     num_turns = events.get("num_turns", 0)
-
     if duration:
         ls_testing.log_feedback(key="duration_seconds", score=float(duration))
-
     if num_turns:
         ls_testing.log_feedback(key="num_turns", score=float(num_turns))
 
-    # Record results
     fixtures.record_result(events, passed, failed, run_id=run_id)
 
-    # Use pytest.fail() instead of assert to get cleaner error messages
-    # (assert shows the full expression evaluation which is noisy)
     if failed:
         pytest.fail(f"Validation failed: {failed}")

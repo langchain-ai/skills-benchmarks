@@ -151,7 +151,11 @@ class TestRunner:
         }
 
     def _run_check_traced(self, check_fn, check_name: str):
-        """Run a check function, wrapping in a trace if langsmith is available."""
+        """Run a check function, wrapping in a trace if langsmith is available.
+
+        Traces go to 'evaluators' project to avoid polluting the data project
+        (bench-project-{uuid}) where test traces live.
+        """
         passed_before = len(self._passed)
         failed_before = len(self._failed)
 
@@ -163,7 +167,7 @@ class TestRunner:
         try:
             from langsmith.run_helpers import trace as ls_trace
 
-            with ls_trace(name=check_name, run_type="chain") as run:
+            with ls_trace(name=check_name, run_type="chain", project_name="evaluators") as run:
                 _run()
                 if run:
                     run.outputs = {

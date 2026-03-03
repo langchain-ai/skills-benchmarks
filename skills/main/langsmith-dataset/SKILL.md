@@ -104,6 +104,7 @@ for jsonl_file in Path("./traces").glob("*.jsonl"):
     root = next((r for r in runs if r.get("parent_run_id") is None), None)
     if root and root.get("inputs") and root.get("outputs"):
         examples.append({
+            "trace_id": root.get("trace_id"),
             "inputs": root["inputs"],
             "outputs": root["outputs"]
         })
@@ -123,7 +124,7 @@ import { join } from "path";
 const client = new Client();
 
 // 2. Process traces into dataset examples
-const examples: Array<{inputs: Record<string, any>, outputs: Record<string, any>}> = [];
+const examples: Array<{trace_id?: string, inputs: Record<string, any>, outputs: Record<string, any>}> = [];
 const files = readdirSync("./traces").filter(f => f.endsWith(".jsonl"));
 
 for (const file of files) {
@@ -131,7 +132,7 @@ for (const file of files) {
   const runs = lines.map(line => JSON.parse(line));
   const root = runs.find(r => r.parent_run_id == null);
   if (root?.inputs && root?.outputs) {
-    examples.push({ inputs: root.inputs, outputs: root.outputs });
+    examples.push({ trace_id: root.trace_id, inputs: root.inputs, outputs: root.outputs });
   }
 }
 
@@ -191,22 +192,22 @@ await client.createExamples({
 
 ### Final Response
 ```json
-{"inputs": {"query": "What are the top genres?"}, "outputs": {"response": "The top genres are..."}}
+{"trace_id": "...", "inputs": {"query": "What are the top genres?"}, "outputs": {"response": "The top genres are..."}}
 ```
 
 ### Single Step
 ```json
-{"inputs": {"messages": [...]}, "outputs": {"content": "..."}, "metadata": {"node_name": "model"}}
+{"trace_id": "...", "inputs": {"messages": [...]}, "outputs": {"content": "..."}, "metadata": {"node_name": "model"}}
 ```
 
 ### Trajectory
 ```json
-{"inputs": {"query": "..."}, "outputs": {"expected_trajectory": ["tool_a", "tool_b", "tool_c"]}}
+{"trace_id": "...", "inputs": {"query": "..."}, "outputs": {"expected_trajectory": ["tool_a", "tool_b", "tool_c"]}}
 ```
 
 ### RAG
 ```json
-{"inputs": {"question": "How do I..."}, "outputs": {"answer": "...", "retrieved_chunks": ["..."], "cited_chunks": ["..."]}}
+{"trace_id": "...", "inputs": {"question": "How do I..."}, "outputs": {"answer": "...", "retrieved_chunks": ["..."], "cited_chunks": ["..."]}}
 ```
 </dataset_structures>
 

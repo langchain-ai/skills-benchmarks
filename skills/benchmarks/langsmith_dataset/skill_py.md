@@ -130,6 +130,7 @@ for jsonl_file in Path("./traces").glob("*.jsonl"):
     root = next((r for r in runs if r.get("parent_run_id") is None), None)
     if root and root.get("inputs") and root.get("outputs"):
         examples.append({
+            "trace_id": root.get("trace_id"),
             "inputs": root["inputs"],
             "outputs": root["outputs"]
         })
@@ -141,6 +142,7 @@ with open("/tmp/final_response.json", "w") as f:
 **Structure:**
 ```json
 {
+  "trace_id": "...",
   "inputs": {"email_content": "..."},
   "outputs": {"expected_response": "The response text..."}
 }
@@ -165,6 +167,7 @@ for jsonl_file in Path("./traces").glob("*.jsonl"):
     for i, run in enumerate(matching):
         if run.get("inputs") and run.get("outputs"):
             examples.append({
+                "trace_id": run.get("trace_id"),
                 "inputs": run["inputs"],
                 "outputs": run["outputs"],
                 "metadata": {"node_name": target_name, "occurrence": i + 1}
@@ -177,6 +180,7 @@ with open("/tmp/single_step.json", "w") as f:
 **Structure:**
 ```json
 {
+  "trace_id": "...",
   "inputs": {"email_content": "..."},
   "outputs": {"expected_output": {"category": "URGENT", "confidence": 0.95}},
   "metadata": {"node_name": "classify_email", "occurrence": 1}
@@ -215,6 +219,7 @@ for jsonl_file in Path("./traces").glob("*.jsonl"):
     trajectory = [r["name"] for r in tool_runs]
     if trajectory and root.get("inputs"):
         examples.append({
+            "trace_id": root.get("trace_id"),
             "inputs": root["inputs"],
             "outputs": {"expected_trajectory": trajectory}
         })
@@ -226,6 +231,7 @@ with open("/tmp/trajectory.json", "w") as f:
 **Structure:**
 ```json
 {
+  "trace_id": "...",
   "inputs": {"query": "What are the top 3 genres?"},
   "outputs": {
     "expected_trajectory": [
@@ -269,6 +275,7 @@ for jsonl_file in Path("./traces").glob("*.jsonl"):
             chunks = [d.get("page_content", str(d)) for d in chunks["documents"]]
 
         examples.append({
+            "trace_id": root.get("trace_id"),
             "inputs": {"question": root["inputs"].get("query", "")},
             "outputs": {
                 "answer": root.get("outputs", {}).get("output", ""),
@@ -283,6 +290,7 @@ with open("/tmp/rag_dataset.json", "w") as f:
 **Structure:**
 ```json
 {
+  "trace_id": "...",
   "inputs": {"question": "How do I..."},
   "outputs": {
     "answer": "The answer is...",
@@ -375,6 +383,7 @@ for jsonl_file in Path("./traces").glob("*.jsonl"):
     trajectory = [r["name"] for r in tool_runs]
     if trajectory and root.get("inputs"):
         examples.append({
+            "trace_id": root.get("trace_id"),
             "inputs": root["inputs"],
             "outputs": {"expected_trajectory": trajectory}
         })

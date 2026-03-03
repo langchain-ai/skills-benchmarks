@@ -119,6 +119,7 @@ for jsonl_file in Path("./traces").glob("*.jsonl"):
     root = next((r for r in runs if r.get("parent_run_id") is None), None)
     if root and root.get("inputs") and root.get("outputs"):
         examples.append({
+            "trace_id": root.get("trace_id"),
             "inputs": root["inputs"],
             "outputs": root["outputs"]
         })
@@ -144,7 +145,7 @@ for (const file of files) {
   const runs = lines.map(line => JSON.parse(line));
   const root = runs.find(r => r.parent_run_id == null);
   if (root?.inputs && root?.outputs) {
-    examples.push({ inputs: root.inputs, outputs: root.outputs });
+    examples.push({ trace_id: root.trace_id, inputs: root.inputs, outputs: root.outputs });
   }
 }
 

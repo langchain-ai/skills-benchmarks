@@ -112,7 +112,7 @@ for (const file of files) {
   const runs = lines.map(line => JSON.parse(line));
   const root = runs.find(r => r.parent_run_id == null);
   if (root?.inputs && root?.outputs) {
-    examples.push({ inputs: root.inputs, outputs: root.outputs });
+    examples.push({ trace_id: root.trace_id, inputs: root.inputs, outputs: root.outputs });
   }
 }
 
@@ -220,6 +220,7 @@ for (const file of files) {
   const trajectory = toolRuns.map(r => r.name);
   if (trajectory.length > 0 && root.inputs) {
     examples.push({
+      trace_id: root.trace_id,
       inputs: root.inputs,
       outputs: { expected_trajectory: trajectory }
     });

@@ -376,16 +376,16 @@ Based on the framework and archetype you chose above, invoke these skills **now*
 |----------------|-----------|
 | Any LangChain agent (QA bot, SQL, search, RAG, tool-calling) | **`langchain-fundamentals`** — always |
 | Adding external tools/packages (Tavily, Pinecone, etc.) | **`langchain-dependencies`** — package patterns and version guidance |
-| Need streaming or async responses | **`langchain-fundamentals`** then `langgraph-execution` |
+| Need streaming or async responses | **`langchain-fundamentals`** then `langgraph-fundamentals` |
 
 ### If you chose LangGraph
 
 | Your archetype | Load next |
 |----------------|-----------|
 | Any LangGraph graph | **`langgraph-fundamentals`** — always |
-| Approval pipeline, HITL, or pause/resume | **`langgraph-fundamentals`** + `langgraph-execution` |
+| Approval pipeline, HITL, or pause/resume | **`langgraph-fundamentals`** + `langgraph-human-in-the-loop` |
 | State that must survive restarts or cross-thread memory | **`langgraph-persistence`** |
-| Streaming output token by token | **`langgraph-execution`** |
+| Streaming output token by token | **`langgraph-fundamentals`** |
 
 ### If you chose Deep Agents
 

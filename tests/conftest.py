@@ -382,7 +382,7 @@ def langsmith_env(worker_id, request):
 
     run_id = str(uuid.uuid4())
     project_name = f"bench-project-{run_id}"
-    _register_run_id_for_cleanup(run_id)
+    register_run_id_for_cleanup(run_id)
 
     old_project = os.environ.get("LANGSMITH_PROJECT")
     old_experiment = os.environ.get("LANGSMITH_EXPERIMENT")
@@ -655,15 +655,17 @@ def record_result(test_dir, experiment_logger, request):
     return _record
 
 
+# Fixture bundle accessor — avoids polluting LangSmith experiment example inputs
+# with non-deterministic fixture data (see get_fixtures() docstring).
 _current_fixtures: SimpleNamespace | None = None
 
 
 def get_fixtures() -> SimpleNamespace:
     """Get the current test's fixtures bundle.
 
-    Used instead of a test parameter to avoid polluting LangSmith experiment
-    example inputs with non-deterministic fixture data (memory addresses in
-    stringified closures cause a new dataset example per test run).
+    Used instead of a test parameter to prevent pytest-langsmith from capturing
+    fixture objects in example inputs (memory addresses in stringified closures
+    cause a new dataset example per test run).
     """
     if _current_fixtures is None:
         raise RuntimeError("get_fixtures() called outside of test context")
@@ -697,14 +699,10 @@ def fixtures(
 # =============================================================================
 
 
-def _register_run_id_for_cleanup(run_id: str):
+def register_run_id_for_cleanup(run_id: str):
     """Register a run_id for namespace cleanup at session end."""
     if run_id not in _test_run_ids:
         _test_run_ids.append(run_id)
-
-
-# Public alias for test modules
-register_run_id_for_cleanup = _register_run_id_for_cleanup
 
 
 def _get_treatment_name(node) -> str:

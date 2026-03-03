@@ -95,8 +95,9 @@ export function buildDockerImage(
 }
 
 
-/** Run Python script in Docker. Returns [success, output]. */
-export function runPythonInDocker(
+/** Run a script in Docker. Returns [success, output]. */
+function _dockerRunScript(
+  mode: string,
   testDir: string,
   scriptName: string,
   options: { timeout?: number; args?: string[] } = {},
@@ -106,7 +107,7 @@ export function runPythonInDocker(
   try {
     const result = runShell(
       "docker.sh",
-      ["run-python", resolve(testDir), scriptName, ...args],
+      [mode, resolve(testDir), scriptName, ...args],
       { timeout, check: false },
     );
     return [result.returncode === 0, result.stdout + result.stderr];
@@ -118,6 +119,15 @@ export function runPythonInDocker(
         : String(error),
     ];
   }
+}
+
+/** Run Python script in Docker. Returns [success, output]. */
+export function runPythonInDocker(
+  testDir: string,
+  scriptName: string,
+  options: { timeout?: number; args?: string[] } = {},
+): [boolean, string] {
+  return _dockerRunScript("run-python", testDir, scriptName, options);
 }
 
 /** Run Node/TypeScript script in Docker. Returns [success, output]. */
@@ -126,23 +136,7 @@ export function runNodeInDocker(
   scriptName: string,
   options: { timeout?: number; args?: string[] } = {},
 ): [boolean, string] {
-  if (!checkDockerAvailable()) return [false, "Docker not available"];
-  const { timeout = 120, args = [] } = options;
-  try {
-    const result = runShell(
-      "docker.sh",
-      ["run-node", resolve(testDir), scriptName, ...args],
-      { timeout, check: false },
-    );
-    return [result.returncode === 0, result.stdout + result.stderr];
-  } catch (error) {
-    return [
-      false,
-      (error as Error).message?.includes("ETIMEDOUT")
-        ? `Timeout (${timeout}s)`
-        : String(error),
-    ];
-  }
+  return _dockerRunScript("run-node", testDir, scriptName, options);
 }
 
 /** Run script in Docker based on file extension. Returns [success, output]. */
@@ -151,10 +145,8 @@ export function runScriptInDocker(
   scriptName: string,
   options: { timeout?: number; args?: string[] } = {},
 ): [boolean, string] {
-  if (scriptName.endsWith(".py"))
-    return runPythonInDocker(testDir, scriptName, options);
-  if (scriptName.endsWith(".ts") || scriptName.endsWith(".js"))
-    return runNodeInDocker(testDir, scriptName, options);
+  if (scriptName.endsWith(".py")) return runPythonInDocker(testDir, scriptName, options);
+  if (scriptName.endsWith(".ts") || scriptName.endsWith(".js")) return runNodeInDocker(testDir, scriptName, options);
   return [false, `Unsupported file type: ${scriptName}`];
 }
 

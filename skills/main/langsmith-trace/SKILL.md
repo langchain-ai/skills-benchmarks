@@ -145,17 +145,33 @@ langsmith
 │   └── export  - Export runs to single JSONL file (flat)
 │
 ├── dataset (dataset operations)
-│   ├── generate - Generate datasets from trace exports
-│   ├── list     - List datasets
-│   ├── get      - Get dataset details
-│   ├── export   - Export dataset to file
-│   ├── view-file - View local dataset file
-│   └── structure - Analyze dataset structure
+│   ├── list    - List datasets
+│   ├── get     - Get dataset details
+│   ├── create  - Create empty dataset
+│   ├── delete  - Delete dataset
+│   ├── export  - Export dataset to file
+│   └── upload  - Upload local JSON as dataset
 │
-└── evaluator (evaluator operations)
-    ├── list    - List evaluators
-    ├── upload  - Upload evaluator
-    └── delete  - Delete evaluator
+├── example (example operations)
+│   ├── list    - List examples in a dataset
+│   ├── create  - Add example to a dataset
+│   └── delete  - Delete an example
+│
+├── evaluator (evaluator operations)
+│   ├── list    - List evaluators
+│   ├── upload  - Upload evaluator
+│   └── delete  - Delete evaluator
+│
+├── experiment (experiment operations)
+│   ├── list    - List experiments
+│   └── get     - Get experiment results
+│
+├── thread (thread operations)
+│   ├── list    - List conversation threads
+│   └── get     - Get thread details
+│
+└── project (project operations)
+    └── list    - List tracing projects
 ```
 
 **Key differences:**

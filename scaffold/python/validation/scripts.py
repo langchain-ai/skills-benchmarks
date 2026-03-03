@@ -9,7 +9,11 @@ CLI_COMMANDS = [
     "langsmith trace",
     "langsmith run",
     "langsmith dataset",
+    "langsmith example",
     "langsmith evaluator",
+    "langsmith experiment",
+    "langsmith thread",
+    "langsmith project",
 ]
 
 

@@ -181,7 +181,7 @@ LS_CLAUDE_ADVANCED_FULL:
   claude_md: |
     # LangChain + LangSmith Development Guide
 
-    This project uses skills that contain up-to-date patterns and working reference scripts.
+    This project uses skills that contain up-to-date patterns and CLI tools.
 
     ## CRITICAL: Invoke Skills BEFORE Writing Code
 
@@ -192,7 +192,7 @@ LS_CLAUDE_ADVANCED_FULL:
     - **langsmith-dataset** - Invoke for ANY dataset creation from traces. Using langsmith-trace is strongly recommended to coordinate with this skill.
     - **langsmith-evaluator** - Invoke for ANY evaluator creation. Using langsmith-dataset is strongly recommended to coordinate with this skill.
 
-    Each skill includes reference scripts in `scripts/` - use these instead of writing from scratch.
+    LangSmith skills use the `langsmith` CLI tool -- run `langsmith --help` to see available commands.
 
     ## Skill Synergies
 

@@ -21,6 +21,12 @@ Dependencies
 ```bash
 pip install langsmith langchain-openai python-dotenv
 ```
+
+CLI Tool (for uploading evaluators)
+
+```bash
+curl -sSL https://raw.githubusercontent.com/langchain-ai/langsmith-cli/main/scripts/install.sh | sh
+```
 </setup>
 
 <evaluator_format>
@@ -131,25 +137,25 @@ results = await client.aevaluate(
 </running_evaluations>
 
 <upload>
-Use the included scripts to upload evaluators.
+Use the `langsmith` CLI to upload evaluators.
 
 ```bash
 # List existing evaluators
-python upload_evaluators.py list
+langsmith evaluator list
 
 # Upload evaluator
-python upload_evaluators.py upload my_evaluators.py \
+langsmith evaluator upload my_evaluators.py \
   --name "Trajectory Match" \
   --function trajectory_match \
   --dataset "Skills: Trajectory" \
   --replace
 
 # Delete evaluator
-python upload_evaluators.py delete "Trajectory Match"
+langsmith evaluator delete "Trajectory Match"
 ```
 
 **IMPORTANT - Safety Prompts:**
-- The script prompts for confirmation before destructive operations
+- The CLI prompts for confirmation before destructive operations
 - **NEVER use `--yes` flag unless the user explicitly requests it**
 </upload>
 
@@ -177,7 +183,7 @@ def exact_match(run, example):
 EOF
 
 # 2. Upload to LangSmith
-python upload_evaluators.py upload evaluators.py \
+langsmith evaluator upload evaluators.py \
   --name "Exact Match" \
   --function exact_match \
   --dataset "Skills: Final Response" \

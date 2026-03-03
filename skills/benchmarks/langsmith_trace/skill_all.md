@@ -16,15 +16,9 @@ LANGSMITH_PROJECT=your-project-name                   # Optional: default projec
 LANGSMITH_WORKSPACE_ID=your-workspace-id              # Optional: for org-scoped keys
 ```
 
-Python Dependencies
+CLI Tool
 ```bash
-pip install langsmith click rich python-dotenv
-```
-
-TypeScript Dependencies
-```bash
-npm install langsmith commander chalk cli-table3 ora dotenv
-npm install -D tsx typescript @types/node
+curl -sSL https://raw.githubusercontent.com/langchain-ai/langsmith-cli/main/scripts/install.sh | sh
 ```
 </setup>
 
@@ -117,7 +111,7 @@ Best Practices:
 </trace_other_frameworks>
 
 <traces_vs_runs>
-Use the included scripts to query trace data.
+Use the `langsmith` CLI to query trace data.
 
 **Understanding the difference is critical:**
 
@@ -131,13 +125,13 @@ Use the included scripts to query trace data.
 Two command groups with consistent behavior:
 
 ```
-query_traces.py / query_traces.ts
-├── traces (operations on trace trees - USE THIS FIRST)
+langsmith
+├── trace (operations on trace trees - USE THIS FIRST)
 │   ├── list    - List traces (filters apply to root run)
 │   ├── get     - Get single trace with full hierarchy
 │   └── export  - Export traces to JSONL files (one file per trace)
 │
-└── runs (operations on individual runs - for specific analysis)
+└── run (operations on individual runs - for specific analysis)
     ├── list    - List runs (flat, filters apply to any run)
     ├── get     - Get single run
     └── export  - Export runs to single JSONL file (flat)
@@ -154,67 +148,34 @@ query_traces.py / query_traces.ts
 </command_structure>
 
 <querying_traces>
-Python and Typescript scripts are both provided, and identical in usage.
-You should use whichever script matches your current project context. 
-
-### Python Script Usage
+Query traces using the `langsmith` CLI. Commands are language-agnostic.
 
 ```bash
 # List recent traces (most common operation)
-python query_traces.py traces list --limit 10 --project my-project
+langsmith trace list --limit 10 --project my-project
 
 # List traces with metadata (timing, tokens, costs)
-python query_traces.py traces list --limit 10 --include-metadata
+langsmith trace list --limit 10 --include-metadata
 
 # Filter traces by time
-python query_traces.py traces list --last-n-minutes 60
-python query_traces.py traces list --since 2025-01-20T10:00:00Z
+langsmith trace list --last-n-minutes 60
+langsmith trace list --since 2025-01-20T10:00:00Z
 
 # Get specific trace with full hierarchy
-python query_traces.py traces get <trace-id>
+langsmith trace get <trace-id>
 
 # List traces and show hierarchy inline
-python query_traces.py traces list --limit 5 --show-hierarchy
+langsmith trace list --limit 5 --show-hierarchy
 
 # Export traces to JSONL (one file per trace, includes all runs)
-python query_traces.py traces export ./traces --limit 20 --full
+langsmith trace export ./traces --limit 20 --full
 
 # Filter traces by performance
-python query_traces.py traces list --min-latency 5.0 --limit 10    # Slow traces (>= 5s)
-python query_traces.py traces list --error --last-n-minutes 60     # Failed traces
+langsmith trace list --min-latency 5.0 --limit 10    # Slow traces (>= 5s)
+langsmith trace list --error --last-n-minutes 60     # Failed traces
 
 # List specific run types (flat list)
-python query_traces.py runs list --run-type llm --limit 20
-```
-
-### TypeScript Script Usage
-
-```bash
-# List recent traces (most common operation)
-npx tsx query_traces.ts traces list --limit 10 --project my-project
-
-# List traces with metadata (timing, tokens, costs)
-npx tsx query_traces.ts traces list --limit 10 --include-metadata
-
-# Filter traces by time
-npx tsx query_traces.ts traces list --last-n-minutes 60
-npx tsx query_traces.ts traces list --since 2025-01-20T10:00:00Z
-
-# Get specific trace with full hierarchy
-npx tsx query_traces.ts traces get <trace-id>
-
-# List traces and show hierarchy inline
-npx tsx query_traces.ts traces list --limit 5 --show-hierarchy
-
-# Export traces to JSONL (one file per trace, includes all runs)
-npx tsx query_traces.ts traces export ./traces --limit 20 --full
-
-# Filter traces by performance
-npx tsx query_traces.ts traces list --min-latency 5.0 --limit 10    # Slow traces (>= 5s)
-npx tsx query_traces.ts traces list --error --last-n-minutes 60     # Failed traces
-
-# List specific run types (flat list)
-npx tsx query_traces.ts runs list --run-type llm --limit 20
+langsmith run list --run-type llm --limit 20
 ```
 </querying_traces>
 
@@ -240,11 +201,8 @@ All commands support these filters (all AND together):
 - `--filter QUERY` - Raw LangSmith filter query for complex cases (feedback, metadata, etc.)
 
 ```bash
-# Example: Filter by feedback score (Python)
-python query_traces.py traces list --filter 'and(eq(feedback_key, "correctness"), gte(feedback_score, 0.8))'
-
-# Example: Filter by feedback score (TypeScript)
-npx tsx query_traces.ts traces list --filter 'and(eq(feedback_key, "correctness"), gte(feedback_score, 0.8))'
+# Example: Filter by feedback score
+langsmith trace list --filter 'and(eq(feedback_key, "correctness"), gte(feedback_score, 0.8))'
 ```
 </filters>
 

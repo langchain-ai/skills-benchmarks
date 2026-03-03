@@ -1,83 +1,16 @@
 /**
- * Shared test utilities and fixtures for LangSmith TypeScript tests.
+ * Shared test fixtures for LangSmith TypeScript tests.
  *
  * This module contains:
- * - Script path constants (matching Python conftest.py)
- * - Script running utilities
  * - Real LangSmith API data fixtures for mocking
  *
  * Data captured on 2026-02-16 from project "skills".
  *
- * IMPORTANT: This data MUST match conftest.py exactly for parity testing.
+ * IMPORTANT: This data MUST match conftest.py exactly.
  */
 
-import { execSync } from "node:child_process";
 import { writeFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
-
-// =============================================================================
-// SCRIPT PATHS - Mirror Python conftest.py
-// =============================================================================
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
-export const SCRIPTS_BASE = resolve(__dirname, "../../skills/benchmarks");
-
-export const TS_QUERY_TRACES = resolve(
-  SCRIPTS_BASE,
-  "langsmith_trace/scripts/query_traces.ts",
-);
-export const TS_GENERATE_DATASETS = resolve(
-  SCRIPTS_BASE,
-  "langsmith_dataset/scripts/generate_datasets.ts",
-);
-export const TS_QUERY_DATASETS = resolve(
-  SCRIPTS_BASE,
-  "langsmith_dataset/scripts/query_datasets.ts",
-);
-export const TS_UPLOAD_EVALUATORS = resolve(
-  SCRIPTS_BASE,
-  "langsmith_evaluator/scripts/upload_evaluators.ts",
-);
-
-// =============================================================================
-// SCRIPT RUNNING UTILITIES
-// =============================================================================
-
-export interface ScriptResult {
-  stdout: string;
-  stderr: string;
-  returncode: number;
-}
-
-/**
- * Run a TypeScript script and return the result.
- *
- * @param scriptPath - Path to the TypeScript file
- * @param args - Command line arguments
- * @param timeout - Timeout in milliseconds (default 30000)
- */
-export function runTsScript(
-  scriptPath: string,
-  args: string[],
-  timeout = 30000,
-): ScriptResult {
-  try {
-    const stdout = execSync(`npx tsx ${scriptPath} ${args.join(" ")}`, {
-      encoding: "utf8",
-      timeout,
-      stdio: ["pipe", "pipe", "pipe"],
-    });
-    return { stdout, stderr: "", returncode: 0 };
-  } catch (error) {
-    const err = error as { stdout?: string; stderr?: string; status?: number };
-    return {
-      stdout: err.stdout || "",
-      stderr: err.stderr || "",
-      returncode: err.status || 1,
-    };
-  }
-}
+import { join } from "node:path";
 
 // ============================================================================
 // TRACE DATA - Captured from real API responses

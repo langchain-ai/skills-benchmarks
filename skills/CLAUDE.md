@@ -1,6 +1,6 @@
 # LangChain + LangSmith + DeepAgents Development Guide
 
-This project uses skills that contain up-to-date patterns and working reference scripts.
+This project uses skills that contain up-to-date patterns and CLI tools.
 
 ## CRITICAL: Invoke Skills BEFORE Writing Code
 
@@ -36,4 +36,4 @@ When stuck or debugging, use this powerful workflow:
 4. **Create dataset** using `langsmith-dataset` from those traces
 5. **Build evaluator** using `langsmith-evaluator` to measure quality
 
-Each skill includes reference scripts in `scripts/` - use these instead of writing from scratch.
+LangSmith skills use the `langsmith` CLI tool -- run `langsmith --help` to see available commands.

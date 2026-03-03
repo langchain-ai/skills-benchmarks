@@ -20,6 +20,9 @@ RUN npm install -g @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
+# Install LangSmith CLI (Go binary)
+RUN curl -sSL https://raw.githubusercontent.com/langchain-ai/langsmith-cli/main/scripts/install.sh | sh
+
 # Create non-root user for security
 RUN useradd -m -s /bin/bash benchuser
 USER benchuser

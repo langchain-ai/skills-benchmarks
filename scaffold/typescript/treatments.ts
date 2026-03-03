@@ -29,8 +29,7 @@ import { parse as parseYaml } from "yaml";
 import type { NoiseTask } from "./schema.js";
 import { NOISE_TASK_PROMPTS, NOISE_TASK_DELIVERABLES } from "./validation/core.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export const TREATMENTS_FOLDER = join(__dirname, "..", "..", "treatments");
 export const SKILL_BASE = join(__dirname, "..", "..", "skills", "benchmarks");

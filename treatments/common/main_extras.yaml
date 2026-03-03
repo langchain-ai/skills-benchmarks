@@ -25,9 +25,9 @@ _main_claude_md: &main_claude_md |
   - **langchain-middleware** - Invoke for structured output with Pydantic
 
   ### LangGraph Skills
-  - **langgraph-fundamentals** - Invoke for StateGraph, state schemas, reducers
-  - **langgraph-persistence** - Invoke for checkpointers, thread_id, memory
-  - **langgraph-execution** - Invoke for workflows, interrupts, streaming
+  - **langgraph-fundamentals** - Invoke for StateGraph, state schemas, edges, Command, Send, invoke, streaming, error handling
+  - **langgraph-persistence** - Invoke for checkpointers, thread_id, time travel, memory, subgraph scoping
+  - **langgraph-human-in-the-loop** - Invoke for interrupts, human review, error handling, approval workflows
 
   ### DeepAgents Skills
   - **deep-agents-core** - Invoke for DeepAgents harness architecture
@@ -79,9 +79,9 @@ MAIN_SINGLE_PRIMER:
     - skill: langgraph-persistence
       base: main
       name: langgraph-persistence
-    - skill: langgraph-execution
+    - skill: langgraph-human-in-the-loop
       base: main
-      name: langgraph-execution
+      name: langgraph-human-in-the-loop
     # DeepAgents (3 skills)
     - skill: deep-agents-core
       base: main
@@ -130,9 +130,9 @@ MAIN_SPLIT_PRIMER_CLAUDE:
     - skill: langgraph-persistence
       base: main
       name: langgraph-persistence
-    - skill: langgraph-execution
+    - skill: langgraph-human-in-the-loop
       base: main
-      name: langgraph-execution
+      name: langgraph-human-in-the-loop
     # DeepAgents (3 skills)
     - skill: deep-agents-core
       base: main
@@ -180,9 +180,9 @@ MAIN_SPLIT_PRIMER:
     - skill: langgraph-persistence
       base: main
       name: langgraph-persistence
-    - skill: langgraph-execution
+    - skill: langgraph-human-in-the-loop
       base: main
-      name: langgraph-execution
+      name: langgraph-human-in-the-loop
     # DeepAgents (3 skills)
     - skill: deep-agents-core
       base: main

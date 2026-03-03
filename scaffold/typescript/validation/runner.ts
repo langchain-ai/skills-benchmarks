@@ -30,7 +30,7 @@
  */
 
 import { existsSync, readFileSync } from "node:fs";
-import { execSync } from "node:child_process";
+import { execFileSync, execSync } from "node:child_process";
 import {
   TEST_CONTEXT_FILE,
   loadTestContext,
@@ -93,7 +93,7 @@ export class TestRunner {
       if (cached === null) {
         this.failed(`import failed: ${path} (cached)`);
       }
-      return cached ?? null;
+      return cached;
     }
     if (!existsSync(path)) {
       this.failed(`cannot load ${path}: file not found`);
@@ -128,12 +128,12 @@ export class TestRunner {
       this.failed(`cannot execute ${path}: file not found`);
       return null;
     }
-    // Dispatch based on extension
-    const cmd = path.endsWith(".py")
-      ? `python3 ${path} ${args.join(" ")}`
-      : `npx tsx ${path} ${args.join(" ")}`;
+    const bin = path.endsWith(".py") ? "python3" : "npx";
+    const cmdArgs = path.endsWith(".py")
+      ? [path, ...args]
+      : ["tsx", path, ...args];
     try {
-      return execSync(cmd, {
+      return execFileSync(bin, cmdArgs, {
         encoding: "utf8",
         timeout: timeout * 1000,
         stdio: ["pipe", "pipe", "pipe"],

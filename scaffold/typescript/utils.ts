@@ -95,8 +95,9 @@ export function buildDockerImage(
 }
 
 
-/** Run Python script in Docker. Returns [success, output]. */
-export function runPythonInDocker(
+/** Run a script in Docker. Returns [success, output]. */
+function _dockerRunScript(
+  mode: string,
   testDir: string,
   scriptName: string,
   options: { timeout?: number; args?: string[] } = {},
@@ -106,7 +107,7 @@ export function runPythonInDocker(
   try {
     const result = runShell(
       "docker.sh",
-      ["run-python", resolve(testDir), scriptName, ...args],
+      [mode, resolve(testDir), scriptName, ...args],
       { timeout, check: false },
     );
     return [result.returncode === 0, result.stdout + result.stderr];
@@ -118,6 +119,15 @@ export function runPythonInDocker(
         : String(error),
     ];
   }
+}
+
+/** Run Python script in Docker. Returns [success, output]. */
+export function runPythonInDocker(
+  testDir: string,
+  scriptName: string,
+  options: { timeout?: number; args?: string[] } = {},
+): [boolean, string] {
+  return _dockerRunScript("run-python", testDir, scriptName, options);
 }
 
 /** Run Node/TypeScript script in Docker. Returns [success, output]. */
@@ -126,23 +136,7 @@ export function runNodeInDocker(
   scriptName: string,
   options: { timeout?: number; args?: string[] } = {},
 ): [boolean, string] {
-  if (!checkDockerAvailable()) return [false, "Docker not available"];
-  const { timeout = 120, args = [] } = options;
-  try {
-    const result = runShell(
-      "docker.sh",
-      ["run-node", resolve(testDir), scriptName, ...args],
-      { timeout, check: false },
-    );
-    return [result.returncode === 0, result.stdout + result.stderr];
-  } catch (error) {
-    return [
-      false,
-      (error as Error).message?.includes("ETIMEDOUT")
-        ? `Timeout (${timeout}s)`
-        : String(error),
-    ];
-  }
+  return _dockerRunScript("run-node", testDir, scriptName, options);
 }
 
 /** Run script in Docker based on file extension. Returns [success, output]. */
@@ -151,10 +145,8 @@ export function runScriptInDocker(
   scriptName: string,
   options: { timeout?: number; args?: string[] } = {},
 ): [boolean, string] {
-  if (scriptName.endsWith(".py"))
-    return runPythonInDocker(testDir, scriptName, options);
-  if (scriptName.endsWith(".ts") || scriptName.endsWith(".js"))
-    return runNodeInDocker(testDir, scriptName, options);
+  if (scriptName.endsWith(".py")) return runPythonInDocker(testDir, scriptName, options);
+  if (scriptName.endsWith(".ts") || scriptName.endsWith(".js")) return runNodeInDocker(testDir, scriptName, options);
   return [false, `Unsupported file type: ${scriptName}`];
 }
 
@@ -289,16 +281,8 @@ function _setEvalTraceEnv(): string[] {
       setKeys.push("BENCH_EVAL_LANGSMITH_TRACE");
     }
     if (headers["baggage"]) {
-      // Strip project name (sn=...) from baggage — Docker uses its own
-      // LANGSMITH_PROJECT. Keeping sn= would interfere with experiment rows.
-      const baggage = headers["baggage"]
-        .split(",")
-        .filter((p: string) => !p.startsWith("sn="))
-        .join(",");
-      if (baggage) {
-        process.env.BENCH_EVAL_BAGGAGE = baggage;
-        setKeys.push("BENCH_EVAL_BAGGAGE");
-      }
+      process.env.BENCH_EVAL_BAGGAGE = headers["baggage"];
+      setKeys.push("BENCH_EVAL_BAGGAGE");
     }
     return setKeys;
   } catch {
@@ -448,13 +432,11 @@ export async function retryWithBackoff<T>(
       e.message.toLowerCase().includes("rate limit"),
   } = options;
 
-  let lastError: Error | undefined;
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
       return await fn();
     } catch (error) {
-      lastError = error as Error;
-      if (!retryOn(lastError) || attempt === maxRetries) throw lastError;
+      if (!retryOn(error as Error) || attempt === maxRetries) throw error;
       const delay = Math.min(
         baseDelay * 2 ** attempt + Math.random() * 1000,
         maxDelay,
@@ -462,7 +444,7 @@ export async function retryWithBackoff<T>(
       await new Promise((r) => setTimeout(r, delay));
     }
   }
-  throw lastError;
+  throw new Error("unreachable");
 }
 
 /** Read JSON file. Returns [data, error]. */

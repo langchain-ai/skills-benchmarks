@@ -259,6 +259,13 @@ ls.describe(
           // Combined name matches Python's format (task-treatment)
           const fullName = `${taskName}-${treatmentName}`;
 
+          // Create per-test LangSmith project (matches Python's function-scoped
+          // langsmith_env fixture). Prevents cross-treatment trace pollution.
+          const perTestProjectName = `bench-project-${runId}`;
+          const savedProject = process.env.LANGSMITH_PROJECT;
+          process.env.LANGSMITH_PROJECT = perTestProjectName;
+          testRunIds.push(runId);
+
           // Setup test context
           const { testDir, logger } = setupTest("task_test");
 
@@ -268,7 +275,7 @@ ls.describe(
             traceIdMap = await runTaskHandlers(
               task.setup.dataHandlers,
               task.dataDir,
-              process.env.LANGSMITH_PROJECT || null,
+              perTestProjectName,
               runId,
             );
           }
@@ -383,6 +390,9 @@ ls.describe(
           });
 
           expect.soft(failed, `Validation failed: ${failed.join(", ")}`).toHaveLength(0);
+
+          // Restore module-level project (always set by setupLangSmithProject)
+          process.env.LANGSMITH_PROJECT = savedProject ?? langsmithInfo.projectName;
         },
         CLAUDE_TIMEOUT,
       );

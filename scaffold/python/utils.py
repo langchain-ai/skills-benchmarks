@@ -146,10 +146,10 @@ def _copy_scaffold_to_docker(test_dir: Path):
 
 
 def _parse_json_output(output: str) -> dict | None:
-    """Extract a JSON dict from command output (handles pretty-printed and single-line).
+    """Extract a JSON dict from command output.
 
-    Robust to extra output before/after the JSON (e.g., Docker build logs,
-    warnings, print statements). Finds the last { ... } block in the output.
+    Fallback for when _test_results.json file isn't available.
+    Tries full output, then scans lines in reverse for a JSON object.
     """
     stripped = output.strip()
     # Try full output first (clean JSON)
@@ -159,25 +159,7 @@ def _parse_json_output(output: str) -> dict | None:
             return result
     except (json.JSONDecodeError, ValueError):
         pass
-    # Find the last top-level JSON object in the output
-    # by scanning backwards for the last '}'  and matching '{'
-    last_brace = stripped.rfind("}")
-    if last_brace >= 0:
-        # Find the matching opening brace
-        depth = 0
-        for i in range(last_brace, -1, -1):
-            if stripped[i] == "}":
-                depth += 1
-            elif stripped[i] == "{":
-                depth -= 1
-            if depth == 0:
-                try:
-                    result = json.loads(stripped[i : last_brace + 1])
-                    if isinstance(result, dict):
-                        return result
-                except (json.JSONDecodeError, ValueError):
-                    break
-    # Fall back to last JSON line (single-line output)
+    # Scan lines in reverse for a JSON object
     for line in reversed(stripped.splitlines()):
         try:
             result = json.loads(line)
@@ -239,9 +221,6 @@ def run_eval_in_docker(
     return {"error": f"No JSON output. success={success}, output={output[:300]}"}
 
 
-_EVAL_TRACE_KEYS = ["BENCH_EVAL_LANGSMITH_TRACE", "BENCH_EVAL_BAGGAGE"]
-
-
 def _set_eval_trace_env() -> list[str]:
     """Set env vars so Docker eval scripts can nest traces under the current span.
 
@@ -260,13 +239,8 @@ def _set_eval_trace_env() -> list[str]:
         os.environ["BENCH_EVAL_LANGSMITH_TRACE"] = headers["langsmith-trace"]
         set_keys.append("BENCH_EVAL_LANGSMITH_TRACE")
     if headers.get("baggage"):
-        # Strip project name (sn=...) from baggage — Docker uses its own
-        # LANGSMITH_PROJECT env var. Keeping sn= would override the project
-        # and interfere with experiment row tracking.
-        baggage = ",".join(p for p in headers["baggage"].split(",") if not p.startswith("sn="))
-        if baggage:
-            os.environ["BENCH_EVAL_BAGGAGE"] = baggage
-            set_keys.append("BENCH_EVAL_BAGGAGE")
+        os.environ["BENCH_EVAL_BAGGAGE"] = headers["baggage"]
+        set_keys.append("BENCH_EVAL_BAGGAGE")
     return set_keys
 
 
@@ -303,7 +277,10 @@ def make_execution_validator(
         from langsmith.run_helpers import trace as ls_trace
 
         passed, failed = [], []
-        with ls_trace(name="check_artifacts"):
+        with ls_trace(
+            name="check_artifacts",
+            inputs={"artifacts": artifacts},
+        ) as artifacts_run:
             for artifact in artifacts:
                 # Support glob patterns (e.g., "backend/evaluator.*")
                 if any(c in artifact for c in "*?["):
@@ -311,6 +288,8 @@ def make_execution_validator(
                         failed.append(f"Artifact not found: {artifact}")
                 elif not (test_dir / artifact).exists():
                     failed.append(f"Artifact not found: {artifact}")
+            if artifacts_run:
+                artifacts_run.outputs = {"passed": not failed, "missing": failed}
         if failed:
             return passed, failed
         # Serialize run context + target artifacts for test scripts
@@ -319,7 +298,10 @@ def make_execution_validator(
         (test_dir / TEST_CONTEXT_FILE).write_text(json.dumps(context, default=str))
         eval_trace_keys = []
         for script in test_scripts:
-            with ls_trace(name=f"eval_{script}"):
+            with ls_trace(
+                name=f"eval_{script}",
+                inputs={"script": script, "artifacts": artifacts},
+            ) as eval_run:
                 # Pass trace context to Docker so LLM calls (e.g. evaluate_with_schema)
                 # nest under this eval span
                 eval_trace_keys = _set_eval_trace_env()
@@ -338,6 +320,12 @@ def make_execution_validator(
                 failed.extend(results.get("failed", []))
                 if results.get("error") and not results.get("passed") and not results.get("failed"):
                     failed.append(f"Test execution error ({script}): {results['error']}")
+                if eval_run:
+                    eval_run.outputs = {
+                        "passed": results.get("passed", []),
+                        "failed": results.get("failed", []),
+                        "error": results.get("error"),
+                    }
         return passed, failed
 
     return validate_execution
@@ -366,16 +354,13 @@ def check_claude_available() -> bool:
 def retry_with_backoff(func, max_retries=3, base_delay=1.0, max_delay=10.0, retry_on=None):
     """Retry with exponential backoff."""
     retry_on = retry_on or (lambda e: "429" in str(e) or "rate limit" in str(e).lower())
-    last_exc = None
     for attempt in range(max_retries + 1):
         try:
             return func()
         except Exception as e:
-            last_exc = e
             if not retry_on(e) or attempt == max_retries:
                 raise
             time.sleep(min(base_delay * (2**attempt) + random.uniform(0, 1), max_delay))
-    raise last_exc
 
 
 def read_json_file(path: Path) -> tuple[dict | list | None, str | None]:

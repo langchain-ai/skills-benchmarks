@@ -150,6 +150,33 @@ class TestRunner:
             "error": self._error,
         }
 
+    def _run_check_traced(self, check_fn, check_name: str):
+        """Run a check function, wrapping in a trace if langsmith is available.
+
+        Traces go to 'evaluators' project to avoid polluting the data project
+        (bench-project-{uuid}) where test traces live.
+        """
+        passed_before = len(self._passed)
+        failed_before = len(self._failed)
+
+        def _run():
+            check_fn(self)
+            if not self._check_called:
+                self._failed.append(f"{check_name}: check did not call passed() or failed()")
+
+        try:
+            from langsmith.run_helpers import trace as ls_trace
+
+            with ls_trace(name=check_name, run_type="chain", project_name="evaluators") as run:
+                _run()
+                if run:
+                    run.outputs = {
+                        "passed": self._passed[passed_before:],
+                        "failed": self._failed[failed_before:],
+                    }
+        except ImportError:
+            _run()
+
     @staticmethod
     @contextmanager
     def _eval_trace_context():
@@ -200,11 +227,7 @@ class TestRunner:
                 check_name = check_fn.__name__.replace("check_", "").replace("_", " ")
                 runner._check_called = False
                 try:
-                    check_fn(runner)
-                    if not runner._check_called:
-                        runner._failed.append(
-                            f"{check_name}: check did not call passed() or failed()"
-                        )
+                    runner._run_check_traced(check_fn, check_name)
                 except Exception as e:
                     runner._failed.append(f"{check_name}: {e}")
 

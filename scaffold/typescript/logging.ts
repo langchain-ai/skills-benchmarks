@@ -122,6 +122,11 @@ export function extractEvents(parsed: ParsedOutput): Events {
           const path = (inp.file_path as string) || "";
           if (tool === "Read" && path) {
             events.files_read.push(path);
+            // Detect skill reads (e.g., .claude/skills/skill-name/SKILL.md)
+            const skillMatch = path.match(/\.claude\/skills\/([^/]+)/);
+            if (skillMatch && !events.skills_invoked.includes(skillMatch[1])) {
+              events.skills_invoked.push(skillMatch[1]);
+            }
           } else if (tool === "Write" && path) {
             events.files_created.push(path);
           } else if (tool === "Edit" && path) {
@@ -129,7 +134,9 @@ export function extractEvents(parsed: ParsedOutput): Events {
           } else if (tool === "Bash" && inp.command) {
             events.commands_run.push(inp.command as string);
           } else if (tool === "Skill" && inp.skill) {
-            events.skills_invoked.push(inp.skill as string);
+            if (!events.skills_invoked.includes(inp.skill as string)) {
+              events.skills_invoked.push(inp.skill as string);
+            }
           }
         }
       }

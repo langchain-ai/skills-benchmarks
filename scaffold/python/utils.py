@@ -298,7 +298,10 @@ def make_execution_validator(
         from langsmith.run_helpers import trace as ls_trace
 
         passed, failed = [], []
-        with ls_trace(name="check_artifacts"):
+        with ls_trace(
+            name="check_artifacts",
+            inputs={"artifacts": artifacts},
+        ) as artifacts_run:
             for artifact in artifacts:
                 # Support glob patterns (e.g., "backend/evaluator.*")
                 if any(c in artifact for c in "*?["):
@@ -306,6 +309,8 @@ def make_execution_validator(
                         failed.append(f"Artifact not found: {artifact}")
                 elif not (test_dir / artifact).exists():
                     failed.append(f"Artifact not found: {artifact}")
+            if artifacts_run:
+                artifacts_run.outputs = {"passed": not failed, "missing": failed}
         if failed:
             return passed, failed
         # Serialize run context + target artifacts for test scripts
@@ -314,7 +319,10 @@ def make_execution_validator(
         (test_dir / TEST_CONTEXT_FILE).write_text(json.dumps(context, default=str))
         eval_trace_keys = []
         for script in test_scripts:
-            with ls_trace(name=f"eval_{script}"):
+            with ls_trace(
+                name=f"eval_{script}",
+                inputs={"script": script, "artifacts": artifacts},
+            ) as eval_run:
                 # Pass trace context to Docker so LLM calls (e.g. evaluate_with_schema)
                 # nest under this eval span
                 eval_trace_keys = _set_eval_trace_env()
@@ -333,6 +341,12 @@ def make_execution_validator(
                 failed.extend(results.get("failed", []))
                 if results.get("error") and not results.get("passed") and not results.get("failed"):
                     failed.append(f"Test execution error ({script}): {results['error']}")
+                if eval_run:
+                    eval_run.outputs = {
+                        "passed": results.get("passed", []),
+                        "failed": results.get("failed", []),
+                        "error": results.get("error"),
+                    }
         return passed, failed
 
     return validate_execution

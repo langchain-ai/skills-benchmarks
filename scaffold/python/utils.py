@@ -221,9 +221,6 @@ def run_eval_in_docker(
     return {"error": f"No JSON output. success={success}, output={output[:300]}"}
 
 
-_EVAL_TRACE_KEYS = ["BENCH_EVAL_LANGSMITH_TRACE", "BENCH_EVAL_BAGGAGE"]
-
-
 def _set_eval_trace_env() -> list[str]:
     """Set env vars so Docker eval scripts can nest traces under the current span.
 

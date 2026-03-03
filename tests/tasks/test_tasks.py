@@ -30,7 +30,6 @@ Usage:
 
 import os
 import uuid
-from pathlib import Path
 
 import pytest
 from conftest import get_fixtures, register_run_id_for_cleanup
@@ -42,7 +41,7 @@ from scaffold.python import extract_events, parse_output
 from scaffold.python.external_data_handler import run_task_handlers
 from scaffold.python.tasks import list_tasks, load_task
 from scaffold.python.treatments import build_treatment_skills, load_treatments
-from scaffold.python.validation import NOISE_TASK_DELIVERABLES, NOISE_TASK_PROMPTS
+from scaffold.python.validation import NOISE_TASK_DELIVERABLES, NOISE_TASK_PROMPTS, run_validators
 
 # Timeouts
 CLAUDE_TIMEOUT = 600  # 10 minutes for Claude to complete task
@@ -166,16 +165,6 @@ def set_experiment_trace_env() -> list[str]:
     if run_tree.session_name:
         os.environ["CC_LANGSMITH_PROJECT"] = run_tree.session_name
     return ["CC_LS_TRACE_ID", "CC_LS_PARENT_RUN_ID", "CC_LS_DOTTED_ORDER", "CC_LANGSMITH_PROJECT"]
-
-
-def run_validators(validators: list, test_dir: Path, outputs: dict) -> tuple[list[str], list[str]]:
-    """Run function-based validators and return combined results."""
-    all_passed, all_failed = [], []
-    for validator in validators:
-        passed, failed = validator(test_dir, outputs)
-        all_passed.extend(passed)
-        all_failed.extend(failed)
-    return all_passed, all_failed
 
 
 # =============================================================================

@@ -108,7 +108,7 @@ class ExperimentPlugin:
         self.run_counter: dict[str, int] = {}  # treatment_name -> repetition count
         self.is_xdist_worker = hasattr(config, "workerinput")
         self.is_xdist_master = (
-            hasattr(config, "workerinput") is False
+            not hasattr(config, "workerinput")
             and (getattr(config.option, "numprocesses", None) or 0) > 0
         )
         self.worker_id = (

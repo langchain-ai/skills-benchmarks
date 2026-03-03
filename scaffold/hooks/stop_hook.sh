@@ -7,8 +7,21 @@
 set -e
 
 # Config (needed early for logging)
-LOG_FILE="$HOME/.claude/state/hook.log"
+# When CC_LANGSMITH_DEBUG=true, also write to /workspace so logs survive Docker --rm
 DEBUG="$(echo "$CC_LANGSMITH_DEBUG" | tr '[:upper:]' '[:lower:]')"
+if [ "$DEBUG" = "true" ]; then
+    LOG_FILE="/workspace/_hook_debug.log"
+else
+    LOG_FILE="$HOME/.claude/state/hook.log"
+fi
+
+# Crash diagnostics (only when CC_LANGSMITH_DEBUG=true)
+_hook_start_time=$(date +%s)
+if [ "$DEBUG" = "true" ]; then
+    trap 'echo "$(date +%Y-%m-%dT%H:%M:%S) ERR at line $LINENO (exit=$?)" >> /workspace/_hook_crash.log 2>/dev/null' ERR
+    trap '_exit=$?; if [ $_exit -ne 0 ]; then echo "$(date +%Y-%m-%dT%H:%M:%S) EXIT code=$_exit elapsed=$(($(date +%s) - _hook_start_time))s" >> /workspace/_hook_crash.log 2>/dev/null; fi' EXIT
+    echo "$(date +%Y-%m-%dT%H:%M:%S) HOOK_ALIVE pid=$$ ppid=$PPID" >> /workspace/_hook_crash.log 2>/dev/null
+fi
 
 # Logging functions
 log() {
@@ -483,7 +496,11 @@ create_trace() {
         | if $parent_run_id != "" then .parent_run_id = $parent_run_id else . end
         ')
 
-    posts_batch=$(echo "$posts_batch" | jq --argjson data "$turn_data" '. += [$data]')
+    local new_posts
+    new_posts=$(echo "$posts_batch" | jq --argjson data "$turn_data" '. += [$data]')
+    if [ -n "$new_posts" ]; then
+        posts_batch="$new_posts"
+    fi
 
     # Track this turn for cleanup on early exit
     CURRENT_TURN_ID="$turn_id"
@@ -547,8 +564,9 @@ create_trace() {
         fi
 
         # Build inputs for this LLM call (includes accumulated context)
+        # Pipe through stdin to avoid ARG_MAX limits (all_outputs grows per-turn)
         local llm_inputs
-        llm_inputs=$(jq -n --argjson outputs "$all_outputs" '{messages: $outputs}')
+        llm_inputs=$(echo "$all_outputs" | jq -c '{messages: .}')
 
         # Create dotted_order for assistant (child of turn)
         # Convert ISO timestamp to dotted_order format
@@ -668,7 +686,13 @@ create_trace() {
                         tags: ["tool"]
                     }')
 
-                posts_batch=$(echo "$posts_batch" | jq --argjson data "$tool_data" '. += [$data]')
+                if [ -n "$tool_data" ]; then
+                    local new_posts
+                    new_posts=$(echo "$posts_batch" | jq --argjson data "$tool_data" '. += [$data]')
+                    if [ -n "$new_posts" ]; then
+                        posts_batch="$new_posts"
+                    fi
+                fi
 
                 # Next tool starts after this one ends
                 tool_start="$tool_end"
@@ -683,8 +707,10 @@ create_trace() {
         fi
 
         # Create LLM run with outputs included (avoids race with separate PATCH)
+        # Build LLM run JSON. Pipe inputs through stdin to avoid ARG_MAX limits
+        # (llm_inputs grows per-turn as conversation accumulates, can exceed 128KB)
         local assistant_data
-        assistant_data=$(jq -n \
+        assistant_data=$(echo "$llm_inputs" | jq -c \
             --arg id "$assistant_id" \
             --arg trace_id "$trace_id" \
             --arg parent "$turn_id" \
@@ -692,7 +718,6 @@ create_trace() {
             --arg project "$PROJECT" \
             --arg start_time "$llm_start" \
             --arg end_time "$assistant_end" \
-            --argjson inputs "$llm_inputs" \
             --argjson outputs "$llm_outputs" \
             --argjson usage_metadata "$usage_metadata" \
             --arg dotted_order "$assistant_dotted_order" \
@@ -703,7 +728,7 @@ create_trace() {
                 parent_run_id: $parent,
                 name: $name,
                 run_type: "llm",
-                inputs: $inputs,
+                inputs: .,
                 outputs: ({messages: $outputs} + (if $usage_metadata != null then {usage_metadata: $usage_metadata} else {} end)),
                 start_time: $start_time,
                 end_time: $end_time,
@@ -713,7 +738,17 @@ create_trace() {
                 tags: [$model]
             }')
 
-        posts_batch=$(echo "$posts_batch" | jq --argjson data "$assistant_data" '. += [$data]')
+        if [ -n "$assistant_data" ]; then
+            local new_posts
+            new_posts=$(echo "$posts_batch" | jq --argjson data "$assistant_data" '. += [$data]')
+            if [ -n "$new_posts" ]; then
+                posts_batch="$new_posts"
+            else
+                log "WARN" "jq accumulation returned empty for LLM run $assistant_id, keeping previous batch"
+            fi
+        else
+            log "WARN" "Empty assistant_data for LLM call $llm_num, skipping"
+        fi
 
         # Save end time for next LLM start
         last_llm_end="$assistant_end"
@@ -748,19 +783,20 @@ create_trace() {
     local turn_end="$last_llm_end"
 
     local turn_update
-    turn_update=$(jq -n \
+    turn_update=$(echo "$turn_outputs" | jq -c \
         --arg time "$turn_end" \
         --arg id "$turn_id" \
         --arg trace_id "$turn_trace_id" \
         --arg dotted_order "$turn_dotted_order" \
-        --argjson outputs "$turn_outputs" \
+        --arg parent_run_id "${PARENT_RUN_ID:-}" \
         '{
             id: $id,
             trace_id: $trace_id,
             dotted_order: $dotted_order,
-            outputs: {messages: $outputs},
+            outputs: {messages: .},
             end_time: $time
-        }')
+        }
+        | if $parent_run_id != "" then .parent_run_id = $parent_run_id else . end')
 
     patches_batch=$(echo "$patches_batch" | jq --argjson data "$turn_update" '. += [$data]')
 
@@ -966,11 +1002,13 @@ main() {
         parent_update=$(jq -n \
             --arg id "$PARENT_RUN_ID" \
             --arg trace_id "$EXPERIMENT_TRACE_ID" \
+            --arg parent_run_id "$EXPERIMENT_RUN_ID" \
             --arg dotted_order "$PARENT_DOTTED_ORDER" \
             --arg time "$parent_end" \
             '{
                 id: $id,
                 trace_id: $trace_id,
+                parent_run_id: $parent_run_id,
                 dotted_order: $dotted_order,
                 outputs: {},
                 end_time: $time

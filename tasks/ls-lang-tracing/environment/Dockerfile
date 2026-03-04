@@ -29,9 +29,6 @@ RUN cd /workspace/frontend && npm install && npm cache clean --force
 COPY backend/ /workspace/backend/
 COPY frontend/ /workspace/frontend/
 
-# Install LangSmith CLI (Go binary)
-RUN curl -sSL https://raw.githubusercontent.com/langchain-ai/langsmith-cli/main/scripts/install.sh | sh
-
 # Create non-root user for security
 RUN useradd -m -s /bin/bash benchuser && chown -R benchuser:benchuser /workspace
 USER benchuser

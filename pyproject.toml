@@ -60,11 +60,3 @@ indent-style = "space"
 norecursedirs = ["logs", "node_modules", ".git"]
 testpaths = ["tests"]
 pythonpath = ["."]
-
-[tool.uv.sources]
-langsmith = { path = "../../langchain_product/langsmith-sdk/python", editable = true }
-
-[dependency-groups]
-dev = [
-    "ruff>=0.15.1",
-]

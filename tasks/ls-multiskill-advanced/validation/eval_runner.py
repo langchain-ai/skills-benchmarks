@@ -42,7 +42,7 @@ def get_trajectory(ex: dict) -> list:
     if not isinstance(ex, dict):
         return []
 
-    FIELDS = ["expected_trajectory", "trajectory", "expected_tools", "tool_calls", "tools"]
+    FIELDS = ["expected_trajectory", "actual_trajectory", "trajectory", "expected_tools", "tool_calls", "tools"]
 
     # Check top-level fields
     for field in FIELDS:
@@ -79,7 +79,7 @@ def normalize_trajectory_fields(data: dict) -> dict:
         return data
 
     outputs = data["outputs"]
-    FIELDS = ["expected_trajectory", "trajectory", "tool_calls", "tools"]
+    FIELDS = ["expected_trajectory", "actual_trajectory", "trajectory", "tool_calls", "tools"]
 
     traj = next((outputs[f] for f in FIELDS if f in outputs and isinstance(outputs[f], list)), None)
     if not traj:
@@ -128,7 +128,7 @@ def generate_test_cases_from_dataset(dataset_path: str) -> list:
         def modify_trajectory(new_traj: list) -> dict:
             modified = json.loads(json.dumps(template))
             outputs = modified.get("outputs") or modified.get("output") or {}
-            for field in ["expected_trajectory", "trajectory", "tools", "tool_calls"]:
+            for field in ["expected_trajectory", "actual_trajectory", "trajectory", "tools", "tool_calls"]:
                 if field in outputs:
                     outputs[field] = new_traj
                     return modified

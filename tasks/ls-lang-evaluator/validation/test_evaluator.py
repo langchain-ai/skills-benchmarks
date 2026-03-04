@@ -131,8 +131,8 @@ def check_patterns(runner: TestRunner):
     if js:
         content = js.read_text()
         has_sig = re.search(
-            r"function\s+\w+\s*\(\s*run\s*(:\s*\w+)?\s*,\s*example", content
-        ) or re.search(r"=\s*\(\s*run\s*(:\s*\w+)?\s*,\s*example\s*(:\s*\w+)?\s*\)\s*=>", content)
+            r"function\s+\w+\s*\([^)]*run[^,]*,\s*[^)]*example", content, re.DOTALL
+        ) or re.search(r"=\s*\([^)]*run[^,]*,\s*[^)]*example[^)]*\)\s*=>", content, re.DOTALL)
         if has_sig:
             runner.passed("JavaScript: has (run, example) signature")
         else:

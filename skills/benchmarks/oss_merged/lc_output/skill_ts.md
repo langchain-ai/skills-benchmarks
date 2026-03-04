@@ -1,5 +1,5 @@
 ---
-name: LangChain Structured Output & HITL (TypeScript)
+name: langchain-structured-output-hitl-js
 description: "INVOKE THIS SKILL when you need structured/typed output from LLMs OR human-in-the-loop approval. Covers with_structured_output(), Zod schemas, union types for multiple formats, and HITL middleware. CRITICAL: Fixes for accessing structured response wrong, missing field descriptions, and schema validation errors."
 ---
 

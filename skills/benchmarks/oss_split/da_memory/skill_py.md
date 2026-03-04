@@ -1,5 +1,5 @@
 ---
-name: Deep Agents Memory (Python)
+name: deep-agents-memory-py
 description: "[Deep Agents] Implementing long-term memory in Deep Agents with cross-session storage using StoreBackend, CompositeBackend, and InMemoryStore for persistent data."
 ---
 

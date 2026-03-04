@@ -1,5 +1,5 @@
 ---
-name: LangChain RAG Pipeline (Python)
+name: langchain-rag-pipeline-py
 description: "INVOKE THIS SKILL when building ANY retrieval-augmented generation (RAG) system. Covers document loaders, RecursiveCharacterTextSplitter, embeddings (OpenAI), and vector stores (Chroma, FAISS, Pinecone). CRITICAL: Fixes for chunk size/overlap, embedding dimension mismatches, and FAISS deserialization."
 ---
 

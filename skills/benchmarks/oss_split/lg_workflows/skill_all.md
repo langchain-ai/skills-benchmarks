@@ -1,5 +1,5 @@
 ---
-name: LangGraph Workflows
+name: langgraph-workflows
 description: "[LangGraph] Understanding workflows vs agents, predetermined vs dynamic patterns, and orchestrator-worker patterns using the Send API"
 ---
 

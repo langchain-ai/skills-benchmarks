@@ -1,5 +1,5 @@
 ---
-name: LangChain OSS Primer
+name: langchain-oss-primer
 description: "ALWAYS START HERE for any LangChain, Deep Agents, or LangGraph agent building project. Required starting point before choosing other skills or writing any code. Covers framework selection (LangChain vs LangGraph vs Deep Agents), agent archetypes, dependency setup, and which skills to load next based on your decisions."
 ---
 

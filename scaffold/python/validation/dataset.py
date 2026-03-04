@@ -264,11 +264,10 @@ def _compare_datasets(
     """
     trace_id_map = trace_id_map or {}
 
-    # Index actual by trace_id if available, otherwise by input
-    def get_key(ex):
-        trace_id = ex.get("trace_id") or ex.get("id")
-        if trace_id:
-            return str(trace_id)
+    def _get_trace_id(ex):
+        return ex.get("trace_id") or ex.get("id") or None
+
+    def _get_content_key(ex):
         inputs = ex.get("inputs") or ex.get("input") or {}
         if isinstance(inputs, dict):
             messages = inputs.get("messages", [])
@@ -277,29 +276,48 @@ def _compare_datasets(
             return inputs.get("query") or inputs.get("input") or str(inputs)
         return str(inputs)
 
-    actual_by_key = {get_key(ex): ex for ex in actual if get_key(ex)}
+    # Index actual by trace_id and by content (fallback)
+    actual_by_trace_id = {}
+    actual_by_content = {}
+    for ex in actual:
+        tid = _get_trace_id(ex)
+        if tid:
+            actual_by_trace_id[str(tid)] = ex
+        content_key = _get_content_key(ex)
+        if content_key:
+            actual_by_content[content_key] = ex
 
     matches, mismatches, missing = 0, [], []
 
     for exp in expected:
-        exp_key = get_key(exp)
         exp_traj = _get_trajectory(exp)
         if not exp_traj:
             continue
 
-        # Use remapped ID if available (traces re-uploaded with new IDs)
-        actual_key = trace_id_map.get(exp_key, exp_key)
-        actual_ex = actual_by_key.get(actual_key)
+        # Try trace_id match first (with remapping)
+        exp_trace_id = _get_trace_id(exp)
+        actual_ex = None
+        if exp_trace_id:
+            actual_key = trace_id_map.get(str(exp_trace_id), str(exp_trace_id))
+            actual_ex = actual_by_trace_id.get(actual_key)
+
+        # Fall back to content-based matching
+        if not actual_ex:
+            exp_content = _get_content_key(exp)
+            if exp_content:
+                actual_ex = actual_by_content.get(exp_content)
 
         if not actual_ex:
-            missing.append(exp_key[:30] if exp_key else "unknown")
+            label = str(exp_trace_id or _get_content_key(exp) or "unknown")[:30]
+            missing.append(label)
             continue
 
         actual_traj = _get_trajectory(actual_ex)
         if _to_tool_names(actual_traj) == _to_tool_names(exp_traj):
             matches += 1
         else:
-            mismatches.append(f"'{exp_key[:20]}...' trajectory mismatch")
+            label = str(exp_trace_id or _get_content_key(exp) or "unknown")[:20]
+            mismatches.append(f"'{label}...' trajectory mismatch")
 
     return matches, mismatches, missing
 

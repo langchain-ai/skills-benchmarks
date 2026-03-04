@@ -1,5 +1,5 @@
 ---
-name: LangChain Agents & Tools (Python)
+name: langchain-agents-tools-py
 description: "INVOKE THIS SKILL when building ANY LangChain/LangGraph agent with tools. Covers create_agent, @tool decorator, Pydantic schemas, bind_tools(), and tool message handling. CRITICAL: Fixes for missing tool docstrings/types, tool_call_id mismatches, and not checking for tool_calls."
 ---
 

@@ -12,14 +12,23 @@ Environment Variables
 
 ```bash
 LANGSMITH_API_KEY=lsv2_pt_your_api_key_here          # Required
+LANGSMITH_PROJECT=your-project-name                   # Check this to know which project has traces
 LANGSMITH_WORKSPACE_ID=your-workspace-id              # Optional: for org-scoped keys
 OPENAI_API_KEY=your_openai_key                        # For LLM as Judge
 ```
 
-Dependencies (from project root)
+**IMPORTANT:** Always check the environment variables or `.env` file for `LANGSMITH_PROJECT` before querying or interacting with LangSmith. This tells you which project contains the relevant traces and data. If the LangSmith project is not available, use your best judgement to identify the right one.
+
+Dependencies
 
 ```bash
-npm install langsmith commander chalk cli-table3 dotenv openai
+npm install langsmith openai
+```
+
+CLI Tool (for uploading evaluators)
+
+```bash
+curl -sSL https://raw.githubusercontent.com/langchain-ai/langsmith-cli/main/scripts/install.sh | sh
 ```
 </setup>
 
@@ -135,32 +144,32 @@ function containsKeywords(run, example) {
 </code_evaluators>
 
 <upload>
-Use the included script to upload JavaScript evaluators.
+Use the `langsmith` CLI to upload evaluators.
 
 ```bash
 # List existing evaluators
-npx tsx upload_evaluators.ts list
+langsmith evaluator list
 
 # Upload JavaScript evaluator
-npx tsx upload_evaluators.ts upload my_evaluators.js \
+langsmith evaluator upload my_evaluators.js \
   --name "Exact Match" \
   --function exactMatchEvaluator \
   --dataset "Skills: Final Response" \
   --replace
 
 # Upload from TypeScript file
-npx tsx upload_evaluators.ts upload my_evaluators.ts \
+langsmith evaluator upload my_evaluators.ts \
   --name "Trajectory Match" \
   --function trajectoryEvaluator \
   --dataset "Skills: Trajectory" \
   --replace
 
 # Delete evaluator
-npx tsx upload_evaluators.ts delete "Exact Match"
+langsmith evaluator delete "Exact Match"
 ```
 
 **IMPORTANT - Safety Prompts:**
-- The script prompts for confirmation before destructive operations
+- The CLI prompts for confirmation before destructive operations
 - **NEVER use `--yes` flag unless the user explicitly requests it**
 </upload>
 
@@ -189,7 +198,7 @@ function exactMatch(run, example) {
 EOF
 
 # 2. Upload to LangSmith
-npx tsx upload_evaluators.ts upload evaluators.js \
+langsmith evaluator upload evaluators.js \
   --name "Exact Match" \
   --function exactMatch \
   --dataset "Skills: Final Response" \

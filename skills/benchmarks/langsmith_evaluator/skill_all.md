@@ -12,9 +12,12 @@ Environment Variables
 
 ```bash
 LANGSMITH_API_KEY=lsv2_pt_your_api_key_here          # Required
+LANGSMITH_PROJECT=your-project-name                   # Check this to know which project has traces
 LANGSMITH_WORKSPACE_ID=your-workspace-id              # Optional: for org-scoped keys
 OPENAI_API_KEY=your_openai_key                        # For LLM as Judge
 ```
+
+**IMPORTANT:** Always check the environment variables or `.env` file for `LANGSMITH_PROJECT` before querying or interacting with LangSmith. This tells you which project contains the relevant traces and data. If the LangSmith project is not available, use your best judgement to identify the right one.
 
 Python Dependencies
 ```bash
@@ -23,7 +26,12 @@ pip install langsmith langchain-openai python-dotenv
 
 JavaScript Dependencies
 ```bash
-npm install langsmith commander chalk cli-table3 dotenv openai
+npm install langsmith openai
+```
+
+CLI Tool (for uploading evaluators)
+```bash
+curl -sSL https://raw.githubusercontent.com/langchain-ai/langsmith-cli/main/scripts/install.sh | sh
 ```
 </setup>
 
@@ -186,32 +194,30 @@ function trajectoryEvaluator(run, example) {
 </code_evaluators>
 
 <upload>
-### Python Upload
-
 ```bash
-python upload_evaluators.py list
-python upload_evaluators.py upload my_evaluators.py \
+# List existing evaluators
+langsmith evaluator list
+
+# Upload Python evaluator
+langsmith evaluator upload my_evaluators.py \
   --name "Exact Match" \
   --function exact_match \
   --dataset "Skills: Final Response" \
   --replace
-python upload_evaluators.py delete "Exact Match"
-```
 
-### JavaScript Upload
-
-```bash
-npx tsx upload_evaluators.ts list
-npx tsx upload_evaluators.ts upload my_evaluators.js \
+# Upload JavaScript evaluator
+langsmith evaluator upload my_evaluators.js \
   --name "Exact Match" \
   --function exactMatch \
   --dataset "Skills: Final Response" \
   --replace
-npx tsx upload_evaluators.ts delete "Exact Match"
+
+# Delete evaluator
+langsmith evaluator delete "Exact Match"
 ```
 
 **IMPORTANT - Safety Prompts:**
-- The script prompts for confirmation before destructive operations
+- The CLI prompts for confirmation before destructive operations
 - **NEVER use `--yes` flag unless the user explicitly requests it**
 </upload>
 
@@ -239,7 +245,7 @@ def exact_match(run, example):
     return {"exact_match": 1 if match else 0, "comment": f"Match: {match}"}
 EOF
 
-python upload_evaluators.py upload evaluators.py \
+langsmith evaluator upload evaluators.py \
   --name "Exact Match" \
   --function exact_match \
   --dataset "Skills: Final Response" \
@@ -258,7 +264,7 @@ function exactMatch(run, example) {
 }
 EOF
 
-npx tsx upload_evaluators.ts upload evaluators.js \
+langsmith evaluator upload evaluators.js \
   --name "Exact Match" \
   --function exactMatch \
   --dataset "Skills: Final Response" \

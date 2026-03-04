@@ -1,5 +1,5 @@
 ---
-name: LangChain Document Loaders Integration (TypeScript)
+name: langchain-document-loaders-integration-js
 description: "[LangChain] Guide to using document loader integrations in LangChain for PDFs, web pages, text files, and APIs"
 ---
 

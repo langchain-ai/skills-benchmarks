@@ -1,5 +1,5 @@
 ---
-name: LangChain Tool Calling (Python)
+name: langchain-tool-calling-py
 description: "[LangChain] How chat models call tools - includes bind_tools, tool choice strategies, parallel tool calling, and tool message handling"
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: Deep Agents Memory & Filesystem (Python)
+name: deep-agents-memory-filesystem-py
 description: "INVOKE THIS SKILL when your Deep Agent needs memory, persistence, or filesystem access. Covers StateBackend (ephemeral), StoreBackend (persistent), FilesystemMiddleware, and CompositeBackend for routing. CRITICAL: Fixes for longest-prefix routing in CompositeBackend, path selection for persistence, and Store requirement."
 ---
 

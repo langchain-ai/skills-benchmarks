@@ -1,5 +1,5 @@
 ---
-name: Deep Agents Overview (TypeScript)
+name: deep-agents-overview-js
 description: "[Deep Agents] Understanding Deep Agents framework - what they are, how to create them with create_deep_agent/createDeepAgent, and the agent harness architecture with built-in middleware for planning, filesystems, and subagents."
 ---
 

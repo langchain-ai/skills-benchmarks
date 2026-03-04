@@ -1,5 +1,5 @@
 ---
-name: Deep Agents Skills (TypeScript)
+name: deep-agents-skills-js
 description: "[Deep Agents] Creating and using custom skills with progressive disclosure, SKILL.md format, and the Agent Skills protocol in Deep Agents."
 ---
 

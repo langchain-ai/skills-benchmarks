@@ -1,5 +1,5 @@
 ---
-name: LangChain Structured Output (TypeScript)
+name: langchain-structured-output-js
 description: "[LangChain] Get structured, validated output from LangChain agents and models using Pydantic schemas, type-safe responses, and automatic validation"
 ---
 

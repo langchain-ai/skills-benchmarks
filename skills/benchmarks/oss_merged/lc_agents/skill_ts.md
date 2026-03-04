@@ -1,5 +1,5 @@
 ---
-name: LangChain Agents & Tools (TypeScript)
+name: langchain-agents-tools-js
 description: "INVOKE THIS SKILL when building ANY LangChain/LangGraph agent with tools. Covers createAgent, tool(), Zod schemas, bindTools(), and tool message handling. CRITICAL: Fixes for missing tool descriptions, tool_call_id mismatches, and not checking for tool_calls."
 ---
 

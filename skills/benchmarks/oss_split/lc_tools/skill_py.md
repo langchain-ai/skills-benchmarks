@@ -1,5 +1,5 @@
 ---
-name: LangChain Tools (Python)
+name: langchain-tools-py
 description: "[LangChain] Define and use tools in LangChain - includes @tool decorator, custom tools, built-in tools, and tool schemas"
 ---
 

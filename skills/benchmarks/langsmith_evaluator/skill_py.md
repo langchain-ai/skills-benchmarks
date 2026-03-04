@@ -12,14 +12,23 @@ Environment Variables
 
 ```bash
 LANGSMITH_API_KEY=lsv2_pt_your_api_key_here          # Required
+LANGSMITH_PROJECT=your-project-name                   # Check this to know which project has traces
 LANGSMITH_WORKSPACE_ID=your-workspace-id              # Optional: for org-scoped keys
 OPENAI_API_KEY=your_openai_key                        # For LLM as Judge
 ```
+
+**IMPORTANT:** Always check the environment variables or `.env` file for `LANGSMITH_PROJECT` before querying or interacting with LangSmith. This tells you which project contains the relevant traces and data. If the LangSmith project is not available, use your best judgement to identify the right one.
 
 Dependencies
 
 ```bash
 pip install langsmith langchain-openai python-dotenv
+```
+
+CLI Tool (for uploading evaluators)
+
+```bash
+curl -sSL https://raw.githubusercontent.com/langchain-ai/langsmith-cli/main/scripts/install.sh | sh
 ```
 </setup>
 
@@ -131,25 +140,25 @@ results = await client.aevaluate(
 </running_evaluations>
 
 <upload>
-Use the included scripts to upload evaluators.
+Use the `langsmith` CLI to upload evaluators.
 
 ```bash
 # List existing evaluators
-python upload_evaluators.py list
+langsmith evaluator list
 
 # Upload evaluator
-python upload_evaluators.py upload my_evaluators.py \
+langsmith evaluator upload my_evaluators.py \
   --name "Trajectory Match" \
   --function trajectory_match \
   --dataset "Skills: Trajectory" \
   --replace
 
 # Delete evaluator
-python upload_evaluators.py delete "Trajectory Match"
+langsmith evaluator delete "Trajectory Match"
 ```
 
 **IMPORTANT - Safety Prompts:**
-- The script prompts for confirmation before destructive operations
+- The CLI prompts for confirmation before destructive operations
 - **NEVER use `--yes` flag unless the user explicitly requests it**
 </upload>
 
@@ -177,7 +186,7 @@ def exact_match(run, example):
 EOF
 
 # 2. Upload to LangSmith
-python upload_evaluators.py upload evaluators.py \
+langsmith evaluator upload evaluators.py \
   --name "Exact Match" \
   --function exact_match \
   --dataset "Skills: Final Response" \

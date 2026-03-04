@@ -1,5 +1,5 @@
 ---
-name: LangChain Tools Integration (TypeScript)
+name: langchain-tools-integration-js
 description: "[LangChain] Guide to using tool integrations in LangChain including pre-built toolkits, Tavily, Wikipedia, and custom tools"
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: LangChain Multimodal
+name: langchain-multimodal
 description: "[LangChain] Work with multimodal inputs/outputs in LangChain - includes images, audio, video, content blocks, and vision capabilities"
 ---
 

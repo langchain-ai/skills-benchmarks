@@ -1,5 +1,5 @@
 ---
-name: LangChain Vector Stores Integration (TypeScript)
+name: langchain-vector-stores-integration-js
 description: "[LangChain] Guide to using vector store integrations in LangChain including Chroma, Pinecone, FAISS, and memory vector stores"
 ---
 

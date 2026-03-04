@@ -1,5 +1,5 @@
 ---
-name: LangGraph Overview
+name: langgraph-overview
 description: "[LangGraph] Understanding LangGraph: A low-level orchestration framework for building stateful, long-running agents with durable execution, streaming, and human-in-the-loop capabilities"
 ---
 

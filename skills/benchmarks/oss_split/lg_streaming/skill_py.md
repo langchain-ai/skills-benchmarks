@@ -1,5 +1,5 @@
 ---
-name: LangGraph Streaming (Python)
+name: langgraph-streaming-py
 description: "[LangGraph] Streaming real-time updates from LangGraph: stream modes (values, updates, messages, custom, debug) for responsive UX"
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: LangChain Models (Python)
+name: langchain-models-py
 description: "[LangChain] Initialize and use LangChain chat models - includes provider selection (OpenAI, Anthropic, Google), model configuration, and invocation patterns"
 ---
 

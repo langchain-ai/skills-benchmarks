@@ -1,5 +1,5 @@
 ---
-name: Deep Agents Core
+name: deep-agents-core
 description: "INVOKE THIS SKILL when building ANY Deep Agents application. Covers create_deep_agent(), harness architecture, SKILL.md format, and configuration options. CRITICAL: Fixes for Store required for memory, backend configuration, and skill file structure."
 ---
 

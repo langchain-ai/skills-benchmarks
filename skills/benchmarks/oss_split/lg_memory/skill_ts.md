@@ -1,5 +1,5 @@
 ---
-name: LangGraph Memory (TypeScript)
+name: langgraph-memory-js
 description: "[LangGraph] Memory in LangGraph: short-term (thread-scoped) vs long-term (cross-thread) memory using checkpointers and stores"
 ---
 

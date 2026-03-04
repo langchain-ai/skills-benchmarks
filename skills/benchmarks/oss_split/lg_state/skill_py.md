@@ -1,5 +1,5 @@
 ---
-name: LangGraph State (Python)
+name: langgraph-state-py
 description: "[LangGraph] Managing state in LangGraph: schemas, reducers, channels, and message passing for coordinating agent execution"
 ---
 

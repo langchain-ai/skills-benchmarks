@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 2
 requires-python = ">=3.11"
 resolution-markers = [
     "python_full_version >= '3.13'",
@@ -1040,8 +1040,7 @@ wheels = [
 
 [[package]]
 name = "langsmith"
-version = "0.7.3"
-source = { registry = "https://pypi.org/simple" }
+source = { editable = "../../langchain_product/langsmith-sdk/python" }
 dependencies = [
     { name = "httpx" },
     { name = "orjson", marker = "platform_python_implementation != 'PyPy'" },
@@ -1053,9 +1052,89 @@ dependencies = [
     { name = "xxhash" },
     { name = "zstandard" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/8d/bc/8172fefad4f2da888a6d564a27d1fb7d4dbf3c640899c2b40c46235cbe98/langsmith-0.7.3.tar.gz", hash = "sha256:0223b97021af62d2cf53c8a378a27bd22e90a7327e45b353e0069ae60d5d6f9e", size = 988575, upload-time = "2026-02-13T23:25:32.916Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/f4/9d/5a68b6b5e313ffabbb9725d18a71edb48177fd6d3ad329c07801d2a8e862/langsmith-0.7.3-py3-none-any.whl", hash = "sha256:03659bf9274e6efcead361c9c31a7849ea565ae0d6c0d73e1d8b239029eff3be", size = 325718, upload-time = "2026-02-13T23:25:31.52Z" },
+
+[package.metadata]
+requires-dist = [
+    { name = "claude-agent-sdk", marker = "python_full_version >= '3.10' and extra == 'claude-agent-sdk'", specifier = ">=0.1.0" },
+    { name = "click", marker = "extra == 'cli'", specifier = ">=8.0" },
+    { name = "google-adk", marker = "extra == 'google-adk'", specifier = ">=1.0.0" },
+    { name = "httpx", specifier = ">=0.23.0,<1" },
+    { name = "langsmith-pyo3", marker = "extra == 'langsmith-pyo3'", specifier = ">=0.1.0rc2" },
+    { name = "openai-agents", marker = "extra == 'openai-agents'", specifier = ">=0.0.3" },
+    { name = "opentelemetry-api", marker = "extra == 'otel'", specifier = ">=1.30.0" },
+    { name = "opentelemetry-exporter-otlp-proto-http", marker = "extra == 'otel'", specifier = ">=1.30.0" },
+    { name = "opentelemetry-sdk", marker = "extra == 'otel'", specifier = ">=1.30.0" },
+    { name = "orjson", marker = "platform_python_implementation != 'PyPy'", specifier = ">=3.9.14" },
+    { name = "packaging", specifier = ">=23.2" },
+    { name = "pydantic", specifier = ">=2,<3" },
+    { name = "pytest", marker = "extra == 'pytest'", specifier = ">=7.0.0" },
+    { name = "requests", specifier = ">=2.0.0" },
+    { name = "requests-toolbelt", specifier = ">=1.0.0" },
+    { name = "rich", marker = "extra == 'cli'", specifier = ">=13.0" },
+    { name = "rich", marker = "extra == 'pytest'", specifier = ">=13.9.4" },
+    { name = "uuid-utils", specifier = ">=0.12.0,<1.0" },
+    { name = "vcrpy", marker = "extra == 'pytest'", specifier = ">=7.0.0" },
+    { name = "vcrpy", marker = "extra == 'vcr'", specifier = ">=7.0.0" },
+    { name = "websockets", marker = "extra == 'sandbox'", specifier = ">=15.0" },
+    { name = "wrapt", marker = "extra == 'google-adk'", specifier = ">=1.16.0" },
+    { name = "xxhash", specifier = ">=3.0.0" },
+    { name = "zstandard", specifier = ">=0.23.0" },
+]
+provides-extras = ["claude-agent-sdk", "cli", "google-adk", "langsmith-pyo3", "openai-agents", "otel", "pytest", "sandbox", "vcr"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "bump2version", specifier = ">=1.0.1" },
+    { name = "claude-agent-sdk", marker = "python_full_version >= '3.10'", specifier = ">=0.1.0" },
+    { name = "click", specifier = ">=8.0" },
+    { name = "dataclasses-json", specifier = ">=0.6.4" },
+    { name = "debugpy", specifier = ">=1.8.17" },
+    { name = "fastapi", specifier = ">=0.115.4" },
+    { name = "freezegun", specifier = ">=1.2.2" },
+    { name = "google-adk", specifier = ">=1.0.0" },
+    { name = "google-genai", specifier = ">=1.2.0" },
+    { name = "httpx", specifier = ">=0.23.0,<0.29.0" },
+    { name = "langchain-anthropic", specifier = ">=1.0.0" },
+    { name = "langchain-core", specifier = ">=1.0.0" },
+    { name = "langchain-openai", specifier = ">=1.0.0" },
+    { name = "multipart", specifier = ">=1.0.0" },
+    { name = "mypy", specifier = ">=1.9.0" },
+    { name = "openai-agents", specifier = ">=0.2.4" },
+    { name = "opentelemetry-api", specifier = ">=1.34.1" },
+    { name = "opentelemetry-exporter-otlp-proto-http", specifier = ">=1.34.1" },
+    { name = "opentelemetry-sdk", specifier = ">=1.34.1" },
+    { name = "pandas-stubs", specifier = ">=2.0.1.230501" },
+    { name = "pillow", specifier = ">=12.0.0" },
+    { name = "psutil", specifier = ">=5.9.5" },
+    { name = "py-spy", specifier = ">=0.3.14" },
+    { name = "pyperf", specifier = ">=2.7.0" },
+    { name = "pytest", specifier = ">=8.3.5" },
+    { name = "pytest-asyncio", specifier = ">=0.21.0" },
+    { name = "pytest-cov", specifier = ">=4.1.0" },
+    { name = "pytest-dotenv", specifier = ">=0.5.2" },
+    { name = "pytest-httpx", specifier = ">=0.30.0" },
+    { name = "pytest-mock", specifier = ">=3.12" },
+    { name = "pytest-rerunfailures", specifier = ">=14.0" },
+    { name = "pytest-retry", specifier = ">=1.7.0" },
+    { name = "pytest-socket", specifier = ">=0.7.0" },
+    { name = "pytest-subtests", specifier = ">=0.11.0" },
+    { name = "pytest-watcher", specifier = ">=0.3.4" },
+    { name = "pytest-xdist", specifier = ">=3.5.0" },
+    { name = "rich", specifier = ">=13.9.4" },
+    { name = "ruff", specifier = ">=0.6.9" },
+    { name = "ty", specifier = "==0.0.18" },
+    { name = "types-psutil", specifier = ">=5.9.5.16" },
+    { name = "types-pyyaml", specifier = ">=6.0.12.10" },
+    { name = "types-requests", specifier = ">=2.31.0.1" },
+    { name = "types-tqdm", specifier = ">=4.66.0.20240106" },
+    { name = "uvicorn", specifier = ">=0.29.0" },
+    { name = "vcrpy", specifier = ">=7.0.0" },
+    { name = "wrapt", specifier = ">=1.16.0" },
+]
+lint = [{ name = "openai", specifier = ">=2.6.0" }]
+test = [
+    { name = "anthropic", specifier = ">=0.45.0" },
+    { name = "pytest-socket", specifier = ">=0.7.0" },
 ]
 
 [[package]]
@@ -2054,6 +2133,11 @@ dev = [
     { name = "ruff" },
 ]
 
+[package.dev-dependencies]
+dev = [
+    { name = "ruff" },
+]
+
 [package.metadata]
 requires-dist = [
     { name = "click", marker = "extra == 'dev'", specifier = ">=8.1.0" },
@@ -2064,7 +2148,7 @@ requires-dist = [
     { name = "langchain-core", specifier = ">=1.0.0" },
     { name = "langchain-openai", specifier = ">=1.0.0" },
     { name = "langgraph", specifier = ">=1.0.0" },
-    { name = "langsmith", specifier = ">=0.6.0" },
+    { name = "langsmith", editable = "../../langchain_product/langsmith-sdk/python" },
     { name = "openai", specifier = ">=1.0.0" },
     { name = "pytest", specifier = ">=8.0.0" },
     { name = "pytest-repeat", specifier = ">=0.9.0" },
@@ -2076,6 +2160,9 @@ requires-dist = [
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.8.0" },
 ]
 provides-extras = ["dev"]
+
+[package.metadata.requires-dev]
+dev = [{ name = "ruff", specifier = ">=0.15.1" }]
 
 [[package]]
 name = "sniffio"

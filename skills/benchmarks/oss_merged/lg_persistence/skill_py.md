@@ -1,5 +1,5 @@
 ---
-name: LangGraph Persistence & Memory (Python)
+name: langgraph-persistence-memory-py
 description: "INVOKE THIS SKILL when your LangGraph needs to remember state across calls, use memory, or persist conversations. Covers checkpointers (MemorySaver, Postgres), thread_id configuration, and Store for long-term memory. CRITICAL: Fixes for missing thread_id, checkpointer placement, and cross-thread memory access."
 ---
 

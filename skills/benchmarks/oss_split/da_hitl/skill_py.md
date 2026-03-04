@@ -1,5 +1,5 @@
 ---
-name: Deep Agents Human-in-the-Loop (Python)
+name: deep-agents-human-in-the-loop-py
 description: "[Deep Agents] Implementing human-in-the-loop approval workflows with interrupt_on parameter for sensitive tool operations in Deep Agents."
 ---
 

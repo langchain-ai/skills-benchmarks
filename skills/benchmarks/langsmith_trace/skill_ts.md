@@ -16,15 +16,12 @@ LANGSMITH_PROJECT=your-project-name                   # Optional: default projec
 LANGSMITH_WORKSPACE_ID=your-workspace-id              # Optional: for org-scoped keys
 ```
 
-Dependencies
+**IMPORTANT:** Always check the environment variables or `.env` file for `LANGSMITH_PROJECT` before querying or interacting with LangSmith. This tells you which project contains the relevant traces and data. If the LangSmith project is not available, use your best judgement to identify the right one.
+
+CLI Tool
 
 ```bash
-npm install langsmith commander chalk cli-table3 ora dotenv
-```
-
-For TypeScript:
-```bash
-npm install -D tsx typescript @types/node
+curl -sSL https://raw.githubusercontent.com/langchain-ai/langsmith-cli/main/scripts/install.sh | sh
 ```
 </setup>
 
@@ -82,7 +79,7 @@ Best Practices:
 </trace_other_frameworks>
 
 <traces_vs_runs>
-Use the included scripts to query trace data.
+Use the `langsmith` CLI to query trace data.
 
 **Understanding the difference is critical:**
 
@@ -96,13 +93,13 @@ Use the included scripts to query trace data.
 Two command groups with consistent behavior:
 
 ```
-query_traces.ts
-├── traces (operations on trace trees - USE THIS FIRST)
+langsmith
+├── trace (operations on trace trees - USE THIS FIRST)
 │   ├── list    - List traces (filters apply to root run)
 │   ├── get     - Get single trace with full hierarchy
 │   └── export  - Export traces to JSONL files (one file per trace)
 │
-└── runs (operations on individual runs - for specific analysis)
+└── run (operations on individual runs - for specific analysis)
     ├── list    - List runs (flat, filters apply to any run)
     ├── get     - Get single run
     └── export  - Export runs to single JSONL file (flat)
@@ -121,31 +118,31 @@ query_traces.ts
 <querying_traces>
 ```bash
 # List recent traces (most common operation)
-npx tsx query_traces.ts traces list --limit 10 --project my-project
+langsmith trace list --limit 10 --project my-project
 
 # List traces with metadata (timing, tokens, costs)
-npx tsx query_traces.ts traces list --limit 10 --include-metadata
+langsmith trace list --limit 10 --include-metadata
 
 # Filter traces by time
-npx tsx query_traces.ts traces list --last-n-minutes 60
-npx tsx query_traces.ts traces list --since 2025-01-20T10:00:00Z
+langsmith trace list --last-n-minutes 60
+langsmith trace list --since 2025-01-20T10:00:00Z
 
 # Get specific trace with full hierarchy
-npx tsx query_traces.ts traces get <trace-id>
+langsmith trace get <trace-id>
 
 # List traces and show hierarchy inline
-npx tsx query_traces.ts traces list --limit 5 --show-hierarchy
+langsmith trace list --limit 5 --show-hierarchy
 
 # Export traces to JSONL (one file per trace, includes all runs)
-npx tsx query_traces.ts traces export ./traces --limit 20 --full
-npx tsx query_traces.ts traces export ./traces --limit 10 --include-io
+langsmith trace export ./traces --limit 20 --full
+langsmith trace export ./traces --limit 10 --include-io
 
 # Filter traces by performance
-npx tsx query_traces.ts traces list --min-latency 5.0 --limit 10    # Slow traces (>= 5s)
-npx tsx query_traces.ts traces list --error --last-n-minutes 60     # Failed traces
+langsmith trace list --min-latency 5.0 --limit 10    # Slow traces (>= 5s)
+langsmith trace list --error --last-n-minutes 60     # Failed traces
 
 # Export specific traces by ID
-npx tsx query_traces.ts traces export ./traces --trace-ids abc123,def456 --full
+langsmith trace export ./traces --trace-ids abc123,def456 --full
 
 # Stitch multiple JSONL files together
 cat ./traces/*.jsonl > all_traces.jsonl
@@ -153,14 +150,14 @@ cat ./traces/*.jsonl > all_traces.jsonl
 # --- RUNS (for specific analysis) ---
 
 # List specific run types (flat list)
-npx tsx query_traces.ts runs list --run-type llm --limit 20         # LLM calls only
-npx tsx query_traces.ts runs list --name "ChatOpenAI" --limit 10    # By name pattern
+langsmith run list --run-type llm --limit 20         # LLM calls only
+langsmith run list --name "ChatOpenAI" --limit 10    # By name pattern
 
 # Get a specific run by ID
-npx tsx query_traces.ts runs get <run-id> --full
+langsmith run get <run-id> --full
 
 # Export LLM runs for analysis
-npx tsx query_traces.ts runs export ./llm_runs.jsonl --run-type llm --limit 100 --full
+langsmith run export ./llm_runs.jsonl --run-type llm --limit 100 --full
 ```
 </querying_traces>
 
@@ -187,7 +184,7 @@ All commands support these filters (all AND together):
 
 ```bash
 # Example: Filter by feedback score
-npx tsx query_traces.ts traces list --filter 'and(eq(feedback_key, "correctness"), gte(feedback_score, 0.8))'
+langsmith trace list --filter 'and(eq(feedback_key, "correctness"), gte(feedback_score, 0.8))'
 ```
 </filters>
 

@@ -1,5 +1,5 @@
 ---
-name: Deep Agents Subagents (Python)
+name: deep-agents-subagents-py
 description: "[Deep Agents] Using SubAgentMiddleware to spawn subagents for task delegation, context isolation, and specialized work in Deep Agents."
 ---
 

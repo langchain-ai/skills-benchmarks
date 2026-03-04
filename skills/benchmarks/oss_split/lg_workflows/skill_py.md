@@ -1,5 +1,5 @@
 ---
-name: LangGraph Workflows (Python)
+name: langgraph-workflows-py
 description: "[LangGraph] Understanding workflows vs agents, predetermined vs dynamic patterns, and orchestrator-worker patterns using the Send API"
 ---
 

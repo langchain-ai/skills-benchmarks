@@ -1,5 +1,5 @@
 ---
-name: LangChain Embeddings Integration
+name: langchain-embeddings-integration
 description: "[LangChain] Guide to using embedding model integrations in LangChain including OpenAI, Azure, and local embeddings"
 ---
 

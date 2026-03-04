@@ -1,5 +1,5 @@
 ---
-name: Deep Agents Todo List (Python)
+name: deep-agents-todo-list-py
 description: "[Deep Agents] Using TodoListMiddleware for task planning and tracking progress with the write_todos tool in Deep Agents for complex multi-step workflows."
 ---
 

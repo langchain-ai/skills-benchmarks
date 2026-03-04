@@ -1,10 +1,10 @@
 ---
 name: langsmith-dataset-js
-description: Use this skill for questions about creating test or evaluation datasets for agents. Covers generating datasets from exported trace files (final_response, single_step, trajectory, RAG types), uploading to LangSmith, and managing evaluation data.
+description: Use this skill for questions about creating test or evaluation datasets for agents. Covers dataset types (final_response, single_step, trajectory, RAG), uploading to LangSmith, and managing evaluation data.
 ---
 
 <oneliner>
-Auto-generate evaluation datasets from exported JSONL trace files for testing and validation.
+Create, manage, and upload evaluation datasets to LangSmith for testing and validation.
 </oneliner>
 
 <setup>
@@ -12,18 +12,26 @@ Environment Variables
 
 ```bash
 LANGSMITH_API_KEY=lsv2_pt_your_api_key_here          # Required
+LANGSMITH_PROJECT=your-project-name                   # Check this to know which project has traces
 LANGSMITH_WORKSPACE_ID=your-workspace-id              # Optional: for org-scoped keys
 ```
 
-Dependencies (from project root)
+**IMPORTANT:** Always check the environment variables or `.env` file for `LANGSMITH_PROJECT` before querying or interacting with LangSmith. This tells you which project contains the relevant traces and data. If the LangSmith project is not available, use your best judgement to identify the right one.
+
+JavaScript Dependencies
+```bash
+npm install langsmith
+```
+
+CLI Tool
 
 ```bash
-npm install langsmith commander chalk cli-table3 dotenv
+curl -sSL https://raw.githubusercontent.com/langchain-ai/langsmith-cli/main/scripts/install.sh | sh
 ```
 </setup>
 
 <input_format>
-This script requires traces exported in **JSONL format** (one run per line).
+Datasets are built from traces exported in **JSONL format** (one run per line).
 
 ### Required Fields
 
@@ -40,85 +48,142 @@ Each line must be a JSON object with these fields:
 | `name` | Run name (e.g., "model", "classify_email") |
 | `run_type` | One of: chain, llm, tool, retriever |
 | `parent_run_id` | Parent run ID (null for root) |
-| `inputs` | Run inputs (required for dataset generation) |
-| `outputs` | Run outputs (required for dataset generation) |
+| `inputs` | Run inputs (required for dataset creation) |
+| `outputs` | Run outputs (required for dataset creation) |
 
-**Important:** You MUST have inputs and outputs to generate datasets correctly.
+**Important:** You MUST have inputs and outputs to create datasets correctly.
 </input_format>
 
 <usage>
-Use the included scripts to generate datasets.
+Use the `langsmith` CLI to manage datasets and examples.
 
-### Scripts
+### Dataset Commands
 
-**`generate_datasets.ts`** - Create evaluation datasets from exported trace files
-**`query_datasets.ts`** - View and inspect datasets
+- `langsmith dataset list` - List datasets in LangSmith
+- `langsmith dataset get <name-or-id>` - View dataset details
+- `langsmith dataset create --name <name>` - Create a new empty dataset
+- `langsmith dataset delete <name-or-id>` - Delete a dataset
+- `langsmith dataset export <name-or-id> <output-file>` - Export dataset to local JSON file
+- `langsmith dataset upload <file> --name <name>` - Upload a local JSON file as a dataset
 
-### Common Flags
+### Example Commands
 
-All dataset generation commands support:
+- `langsmith example list --dataset <name>` - List examples in a dataset
+- `langsmith example create --dataset <name> --inputs <json>` - Add an example
+- `langsmith example delete <example-id>` - Delete an example
 
-- `--input <path>` - Input traces: directory of .jsonl files or single .jsonl file (required)
-- `--type <type>` - Dataset type: final_response, single_step, trajectory, rag (required)
-- `--output <path>` - Output file (.json or .csv) (required)
-- `--input-fields` - Comma-separated input keys to extract (e.g., "query,question")
-- `--output-fields` - Comma-separated output keys to extract (e.g., "answer,response")
-- `--messages-only` - Only extract from messages arrays, skip other fields
-- `--upload <name>` - Upload to LangSmith with this dataset name
-- `--replace` - Overwrite existing file/dataset (will prompt for confirmation)
-- `--yes` - Skip confirmation prompts (use with caution)
+### Experiment Commands
+
+- `langsmith experiment list --dataset <name>` - List experiments for a dataset
+- `langsmith experiment get <name>` - View experiment results
 
 **IMPORTANT - Safety Prompts:**
-- The script prompts for confirmation before deleting existing datasets with `--replace`
+- The CLI prompts for confirmation before destructive operations
 - **NEVER use `--yes` unless the user explicitly requests it**
 </usage>
 
 <dataset_types_overview>
-Use `--type <type>` flag with `generate_datasets.ts`:
+Common evaluation dataset types:
 
 - **final_response** - Full conversation with expected output. Tests complete agent behavior.
-- **single_step** - Single node inputs/outputs. Tests specific node behavior. Use `--run-name` to target a node.
-- **trajectory** - Tool call sequence. Tests execution path. Use `--depth` to control depth.
+- **single_step** - Single node inputs/outputs. Tests specific node behavior.
+- **trajectory** - Tool call sequence. Tests execution path.
 - **rag** - Question/chunks/answer/citations. Tests retrieval quality. Only matches `run_type="retriever"`.
 </dataset_types_overview>
 
+<creating_datasets>
+## Creating Datasets
+
+Export traces first, then process them into dataset format:
+
+```bash
+# 1. Export traces to JSONL files
+langsmith trace export ./traces --project my-project --limit 20 --full
+```
+
+```typescript
+import { Client } from "langsmith";
+import { readFileSync, writeFileSync, readdirSync } from "fs";
+import { join } from "path";
+
+// 2. Process traces into dataset examples
+const examples: Array<{inputs: Record<string, any>, outputs: Record<string, any>}> = [];
+const files = readdirSync("./traces").filter(f => f.endsWith(".jsonl"));
+
+for (const file of files) {
+  const lines = readFileSync(join("./traces", file), "utf-8").trim().split("\n");
+  const runs = lines.map(line => JSON.parse(line));
+  const root = runs.find(r => r.parent_run_id == null);
+  if (root?.inputs && root?.outputs) {
+    examples.push({ trace_id: root.trace_id, inputs: root.inputs, outputs: root.outputs });
+  }
+}
+
+// 3. Save locally
+writeFileSync("/tmp/dataset.json", JSON.stringify(examples, null, 2));
+```
+
+### Upload to LangSmith
+
+```bash
+langsmith dataset upload /tmp/dataset.json --name "My Evaluation Dataset"
+```
+
+### Using the SDK Directly
+
+```typescript
+import { Client } from "langsmith";
+
+const client = new Client();
+
+// Create dataset and add examples
+const dataset = await client.createDataset("My Dataset", {
+  description: "Evaluation dataset",
+});
+
+await client.createExamples({
+  inputs: [{ query: "What is AI?" }, { query: "Explain RAG" }],
+  outputs: [{ answer: "AI is..." }, { answer: "RAG is..." }],
+  datasetName: "My Dataset",
+});
+```
+</creating_datasets>
+
 <querying_traces>
 ```bash
-# Basic usage (raw inputs, extracted output)
-npx tsx generate_datasets.ts --input ./traces --type final_response --output /tmp/final_response.json
+# List all datasets
+langsmith dataset list
 
-# Extract specific fields
-npx tsx generate_datasets.ts --input ./traces --type final_response \
-  --input-fields "email_content" \
-  --output-fields "response" \
-  --output /tmp/final.json
+# View dataset details
+langsmith dataset get "Skills: Trajectory"
 
-# Generate trajectory dataset
-npx tsx generate_datasets.ts --input ./traces --type trajectory --output /tmp/trajectory.json
+# List examples
+langsmith example list --dataset "Skills: Trajectory" --limit 5
 
-# Generate and upload
-npx tsx generate_datasets.ts --input ./traces --type trajectory \
-  --output /tmp/trajectory.json \
-  --upload "Skills: Trajectory"
+# Export from LangSmith to local
+langsmith dataset export "Skills: Final Response" /tmp/exported.json --limit 100
+
+# View experiments
+langsmith experiment list --dataset "Skills: Trajectory"
 ```
 </querying_traces>
 
 <query>
 ```bash
 # List all datasets
-npx tsx query_datasets.ts list-datasets
+langsmith dataset list
 
-# View dataset examples
-npx tsx query_datasets.ts show "Skills: Trajectory" --limit 5
+# View dataset details
+langsmith dataset get "Skills: Trajectory"
 
-# View local file
-npx tsx query_datasets.ts view-file /tmp/trajectory_ds.json --limit 3
+# List examples in a dataset
+langsmith example list --dataset "Skills: Trajectory" --limit 5
 
-# Analyze structure
-npx tsx query_datasets.ts structure /tmp/trajectory_ds.json
+# Export to local file
+langsmith dataset export "Skills: Final Response" /tmp/exported.json --limit 100
 
-# Export from LangSmith to local
-npx tsx query_datasets.ts export "Skills: Final Response" /tmp/exported.json --limit 100
+# Delete a dataset
+langsmith dataset delete "Old Dataset"
 ```
 </query>
 
@@ -126,28 +191,56 @@ npx tsx query_datasets.ts export "Skills: Final Response" /tmp/exported.json --l
 Complete workflow from exported traces to LangSmith datasets:
 
 ```bash
-# Assuming traces are already exported to ./traces as JSONL files
+# 1. Export traces to JSONL files
+langsmith trace export ./traces --project my-project --limit 20 --full
+```
 
-# Generate all dataset types from exported traces
-npx tsx generate_datasets.ts --input ./traces --type final_response \
-  --output /tmp/final.json \
-  --upload "Skills: Final Response" --replace
+```typescript
+// 2. Process traces into dataset (e.g., trajectory)
+import { readFileSync, writeFileSync, readdirSync } from "fs";
+import { join } from "path";
 
-npx tsx generate_datasets.ts --input ./traces --type single_step \
-  --run-name model \
-  --sample-per-trace 2 \
-  --output /tmp/model.json \
-  --upload "Skills: Single Step (model)" --replace
+interface Run {
+  run_id: string;
+  trace_id: string;
+  name: string;
+  run_type: string;
+  parent_run_id: string | null;
+  inputs: Record<string, any>;
+  outputs: Record<string, any>;
+}
 
-npx tsx generate_datasets.ts --input ./traces --type trajectory \
-  --output /tmp/traj.json \
-  --upload "Skills: Trajectory (all depths)" --replace
+const examples: Array<{inputs: Record<string, any>, outputs: Record<string, any>}> = [];
+const files = readdirSync("./traces").filter(f => f.endsWith(".jsonl"));
 
-# Review in LangSmith UI
-# Visit https://smith.langchain.com → Datasets
+for (const file of files) {
+  const lines = readFileSync(join("./traces", file), "utf-8").trim().split("\n");
+  const runs: Run[] = lines.map(line => JSON.parse(line));
+  const root = runs.find(r => r.parent_run_id == null);
+  if (!root) continue;
 
-# Query locally if needed
-npx tsx query_datasets.ts show "Skills: Final Response" --limit 3
+  const toolRuns = runs.filter(r => r.run_type === "tool");
+  const trajectory = toolRuns.map(r => r.name);
+  if (trajectory.length > 0 && root.inputs) {
+    examples.push({
+      trace_id: root.trace_id,
+      inputs: root.inputs,
+      outputs: { expected_trajectory: trajectory }
+    });
+  }
+}
+
+writeFileSync("/tmp/trajectory.json", JSON.stringify(examples, null, 2));
+```
+
+```bash
+# 3. Upload to LangSmith
+langsmith dataset upload /tmp/trajectory.json --name "Skills: Trajectory"
+
+# 4. Verify
+langsmith dataset get "Skills: Trajectory"
+langsmith example list --dataset "Skills: Trajectory" --limit 3
 ```
 </example_workflow>
 
+</output>

@@ -1,5 +1,5 @@
 ---
-name: LangGraph Streaming (TypeScript)
+name: langgraph-streaming-js
 description: "[LangGraph] Streaming real-time updates from LangGraph: stream modes (values, updates, messages, custom, debug) for responsive UX"
 ---
 

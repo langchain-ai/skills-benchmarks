@@ -1,5 +1,5 @@
 ---
-name: LangGraph Interrupts
+name: langgraph-interrupts
 description: "[LangGraph] Human-in-the-loop with dynamic interrupts and breakpoints: pausing execution for human review and resuming with Command"
 ---
 

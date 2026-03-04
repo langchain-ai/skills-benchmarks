@@ -1,78 +1,58 @@
-"""Skill script usage validation.
+"""Skill tool usage validation.
 
-Tracks which skill scripts Claude used during a task.
+Tracks which skill tools (langsmith CLI commands) Claude used during a task.
 This is informational - doesn't fail, just records patterns.
 """
 
-# Known skill scripts by language
-PY_SCRIPTS = [
-    "query_traces.py",
-    "generate_datasets.py",
-    "query_datasets.py",
-    "upload_evaluators.py",
-]
-
-TS_SCRIPTS = [
-    "query_traces.ts",
-    "generate_datasets.ts",
-    "query_datasets.ts",
-    "upload_evaluators.ts",
+# Known langsmith CLI subcommands
+CLI_COMMANDS = [
+    "langsmith trace",
+    "langsmith run",
+    "langsmith dataset",
+    "langsmith example",
+    "langsmith evaluator",
+    "langsmith experiment",
+    "langsmith thread",
+    "langsmith project",
 ]
 
 
 def check_skill_scripts(
     outputs: dict,
     events: dict | None = None,
-    py_scripts: list[str] | None = None,
-    ts_scripts: list[str] | None = None,
+    cli_commands: list[str] | None = None,
 ) -> tuple[list[str], list[str]]:
-    """Track which skill scripts Claude used (Python vs TypeScript).
+    """Track which langsmith CLI commands Claude used.
 
     This validator doesn't fail - it just records usage patterns for analysis.
 
     Args:
-        test_dir: Test working directory (unused but matches signature)
-        outputs: Outputs dict (stores script usage for later analysis)
+        outputs: Outputs dict (stores CLI usage for later analysis)
         events: Events dict containing commands_run and files_read
-        py_scripts: Python script names to look for
-        ts_scripts: TypeScript script names to look for
+        cli_commands: CLI command patterns to look for
 
     Returns:
         (passed, failed) lists - never fails, only passes
     """
     passed, failed = [], []
     events = events or {}
-    py_scripts = py_scripts or PY_SCRIPTS
-    ts_scripts = ts_scripts or TS_SCRIPTS
+    cli_commands = cli_commands or CLI_COMMANDS
 
     commands = " ".join(events.get("commands_run", [])).lower()
     files_read = " ".join(events.get("files_read", [])).lower()
     all_activity = commands + " " + files_read
 
-    # Count script usage
-    py_used = [s for s in py_scripts if s.lower() in all_activity]
-    ts_used = [s for s in ts_scripts if s.lower() in all_activity]
+    # Count CLI command usage
+    cli_used = [c for c in cli_commands if c.lower() in all_activity]
 
     # Report findings
-    if py_used:
-        passed.append(f"Scripts: {len(py_used)} Python scripts used ({', '.join(py_used)})")
-    if ts_used:
-        passed.append(f"Scripts: {len(ts_used)} TypeScript scripts used ({', '.join(ts_used)})")
-
-    if not py_used and not ts_used:
-        passed.append("Scripts: no skill scripts used (Claude wrote from scratch)")
-
-    # Check for language mixing - this is informational, not a failure
-    if py_used and ts_used:
-        passed.append("Scripts: mixed Python and TypeScript scripts")
-    elif py_used and not ts_used:
-        passed.append("Scripts: Python-only approach")
-    elif ts_used and not py_used:
-        passed.append("Scripts: TypeScript-only approach")
+    if cli_used:
+        passed.append(f"CLI: {len(cli_used)} langsmith commands used ({', '.join(cli_used)})")
+    else:
+        passed.append("CLI: no langsmith CLI commands used (Claude wrote from scratch)")
 
     # Store in outputs for later analysis
     if outputs is not None:
-        outputs["py_scripts_used"] = py_used
-        outputs["ts_scripts_used"] = ts_used
+        outputs["cli_commands_used"] = cli_used
 
     return passed, failed

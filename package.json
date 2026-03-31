@@ -20,8 +20,8 @@
     "dotenv": "^16.6.1",
     "langsmith": "^0.4.6",
     "openai": "^6.22.0",
-    "smol-toml": "^1.6.0",
-    "yaml": "^2.8.2",
+    "smol-toml": "^1.6.1",
+    "yaml": "^2.8.3",
     "zod": "^3.24.0"
   },
   "devDependencies": {

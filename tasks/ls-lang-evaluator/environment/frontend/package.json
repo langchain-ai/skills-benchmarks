@@ -7,7 +7,7 @@
   },
   "dependencies": {
     "dotenv": "^16.6.1",
-    "langsmith": "^0.1.0",
+    "langsmith": "^0.5.18",
     "openai": "^4.104.0"
   },
   "devDependencies": {

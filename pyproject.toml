@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Benchmark for evaluating LangChain skills"
 requires-python = ">=3.11"
 dependencies = [
-    "langsmith>=0.6.0",
+    "langsmith>=0.7.31",
     "langchain>=1.0.0",
     "langchain-openai>=1.0.0",
     "langchain-anthropic>=1.0.0",

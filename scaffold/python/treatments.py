@@ -165,20 +165,20 @@ def _build_skill_config(
     variant_path = skill_path / f"skill_{variant}.md" if variant else skill_path / "skill.md"
     if variant and not variant_path.exists():
         # No variant files - try SKILL.md (uppercase) for main skills, then skill.md
-        skill_md = None
+        resolved_md_path = None
         for filename in ["SKILL.md", "skill.md"]:
             if (skill_path / filename).exists():
-                skill_md = skill_path / filename
+                resolved_md_path = skill_path / filename
                 break
 
-        if skill_md is None:
+        if resolved_md_path is None:
             raise FileNotFoundError(f"No skill file found in {skill_path}")
 
         # Parse directly since load_skill expects lowercase skill.md
         from scaffold.python.skill_parser import get_section_list, parse_skill_md
 
-        sections = parse_skill_md(skill_md)
-        all_sections = get_section_list(skill_md)
+        sections = parse_skill_md(resolved_md_path)
+        all_sections = get_section_list(resolved_md_path)
         scripts_dir = skill_path / "scripts"
 
         skill = {
@@ -188,6 +188,7 @@ def _build_skill_config(
             "script_filter": None,  # No variant filtering
         }
     else:
+        resolved_md_path = variant_path
         skill = load_skill_variant(skill_path, variant)
 
     # Select sections: either specific sections or all
@@ -200,6 +201,11 @@ def _build_skill_config(
                 sections.append(section_overrides[section_name])
             elif section_name in skill["sections"]:
                 sections.append(skill["sections"][section_name])
+        if not include_related:
+            sections = _filter_related_skills(sections)
+        if extra_sections:
+            sections = sections + extra_sections
+        content = "\n\n".join(sections)
     elif section_overrides:
         # Use all sections but apply overrides where specified
         sections = []
@@ -208,19 +214,24 @@ def _build_skill_config(
                 sections.append(section_overrides[section_name])
             else:
                 sections.append(content)
+        if not include_related:
+            sections = _filter_related_skills(sections)
+        if extra_sections:
+            sections = sections + extra_sections
+        content = "\n\n".join(sections)
     else:
-        # Use all sections as-is
-        sections = skill["all"]
-
-    # Filter related_skills sections unless explicitly included
-    if not include_related:
-        sections = _filter_related_skills(sections)
-
-    # Add custom extra sections if provided
-    if extra_sections:
-        sections = sections + extra_sections
-
-    content = "\n\n".join(sections)
+        # No section filtering: ship the raw file byte-for-byte so hyphenated
+        # XML tags and markdown between tags aren't dropped by the parser.
+        content = resolved_md_path.read_text()
+        if not include_related:
+            content = re.sub(
+                r"<related_skills>.*?</related_skills>\s*",
+                "",
+                content,
+                flags=re.DOTALL,
+            )
+        if extra_sections:
+            content = content + "\n\n" + "\n\n".join(extra_sections)
 
     # Add language suffix to description if requested
     if suffix and variant in ("py", "ts"):

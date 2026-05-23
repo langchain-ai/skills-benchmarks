@@ -73,24 +73,32 @@ def check_install_script(runner: TestRunner):
     if re.search(r"\blangchain-anthropic\b", content):
         checks.append(("Install: includes Anthropic provider (`langchain-anthropic`)", True))
     else:
-        other = re.search(r"\blangchain-(openai|google-genai|aws|azure|cohere|mistralai)\b", content)
+        other = re.search(
+            r"\blangchain-(openai|google-genai|aws|azure|cohere|mistralai)\b", content
+        )
         if other:
-            checks.append((
-                f"Install: includes `{other.group(0)}` but instruction names Anthropic — expected `langchain-anthropic`",
-                False,
-            ))
+            checks.append(
+                (
+                    f"Install: includes `{other.group(0)}` but instruction names Anthropic — expected `langchain-anthropic`",
+                    False,
+                )
+            )
         else:
-            checks.append((
-                "Install: missing `langchain-anthropic` (instruction specifies Anthropic models)",
-                False,
-            ))
+            checks.append(
+                (
+                    "Install: missing `langchain-anthropic` (instruction specifies Anthropic models)",
+                    False,
+                )
+            )
 
     # Negative — should not install deepagents for a LangGraph project.
     if re.search(r"\bdeepagents\b", content):
-        checks.append((
-            "Install: installs `deepagents` — not needed for a LangGraph project (cue: branching + HITL)",
-            False,
-        ))
+        checks.append(
+            (
+                "Install: installs `deepagents` — not needed for a LangGraph project (cue: branching + HITL)",
+                False,
+            )
+        )
 
     for msg, ok in checks:
         (runner.passed if ok else runner.failed)(msg)
@@ -115,9 +123,13 @@ def check_env_file(runner: TestRunner):
         content,
         re.MULTILINE,
     ):
-        checks.append(("Env: `LANGSMITH_TRACING` set to a truthy value (commented or active)", True))
+        checks.append(
+            ("Env: `LANGSMITH_TRACING` set to a truthy value (commented or active)", True)
+        )
     elif re.search(r"\bLANGSMITH_TRACING\b", content):
-        checks.append(("Env: `LANGSMITH_TRACING` present but not set to a truthy value (true/1)", False))
+        checks.append(
+            ("Env: `LANGSMITH_TRACING` present but not set to a truthy value (true/1)", False)
+        )
     else:
         checks.append(("Env: missing `LANGSMITH_TRACING`", False))
 

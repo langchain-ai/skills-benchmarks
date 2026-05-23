@@ -70,7 +70,9 @@ def check_agent_code(runner: TestRunner):
     if re.search(r"\bfrom\s+deepagents\b|\bimport\s+deepagents\b", content):
         runner.passed("Agent: imports `deepagents`")
     else:
-        runner.failed("Agent: does not import `deepagents` (Deep Agents is the correct framework for planning+subagents+memory)")
+        runner.failed(
+            "Agent: does not import `deepagents` (Deep Agents is the correct framework for planning+subagents+memory)"
+        )
 
     if re.search(r"\b(?:async_)?create_deep_agent\s*\(", content):
         runner.passed("Agent: calls `create_deep_agent` (or async variant)")

@@ -46,9 +46,7 @@ def _static_imports(content, label):
     """Run pyflakes and surface only 'undefined name' findings as failures."""
     stdout_buf, stderr_buf = StringIO(), StringIO()
     pyflakes_check(content, f"{label}.py", Reporter(stdout_buf, stderr_buf))
-    undefined = [
-        line for line in stdout_buf.getvalue().splitlines() if "undefined name" in line
-    ]
+    undefined = [line for line in stdout_buf.getvalue().splitlines() if "undefined name" in line]
     if not undefined:
         return [f"{label}: no undefined names (imports resolve)"], []
     return [], [f"{label}: undefined names — {'; '.join(undefined)}"]

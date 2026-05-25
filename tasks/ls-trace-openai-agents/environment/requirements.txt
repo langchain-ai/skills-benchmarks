@@ -1,0 +1,4 @@
+openai-agents>=0.0.5
+langsmith[openai-agents]>=0.3.15
+python-dotenv>=1.0.0
+openai>=1.0.0

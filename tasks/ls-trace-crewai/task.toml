@@ -1,0 +1,23 @@
+[metadata]
+name = "ls-trace-crewai"
+description = "Add LangSmith tracing to a CrewAI agent (per-framework reference-routing test)"
+difficulty = "easy"
+category = "langsmith"
+tags = ["tracing", "crewai", "references", "routing"]
+default_treatments = [
+    "LS_MAIN_PY",
+    "CONTROL",
+]
+
+[template]
+required = ["run_id"]
+
+[environment]
+description = "Minimal CrewAI agent without tracing. Claude must add LangSmith OTel tracing per references/crewai.md."
+dockerfile = "Dockerfile"
+timeout_sec = 600
+
+[validation]
+test_scripts = "test_tracing.py"
+target_artifacts = ["agent.py"]
+timeout = 120

@@ -409,11 +409,12 @@ def cleanup_langsmith_namespace(request):
     if not _test_run_ids:
         return
 
-    for run_id in _test_run_ids:
-        try:
-            run_handler("cleanup_namespace", run_id=run_id)
-        except Exception:
-            pass
+    # Temporarily disabled for plugin tracing verification
+    # for run_id in _test_run_ids:
+    #     try:
+    #         run_handler("cleanup_namespace", run_id=run_id)
+    #     except Exception:
+    #         pass
 
 
 @pytest.fixture(scope="session")
@@ -516,8 +517,9 @@ def setup_test_context(test_dir):
                 sections = cfg.get("sections") or cfg.get("all", [])
                 scripts_dir = cfg.get("scripts_dir")
                 script_filter = cfg.get("script_filter")
+                references_dir = cfg.get("references_dir")
             else:
-                sections, scripts_dir, script_filter = cfg, None, None
+                sections, scripts_dir, script_filter, references_dir = cfg, None, None, None
 
             if not sections:
                 continue
@@ -537,6 +539,9 @@ def setup_test_context(test_dir):
                 if filtered_dir:
                     args.append(str(filtered_dir))
                 run_shell("setup.sh", *args)
+                if references_dir and Path(references_dir).exists():
+                    skill_refs_dest = test_dir / ".claude" / "skills" / skill_name / "references"
+                    shutil.copytree(references_dir, skill_refs_dest)
             finally:
                 os.unlink(skill_file)
                 if is_temp_dir and filtered_dir.exists():
@@ -625,6 +630,8 @@ def record_result(test_dir, experiment_logger, request):
                 "files_created": events.get("files_created", []),
                 "skills_invoked": events.get("skills_invoked", []),
                 "scripts_used": scripts_used,
+                "total_cost_usd": events.get("total_cost_usd"),
+                "usage": events.get("usage"),
             },
             "timestamp": datetime.now().isoformat(),
         }
@@ -644,6 +651,8 @@ def record_result(test_dir, experiment_logger, request):
                     "tool_calls": len(events.get("tool_calls", [])),
                     "skills_invoked": events.get("skills_invoked", []),
                     "scripts_used": scripts_used,
+                    "total_cost_usd": events.get("total_cost_usd"),
+                    "usage": events.get("usage"),
                 },
                 run_id=run_id,
             ),

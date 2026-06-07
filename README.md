@@ -78,9 +78,16 @@ Tasks are decoupled from treatments — any treatment can be used with any task.
 | Task | Category | Description |
 |------|----------|-------------|
 | `lc-basic` | langchain | SQL analytics agent |
-| `lc-basic-noise` | langchain | Skill retention with noise distractors |
 | `lc-deps-tavily` | langchain | Fix broken LangChain dependencies |
-| `lc-framework-choice` | langchain | Framework selection for different use cases |
+| `lc-framework-qa-agent` | langchain | Framework selection: basic react agent (create_agent) |
+| `lc-framework-approval-pipeline` | langchain | Framework selection: deterministic routing (StateGraph) |
+| `lc-framework-middleware-agent` | langchain | Framework selection: pre/post hooks (create_agent) |
+| `lc-framework-research-assistant` | langchain | Framework selection: planner + sub-agents (create_deep_agent) |
+| `lc-framework-personal-assistant` | langchain | Framework selection: planning + memory (create_deep_agent) |
+| `lc-framework-hybrid-pipeline` | langchain | Framework selection: Deep Agents + LangGraph (CompiledSubAgent) |
+| `lc-ecosystem-env-setup` | langchain | Ecosystem setup: .env.example with Anthropic + LangSmith observability vars |
+| `lc-ecosystem-install` | langchain | Ecosystem setup: pick Deep Agents, write agent.py + install.sh (uv add) |
+| `lc-ecosystem-bootstrap` | langchain | Ecosystem bootstrap: pick LangGraph, write install.sh + .env.example |
 | `ls-lang-tracing` | langsmith | Add LangSmith tracing to Python/TypeScript agents |
 | `ls-lang-evaluator` | langsmith | Create LangSmith evaluators from datasets |
 | `ls-multiskill-basic` | langsmith | Create trajectory dataset from traces |

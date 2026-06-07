@@ -50,11 +50,15 @@ def check_install_script(runner: TestRunner):
     checks = []
     checks.extend(_uses_install_tool(content))
     checks.extend(_has_package(content, "deepagents", "Deep Agents framework"))
-    checks.extend(_has_package(content, "langchain-core", "LangChain core"))
     checks.extend(_has_package(content, "langsmith", "LangSmith observability"))
 
     for msg, ok in checks:
         (runner.passed if ok else runner.failed)(msg)
+
+    # langchain-core is pulled in transitively by deepagents, so a correct
+    # `uv add deepagents langsmith` need not list it explicitly — track as a stat.
+    for msg, ok in _has_package(content, "langchain-core", "LangChain core"):
+        runner.passed(msg if ok else f"Stat: {msg}")
 
 
 def check_agent_code(runner: TestRunner):

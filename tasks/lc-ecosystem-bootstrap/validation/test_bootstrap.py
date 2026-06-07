@@ -66,12 +66,13 @@ def check_install_script(runner: TestRunner):
         checks.append(("Install: no `uv add` or `pip install` command found", False))
 
     checks.extend(_has_package(content, "langgraph", "LangGraph framework"))
-    checks.extend(_has_package(content, "langchain-core", "LangChain core"))
     checks.extend(_has_package(content, "langsmith", "LangSmith observability"))
 
-    # Provider — instruction names Anthropic.
+    # Provider — instruction names Anthropic. Accept langchain-anthropic or the raw anthropic SDK.
     if re.search(r"\blangchain-anthropic\b", content):
         checks.append(("Install: includes Anthropic provider (`langchain-anthropic`)", True))
+    elif re.search(r"\banthropic\b", content):
+        checks.append(("Install: includes Anthropic provider (raw `anthropic` SDK)", True))
     else:
         other = re.search(
             r"\blangchain-(openai|google-genai|aws|azure|cohere|mistralai)\b", content
@@ -102,6 +103,11 @@ def check_install_script(runner: TestRunner):
 
     for msg, ok in checks:
         (runner.passed if ok else runner.failed)(msg)
+
+    # langchain-core is pulled in transitively by langgraph, so a correct
+    # `uv add langchain-anthropic langsmith` need not list it explicitly — track as a stat.
+    for msg, ok in _has_package(content, "langchain-core", "LangChain core"):
+        runner.passed(msg if ok else f"Stat: {msg}")
 
 
 def check_env_file(runner: TestRunner):

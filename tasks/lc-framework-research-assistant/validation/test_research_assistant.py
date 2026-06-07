@@ -58,12 +58,20 @@ def _uses_deep_agent(content, label):
     return [], [f"{label}: missing create_deep_agent"]
 
 
+def _delegates_to_subagents(content, label):
+    if "subagents=" in content:
+        return [f"{label}: delegates to specialized sub-agents (subagents=)"], []
+    return [], [
+        f"{label}: missing subagents= (prompt requires delegation to specialized sub-agents)"
+    ]
+
+
 def check_research_assistant(runner: TestRunner):
-    """Research Assistant uses create_deep_agent."""
+    """Research Assistant uses create_deep_agent with delegated sub-agents."""
     check_file(
         runner.artifacts[0],
         "Research Assistant",
-        [_uses_deep_agent, _static_imports],
+        [_uses_deep_agent, _delegates_to_subagents, _static_imports],
         runner,
     )
 
@@ -75,15 +83,18 @@ def check_outputs_metadata(runner: TestRunner):
     runner.passed(f"Duration: {events.get('duration_seconds', 0) or 0:.0f}s")
     runner.passed(f"Tool calls: {len(events.get('tool_calls', []))}")
 
+    # Starter-skill check tracked as a stat — agent.py content is the
+    # authoritative signal for framework choice.
     p, f = check_starter_skill_first(runner.context)
     for msg in p:
         runner.passed(msg)
     for msg in f:
-        runner.failed(msg)
+        runner.passed(f"Stat: {msg}")
 
-    p2, _ = check_skill_invoked(runner.context, "framework-selection", required=False)
-    for msg in p2:
-        runner.passed(msg)
+    for skill in ("ecosystem-primer", "framework-selection"):
+        p2, _ = check_skill_invoked(runner.context, skill, required=False)
+        for msg in p2:
+            runner.passed(msg)
 
 
 if __name__ == "__main__":

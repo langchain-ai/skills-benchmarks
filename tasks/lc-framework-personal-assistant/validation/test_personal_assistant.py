@@ -65,12 +65,22 @@ def _deep_agent_not_langgraph(content, label):
     return p, f
 
 
+def _has_long_term_memory(content, label):
+    memory_signals = ("store=", "StoreBackend", "CompositeBackend", "FilesystemBackend")
+    if any(sig in content for sig in memory_signals):
+        return [f"{label}: configures long-term memory (persistent backend / store=)"], []
+    return [], [
+        f"{label}: missing long-term memory (prompt requires persistence across sessions: "
+        f"store=/StoreBackend/CompositeBackend/FilesystemBackend)"
+    ]
+
+
 def check_personal_assistant(runner: TestRunner):
-    """Personal Assistant uses create_deep_agent (not LangGraph)."""
+    """Personal Assistant uses create_deep_agent with long-term memory (not LangGraph)."""
     check_file(
         runner.artifacts[0],
         "Personal Assistant",
-        [_deep_agent_not_langgraph, _static_imports],
+        [_deep_agent_not_langgraph, _has_long_term_memory, _static_imports],
         runner,
     )
 
@@ -82,15 +92,18 @@ def check_outputs_metadata(runner: TestRunner):
     runner.passed(f"Duration: {events.get('duration_seconds', 0) or 0:.0f}s")
     runner.passed(f"Tool calls: {len(events.get('tool_calls', []))}")
 
+    # Starter-skill check tracked as a stat — agent.py content is the
+    # authoritative signal for framework choice.
     p, f = check_starter_skill_first(runner.context)
     for msg in p:
         runner.passed(msg)
     for msg in f:
-        runner.failed(msg)
+        runner.passed(f"Stat: {msg}")
 
-    p2, _ = check_skill_invoked(runner.context, "framework-selection", required=False)
-    for msg in p2:
-        runner.passed(msg)
+    for skill in ("ecosystem-primer", "framework-selection"):
+        p2, _ = check_skill_invoked(runner.context, skill, required=False)
+        for msg in p2:
+            runner.passed(msg)
 
 
 if __name__ == "__main__":

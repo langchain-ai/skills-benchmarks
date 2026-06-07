@@ -220,7 +220,7 @@ export function checkStarterSkillFirst(
     return { passed: ["Note: no skills invoked"], failed: [] };
   }
 
-  const starterSkills = new Set(["langchain-oss-primer", "framework-selection"]);
+  const starterSkills = new Set(["langchain-oss-primer", "framework-selection", "ecosystem-primer"]);
   const first = skillsInvoked[0];
 
   if (starterSkills.has(first)) {
@@ -236,7 +236,7 @@ export function checkStarterSkillFirst(
   }
   return {
     passed: [],
-    failed: [`Starter skill not invoked: first skill was '${first}' (expected langchain-oss-primer or framework-selection)`],
+    failed: [`Starter skill not invoked: first skill was '${first}' (expected langchain-oss-primer, framework-selection, or ecosystem-primer)`],
   };
 }
 

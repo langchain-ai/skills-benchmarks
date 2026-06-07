@@ -44,85 +44,43 @@ Optional variables:
 </trace_langchain_oss>
 
 <trace_other_frameworks>
-For non-LangChain apps, if the framework has native OpenTelemetry support, use LangSmith's OpenTelemetry integration.
+For anything other than LangChain/LangGraph, **read the matching reference file in `references/` before writing tracing code**. Each reference covers install, env vars, setup snippet, and gotchas specific to that framework. The setup is rarely identical across frameworks — picking the wrong pattern (e.g. using `@traceable` when the framework has native OTel) creates duplicate/missing spans.
 
-If the app is NOT using a framework, or using one without automatic OTel support, use the traceable decorator/wrapper and wrap your LLM client.
+**Decision order:**
+1. Framework has a dedicated reference below → use it
+2. Framework has native OpenTelemetry but no dedicated reference → `references/otel.md`
+3. No framework, or unsupported framework → `references/traceable.md`
+4. Cannot run a LangSmith SDK at all → `references/api.md` (last resort)
 
-<python>
-Use @traceable decorator and wrap_openai() for automatic tracing.
-```python
-from langsmith import traceable
-from langsmith.wrappers import wrap_openai
-from openai import OpenAI
+**Routing table:**
 
-client = wrap_openai(OpenAI())
+| If you're tracing… | Read |
+|---|---|
+| OpenAI / Azure OpenAI / Anthropic / any plain LLM client | `references/traceable.md` |
+| AutoGen | `references/autogen.md` |
+| CrewAI | `references/crewai.md` |
+| Google ADK | `references/google-adk.md` |
+| Google Gemini (`google-genai` SDK directly) | `references/google-gemini.md` |
+| Instructor (structured outputs) | `references/instructor.md` |
+| LiveKit Agents (voice AI) | `references/livekit.md` |
+| Mastra (TypeScript) | `references/mastra.md` |
+| Microsoft Agent Framework | `references/microsoft-agent-framework.md` |
+| Mistral | `references/mistral.md` |
+| n8n (self-hosted) | `references/n8n.md` |
+| OpenAI Agents SDK | `references/openai-agents-sdk.md` |
+| OpenCode | `references/opencode.md` |
+| OpenAI Codex CLI | `references/codex.md` |
+| Pipecat (voice AI) | `references/pipecat.md` |
+| PydanticAI | `references/pydantic-ai.md` |
+| Semantic Kernel | `references/semantic-kernel.md` |
+| Strands Agents | `references/strands-agents.md` |
+| Temporal workflows (Go/Python/TS) | `references/temporal.md` |
+| Vercel AI SDK | `references/vercel-ai-sdk.md` |
+| Any other framework with native OTel | `references/otel.md` |
+| Multi-backend OTel fan-out | `references/otel.md` (Collector section) |
+| Raw REST (no SDK available) | `references/api.md` |
 
-@traceable
-def my_llm_pipeline(question: str) -> str:
-    resp = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[{"role": "user", "content": question}],
-    )
-    return resp.choices[0].message.content
-
-# Nested tracing example
-@traceable
-def rag_pipeline(question: str) -> str:
-    docs = retrieve_docs(question)
-    return generate_answer(question, docs)
-
-@traceable(name="retrieve_docs")
-def retrieve_docs(query: str) -> list[str]:
-    return docs
-
-@traceable(name="generate_answer")
-def generate_answer(question: str, docs: list[str]) -> str:
-    return client.chat.completions.create(...)
-```
-</python>
-
-<typescript>
-Use traceable() wrapper and wrapOpenAI() for automatic tracing.
-```typescript
-import { traceable } from "langsmith/traceable";
-import { wrapOpenAI } from "langsmith/wrappers";
-import OpenAI from "openai";
-
-const client = wrapOpenAI(new OpenAI());
-
-const myLlmPipeline = traceable(async (question: string): Promise<string> => {
-  const resp = await client.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [{ role: "user", content: question }],
-  });
-  return resp.choices[0].message.content || "";
-}, { name: "my_llm_pipeline" });
-
-// Nested tracing example
-const retrieveDocs = traceable(async (query: string): Promise<string[]> => {
-  return docs;
-}, { name: "retrieve_docs" });
-
-const generateAnswer = traceable(async (question: string, docs: string[]): Promise<string> => {
-  const resp = await client.chat.completions.create({
-    model: "gpt-4o-mini",
-    messages: [{ role: "user", content: `${question}\nContext: ${docs.join("\n")}` }],
-  });
-  return resp.choices[0].message.content || "";
-}, { name: "generate_answer" });
-
-const ragPipeline = traceable(async (question: string): Promise<string> => {
-  const docs = await retrieveDocs(question);
-  return await generateAnswer(question, docs);
-}, { name: "rag_pipeline" });
-```
-</typescript>
-
-Best Practices:
-- **Apply traceable to all nested functions** you want visible in LangSmith
-- **Wrapped clients auto-trace all calls** — `wrap_openai()`/`wrapOpenAI()` records every LLM call
-- **Name your traces** for easier filtering
-- **Add metadata** for searchability
+If the framework you need isn't listed here, check `references/` — new integrations are added there, not inline.
 </trace_other_frameworks>
 
 <traces_vs_runs>

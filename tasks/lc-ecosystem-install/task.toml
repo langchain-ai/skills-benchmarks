@@ -1,0 +1,20 @@
+[metadata]
+name = "lc-ecosystem-install"
+description = "Ecosystem setup: given a planning+subagents+memory project description, Claude must pick Deep Agents — producing an agent.py that uses the framework and an install.sh with uv add commands for the framework, langchain-core, and langsmith"
+difficulty = "medium"
+category = "langchain"
+tags = ["deep-agents", "ecosystem-primer", "framework-selection", "install", "dependencies"]
+default_treatments = ["CONTROL", "MAIN_SINGLE_PRIMER", "MAIN_FRAMEWORK_SELECTION", "MAIN_ECOSYSTEM_PRIMER"]
+
+[template]
+required = []
+
+[environment]
+description = "Clean Python workspace. Claude must produce a shell script that installs the right dependencies for a Deep Agents project, with no code execution required."
+dockerfile = "environment/Dockerfile"
+timeout_sec = 180
+
+[validation]
+test_scripts = "test_install.py"
+target_artifacts = ["agent.py", "install.sh"]
+timeout = 120

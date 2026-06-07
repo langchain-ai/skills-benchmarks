@@ -1,0 +1,20 @@
+[metadata]
+name = "lc-framework-personal-assistant"
+description = "Framework selection: build a personal assistant with planning and persistent memory — Claude must pick create_deep_agent (NOT LangGraph)"
+difficulty = "medium"
+category = "langchain"
+tags = ["langchain", "langgraph", "deep-agents", "framework-selection", "memory"]
+default_treatments = ["CONTROL", "MAIN_SINGLE_PRIMER", "MAIN_FRAMEWORK_SELECTION", "MAIN_ECOSYSTEM_PRIMER"]
+
+[template]
+required = []
+
+[environment]
+description = "Clean Python workspace with LangChain, LangGraph, and Deep Agents installed. Claude must build a single component, choosing the right framework (LangChain vs LangGraph vs Deep Agents)."
+dockerfile = "environment/Dockerfile"
+timeout_sec = 180
+
+[validation]
+test_scripts = "test_personal_assistant.py"
+target_artifacts = ["agent.py"]
+timeout = 120

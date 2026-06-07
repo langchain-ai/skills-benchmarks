@@ -1,0 +1,20 @@
+[metadata]
+name = "lc-ecosystem-bootstrap"
+description = "Ecosystem bootstrap: given a branching+HITL project description, Claude must pick LangGraph and produce both install.sh and .env.example with the right packages and observability vars"
+difficulty = "medium"
+category = "langchain"
+tags = ["langgraph", "ecosystem-primer", "framework-selection", "install", "env-vars", "langsmith"]
+default_treatments = ["CONTROL", "MAIN_SINGLE_PRIMER", "MAIN_FRAMEWORK_SELECTION", "MAIN_ECOSYSTEM_PRIMER"]
+
+[template]
+required = []
+
+[environment]
+description = "Clean Python workspace. Claude must bootstrap a new project — pick the framework from a branching+HITL cue and produce install + env-vars artifacts. No code execution required."
+dockerfile = "environment/Dockerfile"
+timeout_sec = 240
+
+[validation]
+test_scripts = "test_bootstrap.py"
+target_artifacts = ["install.sh", ".env.example"]
+timeout = 120

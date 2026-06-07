@@ -342,6 +342,67 @@ const results = await evaluate(runAgent, {
 });
 ```
 </typescript>
+
+### Rich Experiment Metadata
+
+Pass `metadata={...}` to `evaluate()` to tag experiments with structured info. The reserved keys **`models`**, **`prompts`**, and **`tools`** auto-populate dedicated columns in the LangSmith experiments UI — making it easy to filter and compare runs by model, provider, prompt version, or tool surface. Any other keys are stored as free-form metadata.
+
+<python>
+```python
+EXPERIMENT_METADATA = {
+    "models": ["openai:gpt-4o-mini"],
+    "prompts": ["my-org/my-eval-prompt:abc12345"],
+    "tools": [
+        {
+            "name": "web_search",
+            "description": "Search the web for information",
+            "parameters": {
+                "type": "object",
+                "properties": {"query": {"type": "string"}},
+                "required": ["query"],
+            },
+        },
+    ],
+}
+
+results = evaluate(
+    run_agent,
+    data="My Dataset",
+    evaluators=[my_evaluator],
+    experiment_prefix="eval-v1",
+    metadata=EXPERIMENT_METADATA,
+)
+```
+</python>
+
+<typescript>
+```javascript
+const EXPERIMENT_METADATA = {
+  models: ["openai:gpt-4o-mini"],
+  prompts: ["my-org/my-eval-prompt:abc12345"],
+  tools: [
+    {
+      name: "web_search",
+      description: "Search the web for information",
+      parameters: {
+        type: "object",
+        properties: { query: { type: "string" } },
+        required: ["query"],
+      },
+    },
+  ],
+};
+
+const results = await evaluate(runAgent, {
+  data: "My Dataset",
+  evaluators: [myEvaluator],
+  experimentPrefix: "eval-v1",
+  metadata: EXPERIMENT_METADATA,
+});
+```
+</typescript>
+
+**Do not put secrets in metadata** — it's persisted and displayed in the LangSmith UI.
 </running_evaluations>
 
 <troubleshooting>

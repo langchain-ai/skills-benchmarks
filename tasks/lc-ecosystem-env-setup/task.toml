@@ -1,0 +1,20 @@
+[metadata]
+name = "lc-ecosystem-env-setup"
+description = "Ecosystem setup: produce a .env.example with the Anthropic key and the LangSmith observability vars (API key, tracing on, project)"
+difficulty = "easy"
+category = "langchain"
+tags = ["langchain", "ecosystem-primer", "env-vars", "langsmith"]
+default_treatments = ["CONTROL", "MAIN_SINGLE_PRIMER", "MAIN_FRAMEWORK_SELECTION", "MAIN_ECOSYSTEM_PRIMER"]
+
+[template]
+required = []
+
+[environment]
+description = "Clean Python workspace. Claude must produce an env-vars template for a new agent project, with no code execution required."
+dockerfile = "environment/Dockerfile"
+timeout_sec = 180
+
+[validation]
+test_scripts = "test_env_setup.py"
+target_artifacts = [".env.example"]
+timeout = 120

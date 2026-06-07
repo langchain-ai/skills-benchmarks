@@ -152,7 +152,7 @@ def run_validators(
 def check_starter_skill_first(
     outputs: dict,
 ) -> tuple[list[str], list[str]]:
-    """Check that langchain-oss-primer or framework-selection was invoked first.
+    """Check that a starter skill (langchain-oss-primer, framework-selection, or ecosystem-primer) was invoked first.
 
     Skipped (informational) when:
     - No skills were invoked (e.g. CONTROL treatment)
@@ -170,7 +170,7 @@ def check_starter_skill_first(
     if not skills_invoked:
         return ["Note: no skills invoked"], []
 
-    starter_skills = {"langchain-oss-primer", "framework-selection"}
+    starter_skills = {"langchain-oss-primer", "framework-selection", "ecosystem-primer"}
 
     if skills_invoked[0] in starter_skills:
         return [f"Starter skill invoked first: {skills_invoked[0]}"], []
@@ -183,7 +183,7 @@ def check_starter_skill_first(
             f"Starter skill not invoked first: first was '{first}', starters invoked later: {starters}"
         ]
     return [], [
-        f"Starter skill not invoked: first skill was '{first}' (expected langchain-oss-primer or framework-selection)"
+        f"Starter skill not invoked: first skill was '{first}' (expected langchain-oss-primer, framework-selection, or ecosystem-primer)"
     ]
 
 

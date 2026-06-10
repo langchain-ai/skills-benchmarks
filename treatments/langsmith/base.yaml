@@ -2,7 +2,7 @@
 
 LS_BASE:
   description: "Unified skills (trace/evaluator/dataset with all variants)"
-  claude_md: |
+  claude_md: &basic_claude_md |
     # CRITICAL
 
     This project has skills with reference implementations. Before writing code, you must check the available skills and use relevant ones - this ensure you follow best practices.
@@ -16,3 +16,12 @@ LS_BASE:
     - skill: langsmith_dataset
       variant: all
       name: langsmith-dataset
+
+LS_MAIN_PY:
+  description: "Production langsmith-trace skill from skills/main/ (Python variant, includes references/)"
+  claude_md: *basic_claude_md
+  skills:
+    - skill: langsmith-trace
+      base: main
+      variant: py
+      name: langsmith-trace

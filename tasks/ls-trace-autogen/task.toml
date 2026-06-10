@@ -1,0 +1,24 @@
+[metadata]
+name = "ls-trace-autogen"
+description = "Add LangSmith tracing to an AutoGen agent (template for per-framework reference-routing tests)"
+difficulty = "easy"
+category = "langsmith"
+tags = ["tracing", "autogen", "references", "routing"]
+default_treatments = [
+    "LS_BASIC_PY",
+    "LS_WORKFLOW_PY",
+    "CONTROL",
+]
+
+[template]
+required = ["run_id"]
+
+[environment]
+description = "Minimal AutoGen agent without tracing. Claude must add LangSmith OTel tracing per references/autogen.md."
+dockerfile = "Dockerfile"
+timeout_sec = 600
+
+[validation]
+test_scripts = "test_tracing.py"
+target_artifacts = ["agent.py"]
+timeout = 120

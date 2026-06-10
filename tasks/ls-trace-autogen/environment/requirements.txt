@@ -1,0 +1,6 @@
+autogen-agentchat>=0.4.0
+autogen-ext[openai]>=0.4.0
+opentelemetry-instrumentation-openai>=0.30.0
+langsmith>=0.4.25
+python-dotenv>=1.0.0
+openai>=1.0.0

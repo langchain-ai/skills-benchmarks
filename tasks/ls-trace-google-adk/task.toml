@@ -1,0 +1,23 @@
+[metadata]
+name = "ls-trace-google-adk"
+description = "Add LangSmith tracing to a Google ADK agent (per-framework reference-routing test)"
+difficulty = "easy"
+category = "langsmith"
+tags = ["tracing", "google-adk", "references", "routing"]
+default_treatments = [
+    "LS_MAIN_PY",
+    "CONTROL",
+]
+
+[template]
+required = ["run_id"]
+
+[environment]
+description = "Minimal Google ADK agent without tracing. Claude must add LangSmith tracing per references/google-adk.md."
+dockerfile = "Dockerfile"
+timeout_sec = 600
+
+[validation]
+test_scripts = "test_tracing.py"
+target_artifacts = ["agent.py"]
+timeout = 120

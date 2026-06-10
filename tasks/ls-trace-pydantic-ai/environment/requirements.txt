@@ -1,0 +1,5 @@
+pydantic-ai>=0.0.13
+langsmith>=0.4.26
+opentelemetry-exporter-otlp>=1.27.0
+python-dotenv>=1.0.0
+openai>=1.0.0

@@ -237,7 +237,11 @@ def _build_skill_config(
     if suffix and variant in ("py", "ts"):
         content = _add_language_suffix(content, variant)
 
-    return skill_config([content], skill["scripts_dir"], skill["script_filter"])
+    cfg = skill_config([content], skill["scripts_dir"], skill["script_filter"])
+    references_dir = skill_path / "references"
+    if references_dir.exists():
+        cfg["references_dir"] = references_dir
+    return cfg
 
 
 def build_treatment_skills(skill_configs: list[dict[str, Any]]) -> dict[str, dict]:

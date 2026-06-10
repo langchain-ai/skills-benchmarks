@@ -1,0 +1,23 @@
+[metadata]
+name = "ls-trace-openai-agents"
+description = "Add LangSmith tracing to an OpenAI Agents SDK agent (per-framework reference-routing test)"
+difficulty = "easy"
+category = "langsmith"
+tags = ["tracing", "openai-agents", "references", "routing"]
+default_treatments = [
+    "LS_MAIN_PY",
+    "CONTROL",
+]
+
+[template]
+required = ["run_id"]
+
+[environment]
+description = "Minimal OpenAI Agents SDK agent without tracing. Claude must add LangSmith tracing per references/openai-agents-sdk.md."
+dockerfile = "Dockerfile"
+timeout_sec = 600
+
+[validation]
+test_scripts = "test_tracing.py"
+target_artifacts = ["agent.py"]
+timeout = 120

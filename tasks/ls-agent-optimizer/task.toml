@@ -1,0 +1,26 @@
+[metadata]
+name = "ls-agent-optimizer"
+description = "Mine production agent sessions in LangSmith for concrete harness fixes"
+difficulty = "medium"
+category = "langsmith"
+tags = ["agent-optimizer", "trace", "harness", "analysis"]
+default_treatments = ["LS_AGENT_OPT", "LS_AGENT_OPT_STACK", "CONTROL"]
+
+[template]
+required = []
+
+[environment]
+description = "Python workspace containing a support agent's harness (agent/system_prompt.md + agent/tools.py) with planted defects: a stale system-prompt reference to a removed lookup_order_status tool, and a misleading search_kb docstring claiming category is optional. Claude has access to a LangSmith project seeded with 14 support_agent sessions exhibiting the resulting failure patterns plus a recurring PDF-export feature request."
+dockerfile = "Dockerfile"
+timeout_sec = 900
+
+[validation]
+test_scripts = "test_agent_optimizer.py"
+target_artifacts = ["fixes.md"]
+timeout = 180
+
+[setup]
+# Data handlers - upload the seeded support_agent sessions
+[[setup.data]]
+pattern = "trace_*.jsonl"
+handler = "upload_traces"

@@ -1,0 +1,22 @@
+# Treatment configurations for the langsmith-agent-optimizer skill
+#
+# Tests whether the agent-optimizer skill improves Claude's ability to mine
+# production agent sessions for harness fixes (ls-agent-optimizer task).
+
+# Agent-optimizer skill alone
+LS_AGENT_OPT:
+  description: "langsmith-agent-optimizer skill only"
+  skills:
+    - skill: langsmith_agent_optimizer
+      name: langsmith-agent-optimizer
+
+# Agent-optimizer + trace skill (the optimizer references langsmith-trace
+# for querying/exporting the underlying traces)
+LS_AGENT_OPT_STACK:
+  description: "langsmith-agent-optimizer + langsmith-trace skills"
+  skills:
+    - skill: langsmith_agent_optimizer
+      name: langsmith-agent-optimizer
+    - skill: langsmith_trace
+      variant: py
+      name: langsmith-trace

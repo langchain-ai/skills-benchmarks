@@ -1,0 +1,23 @@
+name: langgraph-state
+description: '[LangGraph] Managing state in LangGraph: schemas, reducers, channels, and message passing for coordinating agent execution'
+language_names:
+  py: langgraph-state-py
+  ts: langgraph-state-js
+sections:
+- overview
+- decision-table
+- key-concepts
+- ex-basic
+- ex-messages
+- ex-custom-reducer
+- ex-list
+- ex-overwrite
+- ex-channels
+- ex-partial
+- boundaries
+- fix-list-reducer
+- fix-return-partial
+- fix-default-values
+- fix-reducer-type-mismatch
+- fix-await-nodes
+- links

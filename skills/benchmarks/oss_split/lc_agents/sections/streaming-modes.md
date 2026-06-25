@@ -1,0 +1,3 @@
+- `"values"` - Full state after each step
+- `"updates"` - Only what changed in each step
+- `"messages"` - LLM token stream

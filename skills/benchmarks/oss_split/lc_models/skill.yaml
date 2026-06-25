@@ -1,0 +1,34 @@
+name: langchain-models
+description: '[LangChain] Initialize and use LangChain chat models - includes provider selection (OpenAI, Anthropic, Google), model configuration, and invocation patterns'
+language_names:
+  py: langchain-models-py
+  ts: langchain-models-js
+sections:
+- oneliner
+- overview
+- when-to-use
+- choosing-a-model
+- initialization-methods
+- ex-basic-init
+- ex-providers
+- ex-invoke
+- ex-streaming
+- ex-batch
+- ex-multi-turn
+- ex-config
+- ex-azure
+- ex-bedrock
+- ex-model-select
+- ex-errors
+- ex-async
+- ex-capabilities
+- boundaries
+- fix-api-key-not-found
+- fix-model-name-typos
+- fix-response-content-access
+- fix-streaming-requires-iteration
+- fix-temperature-confusion
+- fix-token-limits
+- fix-sync-vs-async
+- fix-provider-specific-features
+- documentation-links

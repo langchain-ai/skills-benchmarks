@@ -1,0 +1,3 @@
+- **LLM as Judge** - Uses an LLM to grade outputs. Best for subjective quality (accuracy, helpfulness, relevance).
+- **Custom Code** - Deterministic logic. Best for objective checks (exact match, trajectory validation, format compliance).
+- **Trajectory Evaluators** - Check tool call sequences. Compare `run.outputs.expected_trajectory` against expected.

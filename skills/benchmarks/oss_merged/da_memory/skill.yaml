@@ -1,0 +1,20 @@
+name: deep-agents-memory-filesystem
+description: 'INVOKE THIS SKILL when your Deep Agent needs memory, persistence, or filesystem access. Covers StateBackend (ephemeral), StoreBackend (persistent), FilesystemMiddleware, and CompositeBackend for routing. CRITICAL: Fixes for longest-prefix routing in CompositeBackend, path selection for persistence, and Store requirement.'
+language_names:
+  py: deep-agents-memory-filesystem-py
+  ts: deep-agents-memory-filesystem-js
+sections:
+- overview
+- backend-selection
+- ex-default-state-backend
+- ex-composite-backend-for-hybrid
+- ex-cross-session-memory
+- ex-filesystem-backend-local-dev
+- ex-store-in-custom-tools
+- boundaries
+- fix-storebackend-requires-store
+- fix-statebackend-files-dont-persist
+- fix-path-prefix-for-persistence
+- fix-production-store
+- fix-filesystem-backend-needs-virtual-mode
+- fix-longest-prefix-match

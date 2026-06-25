@@ -1,0 +1,20 @@
+name: langgraph-interrupts
+description: '[LangGraph] Human-in-the-loop with dynamic interrupts and breakpoints: pausing execution for human review and resuming with Command'
+language_names:
+  py: langgraph-interrupts-py
+  ts: langgraph-interrupts-js
+sections:
+- overview
+- decision-table
+- ex-dynamic
+- ex-static
+- ex-tool-review
+- ex-edit-state
+- ex-stream
+- boundaries
+- fix-checkpointer-required
+- fix-thread-id-required
+- fix-resume-with-command
+- fix-static-breakpoints-hitl
+- fix-always-await
+- links

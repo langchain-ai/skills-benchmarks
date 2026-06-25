@@ -1,0 +1,25 @@
+name: langgraph-execution-control
+description: 'INVOKE THIS SKILL for LangGraph workflows, parallel execution, interrupts, or streaming. Covers Send API for fan-out, interrupt() for human-in-the-loop, Command for resuming, and stream modes (values/updates/messages). CRITICAL: Fixes for interrupt without checkpointer, missing reducers for Send, and stream mode tuple unpacking.'
+language_names:
+  py: langgraph-execution-control-py
+  ts: langgraph-execution-control-js
+sections:
+- overview
+- workflow-vs-agent
+- ex-dynamic-agent
+- ex-orchestrator-worker
+- interrupt-type-selection
+- ex-dynamic-interrupt
+- ex-static-breakpoints
+- stream-mode-selection
+- ex-stream-llm-tokens
+- ex-stream-custom-data
+- ex-multiple-stream-modes
+- boundaries
+- fix-send-accumulator
+- fix-checkpointer-required-for-interrupts
+- fix-resume-with-command
+- fix-agent-guardrails
+- fix-messages-mode-requires-llm
+- fix-custom-mode-needs-stream-writer
+- fix-stream-modes-are-lists

@@ -1,0 +1,2 @@
+- Python: [RAG Tutorial](https://docs.langchain.com/oss/python/langchain/rag) | [Document Loaders](https://docs.langchain.com/oss/python/integrations/document_loaders/index) | [Vector Stores](https://docs.langchain.com/oss/python/integrations/vectorstores/index)
+- TypeScript: [RAG Tutorial](https://docs.langchain.com/oss/javascript/langchain/rag) | [Document Loaders](https://docs.langchain.com/oss/javascript/integrations/document_loaders/index) | [Vector Stores](https://docs.langchain.com/oss/javascript/integrations/vectorstores/index)

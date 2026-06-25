@@ -1,0 +1,2 @@
+- Python: [Human-in-the-Loop Guide](https://docs.langchain.com/oss/python/langchain/human-in-the-loop) | [Interrupts](https://docs.langchain.com/oss/python/langgraph/interrupts)
+- TypeScript: [Human-in-the-Loop Guide](https://docs.langchain.com/oss/javascript/langchain/human-in-the-loop) | [Interrupts](https://docs.langchain.com/oss/javascript/langgraph/interrupts)

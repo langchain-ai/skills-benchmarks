@@ -1,0 +1,22 @@
+name: langgraph-workflows
+description: '[LangGraph] Understanding workflows vs agents, predetermined vs dynamic patterns, and orchestrator-worker patterns using the Send API'
+language_names:
+  py: langgraph-workflows-py
+  ts: langgraph-workflows-js
+sections:
+- overview
+- decision-table
+- key-patterns
+- ex-basic
+- ex-agent
+- ex-orchestrator
+- ex-hybrid
+- ex-mapreduce
+- ex-router
+- boundaries
+- fix-send-worker-state-isolation
+- fix-send-accumulator-reducer
+- fix-rigid-workflows
+- fix-unpredictable-agents
+- fix-await-async-nodes
+- links

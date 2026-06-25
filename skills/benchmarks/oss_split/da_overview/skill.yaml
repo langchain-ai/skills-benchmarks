@@ -1,0 +1,22 @@
+name: deep-agents-overview
+description: '[Deep Agents] Understanding Deep Agents framework - what they are, how to create them with create_deep_agent/createDeepAgent, and the agent harness architecture with built-in middleware for planning, filesystems, and subagents.'
+language_names:
+  py: deep-agents-overview-py
+  ts: deep-agents-overview-js
+sections:
+- overview
+- when-to-use
+- ex-basic-agent
+- ex-custom-tools
+- ex-custom-model
+- ex-harness-architecture
+- ex-config-options
+- decision-table
+- boundaries
+- ex-gotcha-checkpointer
+- ex-gotcha-store
+- ex-gotcha-skills-backend
+- ex-gotcha-thread-id
+- ex-gotcha-default-model
+- ex-gotcha-await
+- links

@@ -1,0 +1,23 @@
+name: langchain-human-in-the-loop
+description: '[LangChain] Add human oversight to LangChain agents using HITL middleware - includes interrupts, approval workflows, edit/reject decisions, and checkpoints'
+language_names:
+  py: langchain-human-in-the-loop-py
+  ts: langchain-human-in-the-loop-js
+sections:
+- oneliner
+- overview
+- when-to-use
+- decision-types
+- ex-setup
+- ex-interrupts
+- ex-edit
+- ex-reject
+- ex-policies
+- ex-streaming
+- ex-custom-logic
+- boundaries
+- fix-missing-checkpointer
+- fix-no-thread-id
+- fix-wrong-resume-syntax
+- fix-not-checking-interrupts
+- links

@@ -1,0 +1,31 @@
+name: langchain-embeddings-integration
+description: '[LangChain] Guide to using embedding model integrations in LangChain including OpenAI, Azure, and local embeddings'
+language_names:
+  py: langchain-embeddings-integration-py
+  ts: langchain-embeddings-integration-js
+sections:
+- oneliner
+- overview
+- provider-selection
+- when-to-choose-provider
+- ex-openai
+- ex-azure
+- ex-huggingface
+- ex-ollama
+- ex-cohere
+- ex-similarity
+- ex-batch
+- ex-vectorstore
+- boundaries
+- fix-model-consistency
+- fix-import-packages
+- fix-batch-size-limits
+- fix-text-length-limits
+- fix-huggingface-model-download
+- fix-azure-configuration
+- fix-ollama-service
+- fix-batch-performance
+- fix-dimension-mismatch
+- fix-api-keys
+- links
+- installation

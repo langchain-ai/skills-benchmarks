@@ -1,0 +1,32 @@
+name: langchain-document-loaders-integration
+description: '[LangChain] Guide to using document loader integrations in LangChain for PDFs, web pages, text files, and APIs'
+language_names:
+  py: langchain-document-loaders-integration-py
+  ts: langchain-document-loaders-integration-js
+sections:
+- oneliner
+- overview
+- loader-selection
+- when-to-choose-loader
+- ex-pdf
+- ex-web
+- ex-text
+- ex-json
+- ex-csv
+- ex-directory
+- ex-unstructured
+- ex-s3
+- ex-github
+- ex-metadata
+- ex-lazy
+- boundaries
+- fix-import-community-package
+- fix-pdf-loader-dependencies
+- fix-web-scraping-dependencies
+- fix-cheerio-vs-playwright
+- fix-encoding-issues
+- fix-json-pointer-syntax
+- fix-directory-loader-extensions
+- fix-large-files-memory
+- links
+- installation

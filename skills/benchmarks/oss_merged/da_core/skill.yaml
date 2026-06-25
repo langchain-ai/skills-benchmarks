@@ -1,0 +1,24 @@
+name: deep-agents-core
+description: 'INVOKE THIS SKILL when building ANY Deep Agents application. Covers create_deep_agent(), harness architecture, SKILL.md format, and configuration options. CRITICAL: Fixes for Store required for memory, backend configuration, and skill file structure.'
+language_names:
+  py: deep-agents-core-py
+  ts: deep-agents-core-js
+sections:
+- overview
+- when-to-use
+- middleware-selection
+- ex-basic-agent
+- ex-full-configuration
+- built-in-tools
+- skill-md-format
+- skills-vs-memory
+- ex-skills-with-filesystem-backend
+- ex-skills-with-store-backend
+- boundaries
+- fix-checkpointer-for-interrupts
+- fix-store-for-memory
+- fix-thread-id-for-conversations
+- fix-frontmatter-required
+- fix-backend-for-skills
+- fix-specific-skill-descriptions
+- fix-subagent-skills

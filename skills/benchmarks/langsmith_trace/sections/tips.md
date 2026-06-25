@@ -1,0 +1,6 @@
+- **Start with traces** — they provide complete context needed for trajectory and dataset generation
+- Use `traces export --full` for bulk data destined for datasets
+- Always specify `--project` to avoid mixing data from different projects
+- Use `/tmp` for temporary exports
+- Include `--include-metadata` for performance/cost analysis
+- Stitch files: `cat ./traces/*.jsonl > all.jsonl`

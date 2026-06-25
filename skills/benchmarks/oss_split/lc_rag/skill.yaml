@@ -1,0 +1,28 @@
+name: langchain-rag
+description: '[LangChain] Build Retrieval Augmented Generation (RAG) systems with LangChain - includes embeddings, vector stores, retrievers, document loaders, and text splitting'
+language_names:
+  py: langchain-rag-py
+  ts: langchain-rag-js
+sections:
+- oneliner
+- overview
+- vector-store-selection
+- embedding-model-selection
+- ex-basic-rag
+- ex-web-loader
+- ex-pdf-loader
+- ex-text-split
+- ex-chroma
+- ex-retrieval
+- ex-metadata
+- ex-faiss
+- ex-agent
+- ex-embeddings
+- ex-hybrid
+- boundaries
+- fix-split-documents
+- fix-chunk-size
+- fix-chunk-overlap
+- fix-persist-vectorstore
+- fix-consistent-embeddings
+- documentation-links

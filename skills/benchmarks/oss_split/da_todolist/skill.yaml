@@ -1,0 +1,21 @@
+name: deep-agents-todo-list
+description: '[Deep Agents] Using TodoListMiddleware for task planning and tracking progress with the write_todos tool in Deep Agents for complex multi-step workflows.'
+language_names:
+  py: deep-agents-todo-list-py
+  ts: deep-agents-todo-list-js
+sections:
+- overview
+- when-to-use
+- how-it-works
+- basic-usage
+- decision-table
+- ex-sequential
+- ex-adaptive
+- ex-custom-instructions
+- ex-access-state
+- boundaries
+- fix-thread-id-required
+- fix-middleware-always-present
+- fix-todos-not-shared-across-agents
+- fix-optional-for-simple-tasks
+- links

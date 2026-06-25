@@ -1,0 +1,182 @@
+# OSS Split base treatments - granular skills from oss_split directory
+
+OSSS_ALL_LG:
+  description: "All 8 LangGraph skills (includes relevant + distractors)"
+  claude_md: |
+    # Project Guidelines
+    You should use relevant skills to ensure you know best practices.
+  skills:
+    - skill: oss_split/lg_graph_api
+      variant: all
+      name: LangGraph Graph API
+    - skill: oss_split/lg_interrupts
+      variant: all
+      name: LangGraph Interrupts
+    - skill: oss_split/lg_memory
+      variant: all
+      name: LangGraph Memory
+    - skill: oss_split/lg_overview
+      variant: all
+      name: LangGraph Overview
+    - skill: oss_split/lg_persistence
+      variant: all
+      name: LangGraph Persistence
+    - skill: oss_split/lg_state
+      variant: all
+      name: LangGraph State
+    - skill: oss_split/lg_streaming
+      variant: all
+      name: LangGraph Streaming
+    - skill: oss_split/lg_workflows
+      variant: all
+      name: LangGraph Workflows
+
+OSSS_ALL_LC:
+  description: "All 15 LangChain skills (none directly relevant to this LangGraph task)"
+  claude_md: |
+    # Project Guidelines
+    You should use relevant skills to ensure you know best practices.
+  skills:
+    - skill: oss_split/lc_agents
+      variant: all
+      name: LangChain Agents
+    - skill: oss_split/lc_hitl
+      variant: all
+      name: LangChain Human-in-the-Loop
+    - skill: oss_split/lc_int_chat_models
+      variant: all
+      name: LangChain Chat Models
+    - skill: oss_split/lc_int_doc_loaders
+      variant: all
+      name: LangChain Document Loaders
+    - skill: oss_split/lc_int_embeddings
+      variant: all
+      name: LangChain Embeddings
+    - skill: oss_split/lc_int_splitters
+      variant: all
+      name: LangChain Text Splitters
+    - skill: oss_split/lc_int_tools
+      variant: all
+      name: LangChain Tools Integration
+    - skill: oss_split/lc_int_vectorstores
+      variant: all
+      name: LangChain Vector Stores
+    - skill: oss_split/lc_models
+      variant: all
+      name: LangChain Models
+    - skill: oss_split/lc_multimodal
+      variant: all
+      name: LangChain Multimodal
+    - skill: oss_split/lc_rag
+      variant: all
+      name: LangChain RAG
+    - skill: oss_split/lc_streaming
+      variant: all
+      name: LangChain Streaming
+    - skill: oss_split/lc_structured_output
+      variant: all
+      name: LangChain Structured Output
+    - skill: oss_split/lc_tool_calling
+      variant: all
+      name: LangChain Tool Calling
+    - skill: oss_split/lc_tools
+      variant: all
+      name: LangChain Tools
+
+OSSS_ALL_DA:
+  description: "All DeepAgents skills"
+  claude_md: |
+    # Project Guidelines
+    You should use relevant skills to ensure you know best practices.
+  skills:
+    - skill: oss_split/da_overview
+      variant: all
+      name: Deep Agents Overview
+    - skill: oss_split/da_memory
+      variant: all
+      name: Deep Agents Memory
+    - skill: oss_split/da_skills
+      variant: all
+      name: Deep Agents Skills
+    - skill: oss_split/da_subagents
+      variant: all
+      name: Deep Agents Subagents
+    - skill: oss_split/da_todolist
+      variant: all
+      name: Deep Agents Todolist
+    - skill: oss_split/da_hitl
+      variant: all
+      name: Deep Agents Human-in-the-Loop
+    - skill: oss_split/da_filesystem
+      variant: all
+      name: Deep Agents Filesystem
+
+OSSS_MIXED_20:
+  description: "20 skills from all categories (LG + LC + DA)"
+  claude_md: |
+    # Project Guidelines
+    You should use relevant skills to ensure you know best practices.
+  skills:
+    # LangGraph (all 8)
+    - skill: oss_split/lg_graph_api
+      variant: all
+      name: LangGraph Graph API
+    - skill: oss_split/lg_interrupts
+      variant: all
+      name: LangGraph Interrupts
+    - skill: oss_split/lg_memory
+      variant: all
+      name: LangGraph Memory
+    - skill: oss_split/lg_overview
+      variant: all
+      name: LangGraph Overview
+    - skill: oss_split/lg_persistence
+      variant: all
+      name: LangGraph Persistence
+    - skill: oss_split/lg_state
+      variant: all
+      name: LangGraph State
+    - skill: oss_split/lg_streaming
+      variant: all
+      name: LangGraph Streaming
+    - skill: oss_split/lg_workflows
+      variant: all
+      name: LangGraph Workflows
+    # LangChain (subset - 7)
+    - skill: oss_split/lc_agents
+      variant: all
+      name: LangChain Agents
+    - skill: oss_split/lc_rag
+      variant: all
+      name: LangChain RAG
+    - skill: oss_split/lc_streaming
+      variant: all
+      name: LangChain Streaming
+    - skill: oss_split/lc_tools
+      variant: all
+      name: LangChain Tools
+    - skill: oss_split/lc_models
+      variant: all
+      name: LangChain Models
+    - skill: oss_split/lc_structured_output
+      variant: all
+      name: LangChain Structured Output
+    - skill: oss_split/lc_tool_calling
+      variant: all
+      name: LangChain Tool Calling
+    # DeepAgents (subset - 5)
+    - skill: oss_split/da_overview
+      variant: all
+      name: Deep Agents Overview
+    - skill: oss_split/da_memory
+      variant: all
+      name: Deep Agents Memory
+    - skill: oss_split/da_skills
+      variant: all
+      name: Deep Agents Skills
+    - skill: oss_split/da_subagents
+      variant: all
+      name: Deep Agents Subagents
+    - skill: oss_split/da_todolist
+      variant: all
+      name: Deep Agents Todolist

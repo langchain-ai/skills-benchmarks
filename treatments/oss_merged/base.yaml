@@ -1,41 +1,18 @@
-# OSS Merged base treatments - consolidated skills from oss_merged directory
+# OSS Merged base treatment - consolidated skills (10 merged from 30 split)
 
 OSSM_BASE:
-  description: "All 10 merged skills (consolidated from 30 split skills)"
-  claude_md: |
-    # Project Guidelines
-    You should use relevant skills to ensure you know best practices.
+  description: "All 10 merged OSS skills (LangGraph + LangChain + DeepAgents)"
   skills:
     # LangGraph (3 merged)
-    - skill: oss_merged/lg_fundamentals
-      variant: all
-      name: LangGraph Fundamentals
-    - skill: oss_merged/lg_persistence
-      variant: all
-      name: LangGraph Persistence
-    - skill: oss_merged/lg_execution
-      variant: all
-      name: LangGraph Execution
+    - benchmarks/oss_merged/lg_fundamentals
+    - benchmarks/oss_merged/lg_persistence
+    - benchmarks/oss_merged/lg_execution
     # LangChain (4 merged)
-    - skill: oss_merged/lc_agents
-      variant: all
-      name: LangChain Agents
-    - skill: oss_merged/lc_rag
-      variant: all
-      name: LangChain RAG
-    - skill: oss_merged/lc_fundamentals
-      variant: all
-      name: LangChain Fundamentals
-    - skill: oss_merged/lc_output
-      variant: all
-      name: LangChain Output
+    - benchmarks/oss_merged/lc_agents
+    - benchmarks/oss_merged/lc_rag
+    - benchmarks/oss_merged/lc_fundamentals
+    - benchmarks/oss_merged/lc_output
     # DeepAgents (3 merged)
-    - skill: oss_merged/da_core
-      variant: all
-      name: Deep Agents Core
-    - skill: oss_merged/da_memory
-      variant: all
-      name: Deep Agents Memory
-    - skill: oss_merged/da_orchestration
-      variant: all
-      name: Deep Agents Orchestration
+    - benchmarks/oss_merged/da_core
+    - benchmarks/oss_merged/da_memory
+    - benchmarks/oss_merged/da_orchestration

@@ -1,0 +1,34 @@
+# OSS LangGraph task-specific treatments
+
+OSSS_LG_PERSISTENCE_ONLY:
+  description: "LangGraph persistence skill only"
+  claude_md: |
+    # Project Guidelines
+    You should use relevant skills to ensure you know best practices.
+  skills:
+    - skill: oss_split/lg_persistence
+      variant: all
+      name: LangGraph Persistence
+
+OSSS_LG_STATE_ONLY:
+  description: "LangGraph state skill only"
+  claude_md: |
+    # Project Guidelines
+    You should use relevant skills to ensure you know best practices.
+  skills:
+    - skill: oss_split/lg_state
+      variant: all
+      name: LangGraph State
+
+OSSS_LG_PERSISTENCE_AND_STATE:
+  description: "Both persistence and state skills"
+  claude_md: |
+    # Project Guidelines
+    You should use relevant skills to ensure you know best practices.
+  skills:
+    - skill: oss_split/lg_persistence
+      variant: all
+      name: LangGraph Persistence
+    - skill: oss_split/lg_state
+      variant: all
+      name: LangGraph State

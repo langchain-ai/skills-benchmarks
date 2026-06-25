@@ -1,18 +1,22 @@
-# LangSmith base treatment - unified skills
+# LangSmith treatments
+#
+# The three LangSmith skills together, with and without distractor noise.
+# (The old CLAUDE.md-placement, section-curation, and py/ts-split variants are
+# archived under treatments/_archive/ — those dimensions no longer exist:
+# language is a run-time --language flag, and there is no CLAUDE.md injection.)
 
 LS_BASE:
-  description: "Unified skills (trace/evaluator/dataset with all variants)"
-  claude_md: |
-    # CRITICAL
-
-    This project has skills with reference implementations. Before writing code, you must check the available skills and use relevant ones - this ensure you follow best practices.
+  description: "LangSmith trace + evaluator + dataset skills"
   skills:
-    - skill: langsmith_trace
-      variant: all
-      name: langsmith-trace
-    - skill: langsmith_evaluator
-      variant: all
-      name: langsmith-evaluator
-    - skill: langsmith_dataset
-      variant: all
-      name: langsmith-dataset
+    - benchmarks/langsmith_trace
+    - benchmarks/langsmith_evaluator
+    - benchmarks/langsmith_dataset
+
+LS_NOISE:
+  description: "LangSmith skills + distractor noise skills"
+  skills:
+    - benchmarks/langsmith_trace
+    - benchmarks/langsmith_evaluator
+    - benchmarks/langsmith_dataset
+    - noise/api_docs
+    - noise/react_components

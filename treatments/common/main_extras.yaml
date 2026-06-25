@@ -1,247 +1,62 @@
 # Main skill primer treatments
 #
-# MAIN_SINGLE_PRIMER: All 13 main skills + langchain-oss-primer
-# MAIN_FRAMEWORK_SELECTION: All 13 main skills + framework-selection
-# MAIN_ECOSYSTEM_PRIMER: All 13 main skills + ecosystem-primer
+# Each is all 13 main skills plus one primer/starter skill, to test whether a
+# primer that nudges skill-invocation order changes outcomes.
 #
-# ARCHIVED ANCHORS: `_main_claude_md` and `_ecosystem_claude_md` below are
-# NOT referenced by any active treatment. They are preserved for a possible
-# follow-up experiment that adds a custom CLAUDE.md alongside a primer
-# skill. To activate, add e.g. `claude_md: *ecosystem_claude_md` to the
-# desired treatment entry.
-
-_main_claude_md: &main_claude_md |
-  # LangChain + LangSmith + DeepAgents Development Guide
-
-  This project uses skills that contain up-to-date patterns and CLI tools.
-
-  ## CRITICAL: Invoke Skills BEFORE Writing Code
-
-  **ALWAYS** invoke the relevant skill first - skills have the correct imports, patterns, and scripts that prevent common mistakes.
-
-  ### LangSmith Skills
-  - **langsmith-trace** - Invoke for ANY trace querying or analysis
-  - **langsmith-dataset** - Invoke for ANY dataset creation from traces
-  - **langsmith-evaluator** - Invoke for ANY evaluator creation
-
-  ### LangChain Skills
-  - **langchain-dependencies** - Invoke when setting up a NEW project or debugging package versions, installation, or dependency issues
-  - **langchain-fundamentals** - Invoke for create_agent, @tool decorator, middleware patterns
-  - **langchain-rag** - Invoke for RAG pipelines, vector stores, embeddings
-  - **langchain-middleware** - Invoke for structured output with Pydantic
-
-  ### LangGraph Skills
-  - **langgraph-fundamentals** - Invoke for StateGraph, state schemas, edges, Command, Send, invoke, streaming, error handling
-  - **langgraph-persistence** - Invoke for checkpointers, thread_id, time travel, memory, subgraph scoping
-  - **langgraph-human-in-the-loop** - Invoke for interrupts, human review, error handling, approval workflows
-
-  ### DeepAgents Skills
-  - **deep-agents-core** - Invoke for DeepAgents harness architecture
-  - **deep-agents-memory** - Invoke for long-term memory with StoreBackend
-  - **deep-agents-orchestration** - Invoke for multi-agent coordination
-
-  ## Debugging Flow: Build → Trace → Dataset → Evaluate
-
-  When stuck or debugging, use this powerful workflow:
-  1. **Build agent** using LangChain, DeepAgents, or LangGraph patterns
-  2. **Run agent** to generate traces in LangSmith
-  3. **Query traces** using `langsmith-trace` to find interesting examples
-  4. **Create dataset** using `langsmith-dataset` from those traces
-  5. **Build evaluator** using `langsmith-evaluator` to measure quality
-
-  LangSmith skills use the `langsmith` CLI tool -- run `langsmith --help` to see available commands.
+#   MAIN_SINGLE_PRIMER       -> + langchain-oss-primer
+#   MAIN_FRAMEWORK_SELECTION -> + framework-selection
+#   MAIN_ECOSYSTEM_PRIMER    -> + ecosystem-primer
 
 MAIN_SINGLE_PRIMER:
   description: "All 13 main skills + langchain-oss-primer"
   skills:
-    # LangSmith (3 skills)
-    - skill: langsmith-trace
-      base: main
-      name: langsmith-trace
-    - skill: langsmith-dataset
-      base: main
-      name: langsmith-dataset
-    - skill: langsmith-evaluator
-      base: main
-      name: langsmith-evaluator
-    # LangChain (4 skills)
-    - skill: langchain-dependencies
-      base: main
-      name: langchain-dependencies
-    - skill: langchain-fundamentals
-      base: main
-      name: langchain-fundamentals
-    - skill: langchain-rag
-      base: main
-      name: langchain-rag
-    - skill: langchain-middleware
-      base: main
-      name: langchain-middleware
-    # LangGraph (3 skills)
-    - skill: langgraph-fundamentals
-      base: main
-      name: langgraph-fundamentals
-    - skill: langgraph-persistence
-      base: main
-      name: langgraph-persistence
-    - skill: langgraph-human-in-the-loop
-      base: main
-      name: langgraph-human-in-the-loop
-    # DeepAgents (3 skills)
-    - skill: deep-agents-core
-      base: main
-      name: deep-agents-core
-    - skill: deep-agents-memory
-      base: main
-      name: deep-agents-memory
-    - skill: deep-agents-orchestration
-      base: main
-      name: deep-agents-orchestration
-    # Primer
-    - skill: langchain-oss-primer
-      name: langchain-oss-primer
+    - main/langsmith-trace
+    - main/langsmith-dataset
+    - main/langsmith-evaluator
+    - main/langchain-dependencies
+    - main/langchain-fundamentals
+    - main/langchain-rag
+    - main/langchain-middleware
+    - main/langgraph-fundamentals
+    - main/langgraph-persistence
+    - main/langgraph-human-in-the-loop
+    - main/deep-agents-core
+    - main/deep-agents-memory
+    - main/deep-agents-orchestration
+    - benchmarks/langchain-oss-primer
 
 MAIN_FRAMEWORK_SELECTION:
   description: "All 13 main skills + framework-selection"
   skills:
-    # LangSmith (3 skills)
-    - skill: langsmith-trace
-      base: main
-      name: langsmith-trace
-    - skill: langsmith-dataset
-      base: main
-      name: langsmith-dataset
-    - skill: langsmith-evaluator
-      base: main
-      name: langsmith-evaluator
-    # LangChain (4 skills)
-    - skill: langchain-dependencies
-      base: main
-      name: langchain-dependencies
-    - skill: langchain-fundamentals
-      base: main
-      name: langchain-fundamentals
-    - skill: langchain-rag
-      base: main
-      name: langchain-rag
-    - skill: langchain-middleware
-      base: main
-      name: langchain-middleware
-    # LangGraph (3 skills)
-    - skill: langgraph-fundamentals
-      base: main
-      name: langgraph-fundamentals
-    - skill: langgraph-persistence
-      base: main
-      name: langgraph-persistence
-    - skill: langgraph-human-in-the-loop
-      base: main
-      name: langgraph-human-in-the-loop
-    # DeepAgents (3 skills)
-    - skill: deep-agents-core
-      base: main
-      name: deep-agents-core
-    - skill: deep-agents-memory
-      base: main
-      name: deep-agents-memory
-    - skill: deep-agents-orchestration
-      base: main
-      name: deep-agents-orchestration
-    # Primer
-    - skill: framework-selection
-      name: framework-selection
-
-# ARCHIVED — see header note. Not wired into MAIN_ECOSYSTEM_PRIMER.
-_ecosystem_claude_md: &ecosystem_claude_md |
-  # LangChain + LangSmith + DeepAgents Development Guide
-
-  This project uses skills that contain up-to-date patterns and CLI tools.
-
-  ## CRITICAL: Invoke Skills BEFORE Writing Code
-
-  **ALWAYS** invoke the relevant skill first - skills have the correct imports, patterns, and scripts that prevent common mistakes.
-
-  ## Getting Started
-  **ALWAYS invoke `ecosystem-primer` FIRST** on any new LangChain / LangGraph / Deep Agents project, before invoking any other skill or writing any code.
-
-  ### LangSmith Skills
-  - **langsmith-trace** - Invoke for ANY trace querying or analysis
-  - **langsmith-dataset** - Invoke for ANY dataset creation from traces
-  - **langsmith-evaluator** - Invoke for ANY evaluator creation
-
-  ### LangChain Skills
-  - **langchain-dependencies** - Invoke when setting up a NEW project or debugging package versions, installation, or dependency issues
-  - **langchain-fundamentals** - Invoke for create_agent, @tool decorator, middleware patterns
-  - **langchain-rag** - Invoke for RAG pipelines, vector stores, embeddings
-  - **langchain-middleware** - Invoke for structured output with Pydantic
-
-  ### LangGraph Skills
-  - **langgraph-fundamentals** - Invoke for StateGraph, state schemas, edges, Command, Send, invoke, streaming, error handling
-  - **langgraph-persistence** - Invoke for checkpointers, thread_id, time travel, memory, subgraph scoping
-  - **langgraph-human-in-the-loop** - Invoke for interrupts, human review, error handling, approval workflows
-
-  ### DeepAgents Skills
-  - **deep-agents-core** - Invoke for DeepAgents harness architecture
-  - **deep-agents-memory** - Invoke for long-term memory with StoreBackend
-  - **deep-agents-orchestration** - Invoke for multi-agent coordination
-
-  ## Debugging Flow: Build → Trace → Dataset → Evaluate
-
-  When stuck or debugging, use this powerful workflow:
-  1. **Build agent** using LangChain, DeepAgents, or LangGraph patterns
-  2. **Run agent** to generate traces in LangSmith
-  3. **Query traces** using `langsmith-trace` to find interesting examples
-  4. **Create dataset** using `langsmith-dataset` from those traces
-  5. **Build evaluator** using `langsmith-evaluator` to measure quality
-
-  LangSmith skills use the `langsmith` CLI tool -- run `langsmith --help` to see available commands.
+    - main/langsmith-trace
+    - main/langsmith-dataset
+    - main/langsmith-evaluator
+    - main/langchain-dependencies
+    - main/langchain-fundamentals
+    - main/langchain-rag
+    - main/langchain-middleware
+    - main/langgraph-fundamentals
+    - main/langgraph-persistence
+    - main/langgraph-human-in-the-loop
+    - main/deep-agents-core
+    - main/deep-agents-memory
+    - main/deep-agents-orchestration
+    - benchmarks/framework-selection
 
 MAIN_ECOSYSTEM_PRIMER:
   description: "All 13 main skills + ecosystem-primer"
   skills:
-    # LangSmith (3 skills)
-    - skill: langsmith-trace
-      base: main
-      name: langsmith-trace
-    - skill: langsmith-dataset
-      base: main
-      name: langsmith-dataset
-    - skill: langsmith-evaluator
-      base: main
-      name: langsmith-evaluator
-    # LangChain (4 skills)
-    - skill: langchain-dependencies
-      base: main
-      name: langchain-dependencies
-    - skill: langchain-fundamentals
-      base: main
-      name: langchain-fundamentals
-    - skill: langchain-rag
-      base: main
-      name: langchain-rag
-    - skill: langchain-middleware
-      base: main
-      name: langchain-middleware
-    # LangGraph (3 skills)
-    - skill: langgraph-fundamentals
-      base: main
-      name: langgraph-fundamentals
-    - skill: langgraph-persistence
-      base: main
-      name: langgraph-persistence
-    - skill: langgraph-human-in-the-loop
-      base: main
-      name: langgraph-human-in-the-loop
-    # DeepAgents (3 skills)
-    - skill: deep-agents-core
-      base: main
-      name: deep-agents-core
-    - skill: deep-agents-memory
-      base: main
-      name: deep-agents-memory
-    - skill: deep-agents-orchestration
-      base: main
-      name: deep-agents-orchestration
-    # Primer
-    - skill: ecosystem-primer
-      name: ecosystem-primer
+    - main/langsmith-trace
+    - main/langsmith-dataset
+    - main/langsmith-evaluator
+    - main/langchain-dependencies
+    - main/langchain-fundamentals
+    - main/langchain-rag
+    - main/langchain-middleware
+    - main/langgraph-fundamentals
+    - main/langgraph-persistence
+    - main/langgraph-human-in-the-loop
+    - main/deep-agents-core
+    - main/deep-agents-memory
+    - main/deep-agents-orchestration
+    - benchmarks/ecosystem-primer

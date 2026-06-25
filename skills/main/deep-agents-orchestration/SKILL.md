@@ -87,6 +87,30 @@ const agent = await createDeepAgent({
 </typescript>
 </ex-custom-subagents>
 
+<ex-compiledsubagent>
+<python>
+Wrap a prebuilt LangGraph graph as a subagent using CompiledSubAgent.
+```python
+from deepagents import create_deep_agent, CompiledSubAgent
+from langgraph.graph import StateGraph, MessagesState
+
+builder = StateGraph(MessagesState)
+# ... add nodes/edges ...
+graph = builder.compile()
+
+agent = create_deep_agent(
+    subagents=[
+        CompiledSubAgent(
+            name="my-graph",
+            description="Run the custom LangGraph workflow",
+            runnable=graph,  # Must be a compiled graph; state must have "messages" key
+        )
+    ]
+)
+```
+</python>
+</ex-compiledsubagent>
+
 <ex-subagent-with-hitl>
 <python>
 Configure a subagent with HITL approval for sensitive operations.

@@ -1,6 +1,6 @@
 ---
 name: langchain-dependencies
-description: "INVOKE THIS SKILL when setting up a new project or when asked about package versions, installation, or dependency management for LangChain, LangGraph, LangSmith, or Deep Agents. Covers required packages, minimum versions, environment requirements, versioning best practices, and common community tool packages for both Python and TypeScript."
+description: "INVOKE THIS SKILL when asked about and/or have to implement package versions, installation, or dependency management for LangChain, LangGraph, LangSmith, or Deep Agents. Covers required packages, minimum versions, environment requirements, versioning best practices, and common community tool packages for both Python and TypeScript."
 ---
 
 <overview>
@@ -27,21 +27,6 @@ The LangChain ecosystem is split into focused, independently-versioned packages.
 | LangSmith SDK | >= 0.3.0 | >= 0.3.0 |
 
 </environment-requirements>
-
----
-
-## Framework Choice
-
-<framework-choice>
-Pick **one** agent orchestration layer. You do not need both.
-
-| Framework | When to use | Core extra package |
-|-----------|-------------|--------------------|
-| **LangGraph** | Need fine-grained graph control, custom workflows, loops, or branching | `langgraph` / `@langchain/langgraph` |
-| **Deep Agents** | Want batteries-included planning, memory, file context, and skills out of the box | `deepagents` (depends on LangGraph; installs it as a transitive dep) |
-
-Both sit on top of `langchain` + `langchain-core` + `langsmith`.
-</framework-choice>
 
 ---
 
@@ -295,6 +280,7 @@ All keys are read from the environment at runtime. Set only the keys for service
 ```bash
 # LangSmith (always recommended for observability)
 LANGSMITH_API_KEY=<your-key>
+LANGSMITH_TRACING=true
 LANGSMITH_PROJECT=<project-name>   # optional, defaults to "default"
 
 # Model provider — set the one(s) you use

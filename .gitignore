@@ -21,3 +21,10 @@ __pycache__
 node_modules/
 dist/
 .vitest_experiment_id*
+
+# Sweep skill staging
+.sweep/
+
+# Harbor run outputs
+jobs/
+sweep-summary.json

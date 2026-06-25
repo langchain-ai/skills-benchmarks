@@ -1,0 +1,23 @@
+schema_version = "1.3"
+
+[task]
+name = "skillbench/oss-fix-lc-streaming"
+description = "Fix multiple layered bugs in a chat application"
+
+[metadata]
+source_task = "oss-fix-lc-streaming"
+difficulty = "medium"
+category = "langchain"
+tags = ["streaming", "tools", "async", "bug-fix"]
+
+[agent]
+timeout_sec = 600.0
+
+[verifier]
+timeout_sec = 120.0
+user = "root"
+
+[environment]
+build_timeout_sec = 600.0
+workdir = "/workspace"
+# skills_dir = "skills"  # Phase 1: per-treatment skills copied to the agent skills config dir

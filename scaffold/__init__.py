@@ -13,6 +13,13 @@ Usage:
 
 # Re-export task utilities from python subpackage
 # Re-export from scaffold.python for convenience
+from skillbench_harbor.treatments import (
+    TreatmentConfig,
+    list_treatments,
+    load_treatments,
+    load_treatments_yaml,
+)
+
 from .python import (
     NOISE_TASK_DELIVERABLES,
     NOISE_TASK_PROMPTS,
@@ -68,14 +75,6 @@ from .python import (
     safe_api_call,
 )
 from .python.tasks import Task, TaskConfig, list_tasks, load_task
-from .python.treatments import (
-    TreatmentConfig,
-    build_treatment_skills,
-    list_treatments,
-    load_treatment,
-    load_treatments,
-    load_treatments_yaml,
-)
 
 __all__ = [
     # Tasks
@@ -85,9 +84,7 @@ __all__ = [
     "list_tasks",
     # Treatments
     "TreatmentConfig",
-    "build_treatment_skills",
     "list_treatments",
-    "load_treatment",
     "load_treatments",
     "load_treatments_yaml",
     # Schema

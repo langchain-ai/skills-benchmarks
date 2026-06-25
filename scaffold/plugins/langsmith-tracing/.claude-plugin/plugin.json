@@ -1,0 +1,10 @@
+{
+  "name": "langsmith-tracing",
+  "description": "Traces Claude Code conversations to LangSmith, including subagent and tool executions",
+  "version": "0.1.2",
+  "author": {
+    "name": "LangChain"
+  },
+  "homepage": "https://smith.langchain.com",
+  "repository": "https://github.com/langchain-ai/langsmith-claude-code-plugins"
+}

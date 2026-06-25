@@ -49,6 +49,8 @@ def extract_events(parsed: dict[str, Any]) -> dict[str, Any]:
         "skills_invoked": [],
         "duration_seconds": None,
         "num_turns": None,
+        "total_cost_usd": None,
+        "usage": None,
     }
 
     # Map tool_use_id -> index in tool_calls list for matching outputs
@@ -58,6 +60,8 @@ def extract_events(parsed: dict[str, Any]) -> dict[str, Any]:
         if msg.get("type") == "result":
             events["duration_seconds"] = msg.get("duration_ms", 0) / 1000
             events["num_turns"] = msg.get("num_turns")
+            events["total_cost_usd"] = msg.get("total_cost_usd")
+            events["usage"] = msg.get("usage")
 
         if msg.get("type") == "assistant":
             for item in msg.get("message", {}).get("content", []):
@@ -151,6 +155,14 @@ class TreatmentResult:
     def scripts_used(self) -> list[str]:
         return self.events_summary.get("scripts_used", [])
 
+    @property
+    def cost_usd(self) -> float | None:
+        return self.events_summary.get("total_cost_usd")
+
+    @property
+    def usage(self) -> dict | None:
+        return self.events_summary.get("usage")
+
 
 # =============================================================================
 # REPORT COLUMNS
@@ -209,7 +221,7 @@ def quality_column(name: str = "Quality") -> ReportColumn:
 
 
 def default_columns() -> list[ReportColumn]:
-    """Standard columns: Checks, Turns, Duration, Tools."""
+    """Standard columns: Checks, Turns, Duration, Tools, Cost."""
     return [
         ReportColumn(
             name="Checks",
@@ -230,6 +242,13 @@ def default_columns() -> list[ReportColumn]:
             name="Tools",
             extract=lambda r: str(r.tool_calls) if r.tool_calls else "N/A",
             aggregate=lambda runs: _avg([r.tool_calls for r in runs if r.tool_calls], "{:.0f}"),
+        ),
+        ReportColumn(
+            name="Cost",
+            extract=lambda r: f"${r.cost_usd:.4f}" if r.cost_usd is not None else "N/A",
+            aggregate=lambda runs: _sum(
+                [r.cost_usd for r in runs if r.cost_usd is not None], "${:.4f}"
+            ),
         ),
     ]
 
@@ -256,6 +275,14 @@ def _avg(values: list, fmt: str = "{:.1f}") -> str:
     if not values:
         return "N/A"
     return fmt.format(sum(values) / len(values))
+
+
+def _sum(values: list, fmt: str = "{:.4f}") -> str:
+    """Calculate sum and format, or return N/A."""
+    values = [v for v in values if v is not None]
+    if not values:
+        return "N/A"
+    return fmt.format(sum(values))
 
 
 # =============================================================================
@@ -390,11 +417,32 @@ class ExperimentLogger:
         )
         check_pct = (total_checks_passed / total_checks * 100) if total_checks > 0 else 0
 
+        all_costs = [
+            r.cost_usd
+            for runs in self.results.values()
+            for r in runs
+            if r.cost_usd is not None
+        ]
+        total_cost = sum(all_costs) if all_costs else None
+
+        all_usages = [r.usage for runs in self.results.values() for r in runs if r.usage]
+
         lines.append("## Summary\n")
         lines.append(f"- **Total Runs:** {total_runs}")
         lines.append(
             f"- **Checks Passed:** {total_checks_passed}/{total_checks} ({check_pct:.1f}%)"
         )
+        if total_cost is not None:
+            lines.append(f"- **Total Cost:** ${total_cost:.4f}")
+        if all_usages:
+            fresh_in = sum(u.get("input_tokens", 0) for u in all_usages)
+            cache_read = sum(u.get("cache_read_input_tokens", 0) for u in all_usages)
+            cache_create = sum(u.get("cache_creation_input_tokens", 0) for u in all_usages)
+            out = sum(u.get("output_tokens", 0) for u in all_usages)
+            total_in = fresh_in + cache_read + cache_create
+            lines.append(
+                f"- **Total Tokens:** {total_in:,} input ({fresh_in:,} fresh + {cache_read:,} cache_read + {cache_create:,} cache_write), {out:,} output"
+            )
         lines.append("")
 
         # Aggregate by base treatment name (strip -N-M suffix from pytest --count)
@@ -402,10 +450,10 @@ class ExperimentLogger:
         if base_treatments and len(base_treatments) < len(self.results):
             lines.append("## Aggregated by Treatment\n")
             lines.append(
-                "| Treatment | Reps Passed | Checks | Avg Turns | Avg Duration | Skills | Scripts |"
+                "| Treatment | Reps Passed | Checks | Avg Turns | Avg Duration | Total Cost | Skills | Scripts |"
             )
             lines.append(
-                "|-----------|-------------|--------|-----------|--------------|--------|---------|"
+                "|-----------|-------------|--------|-----------|--------------|------------|--------|---------|"
             )
             for base_name, all_runs in base_treatments.items():
                 # A rep passes if all checks pass (no failures)
@@ -416,6 +464,9 @@ class ExperimentLogger:
                 pct = (total_passed / total_all * 100) if total_all > 0 else 0
                 avg_turns = _avg([r.turns for r in all_runs if r.turns], "{:.0f}")
                 avg_dur = _avg([r.duration for r in all_runs if r.duration], "{:.0f}s")
+                total_cost = _sum(
+                    [r.cost_usd for r in all_runs if r.cost_usd is not None], "${:.4f}"
+                )
                 # Get skills/scripts from first run (should be same for all reps)
                 skills = (
                     ", ".join(all_runs[0].skills_invoked) if all_runs[0].skills_invoked else "none"
@@ -424,7 +475,7 @@ class ExperimentLogger:
                     ", ".join(all_runs[0].scripts_used) if all_runs[0].scripts_used else "none"
                 )
                 lines.append(
-                    f"| {base_name} | {reps_passed}/{total_reps} | {total_passed}/{total_all} ({pct:.0f}%) | {avg_turns} | {avg_dur} | {skills} | {scripts} |"
+                    f"| {base_name} | {reps_passed}/{total_reps} | {total_passed}/{total_all} ({pct:.0f}%) | {avg_turns} | {avg_dur} | {total_cost} | {skills} | {scripts} |"
                 )
             lines.append("")
 
@@ -456,6 +507,15 @@ class ExperimentLogger:
                     metrics.append(f"Duration: {r.duration:.0f}s")
                 if r.tool_calls:
                     metrics.append(f"Tool calls: {r.tool_calls}")
+                if r.cost_usd is not None:
+                    metrics.append(f"Cost: ${r.cost_usd:.4f}")
+                if r.usage:
+                    fresh = r.usage.get("input_tokens", 0)
+                    cached = r.usage.get("cache_read_input_tokens", 0)
+                    created = r.usage.get("cache_creation_input_tokens", 0)
+                    out_tok = r.usage.get("output_tokens", 0)
+                    total_in = fresh + cached + created
+                    metrics.append(f"Tokens: {total_in:,} in / {out_tok:,} out")
                 if metrics:
                     lines.append(f"- Metrics: {', '.join(metrics)}")
 

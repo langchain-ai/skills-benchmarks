@@ -178,42 +178,16 @@ copy_environment() {
 
 setup_langsmith_hook() {
     local test_dir="$1"
-    local project="${2:-claude-code-benchmark}"
+    # project arg is unused — CC_LANGSMITH_PROJECT is passed via env to Docker
 
-    local hooks_dir="$test_dir/.claude/hooks"
-    local settings_file="$test_dir/.claude/settings.json"
-    local hook_script="$SCRIPT_DIR/../hooks/stop_hook.sh"
+    local plugin_dir="$SCRIPT_DIR/../plugins/langsmith-tracing"
 
-    mkdir -p "$hooks_dir"
-
-    # Copy stop hook script
-    if [[ -f "$hook_script" ]]; then
-        cp "$hook_script" "$hooks_dir/stop_hook.sh"
-        chmod +x "$hooks_dir/stop_hook.sh"
-    else
-        log_error "stop_hook.sh not found at $hook_script"
+    if [[ ! -d "$plugin_dir" ]]; then
+        log_error "LangSmith plugin not found at $plugin_dir"
         return 1
     fi
 
-    # Write settings.json with hook config
-    cat > "$settings_file" << 'EOF'
-{
-  "hooks": {
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash /workspace/.claude/hooks/stop_hook.sh"
-          }
-        ]
-      }
-    ]
-  }
-}
-EOF
-
-    log_success "LangSmith tracing hook configured"
+    log_success "LangSmith tracing plugin ready"
 }
 
 # =============================================================================

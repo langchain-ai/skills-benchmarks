@@ -1,0 +1,2215 @@
+skills/benchmarks/oss_merged/da_orchestration/sections/ex-todolist-usage.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_split/da_skills/sections/ex-testing.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_split/da_memory/sections/ex-store-tools.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-50
+skills/benchmarks/oss_split/da_hitl/sections/fix-checkpointer-required.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/da_todolist/sections/decision-table.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_merged/lg_execution/sections/fix-stream-modes-are-lists.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/lc_int_embeddings/sections/fix-dimension-mismatch.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-21
+skills/benchmarks/oss_split/lc_agents/sections/fix-tool-not-called.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-25
+skills/benchmarks/oss_merged/lc_rag/sections/ex-similarity-search.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/da_filesystem/sections/ex-custom-tools.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_split/lc_streaming/sections/ex-buffering.py.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-20
+skills/benchmarks/oss_split/lc_streaming/sections/documentation-links.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-11
+skills/benchmarks/oss_split/da_memory/skill.yaml
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_split/lc_rag/sections/fix-chunk-size.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/lc_int_embeddings/sections/ex-cohere.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_merged/lc_output/sections/ex-model-direct-structured-output.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/ex-text.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_merged/lc_rag/sections/ex-loading-web-pages.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-7
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/boundaries.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_merged/lc_fundamentals/sections/oneliner.md
+  s_67b65679a0b089::t_7077e865609be2 1
+skills/benchmarks/langsmith_dataset/sections/usage.py.md
+  s_67b65679a0b089::t_be88370d8cc665 1-26
+skills/benchmarks/oss_merged/lg_execution/sections/ex-orchestrator-worker.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-33
+skills/benchmarks/oss_split/lc_rag/sections/ex-pdf-loader.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_merged/lc_fundamentals/sections/fix-infinite-loop.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/langsmith_evaluator/sections/example_workflow.py.md
+  s_67b65679a0b089::t_be88370d8cc665 1-22
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/fix-json-pointer-syntax.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_split/lc_int_tools/sections/fix-api-keys.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/lc_models/sections/fix-response-content-access.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_merged/da_memory/sections/fix-path-prefix-for-persistence.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_split/lc_int_embeddings/sections/ex-ollama.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_split/lc_tools/sections/boundaries.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_merged/lc_rag/sections/fix-consistent-embeddings.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/lc_int_splitters/sections/fix-chunk-size-vs-tokens.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/lc_agents/sections/ex-parallel.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_split/lc_streaming/sections/fix-sync-async.py.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-13
+skills/benchmarks/oss_split/lc_int_embeddings/sections/ex-azure.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-16
+skills/benchmarks/oss_split/lc_rag/sections/fix-split-documents.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_merged/lg_fundamentals/sections/fix-start-not-destination.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_merged/da_orchestration/sections/ex-approval-workflow.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-31
+skills/benchmarks/oss_split/lc_agents/sections/ex-tool-schema.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-22
+skills/benchmarks/oss_split/da_overview/sections/ex-gotcha-checkpointer.py.md
+  s_67b65679a0b089::t_688b246f2c6184 1-16
+skills/benchmarks/oss_split/lc_int_tools/sections/ex-sql-toolkit.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-16
+skills/benchmarks/oss_split/lc_int_splitters/sections/fix-import-package-python.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_merged/lc_rag/sections/ex-faiss-vectorstore.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_merged/da_memory/skill.yaml
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_merged/da_orchestration/sections/fix-thread-id-required-for-resumption.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_merged/lg_persistence/sections/ex-store-operations.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/da_todolist/sections/fix-todos-not-shared-across-agents.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-16
+skills/benchmarks/oss_split/lc_int_tools/sections/fix-tool-desc.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_split/lc_tool_calling/sections/fix-async-tool-execution-not-awaited.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-22
+skills/benchmarks/oss_merged/lc_fundamentals/skill.yaml
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/langsmith_dataset/sections/oneliner.md
+  s_67b65679a0b089::t_7077e865609be2 1
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/fix-import-packages.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/da_overview/sections/links.md
+  s_67b65679a0b089::t_688b246f2c6184 1-11
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/fix-encoding-issues.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/da_subagents/sections/defining-subagents.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-32
+skills/benchmarks/oss_merged/da_memory/sections/ex-cross-session-memory.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_merged/lg_fundamentals/sections/fix-infinite-loop-needs-exit.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/langsmith_dataset/sections/query.py.md
+  s_67b65679a0b089::t_be88370d8cc665 1-16
+skills/benchmarks/oss_split/lc_agents/sections/ex-tool-schema.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-21
+skills/benchmarks/oss_merged/lc_rag/sections/ex-loading-pdf.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/lc_tool_calling/sections/fix-tool-schema-mismatches.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-24
+skills/benchmarks/oss_merged/da_orchestration/sections/when-to-use-subagents.md
+  s_67b65679a0b089::t_7077e865609be2 1-5
+skills/benchmarks/oss_split/da_subagents/sections/defining-subagents.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-33
+skills/benchmarks/oss_split/lc_hitl/sections/ex-edit.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-16
+skills/benchmarks/oss_merged/da_core/sections/ex-skills-with-store-backend.py.md
+  s_67b65679a0b089::t_688b246f2c6184 1-29
+skills/benchmarks/oss_merged/lc_output/sections/ex-complex-nested-schema.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_split/lc_int_tools/sections/ex-duckduckgo.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-16
+skills/benchmarks/oss_split/lc_int_tools/sections/ex-tavily.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-27
+skills/benchmarks/oss_split/lc_streaming/sections/fix-tuple-unpack.py.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-12
+skills/benchmarks/oss_merged/lc_agents/sections/agent-configuration-selection.md
+  s_67b65679a0b089::t_7077e865609be2 1-5
+skills/benchmarks/oss_merged/lc_fundamentals/sections/ex-error-middleware.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-24
+skills/benchmarks/oss_split/lc_agents/sections/ex-parallel.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_merged/lc_output/sections/fix-wrong-resume-syntax.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_split/da_overview/sections/ex-gotcha-store.py.md
+  s_67b65679a0b089::t_688b246f2c6184 1-18
+skills/benchmarks/oss_merged/lc_agents/sections/ex-parallel-tool-calling.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_merged/lg_fundamentals/sections/edge-type-selection.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_split/lc_hitl/sections/ex-edit.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/lc_int_tools/sections/ex-multi-tools.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-49
+skills/benchmarks/oss_split/da_memory/sections/ex-user-prefs.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-36
+skills/benchmarks/oss_split/lc_hitl/sections/decision-types.md
+  s_67b65679a0b089::t_7077e865609be2 1-5
+skills/benchmarks/oss_split/lc_models/sections/when-to-use.md
+  s_67b65679a0b089::t_7077e865609be2 1-7
+skills/benchmarks/oss_split/lc_hitl/sections/overview.md
+  s_67b65679a0b089::t_7077e865609be2 1-5
+skills/benchmarks/oss_split/lc_multimodal/sections/fix-image-size.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/da_hitl/sections/when-to-use.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_split/lg_graph_api/sections/decision-table.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_merged/lc_rag/sections/ex-loading-directory.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/da_memory/sections/setup.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-24
+skills/benchmarks/oss_split/da_hitl/sections/overview.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_split/da_todolist/sections/ex-custom-instructions.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-38
+skills/benchmarks/oss_split/lc_int_splitters/sections/fix-metadata-not-preserved.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_split/lc_models/sections/ex-config.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-31
+skills/benchmarks/oss_split/lc_rag/sections/ex-embeddings.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_split/da_overview/sections/ex-custom-model.ts.md
+  s_67b65679a0b089::t_688b246f2c6184 1-17
+skills/benchmarks/oss_split/lc_multimodal/sections/model-selection-for-multimodal.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_merged/lg_persistence/sections/fix-inmemory-not-for-production.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/lc_tool_calling/sections/ex-tool-message.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_split/lc_int_embeddings/sections/ex-similarity.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-30
+skills/benchmarks/oss_merged/lc_rag/sections/fix-faiss-deserialization.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_merged/lc_rag/sections/ex-chroma-vectorstore.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/da_skills/sections/decision-table.md
+  s_67b65679a0b089::t_7077e865609be2 1-7
+skills/benchmarks/oss_split/lc_int_tools/sections/ex-class-tool.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-28
+skills/benchmarks/oss_split/lc_rag/sections/fix-split-documents.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_merged/da_memory/sections/ex-default-state-backend.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_split/lc_structured_output/sections/ex-union-types.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-25
+skills/benchmarks/oss_merged/lc_agents/sections/fix-binding-tools-multiple-times.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_split/da_memory/sections/links.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/langsmith_trace/sections/oneliner.md
+  s_67b65679a0b089::t_4ca50188327b33 1
+skills/benchmarks/oss_split/lc_models/sections/ex-capabilities.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/lc_multimodal/sections/ex-vision-gemini.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_split/lc_streaming/sections/ex-values-mode.py.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-18
+skills/benchmarks/oss_split/lc_int_chat_models/sections/when-to-choose-provider.md
+  s_67b65679a0b089::t_7077e865609be2 1-24
+skills/benchmarks/oss_split/da_subagents/sections/overview.md
+  s_67b65679a0b089::t_7077e865609be2 1-7
+skills/benchmarks/langsmith_evaluator/sections/oneliner.py.md
+  s_67b65679a0b089::t_be88370d8cc665 1
+skills/benchmarks/oss_merged/da_memory/sections/fix-longest-prefix-match.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-5
+skills/benchmarks/oss_split/lc_int_splitters/sections/splitter-selection.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/installation.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/lc_streaming/sections/stream-mode-selection.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-7
+skills/benchmarks/oss_merged/lg_fundamentals/sections/overview.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_split/lc_structured_output/sections/schema-options.md
+  s_67b65679a0b089::t_7077e865609be2 1-7
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/boundaries.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/ex-retriever.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/lc_int_chat_models/sections/ex-init.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/langsmith_evaluator/sections/upload.ts.md
+  s_67b65679a0b089::t_be88370d8cc665 1-27
+skills/benchmarks/oss_split/lc_agents/sections/fix-infinite-loop.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/oneliner.md
+  s_67b65679a0b089::t_7077e865609be2 1
+skills/benchmarks/langsmith_dataset/sections/creating_datasets.ts.md
+  s_67b65679a0b089::t_be88370d8cc665 1-55
+skills/benchmarks/oss_merged/lg_persistence/sections/fix-update-state-with-reducers.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_split/da_hitl/sections/fix-edit-match-tool-schema.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_split/da_skills/sections/fix-subagent-skills.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_split/lc_tool_calling/sections/oneliner.md
+  s_67b65679a0b089::t_7077e865609be2 1
+skills/benchmarks/oss_merged/lc_agents/sections/ex-executing-tool-calls.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-21
+skills/benchmarks/oss_split/da_memory/sections/fix-composite-backend-longest-prefix.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-16
+skills/benchmarks/oss_split/da_hitl/sections/ex-edit.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-49
+skills/benchmarks/langsmith_dataset/sections/trace_hierarchy.py.md
+  s_67b65679a0b089::t_be88370d8cc665 1-9
+skills/benchmarks/oss_merged/lc_output/sections/ex-basic-hitl-setup.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-23
+skills/benchmarks/oss_split/lc_streaming/sections/ex-token-streaming.py.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-12
+skills/benchmarks/oss_split/da_todolist/sections/how-it-works.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/lc_rag/sections/ex-basic-rag.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-36
+skills/benchmarks/langsmith_dataset/sections/setup.py.md
+  s_67b65679a0b089::t_be88370d8cc665 1-20
+skills/benchmarks/oss_split/da_skills/skill.yaml
+  s_67b65679a0b089::t_7077e865609be2 1-21
+skills/benchmarks/oss_split/da_skills/sections/using-skills-filesystembackend.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_split/lc_int_embeddings/sections/fix-ollama-service.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/lg_graph_api/sections/ex-loops.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-31
+skills/benchmarks/oss_split/lc_int_embeddings/sections/fix-huggingface-model-download.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_split/lg_graph_api/sections/fix-await-invoke.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/lc_tools/sections/oneliner.md
+  s_67b65679a0b089::t_7077e865609be2 1
+skills/benchmarks/oss_split/da_subagents/sections/links.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_split/lc_structured_output/sections/fix-missing-descriptions.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_split/da_overview/sections/ex-config-options.py.md
+  s_67b65679a0b089::t_688b246f2c6184 1-20
+skills/benchmarks/oss_merged/lc_agents/sections/ex-basic-tool-calling.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_split/lc_agents/sections/ex-error-handling.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-23
+skills/benchmarks/oss_split/lc_streaming/sections/fix-flush-realtime.py.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-11
+skills/benchmarks/oss_merged/lc_rag/sections/ex-basic-rag-setup.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-35
+skills/benchmarks/oss_split/lc_int_tools/sections/fix-model-support.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_split/lc_tools/sections/fix-missing-types.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_split/lc_multimodal/sections/oneliner.md
+  s_67b65679a0b089::t_7077e865609be2 1
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/fix-embedding-consistency.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-16
+skills/benchmarks/oss_split/lc_agents/sections/boundaries.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/lg_graph_api/sections/fix-compile-before-invoke.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/da_hitl/sections/ex-reject.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-30
+skills/benchmarks/oss_split/lc_models/sections/ex-async.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-27
+skills/benchmarks/oss_merged/lc_fundamentals/sections/middleware.md
+  s_67b65679a0b089::t_7077e865609be2 1-3
+skills/benchmarks/oss_split/lc_agents/sections/ex-loop-flow.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_split/lc_models/sections/boundaries.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/ex-unstructured.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-22
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/ex-s3.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_merged/da_orchestration/sections/ex-approval-workflow.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-32
+skills/benchmarks/oss_merged/lc_fundamentals/sections/fix-infinite-loop.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_merged/lg_execution/sections/fix-agent-guardrails.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-16
+skills/benchmarks/langsmith_evaluator/skill.yaml
+  s_67b65679a0b089::t_be88370d8cc665 13
+  s_67b65679a0b089::t_7077e865609be2 1-12,14-17
+skills/benchmarks/oss_split/lc_models/sections/ex-bedrock.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/lc_rag/sections/ex-agent.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-21
+skills/benchmarks/oss_split/da_overview/skill.yaml
+  s_67b65679a0b089::t_688b246f2c6184 1-22
+skills/benchmarks/oss_split/da_filesystem/sections/fix-statebackend-thread-persistence.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/lc_structured_output/sections/ex-nested-schema.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-25
+skills/benchmarks/oss_merged/lc_rag/sections/fix-chunk-size.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/lc_structured_output/sections/ex-basic-agent.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-26
+skills/benchmarks/langsmith_trace/sections/command_structure.md
+  s_67b65679a0b089::t_63e6f78a3096d3 1-23
+skills/benchmarks/oss_merged/lg_persistence/sections/ex-separate-threads.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/langsmith_trace/sections/export_format.md
+  s_67b65679a0b089::t_390b3c2a5f6a88 1-6
+skills/benchmarks/oss_split/da_skills/sections/skills-vs-memory.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_split/lc_models/sections/ex-errors.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_merged/da_core/sections/ex-skills-with-filesystem-backend.ts.md
+  s_67b65679a0b089::t_688b246f2c6184 1-15
+skills/benchmarks/oss_split/lc_tool_calling/sections/tool-choice-strategies.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_merged/lc_rag/sections/ex-rag-with-agent.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_merged/lg_fundamentals/sections/ex-map-reduce-with-send.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-25
+skills/benchmarks/oss_merged/lc_fundamentals/sections/fix-no-checkpointer.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-21
+skills/benchmarks/oss_split/da_skills/sections/fix-frontmatter-required.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_split/da_subagents/sections/fix-subagent-interrupts-require-checkpointer.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_split/lc_hitl/sections/fix-missing-checkpointer.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-22
+skills/benchmarks/oss_split/da_memory/sections/ex-knowledge-base.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-30
+skills/benchmarks/oss_split/lc_hitl/sections/fix-not-checking-interrupts.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/lc_int_splitters/sections/ex-semantic-py.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_split/lc_streaming/skill.yaml
+  s_67b65679a0b089::t_63f2033c52ef55 1-31
+skills/benchmarks/oss_split/lc_tools/sections/fix-poor-descriptions.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-22
+skills/benchmarks/oss_split/lc_streaming/sections/fix-generator-exhaustion.py.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-19
+skills/benchmarks/oss_merged/da_core/sections/ex-full-configuration.ts.md
+  s_67b65679a0b089::t_688b246f2c6184 1-18
+skills/benchmarks/oss_split/lc_agents/sections/ex-dynamic-tools.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/lc_int_splitters/sections/ex-custom-separators-ts.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_merged/da_orchestration/sections/when-to-use-hitl.md
+  s_67b65679a0b089::t_7077e865609be2 1-4
+skills/benchmarks/oss_merged/lc_fundamentals/sections/fix-no-checkpointer.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-21
+skills/benchmarks/oss_split/lc_streaming/sections/ex-async-python.py.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-20
+skills/benchmarks/oss_split/lc_tools/sections/fix-async-await.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_split/lc_models/sections/ex-multi-turn.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-22
+skills/benchmarks/oss_split/da_memory/sections/fix-store-backend-requires-store.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/lc_tool_calling/sections/fix-not-checking-for-tool-calls.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/lc_tool_calling/sections/ex-manual-execution.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-32
+skills/benchmarks/oss_split/da_overview/sections/boundaries.md
+  s_67b65679a0b089::t_688b246f2c6184 1-16
+skills/benchmarks/oss_merged/lc_fundamentals/sections/related_skills.md
+  s_67b65679a0b089::t_7077e865609be2 1-4
+skills/benchmarks/oss_split/lc_rag/sections/ex-faiss.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/langsmith_evaluator/sections/setup.py.md
+  s_67b65679a0b089::t_be88370d8cc665 1-22
+skills/benchmarks/oss_merged/lc_output/sections/ex-editing-tool-arguments.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_split/da_filesystem/sections/ex-long-term-memory.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-30
+skills/benchmarks/oss_split/da_overview/sections/overview.md
+  s_67b65679a0b089::t_688b246f2c6184 1-9
+skills/benchmarks/oss_merged/lc_rag/sections/ex-basic-rag-setup.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-35
+skills/benchmarks/oss_split/lc_int_splitters/sections/boundaries.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_split/lc_hitl/sections/ex-streaming.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-31
+skills/benchmarks/oss_split/lc_tools/sections/fix-async-await.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-21
+skills/benchmarks/oss_split/lc_int_tools/sections/ex-class-tool.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-23
+skills/benchmarks/oss_split/lc_int_chat_models/sections/ex-structured.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-21
+skills/benchmarks/oss_split/lc_agents/sections/oneliner.md
+  s_67b65679a0b089::t_7077e865609be2 1
+skills/benchmarks/oss_merged/lg_fundamentals/sections/ex-graph-with-loop.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-27
+skills/benchmarks/oss_split/da_subagents/sections/how-it-works.md
+  s_67b65679a0b089::t_7077e865609be2 1
+skills/benchmarks/oss_split/lg_graph_api/sections/ex-map-reduce.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-43
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/fix-embedding-consistency.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-22
+skills/benchmarks/oss_split/lc_int_splitters/sections/ex-markdown.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-33
+skills/benchmarks/oss_split/lc_models/sections/fix-sync-vs-async.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-16
+skills/benchmarks/oss_merged/lc_fundamentals/sections/fix-accessing-result-wrong.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_split/lc_rag/sections/overview.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_split/lc_int_embeddings/sections/ex-huggingface.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_merged/lc_output/sections/ex-rejecting-with-feedback.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/fix-large-files-memory.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_merged/da_orchestration/sections/fix-subagents-are-stateless.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_split/lc_tool_calling/sections/ex-error-handling.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-35
+skills/benchmarks/langsmith_dataset/sections/extraction_priority.py.md
+  s_67b65679a0b089::t_be88370d8cc665 1-6
+skills/benchmarks/oss_split/lc_models/sections/fix-temperature-confusion.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_split/da_hitl/sections/setup.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_merged/da_orchestration/skill.yaml
+  s_67b65679a0b089::t_7077e865609be2 1-27
+skills/benchmarks/oss_merged/lg_persistence/sections/ex-separate-threads.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/lc_multimodal/skill.yaml
+  s_67b65679a0b089::t_7077e865609be2 1-24
+skills/benchmarks/oss_merged/lg_fundamentals/sections/ex-messages-accumulating.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_split/lc_int_embeddings/sections/fix-text-length-limits.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/lc_int_splitters/sections/ex-markdown.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-24
+skills/benchmarks/oss_split/lc_tools/sections/ex-complex-schema.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-21
+skills/benchmarks/langsmith_dataset/sections/input_format.py.md
+  s_67b65679a0b089::t_be88370d8cc665 1-26
+skills/benchmarks/oss_split/lc_int_embeddings/skill.yaml
+  s_67b65679a0b089::t_7077e865609be2 1-31
+skills/benchmarks/oss_split/da_skills/sections/fix-skill-descriptions.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_split/lc_int_chat_models/sections/overview.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_split/da_subagents/sections/fix-subagents-no-skill-inheritance.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_merged/lc_fundamentals/sections/ex-error-middleware.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-21
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/fix-pdf-loader-dependencies.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_split/lc_structured_output/sections/ex-union-types.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-24
+skills/benchmarks/oss_split/lc_int_splitters/sections/installation.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/lc_int_embeddings/sections/fix-batch-performance.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/da_overview/sections/ex-gotcha-default-model.py.md
+  s_67b65679a0b089::t_688b246f2c6184 1-11
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/fix-faiss-deserialize.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_split/lc_multimodal/sections/fix-image-size.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_split/da_subagents/sections/fix-subagents-stateless.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_merged/lg_execution/sections/ex-orchestrator-worker.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-32
+skills/benchmarks/oss_merged/lg_execution/sections/ex-static-breakpoints.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/langsmith_evaluator/sections/running_evaluations.ts.md
+  s_67b65679a0b089::t_be88370d8cc665 1-20
+skills/benchmarks/oss_split/lc_streaming/sections/ex-custom-progress.py.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-34
+skills/benchmarks/oss_merged/lc_agents/sections/fix-forgetting-to-pass-tool-results-back.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/lc_structured_output/sections/ex-error-handling.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-22
+skills/benchmarks/oss_split/lc_models/sections/ex-providers.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-31
+skills/benchmarks/oss_split/da_todolist/sections/ex-sequential.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-29
+skills/benchmarks/oss_split/lc_structured_output/sections/fix-over-constraining.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_split/lc_tool_calling/sections/ex-parallel.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-38
+skills/benchmarks/oss_merged/lg_execution/sections/ex-stream-llm-tokens.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_split/da_todolist/sections/when-to-use.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_split/lc_int_embeddings/sections/ex-batch.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_merged/da_core/sections/ex-basic-agent.py.md
+  s_67b65679a0b089::t_688b246f2c6184 1-21
+skills/benchmarks/langsmith_evaluator/sections/best_practices.ts.md
+  s_67b65679a0b089::t_be88370d8cc665 1-6
+skills/benchmarks/oss_merged/lc_agents/sections/ex-async-tool.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/lc_rag/sections/ex-retrieval.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-16
+skills/benchmarks/oss_split/lc_models/sections/ex-streaming.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/lc_agents/sections/when-to-use.md
+  s_67b65679a0b089::t_7077e865609be2 1-7
+skills/benchmarks/oss_split/lc_multimodal/sections/fix-mime-type.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_merged/lc_rag/sections/ex-rag-with-agent.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-27
+skills/benchmarks/oss_merged/lg_persistence/sections/ex-update-state.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/fix-large-files-memory.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/langsmith_dataset/sections/query.ts.md
+  s_67b65679a0b089::t_be88370d8cc665 1-16
+skills/benchmarks/oss_split/lc_int_tools/sections/when-to-choose-tool.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/lc_structured_output/sections/documentation-links.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_merged/lg_fundamentals/sections/fix-state-must-return-dict.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/langsmith_evaluator/sections/evaluator_format.py.md
+  s_67b65679a0b089::t_be88370d8cc665 1-19
+skills/benchmarks/oss_split/da_subagents/sections/boundaries.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/lc_streaming/sections/oneliner.md
+  s_67b65679a0b089::t_63f2033c52ef55 1
+skills/benchmarks/oss_merged/lc_agents/sections/fix-forgetting-to-pass-tool-results-back.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_merged/lc_rag/sections/fix-import-packages.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_merged/lc_rag/sections/ex-metadata-filtering.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_merged/da_orchestration/sections/fix-custom-subagents-dont-inherit-skills.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_merged/lg_fundamentals/sections/fix-reducer-type-mismatch.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/lc_int_tools/sections/links.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_split/da_memory/sections/ex-user-prefs.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-35
+skills/benchmarks/oss_merged/lc_rag/sections/overview.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/langsmith_trace/sections/tips.md
+  s_67b65679a0b089::t_aa2256b94ee33f 1-6
+skills/benchmarks/oss_merged/lg_execution/sections/ex-stream-custom-data.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-16
+skills/benchmarks/oss_merged/lg_execution/sections/fix-agent-guardrails.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/lc_agents/sections/ex-basic.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-31
+skills/benchmarks/langsmith_trace/sections/setup.md
+  s_67b65679a0b089::t_e4159947a96277 1-15
+skills/benchmarks/oss_split/lc_structured_output/sections/boundaries.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/lc_structured_output/sections/when-to-use.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_merged/lg_persistence/sections/ex-basic-persistence.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-32
+skills/benchmarks/oss_split/da_filesystem/sections/fix-storebackend-requires-store.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-16
+skills/benchmarks/oss_merged/da_core/sections/fix-backend-for-skills.py.md
+  s_67b65679a0b089::t_688b246f2c6184 1-11
+skills/benchmarks/oss_split/da_subagents/skill.yaml
+  s_67b65679a0b089::t_7077e865609be2 1-21
+skills/benchmarks/oss_split/da_skills/sections/ex-api-docs.md
+  s_67b65679a0b089::t_7077e865609be2 1-21
+skills/benchmarks/oss_merged/lc_agents/sections/fix-tool-description.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_merged/lg_persistence/sections/ex-production-postgres.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/lc_rag/sections/fix-persist-vectorstore.py.md
+  s_67b65679a0b089::t_7077e865609be2 1
+skills/benchmarks/oss_split/lc_structured_output/sections/fix-accessing-response-wrong.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_split/da_skills/sections/using-skills-statebackend.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-32
+skills/benchmarks/oss_split/da_skills/sections/fix-backend-setup.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/lg_graph_api/sections/ex-compile.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/da_skills/sections/using-skills-statebackend.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-32
+skills/benchmarks/oss_split/da_memory/sections/fix-path-prefix-routing.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_merged/lg_fundamentals/sections/fix-command-type-annotation.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/langsmith_trace/sections/traces_vs_runs.md
+  s_67b65679a0b089::t_14ce081ff9d3bf 1-8
+skills/benchmarks/oss_merged/da_core/sections/ex-basic-agent.ts.md
+  s_67b65679a0b089::t_688b246f2c6184 1-22
+skills/benchmarks/langsmith_dataset/sections/dataset_types_overview.py.md
+  s_67b65679a0b089::t_be88370d8cc665 1-6
+skills/benchmarks/langsmith_trace/sections/trace_other_frameworks.ts.md
+  s_67b65679a0b089::t_06bc30a82db5b1 1-37
+skills/benchmarks/oss_merged/da_orchestration/sections/ex-edit-before-execution.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-26
+skills/benchmarks/oss_split/lc_int_chat_models/sections/ex-google.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_split/lc_int_embeddings/sections/when-to-choose-provider.md
+  s_67b65679a0b089::t_7077e865609be2 1-24
+skills/benchmarks/oss_split/lc_streaming/sections/ex-buffering.ts.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-25
+skills/benchmarks/oss_split/lc_tool_calling/sections/ex-builtin-tools.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_split/lc_models/sections/ex-model-select.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_split/lc_tool_calling/sections/documentation-links.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_merged/da_orchestration/sections/ex-todolist-usage.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_merged/lg_persistence/sections/checkpointer-selection.md
+  s_67b65679a0b089::t_7077e865609be2 1-5
+skills/benchmarks/oss_merged/lc_agents/sections/ex-tool-with-schema.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_merged/da_core/sections/fix-frontmatter-required.md
+  s_67b65679a0b089::t_688b246f2c6184 1-13
+skills/benchmarks/oss_split/lc_rag/sections/vector-store-selection.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_split/lc_tools/sections/documentation-links.md
+  s_67b65679a0b089::t_7077e865609be2 1-2
+skills/benchmarks/langsmith_evaluator/sections/code_evaluators.ts.md
+  s_67b65679a0b089::t_be88370d8cc665 1-40
+skills/benchmarks/langsmith_dataset/sections/upload.py.md
+  s_67b65679a0b089::t_be88370d8cc665 1-25
+skills/benchmarks/oss_split/da_subagents/sections/ex-hitl.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_split/lc_int_tools/sections/fix-import-path.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_split/lc_int_chat_models/skill.yaml
+  s_67b65679a0b089::t_7077e865609be2 1-32
+skills/benchmarks/oss_split/da_hitl/sections/links.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_merged/da_orchestration/sections/ex-subagent-with-hitl.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_split/lc_int_embeddings/sections/fix-import-packages.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_merged/lc_fundamentals/sections/ex-agent-with-persistence.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_split/lc_streaming/sections/fix-stream-mode-confusion.ts.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-14
+skills/benchmarks/oss_split/lc_int_chat_models/sections/boundaries.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_split/lc_int_embeddings/sections/oneliner.md
+  s_67b65679a0b089::t_7077e865609be2 1
+skills/benchmarks/oss_merged/lg_execution/sections/stream-mode-selection.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_split/lc_structured_output/sections/ex-enum-literal.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-24
+skills/benchmarks/oss_merged/da_core/sections/middleware-selection.md
+  s_67b65679a0b089::t_688b246f2c6184 1-8
+skills/benchmarks/oss_merged/lc_fundamentals/sections/fix-accessing-result-wrong.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_merged/lc_agents/sections/fix-binding-tools-multiple-times.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/langsmith_evaluator/sections/evaluator_format.ts.md
+  s_67b65679a0b089::t_be88370d8cc665 1-22
+skills/benchmarks/oss_split/lc_int_splitters/sections/when-to-choose-splitter.md
+  s_67b65679a0b089::t_7077e865609be2 1-16
+skills/benchmarks/oss_split/lc_hitl/sections/boundaries.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/lc_int_tools/sections/ex-error-handling.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-22
+skills/benchmarks/oss_split/da_memory/sections/ex-feedback.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-37
+skills/benchmarks/oss_split/lc_hitl/sections/fix-wrong-resume-syntax.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-16
+skills/benchmarks/oss_split/lc_models/sections/ex-errors.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_merged/lg_execution/skill.yaml
+  s_67b65679a0b089::t_7077e865609be2 1-25
+skills/benchmarks/oss_split/lc_streaming/sections/ex-custom-progress.ts.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-46
+skills/benchmarks/oss_split/lc_int_tools/sections/ex-custom-tool.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-33
+skills/benchmarks/oss_split/lc_models/sections/fix-token-limits.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-23
+skills/benchmarks/oss_split/lc_tools/sections/overview.md
+  s_67b65679a0b089::t_7077e865609be2 1-7
+skills/benchmarks/oss_split/lc_int_embeddings/sections/installation.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_split/lc_agents/sections/ex-loop-flow.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_merged/lg_execution/sections/fix-messages-mode-requires-llm.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_merged/lg_persistence/sections/overview.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_split/lc_multimodal/sections/ex-audio-input.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_merged/lc_fundamentals/sections/ex-hitl-middleware.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-26
+skills/benchmarks/oss_split/lc_structured_output/sections/ex-nested-schema.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-24
+skills/benchmarks/langsmith_evaluator/sections/llm_judge.ts.md
+  s_67b65679a0b089::t_be88370d8cc665 1-34
+skills/benchmarks/oss_merged/da_memory/sections/boundaries.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_merged/lc_fundamentals/sections/ex-basic-tool.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-26
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/ex-retriever.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_split/lc_tools/sections/ex-external-deps.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-27
+skills/benchmarks/langsmith_trace/sections/filters.md
+  s_67b65679a0b089::t_07a1dec38668a2 1-24
+skills/benchmarks/oss_split/lc_hitl/sections/fix-missing-checkpointer.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-22
+skills/benchmarks/langsmith_dataset/sections/example_workflow.py.md
+  s_67b65679a0b089::t_be88370d8cc665 1-43
+skills/benchmarks/oss_merged/da_orchestration/sections/fix-interrupt-checks-between-invocations.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_merged/lc_agents/sections/tool-choice-strategies.md
+  s_67b65679a0b089::t_7077e865609be2 1-5
+skills/benchmarks/oss_merged/lc_fundamentals/sections/ex-basic-tool.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_merged/lg_fundamentals/sections/fix-forgot-reducer-for-list.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_merged/lc_rag/sections/ex-similarity-search.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_split/lc_int_splitters/sections/links.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_split/lc_tool_calling/sections/ex-basic.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-38
+skills/benchmarks/oss_merged/lc_fundamentals/sections/ex-model-instance.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-7
+skills/benchmarks/oss_split/da_todolist/sections/basic-usage.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-16
+skills/benchmarks/oss_merged/lc_fundamentals/sections/tools.md
+  s_67b65679a0b089::t_7077e865609be2 1-3
+skills/benchmarks/oss_split/lc_agents/sections/ex-system-prompt.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_merged/lc_agents/sections/ex-agent-with-persistence.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/da_subagents/sections/fix-subagent-results-final.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_split/lc_int_embeddings/sections/fix-ollama-service.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-16
+skills/benchmarks/oss_split/lc_int_splitters/skill.yaml
+  s_67b65679a0b089::t_7077e865609be2 1-29
+skills/benchmarks/oss_split/lc_int_tools/sections/ex-arxiv.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/lc_int_chat_models/sections/fix-streaming-confusion.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_split/lg_graph_api/sections/ex-command.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-50
+skills/benchmarks/oss_split/lc_structured_output/sections/fix-validation-errors.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_split/lc_agents/sections/tool-strategy.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_split/lc_int_tools/sections/boundaries.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/langsmith_evaluator/sections/resources.md
+  s_67b65679a0b089::t_7077e865609be2 1-3
+skills/benchmarks/oss_split/da_filesystem/sections/ex-large-context.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/langsmith_dataset/sections/input_format.ts.md
+  s_67b65679a0b089::t_be88370d8cc665 1-21
+skills/benchmarks/oss_merged/lg_execution/sections/ex-dynamic-interrupt.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-36
+skills/benchmarks/oss_split/lc_models/sections/fix-api-key-not-found.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_split/da_overview/sections/ex-gotcha-default-model.ts.md
+  s_67b65679a0b089::t_688b246f2c6184 1-10
+skills/benchmarks/oss_split/lg_graph_api/sections/fix-conditional-edge-destinations.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/langsmith_evaluator/sections/running_evaluations.py.md
+  s_67b65679a0b089::t_be88370d8cc665 1-17
+skills/benchmarks/oss_merged/da_core/sections/fix-subagent-skills.py.md
+  s_67b65679a0b089::t_688b246f2c6184 1-14
+skills/benchmarks/oss_split/da_overview/sections/when-to-use.md
+  s_67b65679a0b089::t_688b246f2c6184 1-7
+skills/benchmarks/oss_split/da_filesystem/sections/fix-statebackend-thread-persistence.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_split/lc_agents/sections/ex-dynamic-tools.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_split/lc_tool_calling/sections/ex-conversation.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-38
+skills/benchmarks/oss_split/da_filesystem/sections/ex-long-term-memory.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-26
+skills/benchmarks/oss_split/lc_tool_calling/skill.yaml
+  s_67b65679a0b089::t_7077e865609be2 1-32
+skills/benchmarks/oss_split/lc_int_tools/sections/ex-vector-store.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-29
+skills/benchmarks/oss_split/lc_structured_output/sections/oneliner.md
+  s_67b65679a0b089::t_7077e865609be2 1
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/installation.md
+  s_67b65679a0b089::t_7077e865609be2 1-30
+skills/benchmarks/oss_merged/da_memory/sections/fix-filesystem-backend-needs-virtual-mode.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-4
+skills/benchmarks/oss_merged/lg_fundamentals/sections/boundaries.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/fix-dimension-mismatch.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_split/lc_streaming/sections/ex-context-manager.py.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-20
+skills/benchmarks/langsmith_evaluator/sections/oneliner.ts.md
+  s_67b65679a0b089::t_be88370d8cc665 1
+skills/benchmarks/oss_merged/da_memory/sections/fix-production-store.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-5
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/fix-pinecone-index-creation.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-25
+skills/benchmarks/langsmith_dataset/skill.yaml
+  s_67b65679a0b089::t_be88370d8cc665 11-12,14-18,20,23-24
+  s_67b65679a0b089::t_7077e865609be2 1-10,13,19,21-22
+skills/benchmarks/oss_split/lc_models/sections/ex-basic-init.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-16
+skills/benchmarks/oss_merged/lc_agents/sections/fix-state-persistence.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_split/lc_structured_output/sections/ex-include-raw.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_split/lc_tools/sections/ex-async.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_split/da_overview/sections/ex-custom-tools.ts.md
+  s_67b65679a0b089::t_688b246f2c6184 1-29
+skills/benchmarks/oss_split/da_hitl/sections/fix-thread-id-required.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/lc_models/sections/fix-token-limits.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-22
+skills/benchmarks/oss_split/da_todolist/sections/ex-adaptive.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-32
+skills/benchmarks/oss_split/lc_int_tools/sections/installation.md
+  s_67b65679a0b089::t_7077e865609be2 1-22
+skills/benchmarks/oss_split/lc_hitl/sections/ex-interrupts.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-21
+skills/benchmarks/oss_merged/da_core/sections/ex-full-configuration.py.md
+  s_67b65679a0b089::t_688b246f2c6184 1-20
+skills/benchmarks/oss_merged/lc_agents/sections/ex-basic-agent-with-tools.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_split/lc_int_chat_models/sections/ex-openai.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-26
+skills/benchmarks/oss_split/da_todolist/sections/basic-usage.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-16
+skills/benchmarks/oss_split/lc_agents/sections/ex-error-handling.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-26
+skills/benchmarks/oss_split/lc_int_splitters/sections/ex-code.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_split/da_skills/sections/fix-subagent-skills.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_merged/lc_output/sections/ex-model-direct-structured-output.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_split/lc_int_tools/sections/ex-wikipedia.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/lc_models/sections/ex-bedrock.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_merged/da_memory/sections/ex-cross-session-memory.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_merged/lg_execution/sections/ex-static-breakpoints.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_split/lc_rag/sections/fix-chunk-overlap.py.md
+  s_67b65679a0b089::t_7077e865609be2 1
+skills/benchmarks/oss_merged/lc_rag/sections/fix-persist-vectorstore.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_merged/da_memory/sections/ex-filesystem-backend-local-dev.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/lc_hitl/sections/ex-custom-logic.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-34
+skills/benchmarks/oss_merged/da_core/sections/boundaries.md
+  s_67b65679a0b089::t_688b246f2c6184 1-14
+skills/benchmarks/oss_split/da_skills/sections/creating-skills.md
+  s_67b65679a0b089::t_7077e865609be2 1-31
+skills/benchmarks/langsmith_dataset/sections/dataset_final_response.py.md
+  s_67b65679a0b089::t_be88370d8cc665 1-33
+skills/benchmarks/oss_split/da_subagents/sections/fix-subagents-no-skill-inheritance.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-22
+skills/benchmarks/oss_merged/lg_fundamentals/sections/fix-always-await-nodes.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_merged/lg_fundamentals/sections/ex-state-with-reducer.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_split/lc_int_tools/sections/ex-multi-tools.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-41
+skills/benchmarks/oss_merged/lc_fundamentals/sections/model_config.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_split/lg_graph_api/sections/ex-basic.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-34
+skills/benchmarks/oss_split/lc_streaming/sections/ex-agent-progress.ts.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-19
+skills/benchmarks/oss_merged/lg_fundamentals/sections/state-update-strategies.md
+  s_67b65679a0b089::t_7077e865609be2 1-5
+skills/benchmarks/oss_split/lc_int_embeddings/sections/ex-cohere.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/lc_rag/sections/ex-metadata.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_merged/da_memory/sections/fix-production-store.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-5
+skills/benchmarks/oss_split/lc_int_embeddings/sections/links.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_split/da_hitl/sections/ex-custom-messages.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-26
+skills/benchmarks/oss_split/lc_int_splitters/sections/ex-recursive.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-32
+skills/benchmarks/oss_split/lc_agents/sections/fix-state-not-persisting.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-28
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/ex-metadata.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_merged/lg_fundamentals/sections/fix-compile-before-execution.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_split/lc_int_splitters/sections/ex-character.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_merged/lg_persistence/sections/fix-thread-id-required.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/lc_tools/sections/fix-invalid-names.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_merged/lc_agents/sections/fix-state-persistence.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_merged/lg_execution/sections/interrupt-type-selection.md
+  s_67b65679a0b089::t_7077e865609be2 1-5
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/ex-add-docs.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-25
+skills/benchmarks/oss_split/lc_multimodal/sections/fix-mime-type.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/langsmith_dataset/sections/usage.ts.md
+  s_67b65679a0b089::t_be88370d8cc665 1-25
+skills/benchmarks/oss_split/lc_structured_output/sections/ex-typeddict.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-21
+skills/benchmarks/oss_split/da_overview/sections/ex-custom-model.py.md
+  s_67b65679a0b089::t_688b246f2c6184 1-17
+skills/benchmarks/oss_merged/lg_persistence/sections/fix-thread-id-required.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/lc_models/sections/ex-batch.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/lc_agents/sections/ex-system-prompt.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/lc_tool_calling/sections/ex-builtin-tools.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_merged/da_orchestration/sections/ex-reject-with-feedback.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-7
+skills/benchmarks/oss_split/lc_tool_calling/sections/ex-async-python.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-31
+skills/benchmarks/oss_split/lc_tool_calling/sections/ex-force-tool.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-35
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/loader-selection.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/lc_int_vectorstores/skill.yaml
+  s_67b65679a0b089::t_7077e865609be2 1-29
+skills/benchmarks/oss_split/lc_agents/sections/ex-streaming.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/ex-mmr.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_split/lc_rag/sections/embedding-model-selection.md
+  s_67b65679a0b089::t_7077e865609be2 1-5
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/ex-json.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-16
+skills/benchmarks/oss_split/lc_structured_output/sections/fix-pydantic-v1-v2.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/langsmith_evaluator/sections/upload.py.md
+  s_67b65679a0b089::t_be88370d8cc665 1-20
+skills/benchmarks/langsmith_trace/skill.yaml
+  s_67b65679a0b089::t_96b982859fef69 1,3-6
+  s_67b65679a0b089::t_96dbbba00d5514 2,7-16
+skills/benchmarks/oss_split/lc_tools/sections/ex-basic-tool.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-35
+skills/benchmarks/oss_split/lc_tools/sections/ex-error-handling.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_split/da_subagents/sections/fix-subagent-interrupts-require-checkpointer.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_split/da_todolist/sections/fix-middleware-always-present.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_split/lc_rag/sections/ex-retrieval.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/lc_structured_output/sections/ex-optional-defaults.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_merged/lc_agents/sections/ex-executing-tool-calls.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-22
+skills/benchmarks/oss_split/da_filesystem/sections/when-to-use.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_split/lc_tools/sections/ex-streaming.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-23
+skills/benchmarks/langsmith_evaluator/sections/best_practices.py.md
+  s_67b65679a0b089::t_be88370d8cc665 1-6
+skills/benchmarks/oss_split/lc_models/sections/documentation-links.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_split/lc_models/sections/ex-config.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-31
+skills/benchmarks/oss_split/lc_models/sections/fix-temperature-confusion.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_split/lc_models/sections/fix-api-key-not-found.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_split/lc_int_chat_models/sections/ex-azure.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/lc_multimodal/sections/input-methods.md
+  s_67b65679a0b089::t_7077e865609be2 1-5
+skills/benchmarks/oss_merged/da_orchestration/sections/fix-subagents-are-stateless.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_split/lc_int_chat_models/sections/fix-azure-configuration.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/lc_int_tools/sections/fix-type-hints.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_merged/lc_agents/sections/ex-tool-with-schema.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/ex-directory.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-25
+skills/benchmarks/oss_merged/da_orchestration/sections/when-to-use-todolist.md
+  s_67b65679a0b089::t_7077e865609be2 1-4
+skills/benchmarks/oss_split/lc_rag/sections/ex-web-loader.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_split/lc_tools/sections/ex-toolkit.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-31
+skills/benchmarks/oss_split/lc_rag/sections/ex-hybrid.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-22
+skills/benchmarks/oss_split/lc_tool_calling/sections/when-to-use.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/langsmith_dataset/sections/setup.ts.md
+  s_67b65679a0b089::t_be88370d8cc665 1-20
+skills/benchmarks/oss_split/lc_rag/sections/fix-chunk-size.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/lc_multimodal/sections/boundaries.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_merged/lg_persistence/sections/ex-resume-from-checkpoint.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_merged/da_core/sections/fix-thread-id-for-conversations.ts.md
+  s_67b65679a0b089::t_688b246f2c6184 1-11
+skills/benchmarks/oss_split/lc_int_embeddings/sections/ex-similarity.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-34
+skills/benchmarks/oss_merged/lg_execution/sections/fix-custom-mode-needs-stream-writer.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/fix-directory-loader-extensions.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/da_filesystem/sections/ex-custom-tools.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_split/da_subagents/sections/decision-table.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_split/lc_agents/sections/fix-tool-not-called.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-21
+skills/benchmarks/oss_merged/da_memory/sections/fix-storebackend-requires-store.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/da_subagents/sections/ex-hitl.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_split/lc_structured_output/sections/ex-error-handling.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-25
+skills/benchmarks/oss_merged/lc_fundamentals/sections/quick_start.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-22
+skills/benchmarks/oss_split/lc_tools/sections/ex-side-effects.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_split/da_hitl/sections/ex-reject.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-38
+skills/benchmarks/oss_split/lg_graph_api/sections/ex-command.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-52
+skills/benchmarks/oss_merged/lc_output/sections/ex-basic-structured-output.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_merged/lg_persistence/sections/fix-resume-with-none.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/lc_int_embeddings/sections/fix-dimension-mismatch.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/when-to-choose-store.md
+  s_67b65679a0b089::t_7077e865609be2 1-24
+skills/benchmarks/oss_split/lc_models/sections/ex-multi-turn.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-22
+skills/benchmarks/oss_split/lc_streaming/sections/when-to-use-streaming.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-7
+skills/benchmarks/oss_merged/lg_fundamentals/sections/fix-conditional-edge-destinations.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/langsmith_evaluator/sections/evaluator_types.ts.md
+  s_67b65679a0b089::t_be88370d8cc665 1-3
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/ex-memory.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-29
+skills/benchmarks/oss_split/da_filesystem/sections/fix-storebackend-requires-store.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/lc_tool_calling/sections/fix-not-checking-for-tool-calls.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_split/lc_tools/sections/ex-side-effects.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_merged/da_memory/sections/fix-storebackend-requires-store.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_merged/lg_fundamentals/sections/ex-conditional-edges.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-29
+skills/benchmarks/oss_merged/lc_rag/sections/fix-chunk-size.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_split/lc_models/sections/oneliner.md
+  s_67b65679a0b089::t_7077e865609be2 1
+skills/benchmarks/oss_split/lc_streaming/sections/fix-await-stream.ts.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-15
+skills/benchmarks/oss_split/lc_tools/sections/ex-basic-tool.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-28
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/fix-cheerio-vs-playwright.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_merged/lc_rag/sections/ex-loading-pdf.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/ex-pinecone.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-39
+skills/benchmarks/oss_merged/da_core/sections/fix-specific-skill-descriptions.md
+  s_67b65679a0b089::t_688b246f2c6184 1-14
+skills/benchmarks/oss_split/lc_models/sections/fix-streaming-requires-iteration.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/da_overview/sections/ex-basic-agent.ts.md
+  s_67b65679a0b089::t_688b246f2c6184 1-15
+skills/benchmarks/oss_split/da_hitl/sections/fix-thread-id-required.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_merged/lc_rag/sections/ex-mmr-search.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/lc_int_tools/sections/ex-custom-tool.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-27
+skills/benchmarks/oss_split/lc_int_tools/sections/fix-api-keys.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/lc_int_splitters/sections/oneliner.md
+  s_67b65679a0b089::t_7077e865609be2 1
+skills/benchmarks/oss_split/lc_tool_calling/sections/handling-tool-calls-patterns.md
+  s_67b65679a0b089::t_7077e865609be2 1-5
+skills/benchmarks/oss_split/lc_tools/sections/ex-complex-return.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-22
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/ex-pdf.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_merged/lc_output/sections/fix-accessing-response-wrong.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/lc_hitl/sections/ex-policies.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_split/lc_int_tools/skill.yaml
+  s_67b65679a0b089::t_7077e865609be2 1-31
+skills/benchmarks/oss_split/lc_hitl/sections/ex-reject.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_split/lc_tool_calling/sections/fix-forgetting-tool-results.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_split/da_todolist/sections/links.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_split/lc_structured_output/sections/ex-array-extraction.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-25
+skills/benchmarks/oss_split/lc_hitl/sections/fix-no-thread-id.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/lc_agents/sections/fix-messages-vs-state.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-7
+skills/benchmarks/oss_merged/lg_execution/sections/fix-resume-with-command.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/da_hitl/sections/ex-basic-approval.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-40
+skills/benchmarks/oss_merged/lc_rag/sections/ex-text-splitting.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_merged/da_orchestration/sections/ex-custom-subagents.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-24
+skills/benchmarks/oss_merged/da_memory/sections/ex-composite-backend-for-hybrid.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_split/da_filesystem/skill.yaml
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_merged/lg_persistence/sections/fix-inmemory-not-for-production.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_split/lc_models/sections/ex-invoke.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/langsmith_evaluator/sections/example_workflow.ts.md
+  s_67b65679a0b089::t_be88370d8cc665 1-23
+skills/benchmarks/oss_split/lc_rag/sections/ex-chroma.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-23
+skills/benchmarks/oss_split/lc_int_tools/sections/ex-tavily.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-25
+skills/benchmarks/langsmith_dataset/sections/example_workflow.ts.md
+  s_67b65679a0b089::t_be88370d8cc665 1-53
+skills/benchmarks/oss_merged/da_orchestration/sections/boundaries.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_merged/lg_fundamentals/sections/ex-command-state-and-routing.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-27
+skills/benchmarks/oss_split/lc_int_chat_models/sections/fix-tool-calling-support.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/lc_int_chat_models/sections/fix-message-formats.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-21
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/overview.md
+  s_67b65679a0b089::t_7077e865609be2 1-5
+skills/benchmarks/oss_split/lg_graph_api/sections/fix-command-type-annotation.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_merged/lc_output/sections/ex-enum-and-literal-types.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_split/lc_models/sections/ex-azure.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/fix-pdf-loader-dependencies.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_merged/lg_persistence/sections/ex-resume-from-checkpoint.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_merged/lc_output/sections/fix-wrong-resume-syntax.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_split/lc_streaming/sections/ex-values-mode.ts.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-19
+skills/benchmarks/oss_split/da_overview/sections/ex-harness-architecture.py.md
+  s_67b65679a0b089::t_688b246f2c6184 1-24
+skills/benchmarks/oss_merged/da_orchestration/sections/ex-hitl-setup.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_merged/da_orchestration/sections/todolist-tool.md
+  s_67b65679a0b089::t_7077e865609be2 1-7
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/vector-store-selection.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_split/lc_tools/sections/fix-missing-docstrings.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_split/lc_int_tools/sections/ex-calculator.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/ex-lazy.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_merged/lc_agents/sections/ex-basic-tool-calling.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/lc_structured_output/sections/ex-include-raw.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_split/lc_streaming/sections/ex-error-handling.py.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-24
+skills/benchmarks/oss_split/lc_tools/sections/fix-missing-types.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/da_memory/sections/boundaries.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_merged/lc_fundamentals/sections/ex-basic-agent.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-26
+skills/benchmarks/oss_merged/lg_execution/sections/overview.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_split/da_subagents/sections/fix-subagents-stateless.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_merged/lc_output/sections/fix-missing-descriptions.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/lc_multimodal/sections/ex-vision-claude.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-25
+skills/benchmarks/oss_split/lg_graph_api/sections/fix-command-type-annotation.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_split/lc_int_splitters/sections/ex-token.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/lc_multimodal/sections/ex-pdf-analysis.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-23
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/fix-import-community-package.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_split/lc_rag/sections/ex-chroma.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/da_skills/sections/links.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/da_skills/sections/ex-testing.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_split/lc_int_embeddings/sections/ex-azure.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/lc_structured_output/sections/ex-array-extraction.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-26
+skills/benchmarks/oss_split/lc_structured_output/sections/ex-model-direct.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_split/lc_multimodal/sections/ex-multimodal-output.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_merged/da_core/skill.yaml
+  s_67b65679a0b089::t_688b246f2c6184 1-24
+skills/benchmarks/oss_split/lc_streaming/sections/ex-web-app.py.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-45
+skills/benchmarks/oss_merged/da_orchestration/sections/ex-access-todo-state.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_merged/lc_fundamentals/sections/create_agent.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_merged/lc_output/sections/fix-missing-checkpointer.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/da_memory/sections/overview.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_split/lc_tools/skill.yaml
+  s_67b65679a0b089::t_7077e865609be2 1-29
+skills/benchmarks/langsmith_dataset/sections/dataset_types_overview.ts.md
+  s_67b65679a0b089::t_be88370d8cc665 1-6
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/ex-faiss.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-26
+skills/benchmarks/oss_split/lc_int_chat_models/sections/ex-openai.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-25
+skills/benchmarks/oss_split/lc_int_chat_models/sections/oneliner.md
+  s_67b65679a0b089::t_7077e865609be2 1
+skills/benchmarks/oss_split/lc_tools/sections/ex-complex-schema.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-21
+skills/benchmarks/oss_split/lc_models/sections/overview.md
+  s_67b65679a0b089::t_7077e865609be2 1-7
+skills/benchmarks/oss_split/lc_multimodal/sections/ex-multiple-images.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_split/da_todolist/sections/overview.md
+  s_67b65679a0b089::t_7077e865609be2 1-7
+skills/benchmarks/oss_merged/da_orchestration/sections/ex-hitl-setup.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/da_filesystem/sections/boundaries.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/when-to-choose-loader.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_merged/lc_rag/sections/vectorstore-selection.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_merged/lg_fundamentals/sections/ex-messages-accumulating.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/da_memory/sections/decision-table.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_split/da_todolist/sections/fix-thread-id-required.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/lc_agents/sections/choosing-agent-configuration.md
+  s_67b65679a0b089::t_7077e865609be2 1-7
+skills/benchmarks/oss_merged/lc_agents/sections/boundaries.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/da_subagents/sections/ex-custom-skills.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_split/da_memory/sections/fix-inmemorystore-not-persistent.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/lc_streaming/sections/overview.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-7
+skills/benchmarks/oss_split/da_filesystem/sections/backend-types.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/lc_int_chat_models/sections/ex-bedrock.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-16
+skills/benchmarks/oss_merged/lg_execution/sections/ex-multiple-stream-modes.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_merged/lg_fundamentals/sections/ex-basic-graph.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-28
+skills/benchmarks/oss_merged/lc_fundamentals/sections/ex-hitl-middleware.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-25
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/ex-json.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-31
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/ex-web.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-27
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/ex-pinecone.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-43
+skills/benchmarks/oss_split/lc_tool_calling/sections/fix-tool-call-id-mismatch.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-21
+skills/benchmarks/oss_split/lg_graph_api/sections/ex-conditional.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-46
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/fix-pinecone-index-creation.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/lc_multimodal/sections/fix-model-support.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/fix-memory-ephemeral.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_split/lc_int_splitters/sections/ex-code.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-30
+skills/benchmarks/oss_split/da_todolist/sections/fix-optional-for-simple-tasks.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/fix-faiss-path.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/da_memory/sections/setup.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_merged/lg_persistence/sections/ex-basic-persistence.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-28
+skills/benchmarks/langsmith_evaluator/sections/setup.ts.md
+  s_67b65679a0b089::t_be88370d8cc665 1-22
+skillbench_harbor/skill_render.py
+  s_67b65679a0b089::t_5c00fa4e7675e4 1-39,48-57,60-64,67-68,75-78,80-89,93-105
+  s_67b65679a0b089::t_d6202d6318c8f4 40-47,58-59
+  s_67b65679a0b089::t_1e8c44f9a41297 90-92
+  s_67b65679a0b089::t_2eafbd0f9d6351 79
+  s_67b65679a0b089::t_2bc07b7fe7ec49 65-66,69-74
+skills/benchmarks/oss_split/da_memory/sections/memory-types-comparison.md
+  s_67b65679a0b089::t_7077e865609be2 1-5
+skills/benchmarks/oss_merged/lc_agents/sections/ex-basic-tool.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-21
+skills/benchmarks/oss_split/lc_multimodal/sections/fix-model-support.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_merged/lc_rag/sections/ex-chroma-vectorstore.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_split/lc_int_chat_models/sections/fix-bedrock-model-ids.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/da_hitl/sections/ex-edit.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-37
+skills/benchmarks/oss_split/lc_models/sections/ex-batch.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_split/da_memory/sections/fix-inmemorystore-not-persistent.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_merged/lc_output/sections/ex-multiple-tools-different-policies.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/da_skills/sections/using-skills-filesystembackend.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_merged/lg_fundamentals/sections/ex-state-with-reducer.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/lc_hitl/sections/ex-setup.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-26
+skills/benchmarks/oss_split/lc_models/sections/ex-capabilities.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_merged/da_orchestration/sections/ex-custom-subagents.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-23
+skills/benchmarks/oss_split/lc_hitl/sections/links.md
+  s_67b65679a0b089::t_7077e865609be2 1-2
+skills/benchmarks/oss_split/lc_tool_calling/sections/boundaries.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/lc_rag/sections/documentation-links.md
+  s_67b65679a0b089::t_7077e865609be2 1-2
+skills/benchmarks/oss_split/lc_agents/sections/streaming-modes.md
+  s_67b65679a0b089::t_7077e865609be2 1-3
+skills/benchmarks/oss_split/lc_hitl/sections/ex-streaming.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-27
+skills/benchmarks/oss_merged/lc_fundamentals/sections/quick_start.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-23
+skills/benchmarks/langsmith_trace/sections/trace_langchain_oss.ts.md
+  s_67b65679a0b089::t_96dbbba00d5514 1-10
+skills/benchmarks/oss_split/da_overview/sections/ex-config-options.ts.md
+  s_67b65679a0b089::t_688b246f2c6184 1-20
+skills/benchmarks/oss_split/lc_int_embeddings/sections/ex-openai.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-33
+skills/benchmarks/oss_split/lc_agents/sections/fix-infinite-loop.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/lc_int_tools/sections/ex-wikipedia.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/lc_multimodal/sections/ex-multiple-images.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_split/lg_graph_api/sections/fix-compile-before-invoke.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/lc_multimodal/sections/ex-vision-gemini.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_split/da_skills/sections/fix-skill-descriptions.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_split/da_todolist/sections/fix-middleware-always-present.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/oneliner.md
+  s_67b65679a0b089::t_7077e865609be2 1
+skills/benchmarks/oss_split/lc_models/sections/ex-streaming.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/da_overview/sections/ex-custom-tools.py.md
+  s_67b65679a0b089::t_688b246f2c6184 1-22
+skills/benchmarks/oss_split/lc_int_chat_models/sections/ex-azure.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/ex-pdf.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-22
+skills/benchmarks/oss_split/lc_int_splitters/sections/fix-zero-overlap.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_split/lc_structured_output/sections/ex-model-direct.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_merged/lg_execution/sections/fix-send-accumulator.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_split/lc_tools/sections/ex-toolkit.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-35
+skills/benchmarks/oss_split/da_hitl/sections/fix-interrupt-between-invocations.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_split/da_todolist/sections/ex-access-state.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-23
+skills/benchmarks/oss_split/lc_int_chat_models/sections/fix-import-errors.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_merged/lg_persistence/sections/fix-store-injection.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/langsmith_dataset/sections/dataset_trajectory.py.md
+  s_67b65679a0b089::t_be88370d8cc665 1-51
+skills/benchmarks/oss_split/lc_tools/sections/tool-definition-methods.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_merged/lc_output/sections/fix-not-using-correct-type-hints.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_split/lc_int_chat_models/sections/provider-selection.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/lc_int_doc_loaders/skill.yaml
+  s_67b65679a0b089::t_7077e865609be2 1-32
+skills/benchmarks/oss_split/lc_int_chat_models/sections/links.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_merged/da_orchestration/sections/fix-checkpointer-required.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/da_filesystem/sections/fix-edit-file-exact-match.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_merged/da_core/sections/fix-thread-id-for-conversations.py.md
+  s_67b65679a0b089::t_688b246f2c6184 1-11
+skills/benchmarks/oss_split/lc_models/sections/fix-response-content-access.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_merged/lg_fundamentals/sections/fix-state-must-return-dict.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_split/lc_streaming/sections/fix-stream-mode-confusion.py.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-12
+skills/benchmarks/oss_split/lc_int_tools/sections/tool-selection.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_merged/da_orchestration/sections/fix-todolist-requires-thread-id.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_merged/lc_output/sections/fix-missing-checkpointer.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/fix-dimension-mismatch.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-16
+skills/benchmarks/oss_split/lc_models/sections/fix-model-name-typos.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/lc_hitl/skill.yaml
+  s_67b65679a0b089::t_7077e865609be2 1-23
+skills/benchmarks/oss_merged/lc_fundamentals/sections/ex-model-instance.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-7
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/ex-metadata.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/da_memory/sections/fix-composite-backend-longest-prefix.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/lc_models/sections/fix-model-name-typos.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/lc_structured_output/sections/fix-responseformat-tools.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/da_todolist/skill.yaml
+  s_67b65679a0b089::t_7077e865609be2 1-21
+skills/benchmarks/oss_merged/lc_agents/sections/fix-tool-call-id-mismatch.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_merged/lc_fundamentals/sections/ex-agent-with-persistence.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/langsmith_evaluator/sections/code_evaluators.py.md
+  s_67b65679a0b089::t_be88370d8cc665 1-23
+skills/benchmarks/oss_split/lc_tool_calling/sections/fix-tool-choice-type-confusion.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/lc_int_chat_models/sections/fix-pydantic-version.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_merged/da_core/sections/skills-vs-memory.md
+  s_67b65679a0b089::t_688b246f2c6184 1-6
+skills/benchmarks/oss_merged/da_core/sections/overview.md
+  s_67b65679a0b089::t_688b246f2c6184 1-10
+skills/benchmarks/oss_split/lc_multimodal/sections/ex-image-base64.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-26
+skills/benchmarks/oss_merged/da_core/sections/fix-checkpointer-for-interrupts.py.md
+  s_67b65679a0b089::t_688b246f2c6184 1-8
+skills/benchmarks/oss_merged/lg_execution/sections/boundaries.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_merged/lc_rag/sections/ex-loading-web-pages.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-7
+skills/benchmarks/oss_split/lc_streaming/sections/ex-agent-progress.py.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-18
+skills/benchmarks/oss_split/lg_graph_api/sections/ex-map-reduce.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-40
+skills/benchmarks/oss_merged/da_memory/sections/ex-default-state-backend.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_split/lc_int_chat_models/sections/ex-anthropic.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-29
+skills/benchmarks/oss_split/lc_rag/sections/oneliner.md
+  s_67b65679a0b089::t_7077e865609be2 1
+skills/benchmarks/oss_split/da_todolist/sections/ex-access-state.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-23
+skills/benchmarks/oss_split/lc_int_splitters/sections/ex-character.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/lc_int_embeddings/sections/ex-ollama.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_merged/da_memory/sections/fix-path-prefix-for-persistence.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_split/lc_int_tools/sections/fix-model-support.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_split/lc_hitl/sections/ex-policies.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_merged/lc_output/sections/fix-accessing-response-wrong.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-5
+skills/benchmarks/oss_split/lc_int_chat_models/sections/fix-rate-limits.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_split/lc_multimodal/sections/ex-pdf-analysis.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-25
+skills/benchmarks/oss_split/lc_multimodal/sections/ex-multimodal-output.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/da_hitl/sections/ex-custom-messages.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-25
+skills/benchmarks/oss_split/da_subagents/sections/ex-research.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-34
+skills/benchmarks/oss_split/lc_int_tools/sections/fix-schema-validation.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-30
+skills/benchmarks/oss_split/lc_models/sections/ex-azure.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_split/lc_tools/sections/fix-poor-descriptions.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_split/lc_int_embeddings/sections/ex-openai.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-34
+skills/benchmarks/oss_split/lc_structured_output/sections/fix-missing-descriptions.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_split/lc_int_chat_models/sections/fix-context-window-limits.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_split/lc_tools/sections/fix-non-serializable.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/lc_agents/sections/fix-serializable-results.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/lc_int_chat_models/sections/ex-anthropic.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-32
+skills/benchmarks/oss_split/lc_tool_calling/sections/ex-parallel.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-28
+skills/benchmarks/oss_split/lc_multimodal/sections/overview.md
+  s_67b65679a0b089::t_7077e865609be2 1-7
+skills/benchmarks/oss_merged/lc_rag/sections/fix-dimension-mismatch.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/da_subagents/sections/ex-research.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-41
+skills/benchmarks/oss_split/lc_int_tools/sections/ex-pydantic-schema.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_split/da_todolist/sections/boundaries.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/lc_agents/sections/fix-async-tools.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-24
+skills/benchmarks/oss_merged/lc_output/sections/boundaries.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_merged/lg_execution/sections/fix-send-accumulator.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_split/lc_tool_calling/sections/ex-force-tool.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-33
+skills/benchmarks/oss_merged/lg_persistence/sections/fix-resume-with-none.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/lc_structured_output/sections/ex-optional-defaults.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_merged/da_core/sections/built-in-tools.md
+  s_67b65679a0b089::t_688b246f2c6184 1-5
+skills/benchmarks/oss_merged/lg_fundamentals/sections/ex-command-state-and-routing.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-27
+skills/benchmarks/oss_split/lc_int_embeddings/sections/overview.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_merged/da_memory/sections/overview.md
+  s_67b65679a0b089::t_7077e865609be2 1-7
+skills/benchmarks/oss_split/lc_int_chat_models/sections/installation.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_split/lc_int_splitters/sections/fix-metadata-not-preserved.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+scripts/convert_skill.py
+  s_67b65679a0b089::t_8a23b2340358ec 1-25,29-31,45-95,104,116-127,169-176,178-188
+  s_67b65679a0b089::t_4b6824eff8042d 26-28,32-44
+  s_67b65679a0b089::t_def1f394b1ebbd 96-103,105-115,128-168,177
+skills/benchmarks/oss_merged/lg_execution/sections/fix-checkpointer-required-for-interrupts.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/da_skills/sections/fix-backend-setup.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/lc_int_splitters/sections/fix-zero-overlap.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_merged/lg_persistence/sections/ex-production-postgres.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/lc_int_embeddings/sections/fix-api-keys.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/lc_tool_calling/sections/fix-forgetting-tool-results.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_merged/lc_fundamentals/sections/fix-missing-tool-description.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_merged/lc_output/sections/when-to-use-structured-output.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_merged/lc_rag/skill.yaml
+  s_67b65679a0b089::t_7077e865609be2 1-27
+skills/benchmarks/oss_split/lc_streaming/sections/ex-timeout-ts.ts.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-33
+skills/benchmarks/oss_split/da_memory/sections/ex-knowledge-base.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-40
+skills/benchmarks/oss_split/lc_int_splitters/sections/ex-vectorstore.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-27
+skills/benchmarks/oss_split/lc_int_splitters/sections/overview.md
+  s_67b65679a0b089::t_7077e865609be2 1-5
+skills/benchmarks/oss_split/lc_rag/sections/boundaries.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/langsmith_dataset/sections/querying_traces.ts.md
+  s_67b65679a0b089::t_be88370d8cc665 1-16
+skills/benchmarks/oss_merged/lc_rag/sections/fix-consistent-embeddings.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_split/lc_int_splitters/sections/ex-custom-length-py.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_merged/da_orchestration/sections/fix-thread-id-required-for-resumption.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/lc_tools/sections/ex-factory-pattern.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-22
+skills/benchmarks/oss_split/lc_int_embeddings/sections/ex-vectorstore.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-23
+skills/benchmarks/oss_split/lc_hitl/sections/oneliner.md
+  s_67b65679a0b089::t_7077e865609be2 1
+skills/benchmarks/oss_merged/lc_agents/sections/fix-not-checking-for-tool-calls.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/da_filesystem/sections/overview.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_split/lc_int_embeddings/sections/provider-selection.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/lc_int_splitters/sections/ex-token.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-16
+skills/benchmarks/oss_merged/lg_fundamentals/sections/when-to-use-langgraph.md
+  s_67b65679a0b089::t_7077e865609be2 1-5
+skills/benchmarks/oss_split/lc_multimodal/sections/documentation-links.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_split/lc_multimodal/sections/fix-content-block-format.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/lc_structured_output/skill.yaml
+  s_67b65679a0b089::t_7077e865609be2 1-29
+skills/benchmarks/oss_split/da_filesystem/sections/fix-filesystembackend-virtual-mode.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_split/lc_tool_calling/sections/fix-binding-tools-multiple-times.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/da_filesystem/sections/decision-table.md
+  s_67b65679a0b089::t_7077e865609be2 1-7
+skills/benchmarks/oss_merged/da_orchestration/sections/overview.md
+  s_67b65679a0b089::t_7077e865609be2 1-7
+skills/benchmarks/oss_merged/lc_output/sections/ex-enum-and-literal-types.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_split/da_hitl/sections/ex-basic-approval.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-23
+skills/benchmarks/oss_split/lc_tool_calling/sections/ex-tool-message.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_merged/lg_execution/sections/ex-stream-custom-data.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/lc_agents/sections/ex-streaming.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_split/lc_int_chat_models/sections/ex-google.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_split/lc_int_chat_models/sections/ex-tools.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-33
+skills/benchmarks/oss_split/da_skills/sections/overview.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_split/lc_rag/skill.yaml
+  s_67b65679a0b089::t_7077e865609be2 1-28
+skills/benchmarks/oss_split/lc_multimodal/sections/ex-image-url.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-21
+skills/benchmarks/oss_split/da_overview/sections/ex-gotcha-await.ts.md
+  s_67b65679a0b089::t_688b246f2c6184 1-9
+skills/benchmarks/oss_split/lc_tools/sections/ex-structuredtool.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-28
+skills/benchmarks/oss_split/da_skills/sections/boundaries.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/lc_int_splitters/sections/fix-small-chunks-typescript.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-16
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/links.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_merged/lc_output/sections/ex-basic-hitl-setup.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-25
+skills/benchmarks/oss_split/da_hitl/skill.yaml
+  s_67b65679a0b089::t_7077e865609be2 1-21
+skills/benchmarks/oss_split/da_subagents/sections/ex-custom-skills.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_merged/lc_output/sections/ex-running-with-interrupts.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-22
+skills/benchmarks/oss_merged/lg_persistence/sections/ex-update-state.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_merged/lg_fundamentals/sections/fix-forgot-reducer-for-list.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_merged/lc_output/sections/fix-missing-descriptions.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_merged/da_orchestration/sections/ex-reject-with-feedback.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/da_hitl/sections/ex-approve.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-40
+skills/benchmarks/oss_split/lc_streaming/sections/ex-token-streaming.ts.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-15
+skills/benchmarks/oss_split/lc_hitl/sections/fix-not-checking-interrupts.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-16
+skills/benchmarks/oss_merged/lc_rag/sections/fix-persist-vectorstore.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/lc_int_chat_models/sections/fix-context-window-limits.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/lc_int_splitters/sections/ex-recursive.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-34
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/ex-faiss.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-36
+skills/benchmarks/oss_split/lc_rag/sections/ex-text-split.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_merged/lg_fundamentals/sections/ex-basic-graph.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-29
+skills/benchmarks/oss_split/lc_int_embeddings/sections/ex-batch.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_split/lc_int_splitters/sections/ex-vectorstore.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-27
+skills/benchmarks/oss_split/lc_int_tools/sections/overview.md
+  s_67b65679a0b089::t_7077e865609be2 1-5
+skills/benchmarks/oss_split/da_hitl/sections/setup.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-43
+skills/benchmarks/oss_split/lc_structured_output/sections/fix-type-hints.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_merged/lc_rag/sections/boundaries.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/da_hitl/sections/decision-table.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/ex-web.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-29
+skills/benchmarks/oss_split/lc_int_splitters/sections/fix-chunk-size-vs-tokens.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/lc_models/sections/choosing-a-model.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/lc_rag/sections/ex-pdf-loader.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/langsmith_dataset/sections/tips.py.md
+  s_67b65679a0b089::t_be88370d8cc665 1-7
+skills/benchmarks/oss_split/lc_int_embeddings/sections/fix-model-consistency.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-23
+skills/benchmarks/oss_merged/lc_output/sections/fix-no-thread-id.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/lc_rag/sections/ex-embeddings.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_split/lc_rag/sections/ex-metadata.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_merged/lg_execution/sections/fix-resume-with-command.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/da_skills/sections/using-skills-storebackend.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-33
+skills/benchmarks/oss_merged/lg_execution/sections/ex-dynamic-interrupt.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-37
+skills/benchmarks/oss_merged/lg_fundamentals/sections/ex-map-reduce-with-send.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-26
+skills/benchmarks/oss_split/lc_int_tools/sections/ex-vector-store.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-25
+skills/benchmarks/oss_split/lc_multimodal/sections/ex-vision-claude.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_split/da_overview/sections/ex-gotcha-skills-backend.ts.md
+  s_67b65679a0b089::t_688b246f2c6184 1-16
+skills/benchmarks/oss_split/da_memory/sections/fix-store-backend-requires-store.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_merged/lc_output/sections/ex-running-with-interrupts.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-21
+skills/benchmarks/oss_split/lc_models/sections/ex-invoke.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/lc_structured_output/sections/fix-accessing-response-wrong.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_merged/lc_agents/sections/fix-tool-description.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/lc_tool_calling/sections/ex-conditional-binding.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-21
+skills/benchmarks/oss_merged/lc_fundamentals/sections/ex-basic-agent.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-25
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/links.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/langsmith_evaluator/sections/llm_judge.py.md
+  s_67b65679a0b089::t_be88370d8cc665 1-30
+skills/benchmarks/langsmith_trace/sections/trace_other_frameworks.py.md
+  s_67b65679a0b089::t_65805eb2392b32 1-37
+skills/benchmarks/oss_split/lc_streaming/sections/ex-web-app.ts.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-42
+skills/benchmarks/langsmith_dataset/sections/dataset_rag.py.md
+  s_67b65679a0b089::t_be88370d8cc665 1-47
+skills/benchmarks/oss_split/lc_int_chat_models/sections/ex-tools.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-29
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/ex-directory.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_split/lc_tool_calling/sections/fix-tool-call-id-mismatch.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-21
+skills/benchmarks/oss_split/lc_streaming/sections/fix-early-break-cleanup.ts.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-22
+skills/benchmarks/oss_split/lc_tools/sections/when-to-define-custom-tools.md
+  s_67b65679a0b089::t_7077e865609be2 1-7
+skills/benchmarks/oss_merged/lg_execution/sections/fix-checkpointer-required-for-interrupts.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/da_hitl/sections/boundaries.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/lg_graph_api/sections/ex-basic.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-33
+skills/benchmarks/langsmith_trace/sections/trace_langchain_oss.py.md
+  s_67b65679a0b089::t_96dbbba00d5514 1-11
+skills/benchmarks/oss_merged/da_core/sections/ex-skills-with-filesystem-backend.py.md
+  s_67b65679a0b089::t_688b246f2c6184 1-16
+skills/benchmarks/oss_merged/lc_output/sections/overview.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/ex-lazy.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_split/da_hitl/sections/fix-interrupt-between-invocations.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/ex-text.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_merged/lc_agents/sections/ex-tool-choice-force-tool.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/da_memory/sections/fix-path-prefix-routing.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_split/lc_tool_calling/sections/ex-error-handling.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-42
+skills/benchmarks/oss_split/lc_agents/sections/fix-serializable-results.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_merged/lg_persistence/sections/ex-long-term-memory-store.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-21
+skills/benchmarks/oss_split/lc_agents/sections/ex-persistence.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_split/lc_agents/sections/links.md
+  s_67b65679a0b089::t_7077e865609be2 1-2
+skills/benchmarks/oss_split/lc_agents/sections/overview.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_split/lc_int_chat_models/sections/ex-init.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/lc_structured_output/sections/overview.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/lc_tool_calling/sections/ex-conditional-binding.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_split/lc_tool_calling/sections/fix-tool-choice-type-confusion.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_merged/da_memory/sections/ex-store-in-custom-tools.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-28
+skills/benchmarks/oss_split/lc_int_chat_models/sections/fix-streaming-confusion.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/lc_tools/sections/ex-streaming.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-24
+skills/benchmarks/oss_split/lc_structured_output/sections/ex-basic-agent.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-27
+skills/benchmarks/langsmith_trace/sections/querying_traces.md
+  s_67b65679a0b089::t_7ce41c282c3e6f 1-43
+skills/benchmarks/oss_split/lc_models/sections/fix-streaming-requires-iteration.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_split/da_skills/sections/using-skills-storebackend.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-36
+skills/benchmarks/oss_split/lc_models/sections/initialization-methods.md
+  s_67b65679a0b089::t_7077e865609be2 1-5
+skills/benchmarks/oss_merged/da_core/sections/skill-md-format.md
+  s_67b65679a0b089::t_688b246f2c6184 1-29
+skills/benchmarks/oss_merged/da_memory/sections/fix-statebackend-files-dont-persist.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_split/da_overview/sections/ex-gotcha-store.ts.md
+  s_67b65679a0b089::t_688b246f2c6184 1-18
+skills/benchmarks/oss_merged/lg_execution/sections/ex-dynamic-agent.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-48
+skills/benchmarks/oss_merged/lc_output/skill.yaml
+  s_67b65679a0b089::t_7077e865609be2 1-24
+skills/benchmarks/oss_merged/lg_execution/sections/ex-stream-llm-tokens.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/lc_int_chat_models/sections/fix-api-keys.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_split/lc_int_chat_models/sections/fix-model-name-variations.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/lc_tool_calling/sections/ex-force-any.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_merged/da_core/sections/fix-store-for-memory.ts.md
+  s_67b65679a0b089::t_688b246f2c6184 1-8
+skills/benchmarks/oss_merged/da_core/sections/when-to-use.md
+  s_67b65679a0b089::t_688b246f2c6184 1-6
+skills/benchmarks/oss_merged/lc_agents/sections/fix-not-checking-for-tool-calls.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/da_skills/sections/fix-frontmatter-required.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/ex-csv.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_split/lc_streaming/sections/fix-handle-all-modes.py.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-21
+skills/benchmarks/oss_merged/lg_fundamentals/sections/ex-conditional-edges.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-29
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/ex-mmr.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_split/lc_agents/skill.yaml
+  s_67b65679a0b089::t_7077e865609be2 1-29
+skills/benchmarks/oss_split/lc_tools/sections/ex-async.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_split/lg_graph_api/sections/ex-loops.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-29
+skills/benchmarks/oss_merged/lc_agents/skill.yaml
+  s_67b65679a0b089::t_7077e865609be2 1-28
+skills/benchmarks/oss_split/lc_tools/sections/fix-non-serializable.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_split/da_overview/sections/ex-gotcha-skills-backend.py.md
+  s_67b65679a0b089::t_688b246f2c6184 1-16
+skills/benchmarks/oss_merged/da_memory/sections/ex-filesystem-backend-local-dev.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_merged/lg_persistence/sections/boundaries.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/lc_streaming/sections/ex-error-handling.ts.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-27
+skills/benchmarks/oss_split/da_filesystem/sections/ex-local-dev.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_merged/da_orchestration/sections/fix-checkpointer-required.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/lc_int_chat_models/sections/fix-azure-configuration.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-16
+skills/benchmarks/oss_merged/da_orchestration/sections/how-subagents-work.md
+  s_67b65679a0b089::t_7077e865609be2 1-3
+skills/benchmarks/oss_split/lc_agents/sections/ex-basic.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-31
+skills/benchmarks/oss_split/lc_tool_calling/sections/ex-manual-execution.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-37
+skills/benchmarks/oss_split/da_overview/sections/ex-basic-agent.py.md
+  s_67b65679a0b089::t_688b246f2c6184 1-15
+skills/benchmarks/oss_merged/da_memory/sections/backend-selection.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_split/lc_streaming/sections/ex-combined-modes.py.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-24
+skills/benchmarks/oss_split/lc_streaming/sections/fix-handle-all-modes.ts.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-24
+skills/benchmarks/oss_split/lc_structured_output/sections/fix-over-constraining.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_split/da_overview/sections/ex-gotcha-thread-id.py.md
+  s_67b65679a0b089::t_688b246f2c6184 1-12
+skills/benchmarks/oss_split/da_overview/sections/ex-harness-architecture.ts.md
+  s_67b65679a0b089::t_688b246f2c6184 1-24
+skills/benchmarks/oss_merged/lc_agents/sections/fix-non-serializable-return.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/lc_hitl/sections/fix-wrong-resume-syntax.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/fix-web-scraping-dependencies.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/lc_int_splitters/sections/ex-recursive-how-ts.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/fix-filter-syntax.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-16
+skills/benchmarks/oss_split/lc_models/sections/ex-providers.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-30
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/fix-memory-ephemeral.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_split/lc_int_tools/sections/fix-tool-desc.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-25
+skills/benchmarks/oss_split/lc_streaming/sections/ex-combined-modes.ts.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-27
+skills/benchmarks/oss_merged/lc_agents/sections/ex-agent-with-persistence.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/da_subagents/sections/when-to-use.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/ex-chroma.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-31
+skills/benchmarks/oss_split/lc_structured_output/sections/ex-enum-literal.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-24
+skills/benchmarks/oss_merged/da_memory/sections/ex-composite-backend-for-hybrid.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_split/lc_hitl/sections/ex-interrupts.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-24
+skills/benchmarks/oss_split/lc_tool_calling/sections/fix-binding-tools-multiple-times.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/lc_int_chat_models/sections/fix-tool-calling-support.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/da_subagents/sections/ex-default.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/lc_multimodal/sections/ex-image-url.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-16
+skills/benchmarks/oss_split/lc_rag/sections/ex-agent.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-27
+skills/benchmarks/oss_split/lc_tools/sections/ex-complex-return.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-24
+skills/benchmarks/oss_split/lc_tools/sections/ex-factory-pattern.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-24
+skills/benchmarks/oss_split/lc_models/sections/fix-provider-specific-features.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_merged/lc_rag/sections/fix-chunk-overlap.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_merged/lg_persistence/sections/fix-update-state-with-reducers.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_split/lc_rag/sections/ex-text-split.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/da_overview/sections/decision-table.md
+  s_67b65679a0b089::t_688b246f2c6184 1-10
+skills/benchmarks/oss_split/lc_int_splitters/sections/ex-pdf.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-25
+skills/benchmarks/oss_merged/lc_agents/sections/ex-basic-agent-with-tools.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_merged/lc_agents/sections/fix-missing-docstrings.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/da_todolist/sections/fix-thread-id-required.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/lc_tools/sections/ex-error-handling.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_merged/lc_agents/sections/fix-tool-call-id-mismatch.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_split/lc_models/sections/ex-model-select.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-21
+skills/benchmarks/oss_split/lc_tool_calling/sections/ex-conversation.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-43
+skills/benchmarks/oss_split/lc_tool_calling/sections/ex-basic.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-31
+skills/benchmarks/oss_split/lc_int_embeddings/sections/fix-model-consistency.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_split/lc_int_embeddings/sections/boundaries.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/overview.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_split/da_overview/sections/ex-gotcha-checkpointer.ts.md
+  s_67b65679a0b089::t_688b246f2c6184 1-16
+skills/benchmarks/oss_merged/lc_agents/sections/overview.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/da_filesystem/sections/fix-filesystembackend-virtual-mode.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_merged/lc_agents/sections/ex-parallel-tool-calling.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-16
+skills/benchmarks/oss_split/da_filesystem/sections/backend-types.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_split/lc_int_tools/sections/ex-duckduckgo.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/oss_split/lc_int_embeddings/sections/fix-azure-configuration.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-16
+skills/benchmarks/oss_split/lc_hitl/sections/when-to-use.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/lc_int_chat_models/sections/ex-bedrock.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/fix-chroma-persistence.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_split/lc_rag/sections/ex-web-loader.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_split/lc_tool_calling/sections/fix-list-comprehension-with-async.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_merged/lg_fundamentals/sections/ex-graph-with-loop.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-28
+skills/benchmarks/oss_merged/lg_fundamentals/sections/fix-infinite-loop-needs-exit.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-8
+skills/benchmarks/oss_split/lc_models/sections/ex-basic-init.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/langsmith_dataset/sections/dataset_single_step.py.md
+  s_67b65679a0b089::t_be88370d8cc665 1-44
+skills/benchmarks/oss_split/lg_graph_api/sections/ex-conditional.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-49
+skills/benchmarks/oss_merged/lg_persistence/skill.yaml
+  s_67b65679a0b089::t_7077e865609be2 1-21
+skills/benchmarks/oss_split/lc_int_embeddings/sections/fix-azure-configuration.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-16
+skills/benchmarks/oss_split/lc_rag/sections/fix-consistent-embeddings.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_split/da_overview/sections/ex-gotcha-thread-id.ts.md
+  s_67b65679a0b089::t_688b246f2c6184 1-12
+skills/benchmarks/oss_split/da_todolist/sections/fix-optional-for-simple-tasks.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-22
+skills/benchmarks/oss_split/lc_agents/sections/fix-messages-vs-state.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-7
+skills/benchmarks/oss_split/lc_int_embeddings/sections/ex-huggingface.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/lc_int_embeddings/sections/fix-text-length-limits.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_split/lc_int_splitters/sections/ex-pdf.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-25
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/ex-github.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-18
+skills/benchmarks/oss_split/lc_int_embeddings/sections/fix-batch-size-limits.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/lc_int_tools/sections/oneliner.md
+  s_67b65679a0b089::t_7077e865609be2 1
+skills/benchmarks/oss_merged/lg_persistence/sections/ex-long-term-memory-store.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-22
+skills/benchmarks/oss_merged/lc_output/sections/ex-editing-tool-arguments.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-22
+skills/benchmarks/oss_merged/lg_execution/sections/ex-dynamic-agent.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-46
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/ex-memory.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-26
+skills/benchmarks/oss_split/lc_multimodal/sections/ex-image-base64.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-24
+skills/benchmarks/oss_split/lc_streaming/sections/boundaries.md
+  s_67b65679a0b089::t_63f2033c52ef55 1-12
+skills/benchmarks/oss_merged/lc_agents/sections/ex-basic-tool.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-21
+skills/benchmarks/oss_split/da_filesystem/sections/links.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_split/da_filesystem/sections/ex-large-context.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-21
+skills/benchmarks/oss_split/da_todolist/sections/ex-sequential.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-30
+skills/benchmarks/oss_split/lc_int_doc_loaders/sections/ex-csv.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_split/lc_rag/sections/fix-consistent-embeddings.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_merged/lc_fundamentals/sections/fix-missing-tool-description.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/ex-chroma.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-27
+skills/benchmarks/oss_merged/lc_rag/sections/ex-faiss-vectorstore.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-14
+skills/benchmarks/oss_split/lc_tools/sections/ex-external-deps.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-25
+skills/benchmarks/oss_merged/lc_agents/sections/fix-infinite-loop.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-11
+skills/benchmarks/langsmith_dataset/sections/troubleshooting.py.md
+  s_67b65679a0b089::t_be88370d8cc665 1-25
+skills/benchmarks/oss_merged/lc_output/sections/ex-basic-structured-output.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-20
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/ex-add-docs.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-25
+skills/benchmarks/oss_split/da_memory/sections/ex-store-tools.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-39
+skills/benchmarks/langsmith_evaluator/sections/evaluator_types.py.md
+  s_67b65679a0b089::t_be88370d8cc665 1-3
+skills/benchmarks/oss_split/lc_models/skill.yaml
+  s_67b65679a0b089::t_7077e865609be2 1-34
+skills/benchmarks/oss_merged/lg_fundamentals/skill.yaml
+  s_67b65679a0b089::t_7077e865609be2 1-27
+skills/benchmarks/oss_split/lg_graph_api/sections/ex-compile.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_split/lc_agents/sections/fix-state-not-persisting.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-25
+skills/benchmarks/oss_split/lc_int_vectorstores/sections/fix-chroma-persistence.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-16
+skills/benchmarks/oss_merged/lg_persistence/sections/fix-store-injection.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_merged/lg_fundamentals/sections/fix-compile-before-execution.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-9
+skills/benchmarks/oss_merged/lg_execution/sections/workflow-vs-agent.md
+  s_67b65679a0b089::t_7077e865609be2 1-5
+skills/benchmarks/oss_split/lc_int_tools/sections/ex-error-handling.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-28
+skills/benchmarks/oss_split/lc_hitl/sections/ex-reject.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-10
+skills/benchmarks/oss_merged/da_core/sections/fix-checkpointer-for-interrupts.ts.md
+  s_67b65679a0b089::t_688b246f2c6184 1-8
+skills/benchmarks/oss_split/lc_rag/sections/ex-basic-rag.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-37
+skills/benchmarks/oss_split/da_hitl/sections/fix-checkpointer-required.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/da_todolist/sections/ex-custom-instructions.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-50
+skills/benchmarks/oss_split/lc_tool_calling/sections/ex-force-any.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-12
+skills/benchmarks/oss_split/lc_hitl/sections/fix-no-thread-id.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-13
+skills/benchmarks/oss_split/lg_graph_api/sections/boundaries.md
+  s_67b65679a0b089::t_7077e865609be2 1-19
+skills/benchmarks/oss_split/lc_agents/sections/ex-persistence.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-15
+skills/benchmarks/oss_split/lc_int_chat_models/sections/fix-api-keys.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-17
+skills/benchmarks/oss_merged/da_core/sections/fix-store-for-memory.py.md
+  s_67b65679a0b089::t_688b246f2c6184 1-8
+skills/benchmarks/oss_merged/da_memory/sections/fix-statebackend-files-dont-persist.py.md
+  s_67b65679a0b089::t_7077e865609be2 1-6
+skills/benchmarks/oss_split/lc_tool_calling/sections/overview.md
+  s_67b65679a0b089::t_7077e865609be2 1-7
+skills/benchmarks/oss_split/lc_hitl/sections/ex-setup.ts.md
+  s_67b65679a0b089::t_7077e865609be2 1-29
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.1",
+  "base_commit_sha": "7bf3007873dd40a0f8adb2e6b17d04900ee78278",
+  "prompts": {},
+  "humans": {
+    "h_fe5ed23bcee8dc": {
+      "author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  },
+  "sessions": {
+    "s_67b65679a0b089": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e981ba74-4aa6-475b-a630-0452822cb593",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  }
+}

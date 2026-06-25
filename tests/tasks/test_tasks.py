@@ -151,7 +151,7 @@ def build_noise_tasks(noise_task_names: list[str]) -> list[NoiseTask]:
 
 
 def set_experiment_trace_env() -> list[str]:
-    """Set env vars so the stop hook nests CC traces under the experiment run.
+    """Set env vars so the plugin nests CC traces under the experiment run.
 
     Returns list of env var keys that were set (for cleanup).
     """
@@ -159,12 +159,12 @@ def set_experiment_trace_env() -> list[str]:
     if not run_tree:
         return []
 
-    os.environ["CC_LS_TRACE_ID"] = str(run_tree.trace_id)
-    os.environ["CC_LS_PARENT_RUN_ID"] = str(run_tree.id)
-    os.environ["CC_LS_DOTTED_ORDER"] = run_tree.dotted_order or ""
+    os.environ["CC_LANGSMITH_PARENT_DOTTED_ORDER"] = run_tree.dotted_order or ""
+    keys = ["CC_LANGSMITH_PARENT_DOTTED_ORDER"]
     if run_tree.session_name:
         os.environ["CC_LANGSMITH_PROJECT"] = run_tree.session_name
-    return ["CC_LS_TRACE_ID", "CC_LS_PARENT_RUN_ID", "CC_LS_DOTTED_ORDER", "CC_LANGSMITH_PROJECT"]
+        keys.append("CC_LANGSMITH_PROJECT")
+    return keys
 
 
 # =============================================================================
@@ -232,7 +232,7 @@ def test_task_treatment(task_name, treatment_name):
     # Pass experiment trace context to Docker so CC traces nest under experiment
     cc_env_keys = set_experiment_trace_env()
     try:
-        result = fixtures.run_claude(prompt, timeout=CLAUDE_TIMEOUT)
+        result = fixtures.run_claude(prompt, timeout=task.config.timeout_sec or CLAUDE_TIMEOUT)
     finally:
         for key in cc_env_keys:
             os.environ.pop(key, None)

@@ -292,7 +292,7 @@ ls.describe(
           console.log(`  Run ID: ${runId}`);
           console.log(`  Skills: ${Object.keys(skills).join(", ") || "none"}`);
 
-          // Pass experiment trace context to Docker so stop_hook nests CC traces
+          // Pass experiment trace context to Docker so the plugin nests CC traces
           // under the experiment run (visible when clicking the experiment row)
           const ccEnvKeys = setExperimentTraceEnv();
 

@@ -119,7 +119,7 @@ export function cleanupLangSmithProject(): void {
 // =============================================================================
 
 /**
- * Set env vars so the stop hook nests CC traces under the experiment run.
+ * Set env vars so the plugin nests CC traces under the experiment run.
  * Matches Python's set_experiment_trace_env().
  *
  * Must be called inside a langsmith/vitest test function (traceable context).
@@ -136,12 +136,8 @@ export function setExperimentTraceEnv(): string[] {
     }
 
     const keys: string[] = [];
-    process.env.CC_LS_TRACE_ID = String(runTree.trace_id);
-    keys.push("CC_LS_TRACE_ID");
-    process.env.CC_LS_PARENT_RUN_ID = String(runTree.id);
-    keys.push("CC_LS_PARENT_RUN_ID");
-    process.env.CC_LS_DOTTED_ORDER = runTree.dotted_order || "";
-    keys.push("CC_LS_DOTTED_ORDER");
+    process.env.CC_LANGSMITH_PARENT_DOTTED_ORDER = runTree.dotted_order || "";
+    keys.push("CC_LANGSMITH_PARENT_DOTTED_ORDER");
     if (runTree.project_name) {
       process.env.CC_LANGSMITH_PROJECT = runTree.project_name;
       keys.push("CC_LANGSMITH_PROJECT");

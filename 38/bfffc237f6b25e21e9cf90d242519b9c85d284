@@ -1,0 +1,24 @@
+harbor_tasks/oss-fix-lc-streaming/tests/test_streaming.py
+  s_6b847c33f5bff3::t_50d3ca76ac61dc 149
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.5",
+  "base_commit_sha": "38bfffc237f6b25e21e9cf90d242519b9c85d284",
+  "prompts": {},
+  "humans": {
+    "h_fe5ed23bcee8dc": {
+      "author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  },
+  "sessions": {
+    "s_6b847c33f5bff3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b8070fee-ef74-4ca8-a687-44717f95dc1a",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  }
+}

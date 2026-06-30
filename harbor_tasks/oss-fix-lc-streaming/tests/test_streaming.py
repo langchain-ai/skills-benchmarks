@@ -146,6 +146,7 @@ def check_tuple_unpacking(runner: TestRunner):
             r"token\s*,\s*_\s*=\s*chunk",
             r"chunk\s*\[\s*0\s*\]",
             r"\w+\s*,\s*_\w*\s*=\s*chunk",
+            r"for\s+\w+\s*,\s*\(\w+",  # for _mode, (chunk, _metadata) in stream
         ]
 
         has_tuple_unpack = any(re.search(pattern, source) for pattern in tuple_unpack_patterns)

@@ -21,6 +21,7 @@ Usage:
 import argparse
 import fnmatch
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -35,6 +36,17 @@ SKILLS_STAGING = REPO_DIR / ".sweep" / "skills"
 DEEPAGENTS_BASE = REPO_DIR / "deepagents_agent"
 DEEPAGENTS_STAGING = REPO_DIR / ".sweep" / "deepagents"
 LS_SETUP_DIR = REPO_DIR / ".sweep" / "ls-setup"
+
+# Load .env so host-side LangSmith calls (ls_setup/ls_cleanup) pick up LANGSMITH_API_KEY.
+_env_file = REPO_DIR / ".env"
+if _env_file.exists():
+    for _line in _env_file.read_text().splitlines():
+        _line = _line.strip()
+        if _line and not _line.startswith("#") and "=" in _line:
+            _k, _, _v = _line.partition("=")
+            _k = _k.strip()
+            if _k not in os.environ:
+                os.environ[_k] = _v.strip().strip('"').strip("'")
 
 sys.path.insert(0, str(REPO_DIR))
 from skillbench_harbor.treatments import list_treatments, materialize_treatment  # noqa: E402

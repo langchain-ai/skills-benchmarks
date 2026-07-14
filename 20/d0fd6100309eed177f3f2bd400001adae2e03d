@@ -1,0 +1,192 @@
+harbor_tasks/ls-multiskill-basic/environment/requirements.txt
+  s_6b847c33f5bff3::t_fc254265dea275 1-14
+harbor_tasks/ls-multiskill-basic/tests/scaffold/python/validation/dataset.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-337
+harbor_tasks/ls-lang-tracing/tests/scaffold/python/utils.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-84
+harbor_tasks/ls-multiskill-basic/tests/test.sh
+  s_6b847c33f5bff3::t_fc254265dea275 1-34
+harbor_tasks/ls-multiskill-basic/tests/_test_context.json
+  s_6b847c33f5bff3::t_fc254265dea275 1-5
+harbor_tasks/ls-multiskill-basic/tests/scaffold/python/validation/runner.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-237
+harbor_tasks/ls-multiskill-basic/tests/scaffold/python/validation/evaluator.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-549
+harbor_tasks/ls-lang-evaluator/tests/scaffold/python/validation/evaluator.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-549
+harbor_tasks/ls-multiskill-basic/tests/scaffold/python/utils.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-84
+harbor_tasks/ls-lang-tracing/tests/scaffold/python/validation/core.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-264
+harbor_tasks/ls-multiskill-basic/instruction.md
+  s_6b847c33f5bff3::t_fc254265dea275 1-5
+harbor_tasks/ls-lang-tracing/tests/scaffold/python/validation/evaluator.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-549
+harbor_tasks/ls-multiskill-advanced/instruction.md
+  s_6b847c33f5bff3::t_fc254265dea275 1-5
+harbor_tasks/ls-lang-tracing/tests/scaffold/python/validation/scripts.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-92
+harbor_tasks/ls-multiskill-advanced/tests/_test_context.json
+  s_6b847c33f5bff3::t_fc254265dea275 1-5
+harbor_tasks/ls-multiskill-basic/solution/solve.sh
+  s_6b847c33f5bff3::t_fc254265dea275 1-4
+harbor_tasks/ls-lang-evaluator/tests/data/trajectory_test_cases.json
+  s_6b847c33f5bff3::t_fc254265dea275 1-102
+harbor_tasks/ls-lang-tracing/solution/solve.sh
+  s_6b847c33f5bff3::t_fc254265dea275 1-4
+harbor_tasks/ls-lang-evaluator/instruction.md
+  s_6b847c33f5bff3::t_fc254265dea275 1-15
+harbor_tasks/ls-multiskill-advanced/tests/scaffold/python/validation/dataset.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-337
+harbor_tasks/ls-lang-tracing/tests/test.sh
+  s_6b847c33f5bff3::t_fc254265dea275 1-34
+harbor_tasks/ls-multiskill-basic/tests/scaffold/python/validation/tracing.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-313
+harbor_tasks/ls-lang-evaluator/solution/solve.sh
+  s_6b847c33f5bff3::t_fc254265dea275 1-4
+harbor_tasks/ls-lang-tracing/tests/_test_context.json
+  s_6b847c33f5bff3::t_fc254265dea275 1-6
+harbor_tasks/ls-multiskill-basic/tests/test_dataset.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-70
+harbor_tasks/ls-multiskill-advanced/tests/scaffold/python/validation/tracing.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-313
+harbor_tasks/ls-multiskill-basic/environment/Dockerfile
+  s_6b847c33f5bff3::t_fc254265dea275 1-28
+harbor_tasks/ls-multiskill-advanced/tests/scaffold/python/validation/scripts.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-92
+harbor_tasks/ls-lang-evaluator/tests/_test_context.json
+  s_6b847c33f5bff3::t_fc254265dea275 1-6
+harbor_tasks/ls-lang-evaluator/tests/scaffold/python/utils.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-84
+harbor_tasks/ls-lang-evaluator/tests/scaffold/python/validation/runner.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-237
+harbor_tasks/ls-lang-evaluator/tests/data/sql_agent_trajectory_dataset.json
+  s_6b847c33f5bff3::t_fc254265dea275 1-38
+harbor_tasks/ls-lang-tracing/tests/scaffold/python/validation/tracing.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-313
+harbor_tasks/ls-multiskill-advanced/environment/requirements.txt
+  s_6b847c33f5bff3::t_fc254265dea275 1-14
+harbor_tasks/ls-multiskill-advanced/environment/Dockerfile
+  s_6b847c33f5bff3::t_fc254265dea275 1-28
+harbor_tasks/ls-multiskill-advanced/tests/test.sh
+  s_6b847c33f5bff3::t_fc254265dea275 1-34
+harbor_tasks/ls-lang-evaluator/tests/scaffold/python/validation/scripts.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-92
+harbor_tasks/ls-lang-tracing/tests/scaffold/python/validation/dataset.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-337
+harbor_tasks/ls-lang-evaluator/tests/scaffold/python/validation/dataset.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-337
+harbor_tasks/ls-lang-tracing/environment/Dockerfile
+  s_6b847c33f5bff3::t_fc254265dea275 1-39
+harbor_tasks/ls-multiskill-advanced/solution/solve.sh
+  s_6b847c33f5bff3::t_fc254265dea275 1-4
+harbor_tasks/ls-multiskill-advanced/tests/data/evaluator_test_cases.json
+  s_6b847c33f5bff3::t_fc254265dea275 1-126
+harbor_tasks/ls-multiskill-advanced/tests/data/expected_dataset.json
+  s_6b847c33f5bff3::t_fc254265dea275 1-96
+harbor_tasks/ls-multiskill-advanced/tests/scaffold/python/utils.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-84
+harbor_tasks/ls-multiskill-basic/tests/scaffold/python/validation/scripts.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-92
+harbor_tasks/ls-lang-evaluator/environment/Dockerfile
+  s_6b847c33f5bff3::t_fc254265dea275 1-35
+harbor_tasks/ls-multiskill-advanced/tests/scaffold/python/validation/runner.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-237
+scripts/sweep.py
+  s_6b847c33f5bff3::t_629b4b39b3c516 205-206,220-223
+  s_6b847c33f5bff3::t_7a0e142f5b4076 37
+  s_6b847c33f5bff3::t_0a82449520b692 27-28
+  s_6b847c33f5bff3::t_361205da627f33 118-121
+  s_6b847c33f5bff3::t_e63b221dc30a26 281,284-298
+  s_6b847c33f5bff3::t_c9970aeaaa899d 93-117,122-176
+harbor_tasks/ls-lang-evaluator/task.toml
+  s_6b847c33f5bff3::t_fc254265dea275 1-29
+harbor_tasks/ls-multiskill-basic/tests/scaffold/python/validation/core.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-264
+harbor_tasks/ls-lang-tracing/tests/test_tracing.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-216
+harbor_tasks/ls-lang-evaluator/tests/scaffold/python/validation/core.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-264
+scripts/convert_task.py
+  s_6b847c33f5bff3::t_4c4447886820ab 278-280,288-290,297-300,309-310,314-315,329-338,343
+  s_6b847c33f5bff3::t_42597daa33db0f 354,358-373,384
+  s_6b847c33f5bff3::t_a90848a2757926 101-163,165-194,200-206
+  s_6b847c33f5bff3::t_78dc805011ead4 209-216,244-250,257-262
+  s_6b847c33f5bff3::t_261dca708227a6 6,10,14,16,18-24
+  s_6b847c33f5bff3::t_3bdc18736bd0b5 207-208
+harbor_tasks/ls-lang-evaluator/tests/scaffold/python/validation/tracing.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-313
+harbor_tasks/ls-multiskill-advanced/tests/scaffold/python/validation/core.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-264
+harbor_tasks/ls-lang-evaluator/tests/data/single_step_test_cases.json
+  s_6b847c33f5bff3::t_fc254265dea275 1-148
+harbor_tasks/ls-multiskill-advanced/task.toml
+  s_6b847c33f5bff3::t_fc254265dea275 1-29
+harbor_tasks/ls-multiskill-basic/task.toml
+  s_6b847c33f5bff3::t_fc254265dea275 1-29
+harbor_tasks/ls-lang-evaluator/tests/test.sh
+  s_6b847c33f5bff3::t_fc254265dea275 1-34
+harbor_tasks/ls-lang-evaluator/tests/test_evaluator.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-285
+harbor_tasks/ls-lang-evaluator/tests/data/support_bot_final_response_dataset.json
+  s_6b847c33f5bff3::t_fc254265dea275 1-29
+harbor_tasks/ls-multiskill-basic/tests/data/evaluator_test_cases.json
+  s_6b847c33f5bff3::t_fc254265dea275 1-126
+harbor_tasks/ls-lang-tracing/instruction.md
+  s_6b847c33f5bff3::t_fc254265dea275 1-4
+harbor_tasks/ls-lang-tracing/tests/scaffold/python/validation/runner.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-237
+harbor_tasks/ls-multiskill-advanced/tests/test_advanced.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-201
+harbor_tasks/ls-lang-tracing/task.toml
+  s_6b847c33f5bff3::t_fc254265dea275 1-29
+harbor_tasks/ls-multiskill-basic/tests/data/expected_dataset.json
+  s_6b847c33f5bff3::t_fc254265dea275 1-96
+harbor_tasks/ls-multiskill-advanced/tests/scaffold/python/validation/evaluator.py
+  s_6b847c33f5bff3::t_fc254265dea275 1-549
+harbor_tasks/ls-lang-evaluator/environment/backend/requirements.txt
+  s_6b847c33f5bff3::t_c98d60ff5e4298 1-4
+harbor_tasks/ls-lang-evaluator/environment/backend/sql_agent.py
+  s_6b847c33f5bff3::t_e0804b723e7527 1-170
+harbor_tasks/ls-lang-evaluator/environment/frontend/package-lock.json
+  s_6b847c33f5bff3::t_a47b5bd624fee3 1-1157
+harbor_tasks/ls-lang-evaluator/environment/frontend/package.json
+  s_6b847c33f5bff3::t_baf526fc71732d 1-17
+harbor_tasks/ls-lang-evaluator/environment/frontend/support_bot.ts
+  s_6b847c33f5bff3::t_d0cd3becc8b89b 1-144
+harbor_tasks/ls-lang-evaluator/environment/frontend/tsconfig.json
+  s_6b847c33f5bff3::t_9bc28fda7c7a7f 1-12
+harbor_tasks/ls-lang-tracing/environment/backend/requirements.txt
+  s_6b847c33f5bff3::t_190fa7ce551e0f 1-4
+harbor_tasks/ls-lang-tracing/environment/backend/sql_agent.py
+  s_6b847c33f5bff3::t_ab20798fb84330 1-170
+harbor_tasks/ls-lang-tracing/environment/frontend/package-lock.json
+  s_6b847c33f5bff3::t_87233bd93527d1 1-1157
+harbor_tasks/ls-lang-tracing/environment/frontend/package.json
+  s_6b847c33f5bff3::t_23a9f3e454071b 1-17
+harbor_tasks/ls-lang-tracing/environment/frontend/support_bot.ts
+  s_6b847c33f5bff3::t_9c26cec6cf6b97 1-144
+harbor_tasks/ls-lang-tracing/environment/frontend/tsconfig.json
+  s_6b847c33f5bff3::t_0bb6aaefa40bb0 1-12
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "20d0fd6100309eed177f3f2bd400001adae2e03d",
+  "prompts": {},
+  "humans": {
+    "h_fe5ed23bcee8dc": {
+      "author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  },
+  "sessions": {
+    "s_6b847c33f5bff3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b8070fee-ef74-4ca8-a687-44717f95dc1a",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  }
+}

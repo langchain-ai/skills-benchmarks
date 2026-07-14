@@ -1,0 +1,9 @@
+{
+  "dependencies": [
+    "deepagents>=0.5.7",
+    "langchain-anthropic>=1.4.0"
+  ],
+  "graphs": {
+    "coding_agent": "./agent.py:make_graph"
+  }
+}

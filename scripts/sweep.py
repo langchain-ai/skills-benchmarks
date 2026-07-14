@@ -30,6 +30,8 @@ REPO_DIR = Path(__file__).resolve().parent.parent
 HARBOR_RUN = REPO_DIR / "scripts" / "harbor_run.sh"
 JOBS_DIR = REPO_DIR / "jobs"
 SKILLS_STAGING = REPO_DIR / ".sweep" / "skills"
+DEEPAGENTS_BASE = REPO_DIR / "deepagents_agent"
+DEEPAGENTS_STAGING = REPO_DIR / ".sweep" / "deepagents"
 
 sys.path.insert(0, str(REPO_DIR))
 from skillbench_harbor.treatments import list_treatments, materialize_treatment  # noqa: E402
@@ -70,6 +72,21 @@ def stage_treatment(treatment: str, language: str | None) -> Path | None:
     return dest if any(dest.iterdir()) else None
 
 
+def stage_deepagents_project(treatment: str, skills_dir: Path | None) -> Path:
+    """Copy deepagents_agent/ into a per-treatment staging dir, baking in skills."""
+    if "/" in treatment or "\\" in treatment or treatment in (".", ".."):
+        raise SystemExit(f"Unsafe treatment name: {treatment!r}")
+    dest = (DEEPAGENTS_STAGING / treatment).resolve()
+    if DEEPAGENTS_STAGING.resolve() not in dest.parents:
+        raise SystemExit(f"Staging path escapes workspace: {treatment!r}")
+    if dest.exists():
+        shutil.rmtree(dest)
+    shutil.copytree(DEEPAGENTS_BASE, dest)
+    if skills_dir is not None:
+        shutil.copytree(skills_dir, dest / "skills", dirs_exist_ok=True)
+    return dest
+
+
 def _snapshot_jobs() -> set[Path]:
     return set(JOBS_DIR.glob("*/")) if JOBS_DIR.exists() else set()
 
@@ -95,7 +112,10 @@ def _read_results(job_dir: Path) -> dict:
     return result
 
 
-def run_cell(task: str, treatment: str, model: str, agent: str, skills_dir: Path | None) -> dict:
+def run_cell(
+    task: str, treatment: str, model: str, agent: str, skills_dir: Path | None,
+    *, project_path: Path | None = None,
+) -> dict:
     """Run one harbor trial and return its parsed results."""
     before = _snapshot_jobs()
     argv = [
@@ -104,7 +124,9 @@ def run_cell(task: str, treatment: str, model: str, agent: str, skills_dir: Path
         "--agent", agent,
         "-m", model,
     ]
-    if skills_dir is not None:
+    if project_path is not None:
+        argv += ["--ak", f"project_path={project_path}", "--ak", "graph=coding_agent"]
+    elif skills_dir is not None:
         argv += ["--skills", str(skills_dir)]
     print(f"\n=== {task} | {treatment} | {agent} | {model} ===", flush=True)
     proc = subprocess.run(argv)  # inherit stdout/stderr so progress is visible
@@ -156,13 +178,19 @@ def main() -> None:
     args = parser.parse_args()
 
     treatments = expand_treatments(args.treatment)
-    staged = {t: stage_treatment(t, args.language) for t in treatments}
+    staged_skills = {t: stage_treatment(t, args.language) for t in treatments}
+    staged_projects: dict[str, Path] = {}
+    if args.agent == "langgraph":
+        staged_projects = {t: stage_deepagents_project(t, staged_skills[t]) for t in treatments}
 
     records: list[dict] = []
     for task in args.task:
         for treatment in treatments:
             for rep in range(args.count):
-                record = run_cell(task, treatment, args.model, args.agent, staged[treatment])
+                record = run_cell(
+                    task, treatment, args.model, args.agent, staged_skills[treatment],
+                    project_path=staged_projects.get(treatment),
+                )
                 record["rep"] = rep
                 records.append(record)
 

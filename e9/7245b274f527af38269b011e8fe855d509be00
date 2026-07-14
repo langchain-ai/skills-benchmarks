@@ -1,0 +1,345 @@
+harbor_tasks/lc-framework-personal-assistant/solution/solve.sh
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-4
+harbor_tasks/oss-fix-da-memory/environment/agent_system.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-190
+harbor_tasks/lc-framework-hybrid-pipeline/solution/solve.sh
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-4
+harbor_tasks/lc-ecosystem-install/tests/scaffold/python/validation/core.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-264
+harbor_tasks/oss-fix-da-memory/tests/_test_context.json
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-5
+harbor_tasks/lc-ecosystem-install/tests/test.sh
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-21
+harbor_tasks/lc-framework-middleware-agent/solution/solve.sh
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-4
+harbor_tasks/lc-framework-hybrid-pipeline/tests/test.sh
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-21
+harbor_tasks/lc-framework-hybrid-pipeline/environment/Dockerfile
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-28
+harbor_tasks/lc-framework-middleware-agent/task.toml
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-23
+harbor_tasks/lc-framework-qa-agent/instruction.md
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-5
+harbor_tasks/lc-basic/instruction.md
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-10
+harbor_tasks/lc-framework-research-assistant/tests/scaffold/python/validation/runner.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-237
+harbor_tasks/oss-fix-lg-execution/environment/requirements.txt
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-4
+harbor_tasks/lc-framework-personal-assistant/tests/test_personal_assistant.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-110
+harbor_tasks/lc-deps-tavily/solution/solve.sh
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-4
+harbor_tasks/lc-framework-research-assistant/instruction.md
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-5
+harbor_tasks/lc-framework-research-assistant/tests/test_research_assistant.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-101
+harbor_tasks/lc-ecosystem-bootstrap/tests/scaffold/python/validation/runner.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-237
+harbor_tasks/lc-framework-approval-pipeline/tests/test_approval_pipeline.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-103
+harbor_tasks/lc-ecosystem-bootstrap/tests/_test_context.json
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-6
+harbor_tasks/oss-fix-lg-persistence/tests/scaffold/python/validation/core.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-264
+harbor_tasks/oss-fix-da-memory/task.toml
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-23
+harbor_tasks/oss-fix-lc-hitl/tests/_test_context.json
+  s_6b847c33f5bff3::t_0f15c716a8bd5e 1-5
+harbor_tasks/lc-deps-tavily/tests/test.sh
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-21
+harbor_tasks/lc-framework-personal-assistant/instruction.md
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-5
+harbor_tasks/oss-fix-lg-persistence/tests/_test_context.json
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-5
+harbor_tasks/lc-framework-approval-pipeline/environment/Dockerfile
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-28
+harbor_tasks/lc-framework-middleware-agent/tests/_test_context.json
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-5
+harbor_tasks/oss-fix-lc-hitl/tests/scaffold/python/validation/core.py
+  s_6b847c33f5bff3::t_0f15c716a8bd5e 1-264
+harbor_tasks/lc-ecosystem-bootstrap/solution/solve.sh
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-4
+harbor_tasks/oss-fix-da-memory/tests/test.sh
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-21
+harbor_tasks/lc-deps-tavily/tests/_test_context.json
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-5
+harbor_tasks/lc-ecosystem-env-setup/task.toml
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-23
+harbor_tasks/lc-framework-qa-agent/environment/Dockerfile
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-28
+harbor_tasks/oss-fix-lg-persistence/solution/solve.sh
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-4
+harbor_tasks/oss-fix-lg-persistence/tests/test.sh
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-21
+harbor_tasks/lc-deps-tavily/task.toml
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-23
+harbor_tasks/lc-framework-qa-agent/task.toml
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-23
+harbor_tasks/oss-fix-lg-execution/task.toml
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-23
+harbor_tasks/oss-fix-lc-hitl/environment/broken_agent.py
+  s_6b847c33f5bff3::t_0f15c716a8bd5e 1-75
+harbor_tasks/lc-ecosystem-env-setup/tests/_test_context.json
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-5
+harbor_tasks/oss-fix-lg-persistence/instruction.md
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-37
+harbor_tasks/lc-deps-tavily/tests/scaffold/python/utils.py
+  s_6b847c33f5bff3::t_4ec01f61a7ddc7 1-6
+harbor_tasks/oss-fix-lc-hitl/tests/test.sh
+  s_6b847c33f5bff3::t_0f15c716a8bd5e 1-21
+harbor_tasks/lc-ecosystem-bootstrap/environment/requirements.txt
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-11
+harbor_tasks/lc-framework-approval-pipeline/tests/scaffold/python/validation/runner.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-237
+harbor_tasks/lc-framework-middleware-agent/environment/requirements.txt
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-11
+harbor_tasks/lc-ecosystem-install/environment/Dockerfile
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-28
+harbor_tasks/lc-ecosystem-install/environment/requirements.txt
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-11
+harbor_tasks/lc-framework-research-assistant/tests/test.sh
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-21
+harbor_tasks/lc-framework-hybrid-pipeline/tests/scaffold/python/validation/runner.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-237
+harbor_tasks/lc-basic/tests/test_sql_agent.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-92
+harbor_tasks/lc-deps-tavily/tests/scaffold/python/validation/core.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-264
+harbor_tasks/lc-framework-personal-assistant/task.toml
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-23
+harbor_tasks/oss-fix-da-memory/tests/test_memory.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-328
+harbor_tasks/lc-ecosystem-bootstrap/tests/test.sh
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-21
+harbor_tasks/lc-basic/tests/scaffold/python/validation/core.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-264
+harbor_tasks/lc-framework-research-assistant/tests/_test_context.json
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-5
+harbor_tasks/oss-fix-da-memory/environment/Dockerfile
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-31
+harbor_tasks/lc-framework-research-assistant/solution/solve.sh
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-4
+harbor_tasks/oss-fix-lc-hitl/environment/Dockerfile
+  s_6b847c33f5bff3::t_0f15c716a8bd5e 1-31
+harbor_tasks/lc-ecosystem-install/solution/solve.sh
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-4
+harbor_tasks/lc-deps-tavily/environment/agent.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-31
+harbor_tasks/lc-framework-research-assistant/environment/requirements.txt
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-12
+harbor_tasks/oss-fix-lc-streaming/environment/Dockerfile
+  s_6b847c33f5bff3::t_f5471a886aac0e 30
+harbor_tasks/oss-fix-lg-execution/tests/scaffold/python/validation/core.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-264
+harbor_tasks/lc-ecosystem-env-setup/environment/Dockerfile
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-28
+harbor_tasks/lc-framework-approval-pipeline/tests/scaffold/python/validation/core.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-264
+harbor_tasks/lc-ecosystem-env-setup/tests/scaffold/python/validation/core.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-264
+harbor_tasks/lc-deps-tavily/environment/requirements.txt
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-11
+harbor_tasks/lc-framework-personal-assistant/environment/requirements.txt
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-12
+harbor_tasks/lc-framework-approval-pipeline/tests/test.sh
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-21
+harbor_tasks/oss-fix-lg-execution/solution/solve.sh
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-4
+harbor_tasks/oss-fix-da-memory/solution/solve.sh
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-3
+harbor_tasks/lc-framework-personal-assistant/tests/scaffold/python/validation/runner.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-237
+harbor_tasks/oss-fix-lc-hitl/solution/solve.sh
+  s_6b847c33f5bff3::t_0f15c716a8bd5e 1-4
+harbor_tasks/lc-ecosystem-env-setup/solution/solve.sh
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-4
+harbor_tasks/lc-framework-qa-agent/tests/test_qa_agent.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-107
+harbor_tasks/lc-framework-middleware-agent/tests/scaffold/python/validation/core.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-264
+harbor_tasks/oss-fix-lg-execution/tests/scaffold/python/validation/runner.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-237
+harbor_tasks/lc-basic/environment/Dockerfile
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-28
+harbor_tasks/lc-framework-middleware-agent/tests/scaffold/python/validation/runner.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-237
+harbor_tasks/lc-framework-qa-agent/tests/_test_context.json
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-5
+harbor_tasks/lc-framework-hybrid-pipeline/tests/_test_context.json
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-5
+harbor_tasks/lc-deps-tavily/tests/scaffold/python/validation/runner.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-237
+harbor_tasks/oss-fix-lg-execution/instruction.md
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-10
+harbor_tasks/lc-framework-hybrid-pipeline/instruction.md
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-5
+harbor_tasks/lc-ecosystem-env-setup/tests/test_env_setup.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-88
+harbor_tasks/lc-framework-middleware-agent/tests/test_middleware_agent.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-119
+harbor_tasks/lc-framework-hybrid-pipeline/tests/test_hybrid_pipeline.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-102
+harbor_tasks/oss-fix-lg-persistence/environment/Dockerfile
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-31
+harbor_tasks/oss-fix-da-memory/instruction.md
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-17
+harbor_tasks/oss-fix-lg-execution/tests/_test_context.json
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-5
+harbor_tasks/oss-fix-lg-execution/environment/broken_pipeline.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-91
+harbor_tasks/oss-fix-lg-execution/environment/Dockerfile
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-31
+harbor_tasks/oss-fix-lg-persistence/environment/requirements.txt
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-4
+harbor_tasks/lc-framework-middleware-agent/tests/test.sh
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-21
+harbor_tasks/lc-ecosystem-bootstrap/environment/Dockerfile
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-28
+harbor_tasks/oss-fix-da-memory/tests/scaffold/python/validation/runner.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-237
+harbor_tasks/lc-ecosystem-bootstrap/task.toml
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-23
+harbor_tasks/oss-fix-da-memory/environment/requirements.txt
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-6
+harbor_tasks/lc-framework-research-assistant/task.toml
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-23
+harbor_tasks/oss-fix-lg-persistence/environment/broken_agent.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-123
+harbor_tasks/lc-framework-middleware-agent/environment/Dockerfile
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-28
+harbor_tasks/lc-framework-research-assistant/tests/scaffold/python/validation/core.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-264
+harbor_tasks/lc-ecosystem-env-setup/tests/test.sh
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-21
+harbor_tasks/lc-framework-personal-assistant/tests/_test_context.json
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-5
+harbor_tasks/lc-framework-personal-assistant/environment/Dockerfile
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-28
+harbor_tasks/oss-fix-lc-hitl/environment/requirements.txt
+  s_6b847c33f5bff3::t_0f15c716a8bd5e 1-6
+harbor_tasks/lc-basic/tests/test.sh
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-21
+harbor_tasks/oss-fix-lc-hitl/tests/test_hitl.py
+  s_6b847c33f5bff3::t_0f15c716a8bd5e 1-257
+harbor_tasks/lc-ecosystem-install/instruction.md
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-3
+harbor_tasks/lc-framework-hybrid-pipeline/tests/scaffold/python/validation/core.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-264
+harbor_tasks/oss-fix-da-memory/solution/agent_system.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-152
+harbor_tasks/lc-ecosystem-env-setup/instruction.md
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-3
+harbor_tasks/lc-framework-approval-pipeline/tests/_test_context.json
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-5
+harbor_tasks/lc-ecosystem-install/tests/scaffold/python/validation/runner.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-237
+harbor_tasks/oss-fix-lc-hitl/instruction.md
+  s_6b847c33f5bff3::t_0f15c716a8bd5e 1-35
+harbor_tasks/oss-fix-lg-persistence/tests/test_persistence.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-186
+harbor_tasks/lc-framework-approval-pipeline/solution/solve.sh
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-4
+harbor_tasks/lc-framework-qa-agent/tests/test.sh
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-21
+harbor_tasks/lc-framework-qa-agent/solution/solve.sh
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-4
+harbor_tasks/oss-fix-lg-persistence/tests/scaffold/python/validation/runner.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-237
+harbor_tasks/lc-ecosystem-env-setup/tests/scaffold/python/validation/runner.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-237
+harbor_tasks/lc-framework-qa-agent/tests/scaffold/python/validation/core.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-264
+harbor_tasks/lc-framework-personal-assistant/tests/scaffold/python/validation/core.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-264
+harbor_tasks/lc-ecosystem-bootstrap/tests/test_bootstrap.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-174
+harbor_tasks/lc-framework-approval-pipeline/environment/requirements.txt
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-11
+harbor_tasks/lc-framework-qa-agent/tests/scaffold/python/validation/runner.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-237
+scripts/convert_task.py
+  s_6b847c33f5bff3::t_48ed3d51cac0d0 190-191
+  s_6b847c33f5bff3::t_4fc35b742813ce 159
+  s_6b847c33f5bff3::t_a56f6b40689db5 88-97,106
+  s_6b847c33f5bff3::t_18714098a20b30 63-82
+harbor_tasks/lc-deps-tavily/tests/test_tavily_agent.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-107
+harbor_tasks/lc-framework-hybrid-pipeline/task.toml
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-23
+harbor_tasks/lc-framework-research-assistant/environment/Dockerfile
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-28
+harbor_tasks/lc-basic/tests/scaffold/python/utils.py
+  s_6b847c33f5bff3::t_4ec01f61a7ddc7 1-6
+harbor_tasks/lc-basic/tests/scaffold/python/validation/runner.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-237
+harbor_tasks/lc-framework-hybrid-pipeline/environment/requirements.txt
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-12
+harbor_tasks/oss-fix-lg-persistence/task.toml
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-23
+harbor_tasks/lc-ecosystem-install/tests/test_install.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-109
+harbor_tasks/lc-ecosystem-env-setup/environment/requirements.txt
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-11
+harbor_tasks/lc-ecosystem-install/tests/_test_context.json
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-6
+harbor_tasks/lc-deps-tavily/instruction.md
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-5
+harbor_tasks/oss-fix-lc-hitl/task.toml
+  s_6b847c33f5bff3::t_0f15c716a8bd5e 1-23
+harbor_tasks/lc-deps-tavily/environment/Dockerfile
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-32
+harbor_tasks/lc-ecosystem-install/task.toml
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-23
+harbor_tasks/oss-fix-da-memory/tests/scaffold/python/validation/core.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-264
+harbor_tasks/lc-basic/tests/_test_context.json
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-5
+harbor_tasks/lc-ecosystem-bootstrap/instruction.md
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-7
+harbor_tasks/lc-framework-middleware-agent/instruction.md
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-5
+harbor_tasks/oss-fix-lg-execution/tests/test_execution.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-219
+harbor_tasks/oss-fix-lg-execution/tests/test.sh
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-21
+harbor_tasks/lc-framework-approval-pipeline/instruction.md
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-5
+harbor_tasks/lc-framework-qa-agent/environment/requirements.txt
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-11
+harbor_tasks/oss-fix-lc-hitl/tests/scaffold/python/validation/runner.py
+  s_6b847c33f5bff3::t_0f15c716a8bd5e 1-237
+harbor_tasks/lc-ecosystem-bootstrap/tests/scaffold/python/validation/core.py
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-264
+harbor_tasks/lc-basic/task.toml
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-23
+harbor_tasks/lc-basic/environment/requirements.txt
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-10
+harbor_tasks/lc-basic/solution/solve.sh
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-4
+harbor_tasks/lc-framework-approval-pipeline/task.toml
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-23
+harbor_tasks/lc-framework-personal-assistant/tests/test.sh
+  s_6b847c33f5bff3::t_bb7d7fdfd654f2 1-21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "e97245b274f527af38269b011e8fe855d509be00",
+  "prompts": {},
+  "humans": {
+    "h_fe5ed23bcee8dc": {
+      "author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  },
+  "sessions": {
+    "s_6b847c33f5bff3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b8070fee-ef74-4ca8-a687-44717f95dc1a",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+scripts/sweep.py
+  s_6b847c33f5bff3::t_f6cdda15e2fbf8 24
+  s_6b847c33f5bff3::t_05c00911e6c947 40-50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.13",
+  "base_commit_sha": "475e02657804a8c546ccde360784bce46a57e9d1",
+  "prompts": {},
+  "humans": {
+    "h_fe5ed23bcee8dc": {
+      "author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  },
+  "sessions": {
+    "s_6b847c33f5bff3": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b8070fee-ef74-4ca8-a687-44717f95dc1a",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  }
+}

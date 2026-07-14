@@ -280,6 +280,8 @@ def main() -> None:
     parser.add_argument("--count", type=int, default=1, help="Repetitions per cell.")
     parser.add_argument("--out", default="sweep-summary.json",
                         help="Path to write the JSON summary.")
+    parser.add_argument("--no-cleanup", action="store_true",
+                        help="Skip LangSmith namespace cleanup after ls-* runs (useful for inspection).")
     args = parser.parse_args()
 
     treatments = expand_treatments(args.treatment)
@@ -306,8 +308,10 @@ def main() -> None:
                         verifier_run_id=run_id or None,
                     )
                 finally:
-                    if run_id:
+                    if run_id and not args.no_cleanup:
                         ls_cleanup(run_id)
+                    elif run_id:
+                        print(f"[ls-cleanup] Skipped — namespace bench-{run_id} left in LangSmith")
                 record["rep"] = rep
                 records.append(record)
 

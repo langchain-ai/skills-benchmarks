@@ -1,4 +1,4 @@
-# LangChain environment for oss-fix-lc-streaming task
+# LangChain/LangGraph environment for skill benchmarks
 FROM python:3.13-slim
 
 # Install system dependencies including Node.js for Claude Code
@@ -20,11 +20,9 @@ RUN npm install -g @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}
 COPY requirements.txt /tmp/requirements.txt
 RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
+
 # Set working directory
 WORKDIR /workspace
 
 # Default command
 CMD ["python"]
-
-# [skillbench-harbor] seed the agent workspace with starting files
-COPY chat_app.py /workspace/chat_app.py

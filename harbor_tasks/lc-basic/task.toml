@@ -1,0 +1,23 @@
+schema_version = "1.3"
+
+[task]
+name = "skillbench/lc-basic"
+description = "Basic SQL analytics agent task for testing LangChain skill effectiveness"
+
+[metadata]
+source_task = "lc-basic"
+difficulty = "medium"
+category = "langchain"
+tags = ["langchain", "agents", "sql"]
+
+[agent]
+timeout_sec = 900.0
+
+[verifier]
+timeout_sec = 120.0
+user = "root"
+
+[environment]
+build_timeout_sec = 600.0
+workdir = "/workspace"
+# skills_dir = "skills"  # Phase 1: per-treatment skills copied to the agent skills config dir

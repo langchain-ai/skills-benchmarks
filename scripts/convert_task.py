@@ -60,9 +60,39 @@ def _detect_user(dockerfile: str) -> str | None:
     return matches[-1] if matches else None
 
 
+def _strip_benchuser(dockerfile: str) -> str:
+    """Remove USER benchuser and its useradd setup from a Dockerfile.
+
+    Harbor's exec_as_agent runs without an explicit user, so it falls back to
+    the container's default. If that's benchuser, Harbor's root-chowned venv
+    dirs become unwritable. Running as root avoids the conflict.
+    """
+    out = []
+    for line in dockerfile.splitlines():
+        stripped = line.strip()
+        if stripped == "USER benchuser":
+            continue
+        if re.match(r"RUN useradd\b.*benchuser", stripped):
+            continue
+        if stripped == "# Create non-root user for security":
+            continue
+        out.append(line)
+    return "\n".join(out) + "\n"
+
+
 def _write(path: Path, content: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(content)
+
+
+_UTILS_STUB = '''\
+"""Stub for scaffold.python.utils — LLM-based eval helpers not available in Harbor verifier."""
+
+
+def evaluate_with_schema(prompt: str, model: str = None) -> dict:
+    """No-op stub: LLM eval is informational only and skipped in Harbor."""
+    return {"pass": True, "reason": "LLM eval skipped in Harbor verifier"}
+'''
 
 
 def _copy_scaffold(tests_dir: Path) -> None:
@@ -73,6 +103,7 @@ def _copy_scaffold(tests_dir: Path) -> None:
         (level / "__init__.py").write_text("")
     for name in ("runner.py", "core.py"):
         shutil.copy(SCAFFOLD_VALIDATION / name, dest / name)
+    (tests_dir / "scaffold" / "python" / "utils.py").write_text(_UTILS_STUB)
 
 
 def _build_task_toml(name: str, cfg: dict, workdir: str, verifier_user: str) -> str:
@@ -125,7 +156,7 @@ def convert(task_name: str, out_root: Path) -> Path:
     if not target_artifacts or not test_scripts:
         sys.exit(f"{task_name}: task.toml [validation] needs target_artifacts and test_scripts")
 
-    dockerfile = (src / "environment" / "Dockerfile").read_text()
+    dockerfile = _strip_benchuser((src / "environment" / "Dockerfile").read_text())
     workdir = _detect_workdir(dockerfile)
     image_user = _detect_user(dockerfile)
     # The verifier writes to the Harbor-mounted /logs/verifier; run it as root
@@ -156,6 +187,8 @@ def convert(task_name: str, out_root: Path) -> Path:
         extra = "\n# [skillbench-harbor] seed the agent workspace with starting files\n"
         extra += "\n".join(seed_copies) + "\n"
         (env_out / "Dockerfile").write_text(dockerfile.rstrip() + "\n" + extra)
+    else:
+        (env_out / "Dockerfile").write_text(dockerfile)
 
     # tests: ported scripts + scaffold + context + test.sh
     tests_out = out / "tests"

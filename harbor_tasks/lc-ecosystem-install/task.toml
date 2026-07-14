@@ -1,0 +1,23 @@
+schema_version = "1.3"
+
+[task]
+name = "skillbench/lc-ecosystem-install"
+description = "Ecosystem setup: given a planning+subagents+memory project description, Claude must pick Deep Agents — producing an agent.py that uses the framework and an install.sh with uv add commands for the framework, langchain-core, and langsmith"
+
+[metadata]
+source_task = "lc-ecosystem-install"
+difficulty = "medium"
+category = "langchain"
+tags = ["deep-agents", "ecosystem-primer", "framework-selection", "install", "dependencies"]
+
+[agent]
+timeout_sec = 180.0
+
+[verifier]
+timeout_sec = 120.0
+user = "root"
+
+[environment]
+build_timeout_sec = 600.0
+workdir = "/workspace"
+# skills_dir = "skills"  # Phase 1: per-treatment skills copied to the agent skills config dir

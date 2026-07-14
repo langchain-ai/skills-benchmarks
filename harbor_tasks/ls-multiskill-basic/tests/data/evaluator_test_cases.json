@@ -1,0 +1,126 @@
+[
+  {
+    "name": "perfect_match",
+    "description": "Identical trajectory should score high",
+    "run": {
+      "inputs": {
+        "query": "Test query"
+      },
+      "outputs": {
+        "expected_trajectory": [
+          "execute_sql_query",
+          "get_database_schema",
+          "execute_sql_query"
+        ]
+      }
+    },
+    "example": {
+      "inputs": {
+        "query": "Test query"
+      },
+      "outputs": {
+        "expected_trajectory": [
+          "execute_sql_query",
+          "get_database_schema",
+          "execute_sql_query"
+        ]
+      }
+    },
+    "expected_result": {
+      "should_pass": true,
+      "min_score": 1.0,
+      "reason": "Identical trajectories should score 1.0"
+    }
+  },
+  {
+    "name": "partial_match",
+    "description": "Partial tool overlap should score medium",
+    "run": {
+      "inputs": {
+        "query": "Test query"
+      },
+      "outputs": {
+        "expected_trajectory": [
+          "execute_sql_query"
+        ]
+      }
+    },
+    "example": {
+      "inputs": {
+        "query": "Test query"
+      },
+      "outputs": {
+        "expected_trajectory": [
+          "execute_sql_query",
+          "get_database_schema",
+          "execute_sql_query"
+        ]
+      }
+    },
+    "expected_result": {
+      "should_pass": true,
+      "min_score": 0.2,
+      "max_score": 0.9,
+      "reason": "Partial overlap should score between 0.2 and 0.9"
+    }
+  },
+  {
+    "name": "no_match",
+    "description": "Completely different trajectory should score low",
+    "run": {
+      "inputs": {
+        "query": "Test query"
+      },
+      "outputs": {
+        "expected_trajectory": [
+          "unknown_tool_xyz"
+        ]
+      }
+    },
+    "example": {
+      "inputs": {
+        "query": "Test query"
+      },
+      "outputs": {
+        "expected_trajectory": [
+          "execute_sql_query",
+          "get_database_schema",
+          "execute_sql_query"
+        ]
+      }
+    },
+    "expected_result": {
+      "should_pass": true,
+      "max_score": 0.4,
+      "reason": "No tool overlap should score <= 0.4"
+    }
+  },
+  {
+    "name": "empty_trajectory",
+    "description": "Empty trajectory should not crash",
+    "run": {
+      "inputs": {
+        "query": "Test query"
+      },
+      "outputs": {
+        "expected_trajectory": []
+      }
+    },
+    "example": {
+      "inputs": {
+        "query": "Test query"
+      },
+      "outputs": {
+        "expected_trajectory": [
+          "execute_sql_query",
+          "get_database_schema",
+          "execute_sql_query"
+        ]
+      }
+    },
+    "expected_result": {
+      "should_not_crash": true,
+      "reason": "Should handle empty trajectory without crashing"
+    }
+  }
+]

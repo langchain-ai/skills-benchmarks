@@ -1,0 +1,6 @@
+{
+  "target_artifacts": [
+    "backend/sql_agent.py",
+    "frontend/support_bot.ts"
+  ]
+}

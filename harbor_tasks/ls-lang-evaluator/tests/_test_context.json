@@ -1,0 +1,6 @@
+{
+  "target_artifacts": [
+    "backend",
+    "frontend"
+  ]
+}

@@ -1,0 +1,28 @@
+scripts/harbor_run.sh
+  s_5f8e8e819bf6ba::t_a702c70ddc2f79 17
+scripts/sweep.py
+  s_5f8e8e819bf6ba::t_2918e9e23d2978 216,227
+  s_5f8e8e819bf6ba::t_52a972cc1a3bd7 279-280
+  s_5f8e8e819bf6ba::t_7517da0d6534b4 309
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "d123a0b58e42e3efe44ff636fff61f8c021c46e4",
+  "prompts": {},
+  "humans": {
+    "h_fe5ed23bcee8dc": {
+      "author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  },
+  "sessions": {
+    "s_5f8e8e819bf6ba": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "331bd1b5-be64-46d2-96f5-0d85c8c25e02",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  }
+}

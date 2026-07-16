@@ -14,4 +14,5 @@ unset ANTHROPIC_BASE_URL
 harbor run \
   --env-file "$REPO_DIR/.env" \
   --agent-setup-timeout-multiplier 3 \
+  --environment-build-timeout-multiplier 5 \
   "$@"

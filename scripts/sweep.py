@@ -213,7 +213,7 @@ def _read_results(job_dir: Path) -> dict:
 
 def run_cell(
     task: str, treatment: str, model: str, agent: str, skills_dir: Path | None,
-    *, project_path: Path | None = None,
+    *, env: str = "docker", project_path: Path | None = None,
     extra_instruction_paths: list[Path] | None = None,
     verifier_run_id: str | None = None,
 ) -> dict:
@@ -224,6 +224,7 @@ def run_cell(
         "--path", task,
         "--agent", agent,
         "-m", model,
+        "--env", env,
     ]
     if project_path is not None:
         argv += ["--ak", f"project_path={project_path}", "--ak", "graph=coding_agent"]
@@ -275,6 +276,8 @@ def main() -> None:
                         help="Model name passed to the agent.")
     parser.add_argument("-a", "--agent", default="claude-code",
                         help="Harbor agent name (claude-code, codex, langgraph, ...).")
+    parser.add_argument("-e", "--env", default="docker",
+                        help="Harbor environment type (docker, langsmith, ...).")
     parser.add_argument("-l", "--language", default=None, choices=["py", "ts"],
                         help="Render decomposed skills for this language variant.")
     parser.add_argument("--count", type=int, default=1, help="Repetitions per cell.")
@@ -303,6 +306,7 @@ def main() -> None:
                 try:
                     record = run_cell(
                         task, treatment, args.model, args.agent, staged_skills[treatment],
+                        env=args.env,
                         project_path=staged_projects.get(treatment),
                         extra_instruction_paths=extra_paths or None,
                         verifier_run_id=run_id or None,

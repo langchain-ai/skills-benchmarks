@@ -1,0 +1,62 @@
+harbor_tasks/lc-ecosystem-bootstrap/task.toml
+  s_5f8e8e819bf6ba::t_480fa13b20de9e 21,23-25
+harbor_tasks/lc-framework-personal-assistant/task.toml
+  s_5f8e8e819bf6ba::t_480fa13b20de9e 21,23-25
+harbor_tasks/oss-fix-lg-execution/task.toml
+  s_5f8e8e819bf6ba::t_480fa13b20de9e 21,23-25
+harbor_tasks/lc-framework-qa-agent/task.toml
+  s_5f8e8e819bf6ba::t_480fa13b20de9e 21,23-25
+harbor_tasks/ls-lang-evaluator/task.toml
+  s_5f8e8e819bf6ba::t_480fa13b20de9e 24,26-28
+harbor_tasks/lc-framework-approval-pipeline/task.toml
+  s_5f8e8e819bf6ba::t_480fa13b20de9e 21,23-25
+harbor_tasks/ls-lang-tracing/task.toml
+  s_5f8e8e819bf6ba::t_480fa13b20de9e 24,26-28
+harbor_tasks/lc-framework-middleware-agent/task.toml
+  s_5f8e8e819bf6ba::t_480fa13b20de9e 21,23-25
+harbor_tasks/oss-fix-da-memory/task.toml
+  s_5f8e8e819bf6ba::t_480fa13b20de9e 21,23-25
+harbor_tasks/oss-fix-lc-hitl/task.toml
+  s_5f8e8e819bf6ba::t_480fa13b20de9e 21,23-25
+harbor_tasks/lc-deps-tavily/task.toml
+  s_5f8e8e819bf6ba::t_480fa13b20de9e 21,23-25
+harbor_tasks/lc-framework-hybrid-pipeline/task.toml
+  s_5f8e8e819bf6ba::t_480fa13b20de9e 21,23-25
+harbor_tasks/oss-fix-lc-streaming/task.toml
+  s_5f8e8e819bf6ba::t_480fa13b20de9e 21,23-25
+harbor_tasks/lc-ecosystem-install/task.toml
+  s_5f8e8e819bf6ba::t_480fa13b20de9e 21,23-25
+harbor_tasks/lc-framework-research-assistant/task.toml
+  s_5f8e8e819bf6ba::t_480fa13b20de9e 21,23-25
+harbor_tasks/lc-ecosystem-env-setup/task.toml
+  s_5f8e8e819bf6ba::t_480fa13b20de9e 21,23-25
+harbor_tasks/ls-multiskill-advanced/task.toml
+  s_5f8e8e819bf6ba::t_480fa13b20de9e 24,26-28
+harbor_tasks/oss-fix-lg-persistence/task.toml
+  s_5f8e8e819bf6ba::t_480fa13b20de9e 21,23-25
+scripts/convert_task.py
+  s_5f8e8e819bf6ba::t_6e21874730a7a7 253,255-259
+harbor_tasks/lc-basic/task.toml
+  s_5f8e8e819bf6ba::t_480fa13b20de9e 21,23-25
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "b6a690002116b7626a62a7c36170ebb747efd1bc",
+  "prompts": {},
+  "humans": {
+    "h_fe5ed23bcee8dc": {
+      "author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  },
+  "sessions": {
+    "s_5f8e8e819bf6ba": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "331bd1b5-be64-46d2-96f5-0d85c8c25e02",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  }
+}

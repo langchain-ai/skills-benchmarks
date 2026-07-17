@@ -27,4 +27,4 @@ dist/
 
 # Harbor run outputs
 jobs/
-sweep-summary.json
+sweep-*.json

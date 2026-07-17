@@ -250,8 +250,13 @@ def _build_task_toml(
     lines += [
         "",
         "[environment]",
-        "build_timeout_sec = 600.0",
+        "build_timeout_sec = 1800.0",
         f"workdir = {_toml_str(workdir)}",
+        # Size the LangSmith snapshot builder; the default is too small to build
+        # the full LangChain/LangGraph image. Ignored/harmless for docker.
+        "cpus = 4",
+        "memory_mb = 8192",
+        "storage_mb = 65536",
         "# skills_dir = \"skills\"  # Phase 1: per-treatment skills copied to the agent skills config dir",
     ]
     if agent_env:

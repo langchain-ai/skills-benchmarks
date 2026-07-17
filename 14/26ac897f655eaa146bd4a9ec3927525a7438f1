@@ -1,0 +1,26 @@
+.gitignore
+  s_5f8e8e819bf6ba::t_e283a1cb2705b3 30
+MIGRATION_STATUS.md
+  s_5f8e8e819bf6ba::t_a8ef697d64d672 1-187
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.14",
+  "base_commit_sha": "1426ac897f655eaa146bd4a9ec3927525a7438f1",
+  "prompts": {},
+  "humans": {
+    "h_fe5ed23bcee8dc": {
+      "author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  },
+  "sessions": {
+    "s_5f8e8e819bf6ba": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "331bd1b5-be64-46d2-96f5-0d85c8c25e02",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  }
+}

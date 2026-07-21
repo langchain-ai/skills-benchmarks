@@ -272,8 +272,10 @@ def main() -> None:
                         help="Path to a harbor task dir (repeatable).")
     parser.add_argument("--treatment", default="CONTROL,ALL_MAIN_SKILLS",
                         help="Comma-separated treatment names / globs.")
-    parser.add_argument("-m", "--model", default="anthropic/claude-sonnet-4-6",
-                        help="Model name passed to the agent.")
+    parser.add_argument("-m", "--model", default="claude-sonnet-4-6",
+                        help="Model name passed to the agent. Bare id (no "
+                             "provider prefix): under the LangSmith gateway "
+                             "base URL the adapter forwards it verbatim.")
     parser.add_argument("-a", "--agent", default="claude-code",
                         help="Harbor agent name (claude-code, codex, langgraph, ...).")
     parser.add_argument("-e", "--env", default="docker",

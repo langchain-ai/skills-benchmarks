@@ -3,10 +3,9 @@ set -euo pipefail
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
-# The eval agent must talk directly to api.anthropic.com with ANTHROPIC_API_KEY.
-# A shell-exported ANTHROPIC_BASE_URL (e.g. the LangSmith gateway) would route
-# Claude Code through a proxy that rejects the Anthropic key with 403.
-unset ANTHROPIC_BASE_URL
+# The eval agent's Anthropic calls route through the LangSmith LLM Gateway.
+# .env sets ANTHROPIC_BASE_URL (the gateway) and ANTHROPIC_API_KEY (the LangSmith
+# key); the claude-code adapter forwards both into the run.
 
 # Skills are injected natively via `--skills <dir>` (built by scripts/sweep.py),
 # so nothing from this repo needs to be on harbor's path.

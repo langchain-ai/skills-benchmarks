@@ -62,8 +62,12 @@ then runs `scripts/harbor_run.sh --path <task> --agent <name> -m <model> --skill
 (omits `--skills` for CONTROL), and parses each job's `verifier/{reward.txt,_test_results.json}`
 into a table + `sweep-summary.json`.
 
-**Gotcha:** `harbor_run.sh` unsets `ANTHROPIC_BASE_URL` — a leaked value 403s the
-Anthropic key. Do not re-add it.
+**Gotcha:** the eval agent's LLM calls route through the **LangSmith LLM Gateway**,
+not direct Anthropic. `.env` sets `ANTHROPIC_BASE_URL=https://gateway.smith.langchain.com/anthropic`
+and `ANTHROPIC_API_KEY=${LANGSMITH_API_KEY}`; `harbor_run.sh` no longer unsets the
+base URL. Pass a **bare** model id (`claude-sonnet-4-6`, no `anthropic/` prefix) —
+under a custom base URL the claude-code adapter forwards the model string verbatim
+(`claude_code.py:1381-1386`).
 
 ---
 
@@ -78,7 +82,14 @@ uv tool install 'harbor[langsmith]==0.18.0' --python 3.13
 uv run python scripts/patch_harbor.py    # idempotent; re-run after any reinstall
 ```
 - The `[langsmith]` extra is NOT in the base install (else `MissingExtraError`).
-- `.env`'s `LANGSMITH_API_KEY` is all the sandbox needs for auth.
+- **LLM auth = LangSmith LLM Gateway.** `.env` sets `ANTHROPIC_BASE_URL` (the
+  gateway) + `ANTHROPIC_API_KEY=${LANGSMITH_API_KEY}`; the gateway resolves the
+  real Anthropic key from the workspace's **gateway provider secrets**. So the
+  gateway beta must be enabled on the active workspace (`chat-lc-lite` / Demo
+  Workspace) with a **valid Anthropic provider secret** registered (a dead
+  provider secret surfaces as Anthropic's `401 "API key is invalid"`). Verify
+  with the curl probe before a run. `LANGSMITH_API_KEY` also authenticates
+  sandbox provisioning.
 - Harbor is **pinned to 0.18.0** deliberately (see patches below).
 
 ### Root cause of the three issues (all infra, none in repo code)
@@ -102,9 +113,11 @@ uv run python scripts/patch_harbor.py    # idempotent; re-run after any reinstal
 
 ### Key facts
 - **Egress is NOT a blocker.** `network_mode` defaults to `public`; the sandbox
-  allows outbound HTTP/HTTPS to any host (only raw TCP blocked). Both
-  `api.anthropic.com` and `api.smith.langchain.com` are HTTPS. (`allow_internet`
-  is the deprecated field; `network_mode` is current.)
+  allows outbound HTTP/HTTPS to any host (only raw TCP blocked). `api.anthropic.com`,
+  `api.smith.langchain.com`, and `gateway.smith.langchain.com` are all HTTPS.
+  (`allow_internet` is the deprecated field; `network_mode` is current.) A task
+  set to `no-network` would block the gateway and cannot be per-host allowlisted
+  on LangSmith — keep tasks on the default `public`.
 - Faithful to Docker: identical task+treatment gives identical results on
   `--env langsmith` and `--env docker`.
 - Each run provisions a **paid** VM. First run per task builds a slow remote

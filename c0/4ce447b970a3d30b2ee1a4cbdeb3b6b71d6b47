@@ -1,0 +1,32 @@
+scripts/sweep.py
+  s_5f8e8e819bf6ba::t_62ce727fb66346 275-278
+.env.example
+  s_5f8e8e819bf6ba::t_28dbefbb84742d 14-21
+MIGRATION_STATUS.md
+  s_5f8e8e819bf6ba::t_c3706466383de6 85-92
+  s_5f8e8e819bf6ba::t_d801ae15ce2df8 65-70
+  s_5f8e8e819bf6ba::t_e616e09a6efb26 116-120
+scripts/harbor_run.sh
+  s_5f8e8e819bf6ba::t_c417709eaea9b1 6-8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "c04ce447b970a3d30b2ee1a4cbdeb3b6b71d6b47",
+  "prompts": {},
+  "humans": {
+    "h_fe5ed23bcee8dc": {
+      "author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  },
+  "sessions": {
+    "s_5f8e8e819bf6ba": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "331bd1b5-be64-46d2-96f5-0d85c8c25e02",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  }
+}

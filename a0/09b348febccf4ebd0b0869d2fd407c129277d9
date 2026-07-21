@@ -1,0 +1,32 @@
+.env.example
+  s_5f8e8e819bf6ba::t_70f736b584699a 11-18
+scripts/patch_harbor.py
+  s_5f8e8e819bf6ba::t_c4bb252057314c 74,85-114
+  s_5f8e8e819bf6ba::t_c5438800b998e0 115-131
+  s_5f8e8e819bf6ba::t_f2a454d2f90734 15-17
+  s_5f8e8e819bf6ba::t_a7ce2a7d8e862a 1,3-5,11-14
+  s_5f8e8e819bf6ba::t_af1ff5c6088a80 34-35,37
+  s_5f8e8e819bf6ba::t_7517f564a557b1 167-191
+  s_5f8e8e819bf6ba::t_ef76348a9a9435 58
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "a009b348febccf4ebd0b0869d2fd407c129277d9",
+  "prompts": {},
+  "humans": {
+    "h_fe5ed23bcee8dc": {
+      "author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  },
+  "sessions": {
+    "s_5f8e8e819bf6ba": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "331bd1b5-be64-46d2-96f5-0d85c8c25e02",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  }
+}

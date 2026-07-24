@@ -15,6 +15,13 @@ package in place. It is idempotent and safe to re-run.
   Fix #5: forward ANTHROPIC_BASE_URL / OPENAI_BASE_URL into the langgraph
           (deepagents) container so the graph's LLM calls route through the
           gateway instead of calling the provider directly (401).
+  Fix #6: bridge the harbor-langsmith plugin's per-trial parent-run handle into
+          the langgraph container so the deepagents graph's trace nests under the
+          experiment run (each example's granular per-step trajectory is visible
+          in the experiment view). The plugin only publishes the handle to an
+          in-process registry keyed by context_id; nothing reached the subprocess
+          adapter's env, so the trace was absent. Only the langgraph agent is
+          bridged — claude-code and codex would each need their own mechanism.
 
 Run after installing/upgrading Harbor:
 
@@ -128,6 +135,30 @@ PATCHES: list[tuple[str, str, str, str, str]] = [
     # Model provider keys
     "ANTHROPIC_API_KEY",
     "OPENAI_API_KEY",""",
+    ),
+    (
+        "agents/installed/langgraph.py",
+        "fix#6 langgraph nest trace under experiment run",
+        "from harbor_langsmith import nesting",
+        """        for var in _FORWARDED_ENV_VARS:
+            value = os.environ.get(var)
+            if value is not None and var not in env:
+                env[var] = value""",
+        """        for var in _FORWARDED_ENV_VARS:
+            value = os.environ.get(var)
+            if value is not None and var not in env:
+                env[var] = value
+
+        # Bridge the harbor-langsmith plugin's per-trial parent-run handle into the
+        # container env so the graph's trace nests under the experiment run. The
+        # plugin publishes it to an in-process registry keyed by context_id (== the
+        # trial id); os.environ carries no per-trial handle for subprocess adapters.
+        try:
+            from harbor_langsmith import nesting
+
+            env.update(nesting.get(self.context_id))
+        except ImportError:
+            pass""",
     ),
 ]
 

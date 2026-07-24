@@ -1,0 +1,25 @@
+scripts/patch_harbor.py
+  s_cc37630bb40d30::t_7d31f9347cd184 18-24
+  s_cc37630bb40d30::t_f60ff3368a1bba 139-162
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "666e4b49aa6cf54221aad87419a34555a1754623",
+  "prompts": {},
+  "humans": {
+    "h_fe5ed23bcee8dc": {
+      "author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  },
+  "sessions": {
+    "s_cc37630bb40d30": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "73c9d65f-9bbf-4a70-9b41-9986f7b2c76f",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": null
+    }
+  }
+}

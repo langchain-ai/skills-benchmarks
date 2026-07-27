@@ -22,6 +22,13 @@ package in place. It is idempotent and safe to re-run.
           in-process registry keyed by context_id; nothing reached the subprocess
           adapter's env, so the trace was absent. Only the langgraph agent is
           bridged — claude-code and codex would each need their own mechanism.
+  Fix #7: nest the claude-code granular trace under the experiment run. Claude
+          Code does not auto-trace, so this delivers the LangSmith tracing plugin
+          into the container (upload_dir + --plugin-dir), forces the plugin's
+          master switch on, and bridges the per-trial parent handle as
+          CC_LANGSMITH_PARENT_DOTTED_ORDER. Gated on parent-handle presence, so
+          only --langsmith-experiment trials trace; the plugin host path arrives
+          via CC_LANGSMITH_PLUGIN_DIR (set by scripts/sweep.py).
 
 Run after installing/upgrading Harbor:
 
@@ -159,6 +166,65 @@ PATCHES: list[tuple[str, str, str, str, str]] = [
             env.update(nesting.get(self.context_id))
         except ImportError:
             pass""",
+    ),
+    (
+        "agents/installed/claude_code.py",
+        "fix#7 claude-code deliver plugin + nest trace under experiment run",
+        "cc-langsmith-plugin",
+        """        env["CLAUDE_CONFIG_DIR"] = (EnvironmentPaths.agent_dir / "sessions").as_posix()""",
+        """        env["CLAUDE_CONFIG_DIR"] = (EnvironmentPaths.agent_dir / "sessions").as_posix()
+
+        # fix#7: nest the claude-code granular trace under the experiment run. The
+        # harbor-langsmith plugin publishes a per-trial parent handle only for
+        # experiment trials; its presence is the signal to enable + nest CC tracing.
+        trace_plugin_flag = ""
+        parent_dotted_order = None
+        try:
+            from harbor_langsmith import nesting
+
+            parent_dotted_order = nesting.get(self.context_id).get(
+                "HARBOR_LANGSMITH_PARENT"
+            )
+        except ImportError:
+            pass
+
+        plugin_src = os.environ.get("CC_LANGSMITH_PLUGIN_DIR")
+        if parent_dotted_order and plugin_src and os.path.isdir(plugin_src):
+            remote_plugin_dir = "/installed-agent/cc-langsmith-plugin"
+            await environment.upload_dir(plugin_src, remote_plugin_dir)
+            trace_plugin_flag = f"--plugin-dir {remote_plugin_dir} "
+
+            # Force the plugin's master switch on for exactly the trials we trace,
+            # so the outcome does not depend on ambient TRACE_TO_LANGSMITH state.
+            env["TRACE_TO_LANGSMITH"] = "true"
+            env["CC_LANGSMITH_PARENT_DOTTED_ORDER"] = parent_dotted_order
+            for _var in (
+                "CC_LANGSMITH_API_KEY",
+                "CC_LANGSMITH_PROJECT",
+                "CC_LANGSMITH_DEBUG",
+                "CC_LANGSMITH_METADATA",
+                "LANGSMITH_API_KEY",
+            ):
+                _val = os.environ.get(_var)
+                if _val:
+                    env[_var] = _val
+            # Route the plugin debug log somewhere Harbor collects, so the first
+            # verification can confirm hooks fired.
+            if env.get("CC_LANGSMITH_DEBUG", "").lower() == "true" and not os.environ.get(
+                "CC_LANGSMITH_LOG_FILE"
+            ):
+                env["CC_LANGSMITH_LOG_FILE"] = "/logs/agent/cc-langsmith-debug.log\"""",
+    ),
+    (
+        "agents/installed/claude_code.py",
+        "fix#7 claude-code inject --plugin-dir into claude command",
+        "{trace_plugin_flag}{extra_flags}",
+        """                f"claude --verbose --output-format=stream-json "
+                f"{extra_flags}"
+                f"--print -- {escaped_instruction} 2>&1 </dev/null | tee \"""",
+        """                f"claude --verbose --output-format=stream-json "
+                f"{trace_plugin_flag}{extra_flags}"
+                f"--print -- {escaped_instruction} 2>&1 </dev/null | tee \"""",
     ),
 ]
 

@@ -1,6 +1,6 @@
 # Skills-Benchmarks → Harbor Migration — Status
 
-_Last updated: 2026-07-17_
+_Last updated: 2026-07-22_
 
 Single source of truth for the migration from the bespoke pytest + `docker.sh`
 harness to the **Harbor** agent-eval framework, including the LangSmith Sandbox
@@ -18,6 +18,13 @@ compute backend. Consolidates the prior scattered plan/handoff/notes docs.
   LangSmith VM. Requires pinned+patched Harbor (below). Validated end-to-end on
   `ls-multiskill-basic` and `lc-basic`; the other 18 are configured identically
   but not each individually smoke-tested.
+- **Three agents work through the LangSmith LLM Gateway:** `claude-code`, `codex`,
+  and `langgraph` (deepagents). All authenticate via the gateway; each needed a
+  small `patch_harbor.py` fix (see LangSmith section). Validated on `lc-basic`.
+- **Agent telemetry + LangSmith experiments:** `sweep.py` now parses real
+  turns/tools/cost/tokens/skills per trial (`skillbench_harbor/trajectory.py`) and
+  can log each trial as a LangSmith experiment (`--langsmith-experiment`,
+  `skillbench_harbor/experiments.py`).
 - **Upstream PR** for the one still-missing Harbor fix is **approved, not yet merged**
   (harbor-framework/harbor#2356).
 
@@ -62,12 +69,29 @@ then runs `scripts/harbor_run.sh --path <task> --agent <name> -m <model> --skill
 (omits `--skills` for CONTROL), and parses each job's `verifier/{reward.txt,_test_results.json}`
 into a table + `sweep-summary.json`.
 
-**Gotcha:** the eval agent's LLM calls route through the **LangSmith LLM Gateway**,
-not direct Anthropic. `.env` sets `ANTHROPIC_BASE_URL=https://gateway.smith.langchain.com/anthropic`
-and `ANTHROPIC_API_KEY=${LANGSMITH_API_KEY}`; `harbor_run.sh` no longer unsets the
-base URL. Pass a **bare** model id (`claude-sonnet-4-6`, no `anthropic/` prefix) —
-under a custom base URL the claude-code adapter forwards the model string verbatim
-(`claude_code.py:1381-1386`).
+**Gotcha:** all eval-agent LLM calls route through the **LangSmith LLM Gateway**,
+not the providers directly. `.env` sets both provider base URLs to the gateway and
+reuses the LangSmith key:
+- `ANTHROPIC_BASE_URL=https://gateway.smith.langchain.com/anthropic`
+- `OPENAI_BASE_URL=https://gateway.smith.langchain.com/openai/v1`
+- `ANTHROPIC_API_KEY=OPENAI_API_KEY=${LANGSMITH_API_KEY}`
+
+`harbor_run.sh` no longer unsets the base URL. Per-agent notes:
+- **claude-code:** pass a **bare** model id (`claude-sonnet-4-6`, no `anthropic/`
+  prefix) — under a custom base URL the adapter forwards it verbatim
+  (`claude_code.py:1381-1386`).
+- **codex:** the OpenAI gateway path does **not** allow-list the WebSocket Responses
+  transport codex defaults to (`501 "path not allow-listed"`). `patch_harbor.py`
+  fix#4 configures codex with a named provider + `supports_websockets=false` so it
+  uses HTTP/SSE. Model: bare `gpt-5.1-codex` (adapter strips any provider prefix).
+  Known WSgateway gap — see `#ask-gateway` in Slack.
+- **langgraph (deepagents):** the adapter forwards only API keys into the graph
+  container, not base URLs. `patch_harbor.py` fix#5 adds `ANTHROPIC_BASE_URL` /
+  `OPENAI_BASE_URL` to `_FORWARDED_ENV_VARS`. Model: `anthropic/claude-sonnet-4-6`.
+
+Gateway traffic is traced server-side to a central gateway project (a
+LangChain-internal workspace), **not** the caller's workspace — so these runs do
+not appear as traces in the active demo workspace.
 
 ---
 
@@ -108,8 +132,25 @@ uv run python scripts/patch_harbor.py    # idempotent; re-run after any reinstal
 - **All 20 tasks** `[environment]`: `cpus=4, memory_mb=8192, storage_mb=65536,
   build_timeout_sec=1800`; `convert_task.py` emits the same for future tasks —
   commit b6a6900.
-- `scripts/patch_harbor.py`: applies fix #1 + fix #3 to the installed 0.18.0
-  package (idempotent, version-checked).
+- `scripts/patch_harbor.py`: applies **fix #1, #3, #4, #5, #6, #7** to the installed 0.18.0
+  package (idempotent, version-checked; patches multiple files):
+  - #1 builder cpu/memory (`environments/langsmith.py`)
+  - #3 boot-by-snapshot-id (`environments/langsmith.py`)
+  - #4 codex gateway provider + `supports_websockets=false` (`agents/installed/codex.py`)
+  - #5 langgraph forward `ANTHROPIC_BASE_URL`/`OPENAI_BASE_URL` (`agents/installed/langgraph.py`)
+  - #6 langgraph nest agent trace under the experiment run: forwards the
+    harbor-langsmith plugin's per-trial parent handle (`nesting.get(context_id)`)
+    into the container so each example's granular trajectory shows in the
+    experiment view (`agents/installed/langgraph.py`). langgraph only; claude-code
+    and codex need their own bridge (codex emits no LangSmith trace at all).
+  - #7 claude-code nest granular trace under the experiment run
+    (`agents/installed/claude_code.py`). Claude Code does not auto-trace, so this
+    uploads the LangSmith tracing plugin (`scaffold/plugins/langsmith-tracing`,
+    path supplied by `sweep.py` via `CC_LANGSMITH_PLUGIN_DIR`), adds `--plugin-dir`,
+    forces `TRACE_TO_LANGSMITH=true`, and bridges the per-trial parent handle as
+    `CC_LANGSMITH_PARENT_DOTTED_ORDER`. Gated on parent-handle presence, so only
+    `--langsmith-experiment` trials trace. codex (#8) still pending.
+  Re-run `uv run python scripts/patch_harbor.py` after any Harbor reinstall.
 
 ### Key facts
 - **Egress is NOT a blocker.** `network_mode` defaults to `public`; the sandbox
@@ -129,6 +170,39 @@ uv run python scripts/patch_harbor.py    # idempotent; re-run after any reinstal
 - harbor-framework/harbor#2356 — fix #1 (builder cpu/memory). **Approved**
   (by `alexgshaw`), not yet merged. Once a release ships it, bump the pin and
   delete `scripts/patch_harbor.py` (fix #3 is already on main).
+
+---
+
+## Multi-agent, telemetry & LangSmith experiments
+
+### Agents (all via the gateway; see the Gotcha for wiring)
+| Agent | model | skills? | notes |
+|-------|-------|---------|-------|
+| claude-code | `claude-sonnet-4-6` (bare) | **yes** — reads `.claude/skills/<name>` | reference agent |
+| codex | `gpt-5.1-codex` (bare) | **no** — injected skills copied to `$HOME/.agents/skills/` but codex does not consult them (explains `CONTROL == ALL_MAIN_SKILLS` for codex) | fix#4 |
+| langgraph | `anthropic/claude-sonnet-4-6` | n/a here | fix#5; deepagents emits no structured per-tool trajectory → turns/tools blank |
+
+### Telemetry (`skillbench_harbor/trajectory.py`)
+- The verifier `_test_context.json` is a **static** file (`target_artifacts` only) — the
+  Harbor pipeline never populates `events`, so the in-container verifier reports
+  `Turns: 0 / Tool calls: 0` for **every** agent. Telemetry is therefore parsed
+  **host-side, post-run** by `sweep.py` and shown in the table + `sweep-*.json`.
+- Uniform metrics (tokens, cost, duration, model/agent) come from the per-trial
+  `result.json` (`agent_result` / `agent_execution` / `agent_info`) — agent-agnostic.
+- `num_turns` from `agent/trajectory.json` `final_metrics.total_steps`; `tool_calls`
+  and `skills_invoked` are parsed from the raw `<agent>.txt` (agent-specific):
+  claude-code stream-json (`Read`/`Skill`), codex `item.completed`, langgraph text scan.
+- Python-only host module — no Docker copy, no TS-parity obligation.
+
+### LangSmith experiments (`skillbench_harbor/experiments.py`)
+- `sweep.py --langsmith-experiment [--experiment-dataset NAME]` logs each trial as a
+  LangSmith **experiment** (a project with `reference_dataset_id`): one run linked to
+  a dataset example, with `reward` / `checks_passed` / `checks_total` / `turns` /
+  `cost_usd` feedback and the agent's final message + artifact as outputs.
+- **Shared** dataset (`--experiment-dataset`) → agents compare side-by-side in the
+  dataset's Experiments view. **Per-agent** (omit the flag arg) → `skills-bench-<task>-<agent>`.
+- Validated: `lc-basic` × {claude-code, codex, langgraph} on shared dataset
+  `skills-bench-lc-basic`, all three viewable with feedback.
 
 ---
 
@@ -178,7 +252,9 @@ From `experiment_20260518_212749`, 11 `lc-*` tasks × 3 reps:
 1. **Adapt validators to ref-based treatments.** Per-task validators and
    `tests/conftest.py` event-extraction (`skills_invoked`) were written against the
    old skill/treatment layout. **Do not delete these — they are the kept contract**
-   (`scaffold/python/validation/*` = `TestRunner`/`_test_results`).
+   (`scaffold/python/validation/*` = `TestRunner`/`_test_results`). *(Telemetry/
+   `skills_invoked` is now recovered host-side by `skillbench_harbor/trajectory.py`
+   for the sweep report; the in-container verifier still reports `Turns: 0`.)*
 2. **Legacy orchestrators** `tests/tasks/test_tasks.py` + `.test.ts` import the
    removed `build_treatment_skills` and fail to collect — decide delete vs rewrite.
    They don't affect `sweep.py`/Harbor.
@@ -186,13 +262,20 @@ From `experiment_20260518_212749`, 11 `lc-*` tasks × 3 reps:
    3/5). Confirm `ALL_MAIN_SKILLS ≥ CONTROL` at n≥3.
 4. **Task-signal issue:** `ALL_MAIN_SKILLS == CONTROL` on `ls-multiskill-basic`
    (both docker and langsmith) — that task's validator isn't discriminating skills.
-5. **Validate multi-agent for real** — only `claude-code` has been run; smoke-test
-   `--agent codex` and `--agent langgraph` (deepagents).
-6. **Validate the 4 `ls-trace-*` tasks** (crewai, openai-agents, pydantic-ai,
-   google-adk) under the Harbor pipeline (`GOOGLE_API_KEY` needed for google-adk).
+5. ~~**Validate multi-agent**~~ **DONE** — `claude-code`, `codex`, and `langgraph`
+   all validated on `lc-basic` through the gateway (fix#4/#5). Follow-up: codex
+   does not consult injected skills (`skills_invoked=[]`); langgraph exposes no
+   structured trajectory (turns/tools blank).
+6. **Validate the `ls-*` tasks** — `ls-lang-evaluator`, `ls-lang-tracing`,
+   `ls-multiskill-advanced`, `ls-multiskill-basic` hit the live LangSmith API in the
+   verifier (`LANGSMITH_API_KEY` in `[verifier.env]`); smoke each end-to-end.
+   *(Correction: the earlier "4 `ls-trace-*` tasks" — crewai/openai-agents/
+   pydantic-ai/google-adk — do not exist in `harbor_tasks/`.)*
 7. **Smoke-test the remaining 18 tasks on `--env langsmith`** (configured, not yet
    individually run).
 8. `npm run typecheck` after trimming `scaffold/typescript/index.ts`.
+9. **Broaden the benchmark** across all tasks at `--count 3+` (the big paid sweep);
+   telemetry + experiment logging now make the output trustworthy.
 
 ### macOS local-Docker gotchas (still valid for `--env docker`)
 - `gtimeout` required (`brew install coreutils`) — without it `docker.sh` runs with

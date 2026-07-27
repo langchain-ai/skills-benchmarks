@@ -4,7 +4,7 @@
 Each treatment is materialized into a ``skills_dir`` (one ``<skill>/SKILL.md`` per
 skill) and injected via Harbor's native ``--skills`` flag, so any skill-aware agent
 (claude-code, codex, langgraph/deepagents, ...) works via ``--agent``. For each
-(task x treatment x rep) cell we run scripts/harbor_run.sh, then collect the verifier
+(task x treatment x rep) cell we invoke `harbor run` directly, then collect the verifier
 reward and per-check pass/fail breakdown into a comparison table and sweep-summary.json.
 
 Usage:
@@ -30,25 +30,25 @@ import uuid
 from pathlib import Path
 
 REPO_DIR = Path(__file__).resolve().parent.parent
-HARBOR_RUN = REPO_DIR / "scripts" / "harbor_run.sh"
 JOBS_DIR = REPO_DIR / "jobs"
 SKILLS_STAGING = REPO_DIR / ".sweep" / "skills"
 DEEPAGENTS_BASE = REPO_DIR / "deepagents_agent"
 DEEPAGENTS_STAGING = REPO_DIR / ".sweep" / "deepagents"
 LS_SETUP_DIR = REPO_DIR / ".sweep" / "ls-setup"
 
-# Load .env so host-side LangSmith calls (ls_setup/ls_cleanup) pick up LANGSMITH_API_KEY.
+# Load .env so host-side LangSmith calls (ls_setup/ls_cleanup) use the right
+# workspace/key. .env is authoritative: it overrides ambient vars so a stale
+# ambient LANGSMITH_WORKSPACE_ID can't silently redirect experiments/traces.
 _env_file = REPO_DIR / ".env"
 if _env_file.exists():
     for _line in _env_file.read_text().splitlines():
         _line = _line.strip()
         if _line and not _line.startswith("#") and "=" in _line:
             _k, _, _v = _line.partition("=")
-            _k = _k.strip()
-            if _k not in os.environ:
-                os.environ[_k] = _v.strip().strip('"').strip("'")
+            os.environ[_k.strip()] = _v.strip().strip('"').strip("'")
 
 sys.path.insert(0, str(REPO_DIR))
+from skillbench_harbor.trajectory import extract_trial_events  # noqa: E402
 from skillbench_harbor.treatments import list_treatments, materialize_treatment  # noqa: E402
 
 
@@ -208,7 +208,16 @@ def _read_results(job_dir: Path) -> dict:
         result["passed"] = data.get("passed", [])
         result["failed"] = data.get("failed", [])
 
+    # Agent telemetry (turns/tools/cost/tokens/skills) parsed host-side from the
+    # trial artifacts, since the in-container verifier has no view of these.
+    result["events"] = extract_trial_events(job_dir)
+
     return result
+
+
+def experiment_dataset_name(task: str, override: str | None) -> str:
+    """Shared LangSmith dataset name for a task (cross-agent/treatment comparison)."""
+    return override or f"skills-bench-{Path(task).name}"
 
 
 def run_cell(
@@ -216,11 +225,22 @@ def run_cell(
     *, env: str = "docker", project_path: Path | None = None,
     extra_instruction_paths: list[Path] | None = None,
     verifier_run_id: str | None = None,
+    experiment: bool = False, experiment_dataset: str | None = None,
 ) -> dict:
     """Run one harbor trial and return its parsed results."""
     before = _snapshot_jobs()
-    argv = [
-        str(HARBOR_RUN),
+    # Invoke harbor directly (no shell wrapper). .env is already loaded into
+    # os.environ (authoritative), which the harbor subprocess inherits — so the
+    # in-process harbor-langsmith plugin reads the correct workspace/key. --env-file
+    # additionally feeds the task container; --yes skips the interactive host-env
+    # confirmation so non-interactive sweeps don't block.
+    argv = ["harbor", "run"]
+    if (REPO_DIR / ".env").exists():
+        argv += ["--env-file", str(REPO_DIR / ".env")]
+    argv += [
+        "--agent-setup-timeout-multiplier", "3",
+        "--environment-build-timeout-multiplier", "5",
+        "--yes",
         "--path", task,
         "--agent", agent,
         "-m", model,
@@ -234,6 +254,18 @@ def run_cell(
         argv += ["--extra-instruction-path", str(p)]
     if verifier_run_id:
         argv += ["--ve", f"RUN_ID={verifier_run_id}"]
+    if experiment:
+        # Harbor's native LangSmith plugin logs the trial as an experiment: a parent
+        # chain run + phase runs, a child llm run carrying token usage (so cost is
+        # computed natively), reward/error feedback, and dataset/example sync. It reads
+        # LANGSMITH_API_KEY / LANGSMITH_ENDPOINT from the (host) process env.
+        ds = experiment_dataset_name(task, experiment_dataset)
+        exp_name = f"{Path(task).name}-{agent}-{treatment}"
+        argv += [
+            "--plugin", "harbor_langsmith:LangSmithPlugin",
+            "--pk", f"dataset_name={ds}",
+            "--pk", f"experiment_name={exp_name}",
+        ]
     print(f"\n=== {task} | {treatment} | {agent} | {model} ===", flush=True)
     proc = subprocess.run(argv)  # inherit stdout/stderr so progress is visible
 
@@ -255,15 +287,24 @@ def print_table(records: list[dict]) -> None:
     print("=" * 72)
     for task in dict.fromkeys(r["task"] for r in records):
         print(f"\n{task}")
-        print(f"  {'treatment':<22} {'reward':>7}  {'checks':>8}  failed")
-        print(f"  {'-' * 22} {'-' * 7}  {'-' * 8}  {'-' * 20}")
+        print(f"  {'treatment':<22} {'reward':>7}  {'checks':>8}  {'turns':>5}  "
+              f"{'tools':>5}  {'cost':>8}  failed")
+        print(f"  {'-' * 22} {'-' * 7}  {'-' * 8}  {'-' * 5}  {'-' * 5}  "
+              f"{'-' * 8}  {'-' * 16}")
         for r in (r for r in records if r["task"] == task):
             n_pass = len(r["passed"])
             total = n_pass + len(r["failed"])
             reward = "—" if r["reward"] is None else f"{r['reward']:.1f}"
             checks = f"{n_pass}/{total}" if total else "—"
             failed = ", ".join(f.split(":")[0] for f in r["failed"]) or "—"
-            print(f"  {r['treatment']:<22} {reward:>7}  {checks:>8}  {failed}")
+            ev = r.get("events") or {}
+            turns = str(ev.get("num_turns")) if ev.get("num_turns") is not None else "—"
+            tools = str(len(ev.get("tool_calls", []))) or "—"
+            cost = f"${ev['total_cost_usd']:.4f}" if ev.get("total_cost_usd") is not None else "—"
+            print(f"  {r['treatment']:<22} {reward:>7}  {checks:>8}  {turns:>5}  "
+                  f"{tools:>5}  {cost:>8}  {failed}")
+            if ev.get("skills_invoked"):
+                print(f"  {'':<22} skills: {', '.join(ev['skills_invoked'])}")
 
 
 def main() -> None:
@@ -287,7 +328,22 @@ def main() -> None:
                         help="Path to write the JSON summary.")
     parser.add_argument("--no-cleanup", action="store_true",
                         help="Skip LangSmith namespace cleanup after ls-* runs (useful for inspection).")
+    parser.add_argument("--langsmith-experiment", action="store_true",
+                        help="Log each trial to LangSmith as an experiment.")
+    parser.add_argument("--experiment-dataset", default=None,
+                        help="Shared LangSmith dataset name for --langsmith-experiment. "
+                             "Omit for a per-agent dataset (skills-bench-<task>-<agent>).")
     args = parser.parse_args()
+
+    # For experiment runs, tell the claude-code adapter where the LangSmith tracing
+    # plugin lives on the host so it can upload it and nest the granular trace under
+    # the experiment run. The adapter still gates on the per-trial parent handle, so
+    # this is a "where the plugin is" input, not a "whether to trace" switch. Inert
+    # for other agents (only the claude-code adapter reads it).
+    if args.langsmith_experiment:
+        os.environ["CC_LANGSMITH_PLUGIN_DIR"] = str(
+            REPO_DIR / "scaffold" / "plugins" / "langsmith-tracing"
+        )
 
     treatments = expand_treatments(args.treatment)
     staged_skills = {t: stage_treatment(t, args.language) for t in treatments}
@@ -312,6 +368,8 @@ def main() -> None:
                         project_path=staged_projects.get(treatment),
                         extra_instruction_paths=extra_paths or None,
                         verifier_run_id=run_id or None,
+                        experiment=args.langsmith_experiment,
+                        experiment_dataset=args.experiment_dataset,
                     )
                 finally:
                     if run_id and not args.no_cleanup:
@@ -322,6 +380,13 @@ def main() -> None:
                 records.append(record)
 
     print_table(records)
+    if args.langsmith_experiment:
+        datasets = dict.fromkeys(
+            experiment_dataset_name(t, args.experiment_dataset) for t in args.task
+        )
+        print("\nLangSmith experiments logged (see the dataset's Experiments view):")
+        for ds in datasets:
+            print(f"  dataset: {ds}")
     out_path = Path(args.out)
     out_path.write_text(json.dumps(records, indent=2))
     print(f"\nWrote {out_path}")

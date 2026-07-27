@@ -1,0 +1,74 @@
+MIGRATION_STATUS.md
+  s_98440fc9fdaafa::t_bb48059cb70401 146-152
+  s_5f8e8e819bf6ba::t_2637b5f4c094aa 21-27
+  s_98440fc9fdaafa::t_61463c02ba0072 135
+  s_5f8e8e819bf6ba::t_0fa1b2eec1859a 3
+  s_5f8e8e819bf6ba::t_cb7160ba364e09 176-208
+  s_5f8e8e819bf6ba::t_fc51173dd283b0 255-257
+  s_cc37630bb40d30::t_c4181ee9ef4656 141-145
+  s_5f8e8e819bf6ba::t_0bbf9cc3e9ca4a 136-140,153
+  s_5f8e8e819bf6ba::t_2c301f7920a7e4 72-94
+  s_5f8e8e819bf6ba::t_bcc11115c51768 265-273,277-278
+scripts/patch_harbor.py
+  s_98440fc9fdaafa::t_a2bf8a23d851c1 170-228
+  s_98440fc9fdaafa::t_e134ccaff40c84 25-31
+skillbench_harbor/trajectory.py
+  s_5f8e8e819bf6ba::t_4090d34bf4cdae 1-230
+scripts/sweep.py
+  s_8c2b47b8885f45::t_11459e91b10c54 218-222,228,257-268
+  s_5f8e8e819bf6ba::t_5eb5fd3b565fdb 211-214
+  s_5f8e8e819bf6ba::t_609c9d1b5e8b71 290-293,300-307
+  s_8c2b47b8885f45::t_70682dad39e436 383-389
+  s_5f8e8e819bf6ba::t_cf18992590cea7 51
+  s_8c2b47b8885f45::t_fb88550933d5f9 39-41,48
+  s_98440fc9fdaafa::t_9ca838d6723f97 338-347
+  s_8c2b47b8885f45::t_424bbd2bfd73b1 232-243
+  s_8c2b47b8885f45::t_43ed8cab09bb05 7
+  s_5f8e8e819bf6ba::t_ff4acbccb550fa 331-335
+  s_8c2b47b8885f45::t_a3c5c4f47c06d4 371-372
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.16",
+  "base_commit_sha": "e0a97705d82f960dddcebf5f42b10b460714a109",
+  "prompts": {},
+  "humans": {
+    "h_fe5ed23bcee8dc": {
+      "author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  },
+  "sessions": {
+    "s_5f8e8e819bf6ba": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "331bd1b5-be64-46d2-96f5-0d85c8c25e02",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    },
+    "s_8c2b47b8885f45": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "077b3d65-77d4-4dc6-912a-24dbf77f28d8",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    },
+    "s_98440fc9fdaafa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3dcce61c-9245-488c-abb7-9f252d29eac1",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    },
+    "s_cc37630bb40d30": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "73c9d65f-9bbf-4a70-9b41-9986f7b2c76f",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  }
+}

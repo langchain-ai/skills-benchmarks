@@ -30,6 +30,11 @@ package in place. It is idempotent and safe to re-run.
           only --langsmith-experiment trials trace; the plugin host path arrives
           via CC_LANGSMITH_PLUGIN_DIR (set by scripts/sweep.py).
 
+  codex tracing was attempted (fix#8/#8b) but abandoned: the first-party plugin
+  (langchain-ai/langsmith-codex-plugins) never emitted a trace under Harbor's
+  headless `codex exec`, even with gpt-5.3-codex and --dangerously-bypass-hook-trust.
+  Accepted as a known limitation — codex runs are not traced to LangSmith.
+
 Run after installing/upgrading Harbor:
 
     uv tool install 'harbor[langsmith]' --python 3.13

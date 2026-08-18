@@ -1,0 +1,40 @@
+harbor_tasks/ls-multiskill-advanced/tests/scaffold/python/utils.py
+  s_cc9fa6df854fcf::t_ec78b8771a6211 31
+scripts/patch_harbor.py
+  s_cc9fa6df854fcf::t_ec78b8771a6211 95,252
+scripts/convert_task.py
+  s_cc9fa6df854fcf::t_ec78b8771a6211 191-198,267,367,370-371,384-387,439-441
+scaffold/python/logging.py
+  s_cc9fa6df854fcf::t_ec78b8771a6211 421
+scripts/convert_skill.py
+  s_cc9fa6df854fcf::t_ec78b8771a6211 44,177-180
+harbor_tasks/ls-multiskill-basic/tests/scaffold/python/utils.py
+  s_cc9fa6df854fcf::t_ec78b8771a6211 31
+harbor_tasks/ls-lang-evaluator/tests/scaffold/python/utils.py
+  s_cc9fa6df854fcf::t_ec78b8771a6211 31
+scripts/sweep.py
+  s_cc9fa6df854fcf::t_ec78b8771a6211 185,196-201,229-236,239-240,253-256,258-265,271,283-288,295-303,318-322,333-336,343-374,376-394,425-429
+harbor_tasks/ls-lang-tracing/tests/scaffold/python/utils.py
+  s_cc9fa6df854fcf::t_ec78b8771a6211 31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "9cb5575863c770df403e293490b37e4e8beeccc1",
+  "prompts": {},
+  "humans": {
+    "h_fe5ed23bcee8dc": {
+      "author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  },
+  "sessions": {
+    "s_cc9fa6df854fcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "904f6c78-553b-4cea-9cad-b47fac232e55",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  }
+}

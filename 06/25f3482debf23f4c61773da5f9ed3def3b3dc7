@@ -1,0 +1,24 @@
+pyproject.toml
+  s_cc9fa6df854fcf::t_5888c7c29a17fd 37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "0625f3482debf23f4c61773da5f9ed3def3b3dc7",
+  "prompts": {},
+  "humans": {
+    "h_fe5ed23bcee8dc": {
+      "author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  },
+  "sessions": {
+    "s_cc9fa6df854fcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "904f6c78-553b-4cea-9cad-b47fac232e55",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  }
+}

@@ -1,0 +1,24 @@
+.gitignore
+  s_cc9fa6df854fcf::t_e0468ec51cdd1d 31-34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "bfb038e1e11e28eefd63d591197c92e8e29e778c",
+  "prompts": {},
+  "humans": {
+    "h_fe5ed23bcee8dc": {
+      "author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  },
+  "sessions": {
+    "s_cc9fa6df854fcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "904f6c78-553b-4cea-9cad-b47fac232e55",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  }
+}

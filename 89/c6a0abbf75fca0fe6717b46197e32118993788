@@ -1,0 +1,26 @@
+harbor_tasks/oss-fix-lc-streaming/solution/chat_app.py
+  s_cc9fa6df854fcf::t_8d22c02de44164 88
+  s_cc9fa6df854fcf::t_5deb926f7585d1 137
+  s_cc9fa6df854fcf::t_f7336cb04e5c62 118
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "89c6a0abbf75fca0fe6717b46197e32118993788",
+  "prompts": {},
+  "humans": {
+    "h_fe5ed23bcee8dc": {
+      "author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  },
+  "sessions": {
+    "s_cc9fa6df854fcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "904f6c78-553b-4cea-9cad-b47fac232e55",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  }
+}

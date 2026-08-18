@@ -28,3 +28,7 @@ dist/
 # Harbor run outputs
 jobs/
 sweep-*.json
+
+# Local-only migration notes (never pushed to main)
+MIGRATION_STATUS.md
+jacob-notes/

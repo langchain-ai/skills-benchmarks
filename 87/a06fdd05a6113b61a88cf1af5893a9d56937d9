@@ -1,0 +1,24 @@
+eslint.config.js
+  s_cc9fa6df854fcf::t_1018cb31f71cb7 8-14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "87a06fdd05a6113b61a88cf1af5893a9d56937d9",
+  "prompts": {},
+  "humans": {
+    "h_fe5ed23bcee8dc": {
+      "author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  },
+  "sessions": {
+    "s_cc9fa6df854fcf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "904f6c78-553b-4cea-9cad-b47fac232e55",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "jacobkleiman-LC <jacob.kleiman@langchain.dev>"
+    }
+  }
+}

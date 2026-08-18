@@ -1,0 +1,16 @@
+name: langsmith-trace
+description: 'Use this skill for LangSmith/LangChain observability questions. Covers two topics: (1) Adding tracing to your application, and (2) Querying traces. Assists with debugging, analyzing execution flow, and exporting trace data.'
+language_names:
+  py: langsmith-trace-py
+  ts: langsmith-trace-js
+sections:
+- oneliner
+- setup
+- trace_langchain_oss
+- trace_other_frameworks
+- traces_vs_runs
+- command_structure
+- querying_traces
+- filters
+- export_format
+- tips

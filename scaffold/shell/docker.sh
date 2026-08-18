@@ -14,6 +14,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/common.sh"
 
+PLUGIN_DIR="$SCRIPT_DIR/../plugins/langsmith-tracing"
+
 # Image prefix for all benchmark images
 IMAGE_PREFIX="skillbench"
 
@@ -37,15 +39,15 @@ ENV_KEYS=(
     LANGSMITH_TRACING
     LANGSMITH_ENDPOINT
     TAVILY_API_KEY
+    GOOGLE_API_KEY
     # Claude Code LangSmith tracing
     TRACE_TO_LANGSMITH
     CC_LANGSMITH_API_KEY
     CC_LANGSMITH_PROJECT
     CC_LANGSMITH_DEBUG
+    CC_LANGSMITH_LOG_FILE
     # Experiment trace context (nest CC traces under experiment run)
-    CC_LS_TRACE_ID
-    CC_LS_PARENT_RUN_ID
-    CC_LS_DOTTED_ORDER
+    CC_LANGSMITH_PARENT_DOTTED_ORDER
     # Eval trace context (nest LLM calls in test scripts under eval span)
     BENCH_EVAL_LANGSMITH_TRACE
     BENCH_EVAL_BAGGAGE
@@ -257,16 +259,27 @@ docker_run_claude() {
         cmd+=(--model "$model")
     fi
 
+    local vol_args=(-v "$dir:/workspace")
+    if [[ "${TRACE_TO_LANGSMITH:-}" == "true" && -d "$PLUGIN_DIR" ]]; then
+        cmd+=(--plugin-dir /plugin)
+        vol_args+=(-v "$PLUGIN_DIR:/plugin:ro")
+        # Default the plugin's internal debug log to a workspace path so it
+        # survives container exit. Only applies when CC_LANGSMITH_DEBUG=true.
+        if [[ "${CC_LANGSMITH_DEBUG:-}" == "true" && -z "${CC_LANGSMITH_LOG_FILE:-}" ]]; then
+            ENV_ARGS+=("-e" "CC_LANGSMITH_LOG_FILE=/workspace/_hook_debug.log")
+        fi
+    fi
+
     if [[ -n "$TIMEOUT_CMD" ]]; then
         $TIMEOUT_CMD "$timeout" docker run --rm \
-            -v "$dir:/workspace" \
+            "${vol_args[@]}" \
             -w /workspace \
             "${ENV_ARGS[@]}" \
             "$image_name" \
             "${cmd[@]}"
     else
         docker run --rm \
-            -v "$dir:/workspace" \
+            "${vol_args[@]}" \
             -w /workspace \
             "${ENV_ARGS[@]}" \
             "$image_name" \

@@ -1,0 +1,27 @@
+name: langchain-rag-pipeline
+description: 'INVOKE THIS SKILL when building ANY retrieval-augmented generation (RAG) system. Covers document loaders, RecursiveCharacterTextSplitter, embeddings (OpenAI), and vector stores (Chroma, FAISS, Pinecone). CRITICAL: Fixes for chunk size/overlap, embedding dimension mismatches, and FAISS deserialization.'
+language_names:
+  py: langchain-rag-pipeline-py
+  ts: langchain-rag-pipeline-js
+sections:
+- overview
+- vectorstore-selection
+- ex-basic-rag-setup
+- ex-loading-pdf
+- ex-loading-web-pages
+- ex-loading-directory
+- ex-text-splitting
+- ex-chroma-vectorstore
+- ex-faiss-vectorstore
+- ex-similarity-search
+- ex-mmr-search
+- ex-metadata-filtering
+- ex-rag-with-agent
+- boundaries
+- fix-chunk-size
+- fix-chunk-overlap
+- fix-persist-vectorstore
+- fix-consistent-embeddings
+- fix-faiss-deserialization
+- fix-dimension-mismatch
+- fix-import-packages

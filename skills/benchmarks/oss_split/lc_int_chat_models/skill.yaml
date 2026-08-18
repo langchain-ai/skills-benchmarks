@@ -1,0 +1,32 @@
+name: langchain-chat-models-integration
+description: '[LangChain] Guide to using chat model integrations in LangChain including OpenAI, Anthropic, Google, Azure, and Bedrock'
+language_names:
+  py: langchain-chat-models-integration-py
+  ts: langchain-chat-models-integration-js
+sections:
+- oneliner
+- overview
+- provider-selection
+- when-to-choose-provider
+- ex-openai
+- ex-anthropic
+- ex-azure
+- ex-bedrock
+- ex-google
+- ex-init
+- ex-tools
+- ex-structured
+- boundaries
+- fix-api-keys
+- fix-azure-configuration
+- fix-message-formats
+- fix-tool-calling-support
+- fix-import-errors
+- fix-context-window-limits
+- fix-streaming-confusion
+- fix-bedrock-model-ids
+- fix-model-name-variations
+- fix-rate-limits
+- fix-pydantic-version
+- links
+- installation

@@ -1,0 +1,26 @@
+schema_version = "1.3"
+
+[task]
+name = "skillbench/lc-ecosystem-env-setup"
+description = "Ecosystem setup: produce a .env.example with the Anthropic key and the LangSmith observability vars (API key, tracing on, project)"
+
+[metadata]
+source_task = "lc-ecosystem-env-setup"
+difficulty = "easy"
+category = "langchain"
+tags = ["langchain", "ecosystem-primer", "env-vars", "langsmith"]
+
+[agent]
+timeout_sec = 180.0
+
+[verifier]
+timeout_sec = 120.0
+user = "root"
+
+[environment]
+build_timeout_sec = 1800.0
+workdir = "/workspace"
+cpus = 4
+memory_mb = 8192
+storage_mb = 65536
+# skills_dir = "skills"  # Phase 1: per-treatment skills copied to the agent skills config dir

@@ -1,0 +1,24 @@
+name: langsmith-dataset
+description: Use this skill for questions about creating test or evaluation datasets for agents. Covers dataset types (final_response, single_step, trajectory, RAG), uploading to LangSmith, and managing evaluation data.
+language_names:
+  py: langsmith-dataset-py
+  ts: langsmith-dataset-js
+sections:
+- oneliner
+- setup
+- input_format
+- usage
+- extraction_priority
+- trace_hierarchy
+- dataset_types_overview
+- dataset_final_response
+- dataset_single_step
+- dataset_trajectory
+- dataset_rag
+- upload
+- query
+- tips
+- example_workflow
+- troubleshooting
+- creating_datasets
+- querying_traces

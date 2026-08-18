@@ -1,0 +1,4 @@
+- **langgraph-fundamentals**: For custom graph-based agents with StateGraph
+- **langgraph-persistence**: For advanced persistence patterns with checkpointers
+- **langchain-middleware**: For structured output with Pydantic/Zod models
+- **langchain-rag**: For RAG pipelines with vector stores

@@ -1,0 +1,3 @@
+- [LangSmith Evaluation Concepts](https://docs.langchain.com/langsmith/evaluation-concepts)
+- [Custom Code Evaluators](https://changelog.langchain.com/announcements/custom-code-evaluators-in-langsmith)
+- [OpenEvals - Readymade Evaluators](https://github.com/langchain-ai/openevals)

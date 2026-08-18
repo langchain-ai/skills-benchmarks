@@ -37,13 +37,19 @@ from scaffold.python import (
     strip_ansi,
 )
 from scaffold.python.external_data_handler import run_handler
-from scaffold.python.skill_parser import SCRIPT_EXTENSIONS
 
 # =============================================================================
 # CONSTANTS
 # =============================================================================
 
 PROJECT_ROOT = Path(__file__).parent.parent
+
+# Script-copy language filter (inlined from the retired skill_parser).
+SCRIPT_EXTENSIONS = {
+    "py": [".py"],
+    "ts": [".ts", ".js", ".mjs", ".mts"],
+    "all": None,  # No filtering - copy all scripts
+}
 
 # Shared files for xdist worker coordination
 XDIST_EXPERIMENT_FILE = PROJECT_ROOT / ".pytest_experiment_id"

@@ -21,3 +21,14 @@ __pycache__
 node_modules/
 dist/
 .vitest_experiment_id*
+
+# Sweep skill staging
+.sweep/
+
+# Harbor run outputs
+jobs/
+sweep-*.json
+
+# Local-only migration notes (never pushed to main)
+MIGRATION_STATUS.md
+jacob-notes/

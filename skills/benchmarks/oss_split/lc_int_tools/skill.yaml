@@ -1,0 +1,31 @@
+name: langchain-tools-integration
+description: '[LangChain] Guide to using tool integrations in LangChain including pre-built toolkits, Tavily, Wikipedia, and custom tools'
+language_names:
+  py: langchain-tools-integration-py
+  ts: langchain-tools-integration-js
+sections:
+- oneliner
+- overview
+- tool-selection
+- when-to-choose-tool
+- ex-tavily
+- ex-wikipedia
+- ex-calculator
+- ex-duckduckgo
+- ex-arxiv
+- ex-custom-tool
+- ex-pydantic-schema
+- ex-class-tool
+- ex-vector-store
+- ex-multi-tools
+- ex-error-handling
+- ex-sql-toolkit
+- boundaries
+- fix-import-path
+- fix-api-keys
+- fix-model-support
+- fix-tool-desc
+- fix-type-hints
+- fix-schema-validation
+- links
+- installation

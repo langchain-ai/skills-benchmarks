@@ -1,0 +1,21 @@
+name: deep-agents-skills
+description: '[Deep Agents] Creating and using custom skills with progressive disclosure, SKILL.md format, and the Agent Skills protocol in Deep Agents.'
+language_names:
+  py: deep-agents-skills-py
+  ts: deep-agents-skills-js
+sections:
+- overview
+- skills-vs-memory
+- creating-skills
+- using-skills-filesystembackend
+- using-skills-storebackend
+- using-skills-statebackend
+- decision-table
+- ex-api-docs
+- ex-testing
+- boundaries
+- fix-backend-setup
+- fix-frontmatter-required
+- fix-skill-descriptions
+- fix-subagent-skills
+- links

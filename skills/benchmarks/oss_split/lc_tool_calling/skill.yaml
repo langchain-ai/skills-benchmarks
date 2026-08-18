@@ -1,0 +1,32 @@
+name: langchain-tool-calling
+description: '[LangChain] How chat models call tools - includes bind_tools/bindTools, tool choice strategies, parallel tool calling, and tool message handling'
+language_names:
+  py: langchain-tool-calling-py
+  ts: langchain-tool-calling-js
+sections:
+- oneliner
+- overview
+- when-to-use
+- tool-choice-strategies
+- handling-tool-calls-patterns
+- ex-basic
+- ex-manual-execution
+- ex-force-tool
+- ex-force-any
+- ex-parallel
+- ex-tool-message
+- ex-error-handling
+- ex-builtin-tools
+- ex-conditional-binding
+- ex-conversation
+- ex-async-python
+- boundaries
+- fix-forgetting-tool-results
+- fix-tool-call-id-mismatch
+- fix-not-checking-for-tool-calls
+- fix-binding-tools-multiple-times
+- fix-async-tool-execution-not-awaited
+- fix-list-comprehension-with-async
+- fix-tool-choice-type-confusion
+- fix-tool-schema-mismatches
+- documentation-links

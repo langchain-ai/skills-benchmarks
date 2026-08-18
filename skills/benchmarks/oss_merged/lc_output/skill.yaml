@@ -1,0 +1,24 @@
+name: langchain-structured-output-hitl
+description: 'INVOKE THIS SKILL when you need structured/typed output from LLMs OR human-in-the-loop approval. Covers with_structured_output(), Pydantic schemas, union types for multiple formats, and HITL middleware. CRITICAL: Fixes for accessing structured response wrong, missing field descriptions, and Pydantic v1 vs v2.'
+language_names:
+  py: langchain-structured-output-hitl-py
+  ts: langchain-structured-output-hitl-js
+sections:
+- overview
+- when-to-use-structured-output
+- ex-basic-structured-output
+- ex-model-direct-structured-output
+- ex-enum-and-literal-types
+- ex-complex-nested-schema
+- ex-basic-hitl-setup
+- ex-running-with-interrupts
+- ex-editing-tool-arguments
+- ex-rejecting-with-feedback
+- ex-multiple-tools-different-policies
+- boundaries
+- fix-accessing-response-wrong
+- fix-missing-descriptions
+- fix-not-using-correct-type-hints
+- fix-missing-checkpointer
+- fix-no-thread-id
+- fix-wrong-resume-syntax

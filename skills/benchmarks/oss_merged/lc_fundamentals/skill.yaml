@@ -1,0 +1,20 @@
+name: langchain-fundamentals
+description: Create LangChain agents with create_agent, define tools, and use middleware for human-in-the-loop and error handling
+sections:
+- oneliner
+- quick_start
+- create_agent
+- ex-basic-agent
+- ex-agent-with-persistence
+- tools
+- ex-basic-tool
+- middleware
+- ex-hitl-middleware
+- ex-error-middleware
+- model_config
+- ex-model-instance
+- fix-missing-tool-description
+- fix-no-checkpointer
+- fix-infinite-loop
+- fix-accessing-result-wrong
+- related_skills

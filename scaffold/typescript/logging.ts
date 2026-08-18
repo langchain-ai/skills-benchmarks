@@ -66,6 +66,13 @@ export interface ToolCall {
   output?: string;
 }
 
+export interface Usage {
+  input_tokens?: number;
+  output_tokens?: number;
+  cache_creation_input_tokens?: number;
+  cache_read_input_tokens?: number;
+}
+
 export interface Events {
   tool_calls: ToolCall[];
   files_read: string[];
@@ -75,6 +82,8 @@ export interface Events {
   skills_invoked: string[];
   duration_seconds: number | null;
   num_turns: number | null;
+  total_cost_usd: number | null;
+  usage: Usage | null;
 }
 
 /**
@@ -90,6 +99,8 @@ export function extractEvents(parsed: ParsedOutput): Events {
     skills_invoked: [],
     duration_seconds: null,
     num_turns: null,
+    total_cost_usd: null,
+    usage: null,
   };
 
   // Map tool_use_id -> index in tool_calls list for matching outputs
@@ -100,6 +111,8 @@ export function extractEvents(parsed: ParsedOutput): Events {
       const durationMs = msg.duration_ms as number | undefined;
       events.duration_seconds = durationMs ? durationMs / 1000 : null;
       events.num_turns = (msg.num_turns as number) ?? null;
+      events.total_cost_usd = (msg.total_cost_usd as number) ?? null;
+      events.usage = (msg.usage as Usage) ?? null;
     }
 
     if (msg.type === "assistant") {
@@ -187,6 +200,8 @@ export interface EventsSummary {
   files_created?: string[];
   skills_invoked?: string[];
   scripts_used?: string[];
+  total_cost_usd?: number | null;
+  usage?: Usage | null;
 }
 
 export interface TreatmentResult {

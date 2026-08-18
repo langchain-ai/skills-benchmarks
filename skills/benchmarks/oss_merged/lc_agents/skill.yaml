@@ -1,0 +1,28 @@
+name: langchain-agents-tools
+description: 'INVOKE THIS SKILL when building ANY LangChain/LangGraph agent with tools. Covers create_agent, @tool decorator, Pydantic schemas for tools, bind_tools(), and tool message handling. CRITICAL: Fixes for missing tool docstrings/types, tool_call_id mismatches, and not checking for tool_calls in responses.'
+language_names:
+  py: langchain-agents-tools-py
+  ts: langchain-agents-tools-js
+sections:
+- overview
+- agent-configuration-selection
+- tool-choice-strategies
+- ex-basic-tool
+- ex-tool-with-schema
+- ex-async-tool
+- ex-basic-agent-with-tools
+- ex-agent-with-persistence
+- ex-basic-tool-calling
+- ex-executing-tool-calls
+- ex-parallel-tool-calling
+- ex-tool-choice-force-tool
+- boundaries
+- fix-tool-description
+- fix-missing-docstrings
+- fix-non-serializable-return
+- fix-forgetting-to-pass-tool-results-back
+- fix-tool-call-id-mismatch
+- fix-not-checking-for-tool-calls
+- fix-binding-tools-multiple-times
+- fix-state-persistence
+- fix-infinite-loop

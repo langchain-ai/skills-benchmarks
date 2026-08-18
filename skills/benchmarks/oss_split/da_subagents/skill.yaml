@@ -1,0 +1,21 @@
+name: deep-agents-subagents
+description: '[Deep Agents] Using SubAgentMiddleware to spawn subagents for task delegation, context isolation, and specialized work in Deep Agents.'
+language_names:
+  py: deep-agents-subagents-py
+  ts: deep-agents-subagents-js
+sections:
+- overview
+- when-to-use
+- how-it-works
+- defining-subagents
+- decision-table
+- ex-research
+- ex-hitl
+- ex-custom-skills
+- ex-default
+- boundaries
+- fix-subagents-stateless
+- fix-subagents-no-skill-inheritance
+- fix-subagent-results-final
+- fix-subagent-interrupts-require-checkpointer
+- links

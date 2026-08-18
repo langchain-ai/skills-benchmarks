@@ -5,7 +5,13 @@ export default tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    ignores: ["dist/**", "node_modules/**", ".venv/**", "logs/**"],
+    ignores: [
+      "dist/**",
+      "node_modules/**",
+      ".venv/**",
+      "logs/**",
+      "scaffold/plugins/**/bundle/**",
+    ],
   },
   {
     rules: {

@@ -1,0 +1,20 @@
+name: deep-agents-memory
+description: '[Deep Agents] Implementing long-term memory in Deep Agents with cross-session storage using StoreBackend, CompositeBackend, and InMemoryStore for persistent data.'
+language_names:
+  py: deep-agents-memory-py
+  ts: deep-agents-memory-js
+sections:
+- overview
+- memory-types-comparison
+- setup
+- ex-user-prefs
+- ex-feedback
+- ex-knowledge-base
+- ex-store-tools
+- decision-table
+- boundaries
+- fix-store-backend-requires-store
+- fix-path-prefix-routing
+- fix-inmemorystore-not-persistent
+- fix-composite-backend-longest-prefix
+- links

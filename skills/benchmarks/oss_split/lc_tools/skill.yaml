@@ -1,0 +1,29 @@
+name: langchain-tools
+description: '[LangChain] Define and use tools in LangChain - includes @tool decorator, custom tools, built-in tools, and tool schemas'
+language_names:
+  py: langchain-tools-py
+  ts: langchain-tools-js
+sections:
+- oneliner
+- overview
+- when-to-define-custom-tools
+- tool-definition-methods
+- ex-basic-tool
+- ex-complex-schema
+- ex-async
+- ex-error-handling
+- ex-side-effects
+- ex-external-deps
+- ex-complex-return
+- ex-factory-pattern
+- ex-toolkit
+- ex-streaming
+- ex-structuredtool
+- boundaries
+- fix-poor-descriptions
+- fix-missing-types
+- fix-non-serializable
+- fix-missing-docstrings
+- fix-async-await
+- fix-invalid-names
+- documentation-links

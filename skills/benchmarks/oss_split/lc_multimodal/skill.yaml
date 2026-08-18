@@ -1,0 +1,24 @@
+name: langchain-multimodal
+description: '[LangChain] Work with multimodal inputs/outputs in LangChain - includes images, audio, video, content blocks, and vision capabilities'
+language_names:
+  py: langchain-multimodal-py
+  ts: langchain-multimodal-js
+sections:
+- oneliner
+- overview
+- model-selection-for-multimodal
+- input-methods
+- ex-image-url
+- ex-image-base64
+- ex-multiple-images
+- ex-pdf-analysis
+- ex-audio-input
+- ex-multimodal-output
+- ex-vision-claude
+- ex-vision-gemini
+- boundaries
+- fix-model-support
+- fix-content-block-format
+- fix-mime-type
+- fix-image-size
+- documentation-links

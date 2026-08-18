@@ -1,0 +1,2 @@
+- Python: [Agents Overview](https://docs.langchain.com/oss/python/langchain/agents) | [Tool Calling](https://docs.langchain.com/oss/python/langchain/tools) | [Streaming](https://docs.langchain.com/oss/python/langchain/streaming/overview)
+- TypeScript: [Agents Overview](https://docs.langchain.com/oss/javascript/langchain/agents) | [Tool Calling](https://docs.langchain.com/oss/javascript/langchain/tools) | [Streaming](https://docs.langchain.com/oss/javascript/langchain/streaming/overview)

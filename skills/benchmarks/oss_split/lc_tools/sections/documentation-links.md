@@ -1,0 +1,2 @@
+- Python: [Tools Overview](https://docs.langchain.com/oss/python/langchain/tools) | [Tool Integrations](https://docs.langchain.com/oss/python/integrations/tools/index)
+- TypeScript: [Tools Overview](https://docs.langchain.com/oss/javascript/langchain/tools) | [Tool Integrations](https://docs.langchain.com/oss/javascript/integrations/tools/index)

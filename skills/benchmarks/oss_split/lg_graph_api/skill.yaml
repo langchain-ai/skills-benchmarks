@@ -1,0 +1,24 @@
+name: langgraph-graph-api
+description: '[LangGraph] Building graphs with StateGraph, nodes, edges, START/END nodes, and the Command API for combining control flow with state updates'
+language_names:
+  py: langgraph-graph-api-py
+  ts: langgraph-graph-api-js
+sections:
+- overview
+- decision-table
+- key-concepts
+- ex-basic
+- ex-conditional
+- ex-command
+- ex-map-reduce
+- ex-loops
+- ex-compile
+- boundaries
+- fix-compile-before-invoke
+- fix-conditional-edge-destinations
+- fix-command-type-annotation
+- fix-loop-exit-condition
+- fix-send-api-reducer
+- fix-start-not-destination
+- fix-await-invoke
+- links

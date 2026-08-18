@@ -1,0 +1,29 @@
+name: langchain-text-splitters-integration
+description: '[LangChain] Guide to using text splitter integrations in LangChain including recursive, character, and semantic splitters'
+language_names:
+  py: langchain-text-splitters-integration-py
+  ts: langchain-text-splitters-integration-js
+sections:
+- oneliner
+- overview
+- splitter-selection
+- when-to-choose-splitter
+- ex-recursive
+- ex-recursive-how-ts
+- ex-character
+- ex-token
+- ex-markdown
+- ex-code
+- ex-semantic-py
+- ex-custom-length-py
+- ex-custom-separators-ts
+- ex-pdf
+- ex-vectorstore
+- boundaries
+- fix-chunk-size-vs-tokens
+- fix-import-package-python
+- fix-small-chunks-typescript
+- fix-zero-overlap
+- fix-metadata-not-preserved
+- links
+- installation

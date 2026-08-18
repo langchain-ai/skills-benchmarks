@@ -1,0 +1,27 @@
+name: deep-agents-orchestration
+description: 'INVOKE THIS SKILL when using subagents, task planning, or human approval in Deep Agents. Covers SubAgentMiddleware, TodoList for planning, and HITL interrupts. CRITICAL: Fixes for custom subagents NOT inheriting skills (must specify explicitly), interrupt_on requiring checkpointer, and subagent statelessness.'
+language_names:
+  py: deep-agents-orchestration-py
+  ts: deep-agents-orchestration-js
+sections:
+- overview
+- when-to-use-subagents
+- how-subagents-work
+- ex-custom-subagents
+- ex-subagent-with-hitl
+- fix-subagents-are-stateless
+- fix-custom-subagents-dont-inherit-skills
+- when-to-use-todolist
+- todolist-tool
+- ex-todolist-usage
+- ex-access-todo-state
+- fix-todolist-requires-thread-id
+- when-to-use-hitl
+- ex-hitl-setup
+- ex-approval-workflow
+- ex-reject-with-feedback
+- ex-edit-before-execution
+- boundaries
+- fix-checkpointer-required
+- fix-thread-id-required-for-resumption
+- fix-interrupt-checks-between-invocations

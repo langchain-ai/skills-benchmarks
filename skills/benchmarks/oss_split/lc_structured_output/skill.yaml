@@ -1,0 +1,29 @@
+name: langchain-structured-output
+description: '[LangChain] Get structured, validated output from LangChain agents and models using Pydantic/Zod schemas, type-safe responses, and automatic validation'
+language_names:
+  py: langchain-structured-output-py
+  ts: langchain-structured-output-js
+sections:
+- oneliner
+- overview
+- when-to-use
+- schema-options
+- ex-basic-agent
+- ex-model-direct
+- ex-nested-schema
+- ex-enum-literal
+- ex-optional-defaults
+- ex-union-types
+- ex-array-extraction
+- ex-include-raw
+- ex-typeddict
+- ex-error-handling
+- boundaries
+- fix-accessing-response-wrong
+- fix-missing-descriptions
+- fix-over-constraining
+- fix-pydantic-v1-v2
+- fix-type-hints
+- fix-validation-errors
+- fix-responseformat-tools
+- documentation-links

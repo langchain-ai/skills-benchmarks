@@ -1,0 +1,20 @@
+name: deep-agents-filesystem
+description: '[Deep Agents] Using FilesystemMiddleware with virtual filesystems, backends (State, Store, Filesystem, Composite), and context management for Deep Agents.'
+language_names:
+  py: deep-agents-filesystem-py
+  ts: deep-agents-filesystem-js
+sections:
+- overview
+- when-to-use
+- backend-types
+- decision-table
+- ex-large-context
+- ex-custom-tools
+- ex-long-term-memory
+- ex-local-dev
+- boundaries
+- fix-statebackend-thread-persistence
+- fix-filesystembackend-virtual-mode
+- fix-storebackend-requires-store
+- fix-edit-file-exact-match
+- links

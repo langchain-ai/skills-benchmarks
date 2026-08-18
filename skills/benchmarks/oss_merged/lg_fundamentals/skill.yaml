@@ -1,0 +1,27 @@
+name: langgraph-fundamentals
+description: 'INVOKE THIS SKILL when writing ANY LangGraph code. Covers StateGraph creation, node functions, edges, state schemas with reducers (Annotated), and the Command API. CRITICAL: Contains fixes for returning partial state updates (not full state), missing reducers, and mutable defaults.'
+language_names:
+  py: langgraph-fundamentals-py
+  ts: langgraph-fundamentals-js
+sections:
+- overview
+- when-to-use-langgraph
+- state-update-strategies
+- ex-state-with-reducer
+- ex-messages-accumulating
+- fix-forgot-reducer-for-list
+- fix-state-must-return-dict
+- edge-type-selection
+- ex-basic-graph
+- ex-conditional-edges
+- ex-command-state-and-routing
+- ex-map-reduce-with-send
+- ex-graph-with-loop
+- fix-compile-before-execution
+- fix-infinite-loop-needs-exit
+- fix-conditional-edge-destinations
+- fix-command-type-annotation
+- fix-reducer-type-mismatch
+- fix-start-not-destination
+- fix-always-await-nodes
+- boundaries

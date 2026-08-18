@@ -1,0 +1,22 @@
+name: langgraph-streaming
+description: '[LangGraph] Streaming real-time updates from LangGraph: stream modes (values, updates, messages, custom, debug) for responsive UX'
+language_names:
+  py: langgraph-streaming-py
+  ts: langgraph-streaming-js
+sections:
+- overview
+- decision-table
+- ex-values
+- ex-updates
+- ex-tokens
+- ex-custom
+- ex-multi
+- ex-async
+- ex-subgraphs
+- ex-interrupts
+- boundaries
+- fix-messages-mode-requires-llm
+- fix-custom-mode-needs-stream-writer
+- fix-stream-modes-are-arrays
+- fix-async-stream-syntax
+- links

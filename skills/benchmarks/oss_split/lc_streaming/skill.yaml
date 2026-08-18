@@ -1,0 +1,31 @@
+name: langchain-streaming
+description: '[LangChain] Stream outputs from LangChain agents and models - includes stream modes, token streaming, progress updates, and real-time feedback'
+language_names:
+  py: langchain-streaming-py
+  ts: langchain-streaming-js
+sections:
+- oneliner
+- overview
+- when-to-use-streaming
+- stream-mode-selection
+- ex-token-streaming
+- ex-agent-progress
+- ex-combined-modes
+- ex-values-mode
+- ex-custom-progress
+- ex-web-app
+- ex-error-handling
+- ex-async-python
+- ex-timeout-ts
+- ex-buffering
+- ex-context-manager
+- boundaries
+- fix-tuple-unpack
+- fix-await-stream
+- fix-stream-mode-confusion
+- fix-sync-async
+- fix-handle-all-modes
+- fix-flush-realtime
+- fix-generator-exhaustion
+- fix-early-break-cleanup
+- documentation-links

@@ -1,34 +1,17 @@
-# OSS DeepAgents task-specific treatments
+# OSS DeepAgents task-specific treatments (oss_split skill set)
 
 OSSS_DA_MEMORY_ONLY:
-  description: "Deep Agents memory skill only"
-  claude_md: |
-    # Project Guidelines
-    You should use relevant skills to ensure you know best practices.
+  description: "DeepAgents memory skill only"
   skills:
-    - skill: oss_split/da_memory
-      variant: all
-      name: Deep Agents Memory
+    - benchmarks/oss_split/da_memory
 
 OSSS_DA_SUBAGENTS_ONLY:
-  description: "Deep Agents subagents skill only"
-  claude_md: |
-    # Project Guidelines
-    You should use relevant skills to ensure you know best practices.
+  description: "DeepAgents subagents skill only"
   skills:
-    - skill: oss_split/da_subagents
-      variant: all
-      name: Deep Agents Subagents
+    - benchmarks/oss_split/da_subagents
 
 OSSS_DA_MEMORY_AND_SUBAGENTS:
-  description: "Both memory and subagents skills"
-  claude_md: |
-    # Project Guidelines
-    You should use relevant skills to ensure you know best practices.
+  description: "DeepAgents memory + subagents skills"
   skills:
-    - skill: oss_split/da_memory
-      variant: all
-      name: Deep Agents Memory
-    - skill: oss_split/da_subagents
-      variant: all
-      name: Deep Agents Subagents
+    - benchmarks/oss_split/da_memory
+    - benchmarks/oss_split/da_subagents

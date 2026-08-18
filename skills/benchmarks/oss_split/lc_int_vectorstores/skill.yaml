@@ -1,0 +1,29 @@
+name: langchain-vector-stores-integration
+description: '[LangChain] Guide to using vector store integrations in LangChain including Chroma, Pinecone, FAISS, and memory vector stores'
+language_names:
+  py: langchain-vector-stores-integration-py
+  ts: langchain-vector-stores-integration-js
+sections:
+- oneliner
+- overview
+- vector-store-selection
+- when-to-choose-store
+- ex-memory
+- ex-faiss
+- ex-chroma
+- ex-pinecone
+- ex-add-docs
+- ex-retriever
+- ex-mmr
+- boundaries
+- fix-faiss-deserialize
+- fix-import-packages
+- fix-embedding-consistency
+- fix-pinecone-index-creation
+- fix-chroma-persistence
+- fix-dimension-mismatch
+- fix-faiss-path
+- fix-memory-ephemeral
+- fix-filter-syntax
+- links
+- installation

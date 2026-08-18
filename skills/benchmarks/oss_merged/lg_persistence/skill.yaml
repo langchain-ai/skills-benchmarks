@@ -1,0 +1,21 @@
+name: langgraph-persistence-memory
+description: 'INVOKE THIS SKILL when your LangGraph needs to remember state across calls, use memory, or persist conversations. Covers checkpointers (MemorySaver, Postgres), thread_id configuration, and Store for long-term memory. CRITICAL: Fixes for missing thread_id, checkpointer placement, and cross-thread memory access.'
+language_names:
+  py: langgraph-persistence-memory-py
+  ts: langgraph-persistence-memory-js
+sections:
+- overview
+- checkpointer-selection
+- ex-basic-persistence
+- ex-production-postgres
+- ex-separate-threads
+- ex-resume-from-checkpoint
+- ex-update-state
+- ex-long-term-memory-store
+- ex-store-operations
+- boundaries
+- fix-thread-id-required
+- fix-inmemory-not-for-production
+- fix-resume-with-none
+- fix-update-state-with-reducers
+- fix-store-injection

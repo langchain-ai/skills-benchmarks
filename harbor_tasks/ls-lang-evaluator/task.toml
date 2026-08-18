@@ -1,0 +1,32 @@
+schema_version = "1.3"
+
+[task]
+name = "skillbench/ls-lang-evaluator"
+description = "Create LangSmith evaluators for Python and TypeScript agents"
+
+[metadata]
+source_task = "ls-lang-evaluator"
+difficulty = "medium"
+category = "langsmith"
+tags = ["evaluator", "polyglot", "python", "typescript"]
+
+[agent]
+timeout_sec = 900.0
+
+[verifier]
+timeout_sec = 120.0
+user = "root"
+
+[verifier.env]
+LANGSMITH_API_KEY = "${LANGSMITH_API_KEY}"
+
+[environment]
+build_timeout_sec = 1800.0
+workdir = "/workspace"
+cpus = 4
+memory_mb = 8192
+storage_mb = 65536
+# skills_dir = "skills"  # Phase 1: per-treatment skills copied to the agent skills config dir
+
+[environment.env]
+LANGSMITH_API_KEY = "${LANGSMITH_API_KEY}"

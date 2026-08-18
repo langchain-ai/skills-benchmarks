@@ -43,22 +43,6 @@ export {
   runTaskHandlers,
 } from "./external_data_handler.js";
 
-// Treatment loading
-export {
-  TREATMENTS_FOLDER,
-  SKILL_BASE,
-  MAIN_SKILL_BASE,
-  NOISE_SKILL_BASE,
-  type SkillConfigInput,
-  type TreatmentConfig,
-  type BuiltSkillConfig,
-  loadTreatmentsYaml,
-  loadTreatments,
-  listTreatments,
-  buildNoiseTasks,
-  buildTreatmentSkills,
-} from "./treatments.js";
-
 // Validation helpers
 export {
   type ValidatorFn,

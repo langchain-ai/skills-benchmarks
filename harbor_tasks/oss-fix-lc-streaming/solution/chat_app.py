@@ -85,7 +85,7 @@ class ChatInterface:
             stream_mode=["messages"],
         )
 
-        for mode, chunk in stream:
+        for _mode, chunk in stream:
             # FIX: Unpack the (token, metadata) tuple from messages mode
             token, _metadata = chunk
             if token.content:
@@ -115,7 +115,7 @@ def simple_chat(agent, message: str) -> str:
     """Simple streaming chat that returns the response."""
     tokens = []
 
-    for mode, chunk in agent.stream(
+    for _mode, chunk in agent.stream(
         {"messages": [{"role": "user", "content": message}]},
         stream_mode=["messages"],
     ):
@@ -134,7 +134,7 @@ async def api_endpoint(agent, message: str) -> str:
     tokens = []
 
     # FIX: Use astream in async context to avoid blocking event loop
-    async for mode, chunk in agent.astream(
+    async for _mode, chunk in agent.astream(
         {"messages": [{"role": "user", "content": message}]},
         stream_mode=["messages"],
     ):

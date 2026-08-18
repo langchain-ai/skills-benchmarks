@@ -182,6 +182,7 @@ def ls_cleanup(run_id: str) -> None:
     """Delete all LangSmith resources namespaced to this run_id."""
     sys.path.insert(0, str(REPO_DIR))
     from scaffold.python.external_data_handler import cleanup_namespace  # noqa: PLC0415
+
     print(f"[ls-cleanup] Deleting namespace: {run_id}")
     cleanup_namespace(run_id)
 
@@ -192,8 +193,12 @@ def _snapshot_jobs() -> set[Path]:
 
 def _read_results(job_dir: Path) -> dict:
     """Read reward + passed/failed checks from a job's verifier output."""
-    result = {"job_dir": str(job_dir.relative_to(REPO_DIR)), "reward": None,
-              "passed": [], "failed": []}
+    result = {
+        "job_dir": str(job_dir.relative_to(REPO_DIR)),
+        "reward": None,
+        "passed": [],
+        "failed": [],
+    }
 
     reward_files = list(job_dir.glob("*/verifier/reward.txt"))
     if reward_files:
@@ -221,11 +226,18 @@ def experiment_dataset_name(task: str, override: str | None) -> str:
 
 
 def run_cell(
-    task: str, treatment: str, model: str, agent: str, skills_dir: Path | None,
-    *, env: str = "docker", project_path: Path | None = None,
+    task: str,
+    treatment: str,
+    model: str,
+    agent: str,
+    skills_dir: Path | None,
+    *,
+    env: str = "docker",
+    project_path: Path | None = None,
     extra_instruction_paths: list[Path] | None = None,
     verifier_run_id: str | None = None,
-    experiment: bool = False, experiment_dataset: str | None = None,
+    experiment: bool = False,
+    experiment_dataset: str | None = None,
 ) -> dict:
     """Run one harbor trial and return its parsed results."""
     before = _snapshot_jobs()
@@ -238,19 +250,25 @@ def run_cell(
     if (REPO_DIR / ".env").exists():
         argv += ["--env-file", str(REPO_DIR / ".env")]
     argv += [
-        "--agent-setup-timeout-multiplier", "3",
-        "--environment-build-timeout-multiplier", "5",
+        "--agent-setup-timeout-multiplier",
+        "3",
+        "--environment-build-timeout-multiplier",
+        "5",
         "--yes",
-        "--path", task,
-        "--agent", agent,
-        "-m", model,
-        "--env", env,
+        "--path",
+        task,
+        "--agent",
+        agent,
+        "-m",
+        model,
+        "--env",
+        env,
     ]
     if project_path is not None:
         argv += ["--ak", f"project_path={project_path}", "--ak", "graph=coding_agent"]
     elif skills_dir is not None:
         argv += ["--skills", str(skills_dir)]
-    for p in (extra_instruction_paths or []):
+    for p in extra_instruction_paths or []:
         argv += ["--extra-instruction-path", str(p)]
     if verifier_run_id:
         argv += ["--ve", f"RUN_ID={verifier_run_id}"]
@@ -262,17 +280,27 @@ def run_cell(
         ds = experiment_dataset_name(task, experiment_dataset)
         exp_name = f"{Path(task).name}-{agent}-{treatment}"
         argv += [
-            "--plugin", "harbor_langsmith:LangSmithPlugin",
-            "--pk", f"dataset_name={ds}",
-            "--pk", f"experiment_name={exp_name}",
+            "--plugin",
+            "harbor_langsmith:LangSmithPlugin",
+            "--pk",
+            f"dataset_name={ds}",
+            "--pk",
+            f"experiment_name={exp_name}",
         ]
     print(f"\n=== {task} | {treatment} | {agent} | {model} ===", flush=True)
     proc = subprocess.run(argv)  # inherit stdout/stderr so progress is visible
 
     new_jobs = _snapshot_jobs() - before
     if not new_jobs:
-        return {"task": task, "treatment": treatment, "exit_code": proc.returncode,
-                "reward": None, "passed": [], "failed": [], "job_dir": None}
+        return {
+            "task": task,
+            "treatment": treatment,
+            "exit_code": proc.returncode,
+            "reward": None,
+            "passed": [],
+            "failed": [],
+            "job_dir": None,
+        }
 
     job_dir = max(new_jobs, key=lambda p: p.stat().st_mtime)
     record = {"task": task, "treatment": treatment, "exit_code": proc.returncode}
@@ -287,10 +315,11 @@ def print_table(records: list[dict]) -> None:
     print("=" * 72)
     for task in dict.fromkeys(r["task"] for r in records):
         print(f"\n{task}")
-        print(f"  {'treatment':<22} {'reward':>7}  {'checks':>8}  {'turns':>5}  "
-              f"{'tools':>5}  {'cost':>8}  failed")
-        print(f"  {'-' * 22} {'-' * 7}  {'-' * 8}  {'-' * 5}  {'-' * 5}  "
-              f"{'-' * 8}  {'-' * 16}")
+        print(
+            f"  {'treatment':<22} {'reward':>7}  {'checks':>8}  {'turns':>5}  "
+            f"{'tools':>5}  {'cost':>8}  failed"
+        )
+        print(f"  {'-' * 22} {'-' * 7}  {'-' * 8}  {'-' * 5}  {'-' * 5}  {'-' * 8}  {'-' * 16}")
         for r in (r for r in records if r["task"] == task):
             n_pass = len(r["passed"])
             total = n_pass + len(r["failed"])
@@ -301,38 +330,68 @@ def print_table(records: list[dict]) -> None:
             turns = str(ev.get("num_turns")) if ev.get("num_turns") is not None else "—"
             tools = str(len(ev.get("tool_calls", []))) or "—"
             cost = f"${ev['total_cost_usd']:.4f}" if ev.get("total_cost_usd") is not None else "—"
-            print(f"  {r['treatment']:<22} {reward:>7}  {checks:>8}  {turns:>5}  "
-                  f"{tools:>5}  {cost:>8}  {failed}")
+            print(
+                f"  {r['treatment']:<22} {reward:>7}  {checks:>8}  {turns:>5}  "
+                f"{tools:>5}  {cost:>8}  {failed}"
+            )
             if ev.get("skills_invoked"):
                 print(f"  {'':<22} skills: {', '.join(ev['skills_invoked'])}")
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--task", action="append", required=True,
-                        help="Path to a harbor task dir (repeatable).")
-    parser.add_argument("--treatment", default="CONTROL,ALL_MAIN_SKILLS",
-                        help="Comma-separated treatment names / globs.")
-    parser.add_argument("-m", "--model", default="claude-sonnet-4-6",
-                        help="Model name passed to the agent. Bare id (no "
-                             "provider prefix): under the LangSmith gateway "
-                             "base URL the adapter forwards it verbatim.")
-    parser.add_argument("-a", "--agent", default="claude-code",
-                        help="Harbor agent name (claude-code, codex, langgraph, ...).")
-    parser.add_argument("-e", "--env", default="docker",
-                        help="Harbor environment type (docker, langsmith, ...).")
-    parser.add_argument("-l", "--language", default=None, choices=["py", "ts"],
-                        help="Render decomposed skills for this language variant.")
+    parser.add_argument(
+        "--task", action="append", required=True, help="Path to a harbor task dir (repeatable)."
+    )
+    parser.add_argument(
+        "--treatment",
+        default="CONTROL,ALL_MAIN_SKILLS",
+        help="Comma-separated treatment names / globs.",
+    )
+    parser.add_argument(
+        "-m",
+        "--model",
+        default="claude-sonnet-4-6",
+        help="Model name passed to the agent. Bare id (no "
+        "provider prefix): under the LangSmith gateway "
+        "base URL the adapter forwards it verbatim.",
+    )
+    parser.add_argument(
+        "-a",
+        "--agent",
+        default="claude-code",
+        help="Harbor agent name (claude-code, codex, langgraph, ...).",
+    )
+    parser.add_argument(
+        "-e", "--env", default="docker", help="Harbor environment type (docker, langsmith, ...)."
+    )
+    parser.add_argument(
+        "-l",
+        "--language",
+        default=None,
+        choices=["py", "ts"],
+        help="Render decomposed skills for this language variant.",
+    )
     parser.add_argument("--count", type=int, default=1, help="Repetitions per cell.")
-    parser.add_argument("--out", default="sweep-summary.json",
-                        help="Path to write the JSON summary.")
-    parser.add_argument("--no-cleanup", action="store_true",
-                        help="Skip LangSmith namespace cleanup after ls-* runs (useful for inspection).")
-    parser.add_argument("--langsmith-experiment", action="store_true",
-                        help="Log each trial to LangSmith as an experiment.")
-    parser.add_argument("--experiment-dataset", default=None,
-                        help="Shared LangSmith dataset name for --langsmith-experiment. "
-                             "Omit for a per-agent dataset (skills-bench-<task>-<agent>).")
+    parser.add_argument(
+        "--out", default="sweep-summary.json", help="Path to write the JSON summary."
+    )
+    parser.add_argument(
+        "--no-cleanup",
+        action="store_true",
+        help="Skip LangSmith namespace cleanup after ls-* runs (useful for inspection).",
+    )
+    parser.add_argument(
+        "--langsmith-experiment",
+        action="store_true",
+        help="Log each trial to LangSmith as an experiment.",
+    )
+    parser.add_argument(
+        "--experiment-dataset",
+        default=None,
+        help="Shared LangSmith dataset name for --langsmith-experiment. "
+        "Omit for a per-agent dataset (skills-bench-<task>-<agent>).",
+    )
     args = parser.parse_args()
 
     # For experiment runs, tell the claude-code adapter where the LangSmith tracing
@@ -363,7 +422,11 @@ def main() -> None:
                     extra_paths = [extra_path]
                 try:
                     record = run_cell(
-                        task, treatment, args.model, args.agent, staged_skills[treatment],
+                        task,
+                        treatment,
+                        args.model,
+                        args.agent,
+                        staged_skills[treatment],
                         env=args.env,
                         project_path=staged_projects.get(treatment),
                         extra_instruction_paths=extra_paths or None,

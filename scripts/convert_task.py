@@ -188,7 +188,14 @@ def normalize_score(score) -> float:
 
 
 # Validation modules to copy for ls-* tasks (need LangSmith validators).
-_LS_VALIDATION_MODULES = ("runner.py", "core.py", "dataset.py", "tracing.py", "evaluator.py", "scripts.py")
+_LS_VALIDATION_MODULES = (
+    "runner.py",
+    "core.py",
+    "dataset.py",
+    "tracing.py",
+    "evaluator.py",
+    "scripts.py",
+)
 
 
 def _copy_scaffold(tests_dir: Path, *, langsmith: bool = False) -> None:
@@ -257,7 +264,7 @@ def _build_task_toml(
         "cpus = 4",
         "memory_mb = 8192",
         "storage_mb = 65536",
-        "# skills_dir = \"skills\"  # Phase 1: per-treatment skills copied to the agent skills config dir",
+        '# skills_dir = "skills"  # Phase 1: per-treatment skills copied to the agent skills config dir',
     ]
     if agent_env:
         lines.append("")
@@ -357,12 +364,11 @@ def convert(task_name: str, out_root: Path) -> Path:
 
 
 def _build_test_sh(test_scripts: list[str], workdir: str, *, inject_run_id: bool = False) -> str:
-    runs = "\n".join(
-        f'python /tests/{s}\nstatus=$((status | $?))' for s in test_scripts
-    )
+    runs = "\n".join(f"python /tests/{s}\nstatus=$((status | $?))" for s in test_scripts)
     # ls-* tasks: sweep.py passes RUN_ID via --ve; inject it into _test_context.json
     # so validators can scope LangSmith queries to this specific run.
-    run_id_block = """
+    run_id_block = (
+        """
 # Inject RUN_ID into test context so validators can scope LangSmith queries.
 if [ -n "${RUN_ID:-}" ]; then
   python3 -c "
@@ -375,7 +381,10 @@ with open(path, 'w') as f:
     json.dump(ctx, f, indent=2)
 " "$RUN_ID"
 fi
-""" if inject_run_id else ""
+"""
+        if inject_run_id
+        else ""
+    )
     return f"""#!/usr/bin/env bash
 # Run the ported validation checks and translate the result into a Harbor reward.
 set -uo pipefail
@@ -427,7 +436,9 @@ set -euo pipefail
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Convert a skills-benchmarks task to Harbor format")
+    parser = argparse.ArgumentParser(
+        description="Convert a skills-benchmarks task to Harbor format"
+    )
     parser.add_argument("task", help="Task directory name under tasks/ (e.g. oss-fix-lc-streaming)")
     parser.add_argument("--out", default="harbor_tasks", help="Output root (default: harbor_tasks)")
     args = parser.parse_args()

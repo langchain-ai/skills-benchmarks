@@ -28,6 +28,7 @@ def get_langsmith_client():
     """Return (Client, None) or (None, error_str)."""
     try:
         from langsmith import Client
+
         api_key = os.environ.get("LANGSMITH_API_KEY")
         if not api_key:
             return None, "LANGSMITH_API_KEY not set"

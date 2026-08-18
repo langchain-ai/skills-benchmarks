@@ -418,10 +418,7 @@ class ExperimentLogger:
         check_pct = (total_checks_passed / total_checks * 100) if total_checks > 0 else 0
 
         all_costs = [
-            r.cost_usd
-            for runs in self.results.values()
-            for r in runs
-            if r.cost_usd is not None
+            r.cost_usd for runs in self.results.values() for r in runs if r.cost_usd is not None
         ]
         total_cost = sum(all_costs) if all_costs else None
 

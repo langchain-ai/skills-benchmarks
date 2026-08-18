@@ -92,7 +92,7 @@ PATCHES: list[tuple[str, str, str, str, str]] = [
     (
         "environments/langsmith.py",
         "fix#3b snapshot_id in create_sandbox",
-        "snapshot_id=payload.get(\"snapshot_id\"),",
+        'snapshot_id=payload.get("snapshot_id"),',
         """            return client.create_sandbox(
                 snapshot_name=payload.get("snapshot_name"),
                 name=payload["name"],""",
@@ -249,9 +249,7 @@ def _locate_harbor() -> tuple[Path, str]:
         "import harbor, os, importlib.metadata as m; "
         "print(os.path.dirname(harbor.__file__)); print(m.version('harbor'))"
     )
-    out = subprocess.run(
-        [interp, "-c", probe], capture_output=True, text=True
-    )
+    out = subprocess.run([interp, "-c", probe], capture_output=True, text=True)
     if out.returncode != 0:
         sys.exit(f"Could not import harbor via {interp}:\n{out.stderr.strip()}")
     pkg_dir, version = out.stdout.split()

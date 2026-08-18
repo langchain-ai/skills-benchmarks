@@ -41,7 +41,7 @@ def _split_frontmatter(text: str) -> tuple[dict, str]:
         if len(val) >= 2 and val[0] in "\"'" and val[-1] == val[0]:
             val = val[1:-1]
         fields[key.strip()] = val
-    return fields, text[m.end():]
+    return fields, text[m.end() :]
 
 
 def _inner_block(body: str, tag: str, start: int) -> tuple[str, int] | None:
@@ -174,8 +174,10 @@ def convert(skill_dir: Path) -> None:
     (skill_dir / "skill.yaml").write_text(
         yaml.safe_dump(skill_yaml, sort_keys=False, allow_unicode=True, width=10**9)
     )
-    print(f"[{mode}] Wrote {skill_dir}/skill.yaml + {len(order)} sections "
-          f"({len(list(sections_dir.glob('*.md')))} files)")
+    print(
+        f"[{mode}] Wrote {skill_dir}/skill.yaml + {len(order)} sections "
+        f"({len(list(sections_dir.glob('*.md')))} files)"
+    )
 
 
 def main() -> None:

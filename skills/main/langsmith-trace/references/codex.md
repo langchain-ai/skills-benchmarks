@@ -13,15 +13,14 @@ The `langsmith-codex-plugins` marketplace provides a tracing plugin for Codex CL
 codex plugin marketplace add langchain-ai/langsmith-codex-plugins
 ```
 
-Enable plugin hooks and the tracing plugin in `~/.codex/config.toml` (global) or `<project>/.codex/config.toml` (project):
+Enable the tracing plugin in `~/.codex/config.toml` (global) or `<project>/.codex/config.toml` (project):
 
 ```toml
-[features]
-plugin_hooks = true
-
 [plugins."tracing@langsmith-codex-plugins"]
 enabled = true
 ```
+
+Hooks load with the plugin. Run `/hooks` in Codex to trust the plugin's hooks.
 
 ## Env
 
@@ -124,7 +123,7 @@ Each replica object:
 
 ## Troubleshooting
 
-- Confirm `plugin_hooks = true` and the tracing plugin is enabled in `config.toml`
+- Confirm the tracing plugin is enabled in `config.toml` and its hooks are trusted in `/hooks`
 - Confirm `TRACE_TO_LANGSMITH=true` is visible to the Codex process
 - Confirm `LANGSMITH_CODEX_API_KEY` or `LANGSMITH_API_KEY` is set and valid
 - Wrong project? set `LANGSMITH_CODEX_PROJECT` or `project` in config
